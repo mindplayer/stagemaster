@@ -1,7 +1,15 @@
 # DEV-003：汇总首批资格验证与 G0 交付
 
-状态：planned。负责人：Sol。依赖：DEV-002、CORE-001、CORE-002。
+状态：review。负责人：Sol；交给 Astra 阶段审查。依赖：DEV-002、CORE-001、CORE-002（均已完成）。
 该任务汇总已经发生的真实运行，不要求重新生成同样的代码来凑次数。
+
+执行基线：`c8c834a416b83923df40ea2dd39079d05e5676b2`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-003`／
+`dev-003-g0-qualification`。本任务仅修改状态、历史问题解决标注和交付文档。
+
+状态更新结果：`4c401d16d9d95406ebeca71fdc9bf67f7b0c23d7`。三项资格样本、
+失败／接管、实际用量、路由结论和未解决项已汇总至
+[G0 阶段交付包](../deliveries/DEV-003-delivery.md)，等待集成后提交 Astra 审查。
 
 ## 本批样本
 

@@ -1,10 +1,10 @@
 # 实现状态
 
-既有代码缺陷核查：2026-09-10；架构与接口再评估：2026-09-11。技术框架为 Rust＋TypeScript、Tauri 2＋React；当前代码是 A0 静态语义验证原型，能完成一次内存求值和编码。没有初始化 Tauri／React，没有持续播放调度，没有连接真实控台或 DMX 设备。[架构审查](architecture-review.md)复现了现有测试未覆盖的问题；[架构 v0.5](architecture.md)是设计补充，不是已实现能力。
+既有代码缺陷核查：2026-09-10；架构与接口再评估及 G0 实施更新：2026-09-11。技术框架为 Rust＋TypeScript、Tauri 2＋React；当前代码是 A0 静态语义验证原型，能完成一次内存求值和编码。没有初始化 Tauri／React，没有持续播放调度，没有连接真实控台或 DMX 设备。[架构审查](architecture-review.md)复现的问题中 R01、R02 已在 G0 修复并加入保护回归，R03–R09 仍待后续契约任务处理；[架构 v0.5](architecture.md)是设计补充，不是已实现能力。
 
 | 能力 | 状态 | 当前证据 | 下一步 |
 | --- | --- | --- | --- |
-| 长期 AI 开发协作 | DEV-001 已交付；工作器和首批核心修复待实施 | [开发方法](development/README.md)、[DEV-001 记录](development/deliveries/DEV-001-delivery.md)与一次本地 Qwen 小模块测试；Git 基线已建立，通用工作器未验收 | 按[执行计划 v1](development/execution-plan-v1.md)推进 DEV-002、CORE-001／002、DEV-003；核心问题仍未修复 |
+| 长期 AI 开发协作 | G0 交付链路及三项资格样本已完成 | [DEV-002](development/deliveries/DEV-002-delivery.md)、[CORE-001](development/deliveries/CORE-001-delivery.md)、[CORE-002](development/deliveries/CORE-002-delivery.md)记录候选、失败、修复、接管与集成；工作器 18 项合成故障测试通过 | 交给 Astra 审查；后续只在有价值任务中逐步累计约 10 个样本，不以三项样本宣称长期收益 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
 | ESP32／ARM 独立 Cue 播放盒 | 使用场景已明确；方案评估，无固件／实机 | [播放盒评估](standalone-cue-player.md)覆盖离线选 Cue、目标执行包、Rust 复用、受限档位与恢复 | 先虚拟时间验证计划和 Cue 跳转，再选板验证独立播放与容量 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
@@ -18,9 +18,9 @@
 | 有序 Group | 已有基础实现 | 保留选灯顺序并去重 | 增加二维／三维 Selection Layout 和选择变换 |
 | Programmer | 已有基础实现 | 选择、字面量、Preset 调用、激活／释放分开 | 增加属性过滤、来源范围、撤销命令和多用户上下文 |
 | Preset | Selective 原型 | Cue 保留引用；重新求值读取新值；已激活 Playback 不自动更新 | 作用域、循环检查、版本与现场更新策略 |
-| Cue／Sequence Tracking | 静态基础求值；有已知缺陷 | 顺序处理 Set／引用／Release；替换 Cue 会绕过编号碰撞检查 | 先修事务校验，再补 Part、Block、Cue Only、MIB 和时间 |
+| Cue／Sequence Tracking | 静态基础求值；R01 已解决 | 顺序处理 Set／引用／Release；新增和替换 Cue 均校验另一稳定 ID 的编号，6 项保护回归通过 | 补 Part、Block、Cue Only、MIB 和时间；其他约束按后续契约处理 |
 | 播放器 | 静态多 Playback 容器 | 激活数值集合、调电平、立即释放；没有时钟 | Cue 状态机、命令、编译计划、版本切换和时间推进 |
-| 输出合成 | HTP／LTP 原型；默认值与模式待修订 | 优先级／激活次序；非零 HTP 默认成为下限；未知属性可被忽略 | 固定推杆／合成契约，编译前校验不支持属性 |
+| 输出合成 | HTP／LTP 原型；R02 已解决 | HTP default 仅在无有效贡献时回退；8 项保护回归覆盖零值、权重、优先级和缩放；未知属性仍可被忽略 | 固定专业推杆／合成契约，编译前校验不支持属性；处理 R03、R07 |
 | 来源追踪 | 初步贡献记录 | 可见 Playback 等来源；未保留 Cue／Preset／效果链 | 编译 sourceMap、获胜／抑制／回退原因与帧关联 |
 | DMX 配适 | 简单平面档案 | 地址、占用、粗细通道及跨界检查 | 领域档案与编码分离；多单元、功能范围、版本及校准 |
 | DMX 编码 | 8／16-bit 数据编码 | 一次快照生成 512-slot 通道负载，不是物理发送 | 中立数值帧、epoch／时序和真实输出适配器 |
@@ -33,17 +33,17 @@
 
 ## 验证命令
 
-架构 v0.5 与接口 0.3 已按[完整目标再评估](architecture-evolution-review.md)修正独立操作会话、监看稳定键、外部动作同步组代次、单域编译／激活及工程／执行两类包，增加无节目启动和跨端交换的类型样例。C-A1—C-A10 均为待实现的运行验收；时钟／deadline、资源清单及兼容矩阵仍需原型细化。本轮未修改产品 Rust 代码，未重复未变更的 Rust 测试，也没有真实设备验证。
+架构 v0.5 与接口 0.3 已按[完整目标再评估](architecture-evolution-review.md)修正独立操作会话、监看稳定键、外部动作同步组代次、单域编译／激活及工程／执行两类包，增加无节目启动和跨端交换的类型样例。C-A1—C-A10 均为待实现的运行验收；时钟／deadline、资源清单及兼容矩阵仍需原型细化。G0 只修改 R01／R02 的局部 Rust 语义和开发工作器，没有真实设备验证。
 
 ```sh
 cargo fmt --all -- --check
-cargo check --workspace --all-targets
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
+cargo check --workspace --all-targets --locked --offline
+cargo test --workspace --locked --offline
+cargo clippy --workspace --all-targets --locked --offline -- -D warnings
 cargo run -p stagemaster-engine-demo
 ```
 
-此前代码审查运行 fmt、workspace 测试、严格 clippy 和 demo 均通过。现有 10 项单元测试覆盖定点缩放、组顺序去重、Preset 重新求值与原子应用、编程器记录范围、简单 HTP／LTP 及优先级、配适冲突和 16-bit 编码；本轮未重复运行未变更的 Rust 测试。
+G0 的 CORE-002 集成提交 `81ed816fff5d8a358d5e1ecf933057a148d02e8f` 已运行 fmt、离线 workspace 测试和严格 Clippy并通过。workspace 当前 24 项测试：原有 10 项，加 CORE-001 的 6 项 Cue 唯一性保护回归及 CORE-002 的 8 项 HTP 回退保护回归。demo 与真实设备未在 G0 重跑，不能据此扩大能力声明。
 
 新增接口检查命令：
 
@@ -53,4 +53,4 @@ npm exec --yes --package=typescript@5.9.3 -- tsc -p docs/module-api/tsconfig.jso
 
 严格类型检查通过，并核查相关文档的本地链接与代码围栏。该检查只验证声明、调用样例和编译期错误反例，不证明业务服务、RPC、鉴权、时序或设备输出已实现。
 
-独立临时探针另行复现 Cue 编号替换碰撞、HTP 非零默认下限、未知属性被忽略、运行中 Preset 更新不传播、Cue 编号越界饱和行为。探针不计入现有测试数；问题详见审查报告，本次未修改产品代码。模拟运行不代表现场实时性、完整确定性或商业可用性。
+独立临时探针曾复现 Cue 编号替换碰撞、HTP 非零默认下限、未知属性被忽略、运行中 Preset 更新不传播、Cue 编号越界饱和行为。前两项现已由产品内保护回归验证修复；R03、R06、R09 仍保留。历史探针不计入当前 24 项测试，模拟运行也不代表现场实时性、完整确定性或商业可用性。
