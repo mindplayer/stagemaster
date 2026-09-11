@@ -162,8 +162,11 @@ class RunnerTests(unittest.TestCase):
         self.assertFalse(thread.is_alive())
         status = holder["status"]
         self.assertEqual(status["state"], "cancelled")
+        self.assertEqual(status["backend_state"], "finished")
+        self.assertEqual(runner.store.backend()["state"], "finished")
         self.assertFalse((jobs[0] / "attempt-1" / "candidate").exists())
         attempt = json.loads((jobs[0] / "attempt-1" / "attempt.json").read_text())
+        self.assertEqual(attempt["state"], "cancelled")
         self.assertTrue(attempt["late_response_discarded"])
 
     def test_cancel_during_candidate_build_wins_atomic_publication(self) -> None:

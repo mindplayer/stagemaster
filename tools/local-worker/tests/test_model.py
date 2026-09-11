@@ -86,6 +86,9 @@ class LoopbackCase(unittest.TestCase):
         self.assertLess(elapsed, 0.5)
         thread.join(timeout=2)
         self.assertFalse(thread.is_alive())
+        self.assertFalse(
+            any(candidate.name == "local-worker-http-deadline" for candidate in threading.enumerate())
+        )
 
     def test_whole_request_deadline_covers_slow_success_body(self) -> None:
         self.assert_deadline(status=200)
