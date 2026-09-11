@@ -1,6 +1,10 @@
 # CORE-001：Cue 新增／替换统一校验编号唯一性
 
-状态：planned。负责人：Sol；优先由 Qwen 实现。依赖：DEV-001、DEV-002。
+状态：running。负责人：Sol；优先由 Qwen 实现。依赖：DEV-001、DEV-002（均已完成）。
+
+执行基线：`d24751c915cd9c3578a03ea964c9651b49cd778d`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/core-001`／
+`core-001-cue-uniqueness`。写入范围保持本工单定义。
 本契约已由 Astra 确定，无需再次申请架构评估。对应历史审查 R01。
 
 ## 范围
