@@ -1,0 +1,16 @@
+[package]
+name = "stagemaster-engine-demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+stagemaster-dmx = { path = "../../crates/stagemaster-dmx" }
+stagemaster-domain = { path = "../../crates/stagemaster-domain" }
+stagemaster-engine = { path = "../../crates/stagemaster-engine" }
+stagemaster-show = { path = "../../crates/stagemaster-show" }
+
+[lints]
+workspace = true
+

@@ -1,0 +1,13 @@
+[package]
+name = "stagemaster-show"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+stagemaster-domain = { path = "../stagemaster-domain" }
+
+[lints]
+workspace = true
+

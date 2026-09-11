@@ -1,0 +1,13 @@
+/target/
+/node_modules/
+/.DS_Store
+*.log
+
+# Project-local runtime state and secrets.
+/data/
+/logs/
+/tmp/
+/infra/.env
+.env
+.env.*
+!.env.example

@@ -1,0 +1,76 @@
+[
+  {
+    "url": "https://api.avolites.com/19.2",
+    "cited_in": [
+      "M15-macros-automation.md",
+      "M17-remotes-api.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://web3.avolites.com/Portals/0/Downloads/ReleaseNotes/TitanSuite/TitanReleaseNotesV19.0.pdf",
+    "cited_in": [
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://web3.avolites.com/Portals/0/Downloads/ReleaseNotes/TitanSuite/TitanReleaseNotesV19.1.pdf",
+    "cited_in": [
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://web3.avolites.com/Portals/0/Downloads/ReleaseNotes/TitanSuite/TitanReleaseNotesV19.2.pdf",
+    "cited_in": [
+      "M12-pixel-media.md",
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://www.avolites.com/support/D9",
+    "cited_in": [
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://www.avolites.com/support/all-titan-pc-suite-downloads",
+    "cited_in": [
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://www.avolites.com/support/release-notes",
+    "cited_in": [
+      "M20-maintenance-diagnostics.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  },
+  {
+    "url": "https://www.malighting.com/downloads/products/grandMA3",
+    "cited_in": [
+      "M21-version-baseline.md"
+    ],
+    "coverage_role": "supplemental_official_source",
+    "verification": "consulted_for_module_claims",
+    "device_tested": false
+  }
+]

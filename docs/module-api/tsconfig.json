@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["shared-contracts.ts", "contracts.ts", "examples.ts", "contract-checks.ts", "external-contracts.ts", "external-examples.ts", "surface-contracts.ts", "evolution-examples.ts"]
+}
