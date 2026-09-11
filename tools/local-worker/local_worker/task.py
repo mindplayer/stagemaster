@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -109,7 +108,8 @@ def validate_task(raw: dict[str, Any], config: dict[str, Any]) -> ValidatedTask:
     for name in ("contract_revision", "goal", "contract", "acceptance", "model_profile"):
         _string(raw, name)
 
-    workspace_input = Path(raw["workspace_root"])
+    workspace_value = _string(raw, "workspace_root")
+    workspace_input = Path(workspace_value)
     if not workspace_input.is_absolute() or workspace_input.is_symlink():
         raise WorkerError("invalid_workspace", "workspace_root must be absolute and not a symlink")
     workspace = workspace_input.resolve(strict=True)

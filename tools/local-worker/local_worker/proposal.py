@@ -30,7 +30,7 @@ def parse_operations(response: dict[str, Any]) -> tuple[list[dict[str, str]], An
     message = choice.get("message")
     if not isinstance(message, dict):
         raise WorkerError("malformed_response", "choice has no message object")
-    if message.get("content") not in {None, ""}:
+    if message.get("content") is not None and message.get("content") != "":
         raise WorkerError("malformed_response", "model narrated instead of returning only a proposal")
     calls = message.get("tool_calls")
     if not isinstance(calls, list) or len(calls) != 1 or not isinstance(calls[0], dict):

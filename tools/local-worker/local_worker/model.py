@@ -88,10 +88,14 @@ def generate(payload: dict[str, Any], profile: dict[str, Any], timeout: float, m
             raw = response.read(max_response_bytes + 1)
     except HTTPError as exc:
         body = exc.read(65536).decode(errors="replace")
-        raise WorkerError("api_http_error", f"HTTP {exc.code}: {body}") from exc
+        raise WorkerError(
+            "api_http_error",
+            f"HTTP {exc.code}: {body}",
+            {"elapsed_seconds": round(time.monotonic() - started, 3)},
+        ) from exc
     except (URLError, TimeoutError, socket.timeout, OSError) as exc:
         code = "request_timeout" if isinstance(exc, (TimeoutError, socket.timeout)) else "api_disconnect"
-        raise WorkerError(code, str(exc)) from exc
+        raise WorkerError(code, str(exc), {"elapsed_seconds": round(time.monotonic() - started, 3)}) from exc
     elapsed = time.monotonic() - started
     if len(raw) > max_response_bytes:
         return ModelReply(raw=raw, parsed={}, elapsed_seconds=elapsed, over_limit=True)

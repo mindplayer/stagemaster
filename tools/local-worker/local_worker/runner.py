@@ -142,6 +142,12 @@ class Runner:
                 int(self.config["limits"]["max_response_bytes"]),
             )
         except WorkerError as exc:
+            elapsed = float(exc.details.get("elapsed_seconds", 0.0))
+            if elapsed:
+                self.store.update(
+                    job_id,
+                    generation_seconds_total=round(float(status["generation_seconds_total"]) + elapsed, 3),
+                )
             backend_state = "unknown" if exc.code in {"request_timeout", "api_disconnect", "api_http_error"} else "finished"
             atomic_json(attempt_dir / "attempt.json", {"attempt": attempt, "state": "failed", "error": exc.as_dict()})
             return self._fail(job_id, exc, backend_state)
@@ -247,12 +253,15 @@ class Runner:
         status = self.store.load(job_id)
         if status["state"] != "running":
             return status
-        return self.store.update(
+        updated = self.store.update(
             job_id,
             state="cancel_requested",
             progress="cancellation accepted; waiting for bounded request to return",
             cancel_requested=True,
+            backend_state="still_running",
         )
+        self.store.set_backend("still_running", "cancel requested while bounded request is active")
+        return updated
 
     def recover(self, job_id: str | None, backend_state: str) -> dict[str, Any]:
         if job_id is not None:
@@ -285,6 +294,8 @@ class Runner:
     def verify_candidate_source(self, job_id: str) -> dict[str, Any]:
         status = self.store.load(job_id)
         saved = read_json(self.store.job_dir(job_id) / "task.json")
+        if saved.get("input_digest") != status.get("input_digest"):
+            raise WorkerError("artifact_integrity", "stored task digest does not match status")
         workspace = Path(saved["task"]["workspace_root"])
         mismatches = []
         head = run_git(workspace, ["rev-parse", "HEAD"]).decode().strip()

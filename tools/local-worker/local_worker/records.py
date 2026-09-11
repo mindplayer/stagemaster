@@ -6,7 +6,7 @@ from typing import Any
 
 from .errors import WorkerError
 from .task import ValidatedTask, task_as_json
-from .util import TASK_ID_RE, atomic_json, canonical_json, exclusive_lock, process_identity, read_json, sha256_bytes, utc_now
+from .util import JOB_ID_RE, atomic_json, canonical_json, exclusive_lock, process_identity, read_json, sha256_bytes, utc_now
 
 
 TERMINAL_STATES = {"candidate_ready", "failed", "cancelled", "interrupted"}
@@ -19,7 +19,7 @@ class Store:
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
 
     def job_dir(self, job_id: str) -> Path:
-        if not TASK_ID_RE.fullmatch(job_id):
+        if not JOB_ID_RE.fullmatch(job_id):
             raise WorkerError("invalid_job_id", f"invalid job id: {job_id}")
         return self.root / job_id
 

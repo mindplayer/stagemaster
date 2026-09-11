@@ -16,6 +16,7 @@ from .errors import WorkerError
 
 MISSING_HASH = "missing"
 TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+JOB_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
 FULL_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 

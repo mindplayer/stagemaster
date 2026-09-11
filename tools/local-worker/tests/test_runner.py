@@ -148,6 +148,7 @@ class RunnerTests(unittest.TestCase):
         job_id = jobs[0].name
         requested = runner.cancel(job_id)
         self.assertEqual(requested["state"], "cancel_requested")
+        self.assertEqual(requested["backend_state"], "still_running")
         release.set()
         thread.join(timeout=3)
         self.assertFalse(thread.is_alive())
