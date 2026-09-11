@@ -37,6 +37,12 @@ published, and the source is rehashed before candidate construction. Candidate
 files, readable diff, source/candidate/proposal hashes, raw responses, timing,
 upstream usage, model identity, and errors are preserved per attempt.
 
+Every created attempt reaches a recorded terminal state when context or request
+preparation is rejected; no-request failures keep the backend `finished` and do
+not block the next valid task. Complete and partial HTTP response bytes are saved
+before JSON or proposal parsing, elapsed request time always consumes the task
+budget, and unavailable usage is recorded as `null` rather than estimated.
+
 `candidate_ready` means text validation passed. Sol must run `verify-source`,
 copy or apply only the candidate paths into the task worktree, review the diff,
 format the accepted files, run the separately stored acceptance commands, and
@@ -45,12 +51,20 @@ after checking source hashes, saves diagnostics, and calls `repair` explicitly.
 The worker never consumes repair attempts automatically; total recorded model
 time is capped by the task.
 
-Cancellation is cooperative: it records `cancel_requested`, waits for the
-bounded non-streaming HTTP request, saves and discards a late response, then
-records `cancelled`. This does not claim the shared MLX server stopped early.
-Timeout, disconnect, or process loss records backend state as `unknown` and
-blocks later generation. After independently verifying the runtime, Sol can use
-the explicit recovery command:
+Cancellation and candidate publication use the same per-job locked transition.
+An accepted cancellation before publication prevents a new candidate from
+becoming eligible; a cancellation arriving after terminal publication returns
+that terminal state without changing its flag. A response that arrives after an
+accepted cancellation is saved for evidence and discarded. This does not claim
+the shared MLX server stopped early.
+
+One monotonic deadline covers connection, response headers, and success or error
+body reads. It is the smaller of the per-request limit and remaining task budget.
+At the deadline a watchdog closes the same HTTP connection and is joined; the
+worker does not kill the shared model server or leave a helper HTTP request.
+Timeout, disconnect, truncated response, or byte-limit closure records backend
+state as `unknown` and blocks later generation. After independently verifying
+the runtime, Sol can use the explicit recovery command:
 
 ```bash
 python3 tools/local-worker/worker.py recover --job JOB_ID --backend-state finished
@@ -60,7 +74,7 @@ This path restriction protects what the worker itself reads and emits. It is
 not an OS sandbox; Sol executes generated code later with the normal Codex host
 permissions. Current verification covers macOS only.
 
-Run the synthetic suite:
+Run the synthetic and loopback HTTP suite (33 tests at v0.1.1):
 
 ```bash
 python3 -m unittest discover -s tools/local-worker/tests -v

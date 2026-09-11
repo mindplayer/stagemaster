@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from .errors import WorkerError
 from .task import ValidatedTask, task_as_json
@@ -29,14 +30,21 @@ class Store:
             raise WorkerError("unknown_job", f"unknown job: {job_id}")
         return read_json(path)
 
-    def update(self, job_id: str, **changes: Any) -> dict[str, Any]:
+    @contextmanager
+    def locked_status(self, job_id: str) -> Iterator[dict[str, Any]]:
         directory = self.job_dir(job_id)
         with exclusive_lock(directory / ".lock", blocking=True):
             status = read_json(directory / "status.json")
+            original = dict(status)
+            yield status
+            if status != original:
+                status["updated_at"] = utc_now()
+                atomic_json(directory / "status.json", status)
+
+    def update(self, job_id: str, **changes: Any) -> dict[str, Any]:
+        with self.locked_status(job_id) as status:
             status.update(changes)
-            status["updated_at"] = utc_now()
-            atomic_json(directory / "status.json", status)
-        return status
+        return dict(status)
 
     def _lookup_unlocked(self, task: ValidatedTask) -> dict[str, Any] | None:
         for directory in self.root.iterdir():
@@ -89,8 +97,11 @@ class Store:
                 "owner_pid": os.getpid(),
                 "owner_identity": process_identity(os.getpid()),
                 "cancel_requested": False,
-                "backend_state": "unknown",
+                "backend_state": "finished",
                 "generation_seconds_total": 0.0,
+                "proposal_hash": None,
+                "candidate_hashes": {},
+                "result_manifest": None,
                 "error": None,
                 "unresolved": [],
             }
@@ -100,12 +111,14 @@ class Store:
 
     def backend(self) -> dict[str, Any]:
         path = self.root / "backend.json"
-        return read_json(path) if path.exists() else {"state": "finished", "updated_at": None, "reason": None}
+        with exclusive_lock(self.root / ".backend.lock", blocking=True):
+            return read_json(path) if path.exists() else {"state": "finished", "updated_at": None, "reason": None}
 
     def set_backend(self, state: str, reason: str | None) -> None:
         if state not in {"finished", "still_running", "unknown"}:
             raise WorkerError("invalid_backend_state", f"unsupported backend state: {state}")
-        atomic_json(self.root / "backend.json", {"state": state, "updated_at": utc_now(), "reason": reason})
+        with exclusive_lock(self.root / ".backend.lock", blocking=True):
+            atomic_json(self.root / "backend.json", {"state": state, "updated_at": utc_now(), "reason": reason})
 
     def ensure_backend_available(self) -> None:
         backend = self.backend()

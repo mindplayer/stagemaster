@@ -7,7 +7,6 @@ These are review evidence, not replacement production acceptance tests.
 
 from __future__ import annotations
 
-import io
 import json
 import sys
 import tempfile
@@ -23,7 +22,7 @@ sys.path.insert(0, str(ROOT / "tools/local-worker"))
 sys.path.insert(0, str(ROOT / "tools/local-worker/tests"))
 
 from local_worker.errors import WorkerError
-from local_worker.model import generate
+from local_worker.model import TransportResponse, generate
 from local_worker.proposal import build_candidate as original_build_candidate
 from local_worker.runner import Runner
 from support import config, make_repo, reply, task, write_json
@@ -87,7 +86,10 @@ class G0ReviewRegressions(unittest.TestCase):
         runner = Runner(self.config)
         raw = b"{broken-json"
         # Two seconds elapsed at the transport boundary; no real network call.
-        with patch("local_worker.model.urlopen", return_value=io.BytesIO(raw)), patch(
+        with patch(
+            "local_worker.model._perform_http",
+            return_value=TransportResponse(status=200, reason="OK", raw=raw),
+        ), patch(
             "local_worker.model.time.monotonic", side_effect=[100.0, 102.0]
         ):
             status = runner.run(self.task_path)

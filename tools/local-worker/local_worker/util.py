@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import threading
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterator
@@ -18,6 +19,14 @@ MISSING_HASH = "missing"
 TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 JOB_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
 FULL_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+_LOCAL_LOCKS: dict[str, threading.RLock] = {}
+_LOCAL_LOCKS_GUARD = threading.Lock()
+
+
+def _local_lock(path: Path) -> threading.RLock:
+    key = str(path.absolute())
+    with _LOCAL_LOCKS_GUARD:
+        return _LOCAL_LOCKS.setdefault(key, threading.RLock())
 
 
 def utc_now() -> str:
@@ -56,7 +65,7 @@ def read_json(path: Path) -> dict[str, Any]:
 
 def atomic_write(path: Path, data: bytes, mode: int = 0o600) -> None:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
     try:
         with os.fdopen(descriptor, "wb") as handle:
@@ -77,16 +86,22 @@ def atomic_json(path: Path, value: Any) -> None:
 @contextlib.contextmanager
 def exclusive_lock(path: Path, *, blocking: bool) -> Iterator[None]:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    with path.open("a+b") as handle:
-        flags = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
-        try:
-            fcntl.flock(handle.fileno(), flags)
-        except BlockingIOError as exc:
-            raise WorkerError("busy", "another local generation is active") from exc
-        try:
-            yield
-        finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    local = _local_lock(path)
+    if not local.acquire(blocking=blocking):
+        raise WorkerError("busy", "another local generation is active")
+    try:
+        with path.open("a+b") as handle:
+            flags = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
+            try:
+                fcntl.flock(handle.fileno(), flags)
+            except BlockingIOError as exc:
+                raise WorkerError("busy", "another local generation is active") from exc
+            try:
+                yield
+            finally:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        local.release()
 
 
 def normalize_relative_path(raw: Any) -> str:
