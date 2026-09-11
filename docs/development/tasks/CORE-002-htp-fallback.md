@@ -1,7 +1,11 @@
 # CORE-002：HTP 默认值仅作无有效贡献时的回退
 
-状态：planned。负责人：Sol；优先由 Qwen 实现。依赖：CORE-001。
+状态：running。负责人：Sol；优先由 Qwen 实现。依赖：CORE-001。
 本契约已由 Astra 确定，无需再次申请架构评估。对应历史审查 R02。
+
+执行基线：`8ef3024d7a5fde3a03312a6927f202b6b12e84b9`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/core-002`／
+`core-002-htp-fallback`。写入范围保持本工单定义。
 
 ## 范围
 
