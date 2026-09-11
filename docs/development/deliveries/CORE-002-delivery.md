@@ -1,11 +1,11 @@
 # CORE-002 交付
 
-- 状态：可审查
+- 状态：已集成
 - 执行者、模型／运行时版本：Qwen3.8-27B MLX 8-bit + MTP；mlx-vlm 0.7.0 / MLX 0.32.2；Sol 负责保护验收、候选审查和额度耗尽后的收尾
 - 契约版本、基线提交、工作区／分支：工单固定契约；`8ef3024d7a5fde3a03312a6927f202b6b12e84b9`；`/Users/sunqi/projects/stagemaster-worktrees/core-002`／`core-002-htp-fallback`
 - 验收提交：`0dda451c7428bec970de87395cc3da6fe03977be`
 - 结果提交／补丁哈希：`9c87cbe559245a8f033101c70da4fe39532a97ce`；最终提案 `2e1f19e78dff09f4d1bd1177717922f921e5ca81f1ec12870acb485ad5cf95b0`
-- 集成提交：未集成
+- 集成提交：`81ed816fff5d8a358d5e1ecf933057a148d02e8f`
 
 ## 结果
 
@@ -33,6 +33,7 @@ Qwen job `CORE-002-QWEN-001-62c5ebba6722` 只生成
 | `cargo fmt --all -- --check` | 0 | `9c87cbe` | CORE-002 worktree |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | 0 | `9c87cbe` | CORE-002 worktree |
 | `git diff 0dda451 -- crates/stagemaster-engine/tests/htp_default_fallback.rs` | 空；独立验收未改动 | `9c87cbe` | CORE-002 worktree |
+| 合并后格式、工作区测试与 Clippy | 全部通过 | `81ed816` | 主 checkout |
 
 独立验收未为实现修改。所有固定行为均有测试覆盖，无未执行验证。
 
