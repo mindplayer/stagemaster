@@ -226,15 +226,17 @@ impl Sequence {
     /// # Errors
     ///
     /// Returns [`ShowError::DuplicateCueNumber`] when a different cue already uses the number.
+    /// The check runs before any mutation, so a rejected upsert leaves the sequence unchanged.
     pub fn upsert_cue(&mut self, cue: Cue) -> Result<(), ShowError> {
-        if let Some(existing) = self.cues.iter_mut().find(|existing| existing.id == cue.id) {
-            *existing = cue;
-        } else if self
+        if self
             .cues
             .iter()
-            .any(|existing| existing.number == cue.number)
+            .any(|existing| existing.number == cue.number && existing.id != cue.id)
         {
             return Err(ShowError::DuplicateCueNumber(cue.number));
+        }
+        if let Some(existing) = self.cues.iter_mut().find(|existing| existing.id == cue.id) {
+            *existing = cue;
         } else {
             self.cues.push(cue);
         }
