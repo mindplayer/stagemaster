@@ -4,6 +4,8 @@
 
 当前实施依据为[执行计划 v1](execution-plan-v1.md)，复制[完整启动提示词](sol-start-prompt.md)交给 Sol。首批工作器仅生成和校验候选改动，由 Sol 接纳并执行验证；详细边界以[工作器 v1 契约](local-worker-contract-v1.md)为准。
 
+G0 已提交后的最新决定见 [Astra 阶段审查](reviews/G0-review-20260911.md)：CORE-001／002 通过，工作器先按 [DEV-004](tasks/DEV-004-worker-correctness.md)补修。当前续接使用[补修提示词](sol-g0-repair-prompt.md)，不重新执行已完成的首批任务。
+
 ## 决定
 
 采用“云端负责判断，本地完成有边界的实现，工具执行验证，文件保存交接”的方式。
