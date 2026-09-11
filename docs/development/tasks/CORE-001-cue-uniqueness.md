@@ -1,6 +1,6 @@
 # CORE-001：Cue 新增／替换统一校验编号唯一性
 
-状态：review。负责人：Sol；由 Qwen 实现、Sol 独立验收。依赖：DEV-001、DEV-002（均已完成）。
+状态：done。负责人：Sol；由 Qwen 实现、Sol 独立验收。依赖：DEV-001、DEV-002（均已完成）。
 
 执行基线：`d24751c915cd9c3578a03ea964c9651b49cd778d`。
 工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/core-001`／
@@ -10,6 +10,7 @@
 验收提交：`49ddeadeb88eaf6448b1bf954298027157b915d3`；结果提交：
 `22c24e24ab69bd26a7a9b2aadfb9602374c29abf`。基线定向测试按预期失败，
 结果已通过定向测试、工作区测试、格式检查与 Clippy；详见交付记录。
+集成提交：`df64f98603ca28462cf76a515b65fb39dda9b26d`。
 
 ## 范围
 

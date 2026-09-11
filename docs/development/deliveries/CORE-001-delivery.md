@@ -1,11 +1,11 @@
 # CORE-001 交付
 
-- 状态：可审查
+- 状态：已集成
 - 执行者、模型／运行时版本：Qwen3.8-27B MLX 8-bit + MTP；mlx-vlm 0.7.0 / MLX 0.32.2；Sol 负责保护验收、候选审查与集成
 - 契约版本、基线提交、工作区／分支：工单固定契约；`d24751c915cd9c3578a03ea964c9651b49cd778d`；`/Users/sunqi/projects/stagemaster-worktrees/core-001`／`core-001-cue-uniqueness`
 - 验收提交：`49ddeadeb88eaf6448b1bf954298027157b915d3`
 - 结果提交／补丁哈希：`22c24e24ab69bd26a7a9b2aadfb9602374c29abf`；提案 `a3720f0ee63410f3e6d17edfb7e5bfe4fac0a64da73ddda7034cd7d8484eeab2`
-- 集成提交：未集成
+- 集成提交：`df64f98603ca28462cf76a515b65fb39dda9b26d`
 
 ## 结果
 
@@ -27,6 +27,7 @@ Qwen job `CORE-001-QWEN-001-19aa51f9994f` 只生成
 | `cargo fmt --all -- --check` | 0 | `22c24e2` | CORE-001 worktree |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | 0 | `22c24e2` | CORE-001 worktree |
 | `git diff 49ddead -- crates/stagemaster-show/tests/cue_number_uniqueness.rs` | 空；独立验收未改动 | `22c24e2` | CORE-001 worktree |
+| 合并后格式、工作区测试与 Clippy | 全部通过 | `df64f98` | 主 checkout |
 
 独立验收未为实现修改。所有固定行为均有测试覆盖，无未执行验证。
 
