@@ -1,10 +1,10 @@
 # DEV-002 交付
 
-- 状态：可审查
+- 状态：已集成
 - 执行者、模型／运行时版本：Sol 实现工作器；真实资格任务使用 Qwen3.8-27B MLX 8-bit + MTP，mlx-vlm 0.7.0 / MLX 0.32.2
 - 契约版本、基线提交、工作区／分支：工作器 v1（2026-09-11）；`b466bc6786eb7d25c3b9a1cfb69b41f7be602061`；`/Users/sunqi/projects/stagemaster-worktrees/dev-002`／`dev-002-local-worker`
 - 结果提交／补丁哈希：初版 `f2189ba8534aa70ce561927137e6848179ec0bab`；加固结果 `f07493cebc73f1bf60847677385c2630c71b6ad5`
-- 集成提交：待集成
+- 集成提交：`55098271a6c9e1cebb995b8a8dad354297a35157`
 
 ## 结果
 
@@ -42,6 +42,7 @@ worktree、不执行模型命令或生成代码。配置示例和 Sol 接纳／�
 | `cargo fmt --all -- --check` | 0 | `f07493c` | DEV-002 worktree |
 | `cargo test --workspace --locked --offline` | 0；10 passed | `f07493c` | DEV-002 worktree |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | 0 | `f07493c` | DEV-002 worktree |
+| 合并后上述 Python 测试与三项 Rust 检查 | 全部通过 | `5509827` | 主 checkout |
 
 独立验收未为实现修改。资格任务的模型自写单测错误通过一次显式 repair 修复；
 格式化没有消耗模型请求。
