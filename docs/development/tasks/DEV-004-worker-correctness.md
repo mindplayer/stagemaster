@@ -1,7 +1,11 @@
 # DEV-004：修复 G0 工作器审查发现
 
-状态：ready。负责人：Sol 直接实现。依赖：已集成 DEV-002；依据 [Astra G0 审查](../reviews/G0-review-20260911.md)。
+状态：running。负责人：Sol 直接实现。依赖：已集成 DEV-002；依据 [Astra G0 审查](../reviews/G0-review-20260911.md)。
 本工单明确修复既有 v1 承诺，不重新设计产品核心或扩展工作器能力。完成前不进入 G1。
+
+执行基线：`c296345a62c9c6af5c51a88c53b8bb136a7b4497`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-004`／
+`dev-004-worker-correctness`。Astra 审查材料已在基线中独立提交。
 
 ## 范围与准备
 

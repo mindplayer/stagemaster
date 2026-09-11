@@ -5,7 +5,7 @@
 ## 已确定
 
 - 架构会话：用户指定的 Astra 会话负责契约与阶段审查。
-- 开发会话：当前 Sol 会话；G0 已完成并复验，等待 Astra 阶段审查。
+- 开发会话：当前 Sol 会话；Astra 暂不放行 G0，DEV-004 正在独立 worktree 修复工作器契约缺口。
 - 本地实现者：Qwen3.8-27B MLX 8-bit + MTP，单任务推理。
 - 产品与技术框架沿用项目 README；协作方式见 [开发方法](README.md)。
 
@@ -19,6 +19,7 @@
 - CORE-002 的保护验收在基线上复现 default 错作 HTP 下限；Qwen 两次修复后通过测试，Sol 在模型额度耗尽后做一行无 panic 收尾，主线 24 项测试通过，集成提交为 `81ed816fff5d8a358d5e1ecf933057a148d02e8f`。
 - v1 不包含 MCP、后台服务、持久队列或生成代码执行；未修改 Codex provider、登录、模型或既有 MLX 运行时。
 - G0 收尾已清理任务 worktree 和活动推理锁；Qwen MLX 后端已停止，`ai-gateway` 保持运行，重型模型回到按需状态。
+- Astra G0 复审通过 CORE-001／002，但复现工作器的原子取消、准备失败收尾、完整 HTTP deadline 和失败响应证据四项缺口；修复前不进入 G1。
 
 ## 任务队列
 
@@ -29,10 +30,11 @@
 | [CORE-001](tasks/CORE-001-cue-uniqueness.md) | done | Sol；Qwen 已实现 | DEV-002 | Cue 新增／替换统一校验编号唯一性 |
 | [CORE-002](tasks/CORE-002-htp-fallback.md) | done | Sol；Qwen 候选 | CORE-001 | HTP 默认值仅在无有效贡献时回退 |
 | [DEV-003](tasks/DEV-003-qualification.md) | done | Sol；Astra 阶段审查 | DEV-002、CORE-001、CORE-002 | 汇总首批资格验证与 G0 交付 |
+| [DEV-004](tasks/DEV-004-worker-correctness.md) | running | Sol | DEV-002、Astra G0 审查 | 修复工作器并提交 G0 复审 |
 
-当前 G0 集成提交：`e5ea78f2667ada991427c63b8d9fc74c3c5f9e39`。活动实现任务：无。待 Astra 审查包：[G0 阶段交付包](deliveries/DEV-003-delivery.md)。
+当前修复基线：`c296345a62c9c6af5c51a88c53b8bb136a7b4497`。活动实现任务：DEV-004。待 Astra 复审包：修复中。
 
 ## 下一会话第一步
 
-Astra 审查 G0 交付包，并据 R03–R09 的依赖关系细化 G1 工单；开发会话在收到新工单前不展开 G1。
+先让 DEV-004 的正式回归在旧实现上失败，再完成工作器修复、集成和全量复验，交回 Astra；不展开 G1。
 普通细节自主解决；重大契约变化采用[变更说明](templates/architecture-change.md)。
