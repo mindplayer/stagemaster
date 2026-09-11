@@ -1,6 +1,6 @@
 # DEV-002：本地候选改动工作器 v1
 
-状态：running。负责人：Sol。依赖：DEV-001（已完成）。
+状态：review。负责人：Sol。依赖：DEV-001（已完成）。
 
 执行基线：`b466bc6786eb7d25c3b9a1cfb69b41f7be602061`。
 工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-002`／`dev-002-local-worker`。
@@ -35,3 +35,7 @@ CLI 可靠即可继续 CORE-001／002；本批不增加 MCP、后台服务、持
 
 临时试验参考：`/Users/sunqi/ai/tmp/stagemaster-qwen-trial-20260911/run_trial.py`，仅复用已验证的接口经验。
 不能把该脚本复制后改几个路径就宣称完成本工单。
+
+实现结果：`f07493cebc73f1bf60847677385c2630c71b6ad5`；真实资格结果：
+`672af4cf8c546df90cc8a14aa7edcd83c67d7e7e`。完整证据见
+[DEV-002 交付](../deliveries/DEV-002-delivery.md)。
