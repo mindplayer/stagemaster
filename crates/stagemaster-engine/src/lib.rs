@@ -133,19 +133,23 @@ impl Mixer {
                 let mut trace = Vec::with_capacity(values.len());
                 let output = match descriptor.mix_mode {
                     stagemaster_domain::MixMode::HighestTakesPrecedence => {
-                        let highest_priority = values.iter().map(|value| value.priority).max();
-                        let mut output = descriptor.default;
-                        for value in values
-                            .into_iter()
-                            .filter(|value| Some(value.priority) == highest_priority)
-                        {
-                            let effective = value.value.scale(value.weight);
-                            if effective >= output {
-                                output = effective;
+                        match values.iter().map(|value| value.priority).max() {
+                            None => descriptor.default,
+                            Some(highest_priority) => {
+                                let mut output: Option<NormalizedValue> = None;
+                                for value in values
+                                    .into_iter()
+                                    .filter(|value| value.priority == highest_priority)
+                                {
+                                    let effective = value.value.scale(value.weight);
+                                    output = Some(
+                                        output.map_or(effective, |current| current.max(effective)),
+                                    );
+                                    trace.push(Self::trace(value));
+                                }
+                                output.unwrap_or(descriptor.default)
                             }
-                            trace.push(Self::trace(value));
                         }
-                        output
                     }
                     stagemaster_domain::MixMode::LatestTakesPrecedence => {
                         let mut output = descriptor.default;
