@@ -111,7 +111,12 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(status["state"], "failed")
         self.assertEqual(status["error"]["class"], "response_too_large")
         self.assertEqual(status["backend_state"], "unknown")
-        self.assertTrue((runner.store.job_dir(status["job_id"]) / "attempt-1" / "response.partial.json").is_file())
+        attempt = runner.store.job_dir(status["job_id"]) / "attempt-1"
+        self.assertTrue((attempt / "response.partial.json").is_file())
+        manifest = json.loads((attempt / "attempt.json").read_text())
+        self.assertTrue(manifest["response_incomplete"])
+        self.assertEqual(manifest["model_seconds"], 0.01)
+        self.assertEqual(runner.store.backend()["state"], "unknown")
         self.assertEqual((self.root / "src" / "lib.rs").read_text(), "pub fn value() -> u8 { 1 }\n")
 
     def test_timeout_blocks_generation_until_explicit_backend_recovery(self) -> None:
@@ -180,6 +185,7 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(runner.store.backend()["state"], "finished")
         self.assertFalse((job / "attempt-1" / "candidate").exists())
         self.assertEqual(json.loads((job / "attempt-1" / "attempt.json").read_text())["state"], "cancelled")
+        self.assert_code("invalid_state", lambda: runner.verify_candidate_source(status["job_id"]))
 
     def test_cancel_before_request_and_after_terminal_have_consistent_results(self) -> None:
         generator = SequenceGenerator([reply(CHANGE)])
@@ -217,6 +223,16 @@ class RunnerTests(unittest.TestCase):
         second_path = self.case / "second.json"
         write_json(second_path, second_data)
         self.assertEqual(runner.run(second_path)["state"], "candidate_ready")
+
+    def test_payload_preparation_failure_is_terminal_without_model_call(self) -> None:
+        generator = SequenceGenerator([reply(CHANGE)])
+        runner = Runner(self.config, generator)
+        with patch("local_worker.runner.request_payload", side_effect=ValueError("synthetic payload failure")):
+            failed = runner.run(self.task_path)
+        self.assertEqual(failed["state"], "failed")
+        self.assertEqual(failed["backend_state"], "finished")
+        self.assertEqual(failed["error"]["class"], "request_preparation_failed")
+        self.assertEqual(generator.calls, 0)
 
     def test_repair_preparation_failure_is_terminal_and_preserves_prior_candidate(self) -> None:
         generator = SequenceGenerator([reply(CHANGE)])
@@ -279,6 +295,12 @@ class RunnerTests(unittest.TestCase):
         runner = Runner(self.config, generator)
         first = runner.run(self.task_path)
         self.assertEqual(first["error"]["class"], "malformed_response")
+        self.assertEqual(first["generation_seconds_total"], 0.01)
+        first_manifest = json.loads(
+            (runner.store.job_dir(first["job_id"]) / "attempt-1" / "attempt.json").read_text()
+        )
+        self.assertEqual(first_manifest["model_seconds"], 0.01)
+        self.assertIsNone(first_manifest["usage"])
         diagnostics = self.case / "diagnostics.txt"
         diagnostics.write_text("compiler expected a valid candidate", encoding="utf-8")
         second = runner.repair(first["job_id"], diagnostics)
