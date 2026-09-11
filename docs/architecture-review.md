@@ -31,6 +31,11 @@ P1 表示应在继续扩大核心能力、固定工程格式之前处理；P2 �
 
 ### R01 · P1 · 替换 Cue 绕过编号唯一性检查
 
+**解决状态（2026-09-11）：已解决。** CORE-001 集成提交
+`df64f98603ca28462cf76a515b65fb39dda9b26d` 在修改前统一检查另一 Cue ID 的编号，
+保护回归 `crates/stagemaster-show/tests/cue_number_uniqueness.rs` 覆盖新增、替换、
+失败不变与排序。以下内容保留为原审查事实。
+
 位置：`crates/stagemaster-show/src/lib.rs:229`，`Sequence::upsert_cue`。
 
 已有同 ID 时直接替换；重复编号只在新增分支检查。探针创建编号 1、2 的两个 Cue，再把第二个 Cue 改成编号 1，返回成功并保留两个相同编号。与方法声明的错误契约冲突，也会影响排序与后续按编号操作。
@@ -38,6 +43,11 @@ P1 表示应在继续扩大核心能力、固定工程格式之前处理；P2 �
 处理要求：先对“其他 ID”做统一校验，成功后原子提交；失败不能改变已有序列。稳定 ID、显示编号、播放顺序分别建模。补新增碰撞、替换碰撞、失败后状态不变的回归场景。
 
 ### R02 · P1 · HTP 将默认值当成输出下限
+
+**解决状态（2026-09-11）：已解决本审查所述缺陷。** CORE-002 集成提交
+`81ed816fff5d8a358d5e1ecf933057a148d02e8f` 仅在无有效贡献时回退 default，
+保护回归 `crates/stagemaster-engine/tests/htp_default_fallback.rs` 覆盖显式零、
+权重、优先级与缩放。R07 的专业推杆／LTP 语义仍未解决。以下内容保留为原审查事实。
 
 位置：`crates/stagemaster-engine/src/lib.rs:135`，HTP 分支。
 

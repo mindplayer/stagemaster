@@ -1,7 +1,11 @@
 # DEV-003：汇总首批资格验证与 G0 交付
 
-状态：planned。负责人：Sol。依赖：DEV-002、CORE-001、CORE-002。
+状态：running。负责人：Sol。依赖：DEV-002、CORE-001、CORE-002（均已完成）。
 该任务汇总已经发生的真实运行，不要求重新生成同样的代码来凑次数。
+
+执行基线：`c8c834a416b83923df40ea2dd39079d05e5676b2`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-003`／
+`dev-003-g0-qualification`。本任务仅修改状态、历史问题解决标注和交付文档。
 
 ## 本批样本
 

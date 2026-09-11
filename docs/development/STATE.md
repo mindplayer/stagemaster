@@ -5,7 +5,7 @@
 ## 已确定
 
 - 架构会话：用户指定的 Astra 会话负责契约与阶段审查。
-- 开发会话：当前 Sol 会话；CORE-002 已集成，正在执行 DEV-003 阶段汇总。
+- 开发会话：当前 Sol 会话；DEV-003 正在独立 worktree 汇总 G0 审查包。
 - 本地实现者：Qwen3.8-27B MLX 8-bit + MTP，单任务推理。
 - 产品与技术框架沿用项目 README；协作方式见 [开发方法](README.md)。
 
@@ -27,9 +27,9 @@
 | [DEV-002](tasks/DEV-002-local-worker.md) | done | Sol | DEV-001 | 可追溯、有限写入、可取消的本地候选改动工作器 |
 | [CORE-001](tasks/CORE-001-cue-uniqueness.md) | done | Sol；Qwen 已实现 | DEV-002 | Cue 新增／替换统一校验编号唯一性 |
 | [CORE-002](tasks/CORE-002-htp-fallback.md) | done | Sol；Qwen 候选 | CORE-001 | HTP 默认值仅在无有效贡献时回退 |
-| [DEV-003](tasks/DEV-003-qualification.md) | ready | Sol；Astra 阶段审查 | DEV-002、CORE-001、CORE-002 | 汇总首批资格验证与 G0 交付 |
+| [DEV-003](tasks/DEV-003-qualification.md) | running | Sol；Astra 阶段审查 | DEV-002、CORE-001、CORE-002 | 汇总首批资格验证与 G0 交付 |
 
-当前开发基线提交：`81ed816fff5d8a358d5e1ecf933057a148d02e8f`。活动实现任务：DEV-003。待 Astra 审查包：整理中。
+当前开发基线提交：`c8c834a416b83923df40ea2dd39079d05e5676b2`。活动实现任务：DEV-003。待 Astra 审查包：整理中。
 
 ## 下一会话第一步
 
