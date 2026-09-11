@@ -7,6 +7,7 @@
 当前开发入口：
 
 - [长期开发协作方法](docs/development/README.md)：Astra 架构会话、Sol 开发会话和本地 Qwen 的分工；含研究比较、工单、验收与交接规则。新开发会话先读 [AGENTS.md](AGENTS.md) 和 [当前交接状态](docs/development/STATE.md)。
+- [Sol 执行计划 v1](docs/development/execution-plan-v1.md)：首批工单、已定契约、阶段验收和后续路线；[完整启动提示词](docs/development/sol-start-prompt.md)可交给 Sol 会话执行。
 - [Rust／C++26 核心语言复评](docs/core-language-rust-vs-cpp.md)：原生核心约束、实时性、内存／并发、工具链及 SDK／固件边界；继续推荐 Rust 主核心。
 - [独立 Cue 播放盒评估](docs/standalone-cue-player.md)：没有电脑时本地选 Cue 播放；ESP32 受限播放器、ARM 完整播放器、语言复用与文件交付；尚无固件或实测。
 - [模块伪 API 方案](docs/module-api/README.md)：模块职责、类／接口的调用方式、Rust 构造依赖、跨端传输和完整调用样例；声明可做类型检查，服务尚未实现。

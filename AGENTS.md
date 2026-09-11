@@ -4,6 +4,8 @@
 
 先读 `docs/development/STATE.md` 和当前工单，再按需读模块契约。首次了解产品时读 `README.md`。不要每次重新加载全套控台研究或重复技术选型。
 
+当前首批执行依据为 `docs/development/execution-plan-v1.md`；DEV-002 以 `docs/development/local-worker-contract-v1.md` 的候选改动 CLI 为准，不扩展为完整代理平台。CORE-001／002 的修复契约已由 Astra 确定。先核对已完成项，从下一项继续。
+
 ## 会话分工
 
 - 用户指定的 Astra 会话负责架构、契约、开发顺序和阶段审查，以规划和审查为主。

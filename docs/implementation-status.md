@@ -4,7 +4,7 @@
 
 | 能力 | 状态 | 当前证据 | 下一步 |
 | --- | --- | --- | --- |
-| 长期 AI 开发协作 | 方法、角色规则和工单已建立；工具链基础待实施 | [开发方法](development/README.md)与一次本地 Qwen 小模块测试；当前目录尚未建立 Git 基线，通用工作器未验收 | Sol 执行 DEV-001、DEV-002，再做真实任务资格评估 |
+| 长期 AI 开发协作 | DEV-001 已交付；工作器和首批核心修复待实施 | [开发方法](development/README.md)、[DEV-001 记录](development/deliveries/DEV-001-delivery.md)与一次本地 Qwen 小模块测试；Git 基线已建立，通用工作器未验收 | 按[执行计划 v1](development/execution-plan-v1.md)推进 DEV-002、CORE-001／002、DEV-003；核心问题仍未修复 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
 | ESP32／ARM 独立 Cue 播放盒 | 使用场景已明确；方案评估，无固件／实机 | [播放盒评估](standalone-cue-player.md)覆盖离线选 Cue、目标执行包、Rust 复用、受限档位与恢复 | 先虚拟时间验证计划和 Cue 跳转，再选板验证独立播放与容量 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
