@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "EXAMPLE-001",
+  "contract_revision": "1",
+  "workspace_root": "/absolute/path/to/clean-task-worktree",
+  "base_commit": "0000000000000000000000000000000000000000",
+  "read_paths": ["src/lib.rs", "tests/acceptance.rs"],
+  "write_paths": ["src/lib.rs"],
+  "protected_paths": ["tests/acceptance.rs"],
+  "goal": "Implement one bounded behavior in src/lib.rs.",
+  "contract": "Keep public signatures unchanged and do not add dependencies.",
+  "acceptance": "The protected acceptance test and existing tests must pass after Sol accepts the candidate.",
+  "model_profile": "qwen-default",
+  "max_output_tokens": 4096,
+  "max_attempts": 3,
+  "request_timeout_seconds": 360,
+  "total_timeout_seconds": 900
+}

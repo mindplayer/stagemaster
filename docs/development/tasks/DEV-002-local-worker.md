@@ -1,6 +1,11 @@
 # DEV-002：本地候选改动工作器 v1
 
-状态：planned。负责人：Sol。依赖：DEV-001。
+状态：review。负责人：Sol。依赖：DEV-001（已完成）。
+
+执行基线：`b466bc6786eb7d25c3b9a1cfb69b41f7be602061`。
+工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-002`／`dev-002-local-worker`。
+修改范围：`tools/local-worker/**`、本工单、`docs/development/STATE.md`、
+`docs/development/deliveries/DEV-002-delivery.md`与必要的工作器使用说明。
 
 本工单按 Astra 的[执行计划 v1](../execution-plan-v1.md)和[工作器 v1 契约](../local-worker-contract-v1.md)实施。
 2026-09-11 修订：将原先包含通用执行、持久队列和 MCP 的大范围目标缩小为候选文本改动 CLI。以 v1 契约为准。
@@ -30,3 +35,7 @@ CLI 可靠即可继续 CORE-001／002；本批不增加 MCP、后台服务、持
 
 临时试验参考：`/Users/sunqi/ai/tmp/stagemaster-qwen-trial-20260911/run_trial.py`，仅复用已验证的接口经验。
 不能把该脚本复制后改几个路径就宣称完成本工单。
+
+实现结果：`f07493cebc73f1bf60847677385c2630c71b6ad5`；真实资格结果：
+`672af4cf8c546df90cc8a14aa7edcd83c67d7e7e`。完整证据见
+[DEV-002 交付](../deliveries/DEV-002-delivery.md)。
