@@ -1,6 +1,6 @@
 # DEV-001：建立版本和验证基线
 
-状态：ready。负责人：Sol。依赖：无。属于开发基础工作，不实现产品新功能。
+状态：done。负责人：Sol。依赖：无。属于开发基础工作，不实现产品新功能。
 
 ## 目标与范围
 
@@ -27,3 +27,6 @@
 - 按[交付模板](../templates/delivery.md)记录结果，DEV-002 的依赖状态准确。
 
 本工单是建立基线的例外：开始前没有 base commit 时允许填 `bootstrap`；完成时必须替换为真实提交。
+
+完成基线：`f5201f0485abd6c3de4d0ccca57abe350719cce9`。完整结果见
+[`DEV-001-delivery.md`](../deliveries/DEV-001-delivery.md)。
