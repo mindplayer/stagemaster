@@ -1,11 +1,11 @@
 # DEV-004 交付
 
-- 状态：可供 Astra 复审
+- 状态：已集成，供 Astra 复审
 - 执行者：Sol 直接实现；Python 3.12.13 标准库；未调用 Qwen
 - 契约、基线、工作区／分支：DEV-004 固定补修契约；`c296345a62c9c6af5c51a88c53b8bb136a7b4497`；`/Users/sunqi/projects/stagemaster-worktrees/dev-004`／`dev-004-worker-correctness`
 - 验收提交：`c726818b35496c7b7ca21459b3918c83ad42f37b`
 - 结果提交：实现 `83ecb1b173eba3d3f759239d0e95b0499ce18ac3`；清理／取消证据加固 `d87e7bd3df1565055419b39e3c39b300722cbed9`
-- 集成提交：未集成
+- 集成提交：`b281532cee641549ab9bb66070ceb52c84aa34a1`
 
 ## 结果
 
@@ -32,10 +32,11 @@ CORE-001／002 验收、provider、模型或网关配置。
 | `cargo fmt --all -- --check` | 0 | `83ecb1b` |
 | `cargo test --workspace --locked --offline` | 0；24 passed | `83ecb1b` |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | 0 | `83ecb1b` |
+| 合并后正式 33 项、Astra 4 项、Rust fmt／24 项测试／严格 Clippy | 全部通过；0.2 秒滴流场景观测 0.256 秒返回 | `b281532` |
 
 一次直接用文件路径选择局部 unittest 的命令因测试目录未进入模块搜索路径而报
 `support` 导入错误，未执行测试、未改变源码；随即按项目规定的 discovery 入口
-重跑 33 项并通过。最终集成版本将再次执行同组正式测试、Astra 复现和 Rust 检查。
+重跑 33 项并通过。最终集成版本已再次执行同组正式测试、Astra 复现和 Rust 检查。
 
 ## 未解决项
 
