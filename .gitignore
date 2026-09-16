@@ -7,6 +7,7 @@
 /data/
 /logs/
 /tmp/
+/.worktrees/
 /infra/.env
 .env
 .env.*

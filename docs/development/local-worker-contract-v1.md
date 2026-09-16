@@ -1,5 +1,7 @@
 # 本地工作器 v1：首批实现契约
 
+> 已停用：2026-09-11 根据 [DEV-ADR-001](decisions/DEV-ADR-001-sol-astra.md)退出开发路线。下文是历史契约，不是当前施工单；工作器残留问题未修复。
+
 2026-09-11，Astra 选定。适用于 DEV-002；尚未实现。
 它把旧工单中的完整执行器目标收敛为候选改动工具。本文与旧描述不一致时，以本文及执行计划 v1 为准。
 
@@ -7,7 +9,7 @@
 
 源码：`tools/local-worker/`；用已有 Python 3.12 和标准库，至少分开任务／策略校验、模型端点适配、候选改动校验、运行记录、CLI。
 具体文件名由 Sol 决定，不为每项职责建立复杂框架。
-产物：本机 `AI_ROOT/outputs/local-worker/<job_id>/`。源码不硬编码用户目录；运行时先解析配置。
+历史产物已迁到本项目 `data/development/legacy-qwen/local-worker/<job_id>/`，见[位置映射](project-files.md)。原配置和任务中的旧根路径仅作证据，不得重建外部输出目录。
 仅当前 macOS 验收，不能声称已经测试 Windows／Linux。
 
 核心函数的建议形式：

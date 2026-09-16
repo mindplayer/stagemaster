@@ -1,5 +1,7 @@
 # DEV-002：本地候选改动工作器 v1
 
+> 当前状态：retired，2026-09-11 依据 [DEV-ADR-001](../decisions/DEV-ADR-001-sol-astra.md)停止使用与维护。下文保留原交付历史，不再执行。
+
 状态：done。负责人：Sol。依赖：DEV-001（已完成）。
 
 执行基线：`b466bc6786eb7d25c3b9a1cfb69b41f7be602061`。
@@ -15,7 +17,7 @@
 实现 Sol 可调用的 run/status/cancel/repair 入口。工作器只提供经校验的候选文件与差异；Sol 负责接纳、运行测试和集成。
 
 源码仅放 `tools/local-worker/`，开发文档放本目录；不成为 StageMaster 产品运行依赖。
-产物放本机 `AI_ROOT/outputs/local-worker/`，不纳入项目 Git。不得修改已有网关、MLX 运行时或 provider 配置。
+历史产物已封存到本项目 `data/development/legacy-qwen/local-worker/`，不纳入主项目 Git；旧配置只是证据，不得按其路径写回共享 AI 目录。见[迁移记录](../project-files.md)。
 使用现有 Python 3.12 标准库，不安装新的代理框架或模型。
 
 ## 实施顺序
@@ -33,7 +35,7 @@ v1 契约中的路径、提案、身份、busy、过期来源、输出截断、�
 真实模型生成、宿主独立验收至少一次通过。给出可运行命令与已知限制，不把模拟测试当成真实接入。
 CLI 可靠即可继续 CORE-001／002；本批不增加 MCP、后台服务、持久队列或自动执行生成代码。
 
-临时试验参考：`/Users/sunqi/ai/tmp/stagemaster-qwen-trial-20260911/run_trial.py`，仅复用已验证的接口经验。
+临时试验参考：`/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/trial-20260911/run_trial.py`，仅复用已验证的接口经验。
 不能把该脚本复制后改几个路径就宣称完成本工单。
 
 实现结果：`f07493cebc73f1bf60847677385c2630c71b6ad5`；真实资格结果：

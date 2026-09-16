@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "ai_root": "/absolute/path/to/ai-root",
+  "ai_root": "/absolute/path/to/stagemaster/data/development/retired-worker",
   "profiles": {
     "qwen-default": {
       "api_base": "http://127.0.0.1:18100/v1",

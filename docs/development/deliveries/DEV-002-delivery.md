@@ -15,10 +15,10 @@
 
 模型只收到列出的文件与契约，只能返回 `create` 或精确 `replace` 文本操作。
 全部操作先在内存验证，随后将候选文件、diff、来源／提案／候选哈希、原始响应、
-usage、时间与分类错误保存到 `AI_ROOT/outputs/local-worker/<job_id>/`；不写任务
+usage、时间与分类错误的原始记录现迁到项目内 `data/development/legacy-qwen/local-worker/<job_id>/`；当时不写任务
 worktree、不执行模型命令或生成代码。配置示例和 Sol 接纳／修复流程见
-`tools/local-worker/README.md`，当前主机配置在
-`/Users/sunqi/ai/outputs/local-worker/config.json`。
+`tools/local-worker/README.md`；原主机配置已随证据封存于
+`/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/config.json`。
 
 真实资格任务在独立本地仓库运行：
 
@@ -35,7 +35,7 @@ worktree、不执行模型命令或生成代码。配置示例和 Sol 接纳／�
 | --- | --- | --- | --- |
 | `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/local-worker/tests -v` | 0；18 passed | `f07493c` | 本交付会话记录；`tools/local-worker/tests/` |
 | 路径、符号链接、保护优先、原子提案、过期来源、身份冲突、busy、截断、超时阻断、取消迟到结果、恢复、repair 上限 | 全部合成测试通过 | `f07493c` | 同上 |
-| 资格基线 `cargo test --locked --offline` | 101；占位实现按预期失败 | `6b68bac` | `/Users/sunqi/ai/outputs/local-worker/qualification/dev-002-dmx-span` |
+| 资格基线 `cargo test --locked --offline` | 101；占位实现按预期失败 | `6b68bac` | `/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/qualification/dev-002-dmx-span` |
 | 资格结果 `cargo fmt --all -- --check` | 0 | `672af4c` | 同上 |
 | 资格结果 `cargo test --locked --offline` | 0；7 模型单测 + 4 独立验收通过 | `672af4c` | 同上 |
 | 资格结果 `cargo clippy --all-targets --locked --offline -- -D warnings` | 0 | `672af4c` | 同上 |

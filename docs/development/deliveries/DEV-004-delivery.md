@@ -1,5 +1,7 @@
 # DEV-004 交付
 
+> 后续决定：本次提交复审仍有三项残留问题；随后用户取消 Qwen 路线，剩余补修以 cancelled 结束，见 [DEV-ADR-001](../decisions/DEV-ADR-001-sol-astra.md)。本文记录已提交部分，不代表残留问题修复通过。
+
 - 状态：已集成，供 Astra 复审
 - 执行者：Sol 直接实现；Python 3.12.13 标准库；未调用 Qwen
 - 契约、基线、工作区／分支：DEV-004 固定补修契约；`c296345a62c9c6af5c51a88c53b8bb136a7b4497`；`/Users/sunqi/projects/stagemaster-worktrees/dev-004`／`dev-004-worker-correctness`

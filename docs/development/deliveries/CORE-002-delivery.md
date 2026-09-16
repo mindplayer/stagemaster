@@ -24,8 +24,8 @@ Qwen job `CORE-002-QWEN-001-62c5ebba6722` 只生成
 | 命令／设备场景 | 退出码／结果 | 被测版本 | 证据位置 |
 | --- | --- | --- | --- |
 | `cargo test -p stagemaster-engine --test htp_default_fallback --locked --offline` | 101；2 passed、6 failed，复现 default 下限缺陷 | `0dda451` | 交付会话记录；保护验收文件 |
-| attempt 1 `cargo test -p stagemaster-engine --locked --offline` | 101；E0308，非发散 `let-else` | Qwen attempt 1 | `/Users/sunqi/ai/outputs/local-worker/qualification/core-002-attempt-1-diagnostics.txt` |
-| attempt 2 同命令 | 101；E0282，`Option` 类型无法推断 | Qwen attempt 2 | `/Users/sunqi/ai/outputs/local-worker/qualification/core-002-attempt-2-diagnostics.txt` |
+| attempt 1 `cargo test -p stagemaster-engine --locked --offline` | 101；E0308，非发散 `let-else` | Qwen attempt 1 | `/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/qualification/core-002-attempt-1-diagnostics.txt` |
+| attempt 2 同命令 | 101；E0282，`Option` 类型无法推断 | Qwen attempt 2 | `/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/qualification/core-002-attempt-2-diagnostics.txt` |
 | attempt 3 引擎测试／工作区测试 | 0；11 / 24 passed | Qwen attempt 3 + rustfmt | 交付会话记录 |
 | attempt 3 Clippy | 101；`expect` 触发 `missing_panics_doc` | Qwen attempt 3 + rustfmt | 交付会话记录 |
 | `cargo test -p stagemaster-engine --locked --offline` | 0；3 项已有单测 + 8 项独立验收通过 | `9c87cbe` | CORE-002 worktree |

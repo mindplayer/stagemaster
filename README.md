@@ -6,8 +6,9 @@
 
 当前开发入口：
 
-- [长期开发协作方法](docs/development/README.md)：Astra 架构会话、Sol 开发会话和本地 Qwen 的分工；含研究比较、工单、验收与交接规则。新开发会话先读 [AGENTS.md](AGENTS.md) 和 [当前交接状态](docs/development/STATE.md)。
-- [Sol 执行计划 v1](docs/development/execution-plan-v1.md)：首批工单、已定契约、阶段验收和后续路线；[完整启动提示词](docs/development/sol-start-prompt.md)可交给 Sol 会话执行。
+- [长期开发协作方法](docs/development/README.md)：Sol 直接负责日常开发，Astra 负责高级调度、架构与关键审查。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前交接状态](docs/development/STATE.md)。
+- [执行计划 v2](docs/development/execution-plan-v2.md)：当前任务流程与产品主线；[完整启动提示词](docs/development/sol-start-prompt.md)可交给 Sol 会话执行。Qwen／本地工作器路线已停止。
+- [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内；原 AI 目录中的试验与任务证据已迁入 `data/development/legacy-qwen/`。
 - [Rust／C++26 核心语言复评](docs/core-language-rust-vs-cpp.md)：原生核心约束、实时性、内存／并发、工具链及 SDK／固件边界；继续推荐 Rust 主核心。
 - [独立 Cue 播放盒评估](docs/standalone-cue-player.md)：没有电脑时本地选 Cue 播放；ESP32 受限播放器、ARM 完整播放器、语言复用与文件交付；尚无固件或实测。
 - [模块伪 API 方案](docs/module-api/README.md)：模块职责、类／接口的调用方式、Rust 构造依赖、跨端传输和完整调用样例；声明可做类型检查，服务尚未实现。
@@ -95,7 +96,7 @@
 
 ## 新会话第一步
 
-日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 和当前工单；按需获取模块资料，避免每次重新加载整套研究。首次理解产品方向时再读本说明及最终技术评估。用户已明确：当前会话使用 Astra 负责架构和阶段审查，另开 GPT-5.6 Sol 会话负责日常开发与本地 Qwen 委派。
+日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 和当前工单；按需获取模块资料，避免每次重新加载整套研究。首次理解产品方向时再读本说明及最终技术评估。用户已明确：Astra 负责高级调度、架构与关键审查，GPT-5.6 Sol 直接负责日常开发；已放弃 Qwen 路线。
 
 首次接手产品时阅读本说明与最终技术评估，以“对标 MA3／老虎控台，先做专业单机系统，再扩展其他功能”为当前方向；后续日常任务按上述最小上下文入口续接。技术框架已经确认。用户随后要求使用持续模式详细整理 grandMA3 与老虎控台的功能／模块；本轮[控台功能研究资料库](docs/console-research/README.md)已完成 22 个模块、304 条对照记录、51 组术语及 16 个建议验收场景。
 

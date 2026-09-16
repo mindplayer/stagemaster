@@ -1,7 +1,7 @@
 # DEV-004：修复 G0 工作器审查发现
 
-状态：done。负责人：Sol 直接实现；交给 Astra 复审。依赖：已集成 DEV-002；依据 [Astra G0 审查](../reviews/G0-review-20260911.md)。
-本工单明确修复既有 v1 承诺，不重新设计产品核心或扩展工作器能力。完成前不进入 G1。
+状态：cancelled（剩余补修因路线变更取消）。2026-09-11 用户放弃 Qwen，依据 [DEV-ADR-001](../decisions/DEV-ADR-001-sol-astra.md)停止维护本地工作器；原已提交部分保留，残留问题未解决。
+下文保留原契约与交付历史，不再执行，其中“补修前不进入 G1”的旧门槛已随工作器退出路线而撤销。
 
 执行基线：`c296345a62c9c6af5c51a88c53b8bb136a7b4497`。
 工作区／分支：`/Users/sunqi/projects/stagemaster-worktrees/dev-004`／

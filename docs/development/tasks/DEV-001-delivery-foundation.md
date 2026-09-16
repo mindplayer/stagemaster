@@ -15,7 +15,7 @@
 1. 阅读根 AGENTS.md，检查项目现状、用户改动、已有 Git 配置和忽略规则。避免纳入模型、运行日志、缓存、构建产物、凭据；不用展示凭据内容。
 2. 若无 Git，初始化本地仓库，使用已有合法提交身份建立现状基线；不要编造用户姓名或邮箱。确实缺少身份时把这项依赖说明清楚。
 3. 执行并保存 `cargo fmt --all -- --check`、`cargo test --workspace --locked --offline`、`cargo clippy --workspace --all-targets --locked --offline -- -D warnings` 的真实结果。基线失败单独记录，不能标成通过或修改验收规则掩盖。
-4. 验证从基线创建独立 worktree、进行局部测试、输出 diff 的路径；构建缓存按本机 AI／infra 规则安置，不把可写任务状态混在多个 worktree 中。
+4. 验证从基线创建独立 worktree、进行局部测试、输出 diff 的路径。当前目录规则已纠正为项目内 `.worktrees/`、`target/` 与 `tmp/`；不同 worktree 的可写任务状态独立保存，见[项目文件规则](../project-files.md)。
 5. 更新 STATE.md 的真实基线提交，提交交付记录，清理本任务自行创建且无待交付改动的临时工作区。
 
 ## 验收
