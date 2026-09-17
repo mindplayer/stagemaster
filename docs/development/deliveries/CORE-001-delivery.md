@@ -1,5 +1,7 @@
 # CORE-001 交付
 
+> 已完成任务的历史记录：执行者、工作区和验证结果保留作追溯；不作为当前模型分工或重做任务的指令。当前规则见 [开发方法](../README.md)。
+
 - 状态：已集成
 - 执行者、模型／运行时版本：Qwen3.8-27B MLX 8-bit + MTP；mlx-vlm 0.7.0 / MLX 0.32.2；Sol 负责保护验收、候选审查与集成
 - 契约版本、基线提交、工作区／分支：工单固定契约；`d24751c915cd9c3578a03ea964c9651b49cd778d`；`/Users/sunqi/projects/stagemaster-worktrees/core-001`／`core-001-cue-uniqueness`

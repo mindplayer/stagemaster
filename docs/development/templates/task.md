@@ -1,11 +1,11 @@
 # <TASK-ID>：<具体目标>
 
 - 状态：planned / ready / running / verifying / review / needs-decision / done / failed / cancelled
-- 负责人／执行模型：Sol；Astra 提供契约和必要审查
+- 负责人／执行模型：当前 Astra 会话直接负责契约、实现和验证
 - 依赖工单：
 - 契约版本：
 - 基线提交／分支：
-- 工作区：项目内 `.worktrees/<task-id>/`
+- 工作区：当前主工作区；需要隔离时使用项目内 `.worktrees/<task-id>/`
 - 产物／日志位置：项目内 `data/development/<task-id>/`、`logs/<task-id>/`；临时文件用 `tmp/`
 
 ## 目标与非目标

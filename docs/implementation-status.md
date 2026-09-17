@@ -4,7 +4,7 @@
 
 | 能力 | 状态 | 当前证据 | 下一步 |
 | --- | --- | --- | --- |
-| 长期 AI 开发协作 | Sol 直接开发、Astra 高级调度；G0 按调整后的范围结项 | [DEV-ADR-001](development/decisions/DEV-ADR-001-sol-astra.md)取消 Qwen／工作器路线；Git 基础、两个核心修复及 Rust 24 项回归保留；工具残留缺陷仍未修复 | Astra 规划 G1 契约与首批工单，Sol 直接实施；不再补修工作器或累计模型资格样本 |
+| 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
 | ESP32／ARM 独立 Cue 播放盒 | 使用场景已明确；方案评估，无固件／实机 | [播放盒评估](standalone-cue-player.md)覆盖离线选 Cue、目标执行包、Rust 复用、受限档位与恢复 | 先虚拟时间验证计划和 Cue 跳转，再选板验证独立播放与容量 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |

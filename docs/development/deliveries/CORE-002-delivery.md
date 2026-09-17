@@ -1,5 +1,7 @@
 # CORE-002 交付
 
+> 已完成任务的历史记录：执行者、工作区和验证结果保留作追溯；不作为当前模型分工或重做任务的指令。当前规则见 [开发方法](../README.md)。
+
 - 状态：已集成
 - 执行者、模型／运行时版本：Qwen3.8-27B MLX 8-bit + MTP；mlx-vlm 0.7.0 / MLX 0.32.2；Sol 负责保护验收、候选审查和额度耗尽后的收尾
 - 契约版本、基线提交、工作区／分支：工单固定契约；`8ef3024d7a5fde3a03312a6927f202b6b12e84b9`；`/Users/sunqi/projects/stagemaster-worktrees/core-002`／`core-002-htp-fallback`
@@ -24,8 +26,8 @@ Qwen job `CORE-002-QWEN-001-62c5ebba6722` 只生成
 | 命令／设备场景 | 退出码／结果 | 被测版本 | 证据位置 |
 | --- | --- | --- | --- |
 | `cargo test -p stagemaster-engine --test htp_default_fallback --locked --offline` | 101；2 passed、6 failed，复现 default 下限缺陷 | `0dda451` | 交付会话记录；保护验收文件 |
-| attempt 1 `cargo test -p stagemaster-engine --locked --offline` | 101；E0308，非发散 `let-else` | Qwen attempt 1 | `/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/qualification/core-002-attempt-1-diagnostics.txt` |
-| attempt 2 同命令 | 101；E0282，`Option` 类型无法推断 | Qwen attempt 2 | `/Users/sunqi/projects/stagemaster/data/development/legacy-qwen/local-worker/qualification/core-002-attempt-2-diagnostics.txt` |
+| attempt 1 `cargo test -p stagemaster-engine --locked --offline` | 101；E0308，非发散 `let-else` | Qwen attempt 1 | 原始诊断文件已于 DEV-005 清理；历史结果保留于本记录 |
+| attempt 2 同命令 | 101；E0282，`Option` 类型无法推断 | Qwen attempt 2 | 原始诊断文件已于 DEV-005 清理；历史结果保留于本记录 |
 | attempt 3 引擎测试／工作区测试 | 0；11 / 24 passed | Qwen attempt 3 + rustfmt | 交付会话记录 |
 | attempt 3 Clippy | 101；`expect` 触发 `missing_panics_doc` | Qwen attempt 3 + rustfmt | 交付会话记录 |
 | `cargo test -p stagemaster-engine --locked --offline` | 0；3 项已有单测 + 8 项独立验收通过 | `9c87cbe` | CORE-002 worktree |

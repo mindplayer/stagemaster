@@ -2,13 +2,13 @@
 
 新项目工作目录：`/Users/sunqi/projects/stagemaster`。
 
-本文件用于新会话交接，整理截至 2026-09-11 的最新方向。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。Tauri／React、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
+本文件用于新会话交接，产品设计与研究截至 2026-09-11，开发方法更新于 2026-09-18。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。Tauri／React、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
 
 当前开发入口：
 
-- [长期开发协作方法](docs/development/README.md)：Sol 直接负责日常开发，Astra 负责高级调度、架构与关键审查。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前交接状态](docs/development/STATE.md)。
-- [执行计划 v2](docs/development/execution-plan-v2.md)：当前任务流程与产品主线；[完整启动提示词](docs/development/sol-start-prompt.md)可交给 Sol 会话执行。Qwen／本地工作器路线已停止。
-- [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内；原 AI 目录中的试验与任务证据已迁入 `data/development/legacy-qwen/`。
+- [开发方法](docs/development/README.md)：当前 Astra 会话直接负责规划、实现、验证和集成。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前状态](docs/development/STATE.md)。
+- [当前执行计划](docs/development/execution-plan.md)：产品主线与任务流程；已取消 Sol／Qwen 委派，旧计划、工作器与试验副本已清理。
+- [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内，工作目录只保留现行版本与有效参考资料。
 - [Rust／C++26 核心语言复评](docs/core-language-rust-vs-cpp.md)：原生核心约束、实时性、内存／并发、工具链及 SDK／固件边界；继续推荐 Rust 主核心。
 - [独立 Cue 播放盒评估](docs/standalone-cue-player.md)：没有电脑时本地选 Cue 播放；ESP32 受限播放器、ARM 完整播放器、语言复用与文件交付；尚无固件或实测。
 - [模块伪 API 方案](docs/module-api/README.md)：模块职责、类／接口的调用方式、Rust 构造依赖、跨端传输和完整调用样例；声明可做类型检查，服务尚未实现。
@@ -96,7 +96,7 @@
 
 ## 新会话第一步
 
-日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 和当前工单；按需获取模块资料，避免每次重新加载整套研究。首次理解产品方向时再读本说明及最终技术评估。用户已明确：Astra 负责高级调度、架构与关键审查，GPT-5.6 Sol 直接负责日常开发；已放弃 Qwen 路线。
+日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 和当前工单；按需获取模块资料，避免每次重新加载整套研究。首次理解产品方向时再读本说明及最终技术评估。用户已明确：由当前 Astra 会话直接负责架构、日常开发、验证和集成；不再委派给 Sol 或 Qwen。
 
 首次接手产品时阅读本说明与最终技术评估，以“对标 MA3／老虎控台，先做专业单机系统，再扩展其他功能”为当前方向；后续日常任务按上述最小上下文入口续接。技术框架已经确认。用户随后要求使用持续模式详细整理 grandMA3 与老虎控台的功能／模块；本轮[控台功能研究资料库](docs/console-research/README.md)已完成 22 个模块、304 条对照记录、51 组术语及 16 个建议验收场景。
 
