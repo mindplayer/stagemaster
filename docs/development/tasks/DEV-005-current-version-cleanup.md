@@ -21,3 +21,5 @@
 ## 交付
 
 见 [DEV-005 交付](../deliveries/DEV-005-delivery.md)。
+
+结果／集成提交：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`。全部当前项目验收通过；独立旧仓库范围确认仍单列。
