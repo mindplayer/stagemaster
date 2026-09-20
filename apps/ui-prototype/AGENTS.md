@@ -2,6 +2,8 @@
 
 StageMaster context: the user selected the first 舞台画布 visual direction and then requested a 剪映-like timeline workflow. Follow `../../docs/ui-design/visual-directions.md` and the refined `../../data/ui-design/2026-09-21/01-stage-canvas-timeline.png`. Keep runtime state, editing and offline preview distinct. This frontend is an in-memory UI simulation, not a TypeScript lighting engine. The root StageMaster rules take precedence: no subagents, real device output, deployment or files outside the project. Use TypeScript for app code. Keep generated caches under project `tmp/` and runtime logs under `logs/`.
 
+User feedback: timeline dragging must feel continuous and follow the pointer. Do not quantize every move to coarse time steps. Snap only near visible alignment targets, keep scrubbing separate from live GO, and commit one undoable edit per completed clip gesture.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.

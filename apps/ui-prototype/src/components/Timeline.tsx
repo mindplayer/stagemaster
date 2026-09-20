@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { PointerEvent, Dispatch } from "react";
+import type { Dispatch } from "react";
 import {
   SunIcon,
   LightbulbIcon,
@@ -12,12 +12,14 @@ import {
   ArrowUUpRightIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { GROUPS, clamp, normalizeClip, formatTime } from "../demo-session";
+import { GROUPS, clamp, formatTime } from "../demo-session";
 import type { DemoState, Clip, Action, GroupId } from "../demo-session";
 import { AudioReference } from "./AudioReference";
 import { ClipEnvelope } from "./ClipEnvelope";
 
-export type TransientEdit = { id: string; patch: Partial<Clip> } | null;
+import { useTimelineGesture } from "./useTimelineGesture";
+import type { TransientEdit } from "./useTimelineGesture";
+export type { TransientEdit } from "./useTimelineGesture";
 const groupIcons = { front: SunIcon, back: LightbulbIcon, wash: PaletteIcon };
 export function Timeline({
   state,
@@ -25,6 +27,7 @@ export function Timeline({
   time,
   playing,
   onSeek,
+  onScrubStart,
   transient,
   setTransient,
   view,
@@ -36,6 +39,7 @@ export function Timeline({
   time: number;
   playing: boolean;
   onSeek: (n: number) => void;
+  onScrubStart: () => void;
   transient: TransientEdit;
   setTransient: (p: TransientEdit) => void;
   view: "timeline" | "cues";
@@ -46,70 +50,19 @@ export function Timeline({
   const [zoom, setZoom] = useState(1);
   const cue = state.drafts[state.editCueId];
   const lane = useRef<HTMLDivElement>(null);
-  const drag = useRef<{
-    clip: Clip;
-    mode: "move" | "left" | "right";
-    x: number;
-    width: number;
-    patch: Partial<Clip>;
-  } | null>(null);
-  const [dragging, setDragging] = useState<string | null>(null);
-  function begin(
-    event: PointerEvent<HTMLDivElement>,
-    clip: Clip,
-    mode: "move" | "left" | "right",
-  ) {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    event.stopPropagation();
-    dispatch({ type: "selectClip", id: clip.id });
-    event.currentTarget.setPointerCapture(event.pointerId);
-    drag.current = {
-      clip: { ...clip },
-      mode,
-      x: event.clientX,
-      width: lane.current?.clientWidth ?? 1000,
-      patch: {},
-    };
-    setDragging(clip.id);
-  }
-  function move(event: PointerEvent<HTMLDivElement>) {
-    const current = drag.current;
-    if (!current) return;
-    const unit = snap ? 0.5 : 0.1;
-    const delta =
-      Math.round(
-        (((event.clientX - current.x) / current.width) * cue.duration) / unit,
-      ) * unit;
-    let patch: Partial<Clip>;
-    if (current.mode === "move") patch = { start: current.clip.start + delta };
-    else if (current.mode === "right")
-      patch = {
-        duration: clamp(
-          current.clip.duration + delta,
-          0.2,
-          cue.duration - current.clip.start,
-        ),
-      };
-    else {
-      const end = current.clip.start + current.clip.duration;
-      const start = clamp(current.clip.start + delta, 0, end - 0.2);
-      patch = { start, duration: end - start };
-    }
-    current.patch = normalizeClip({ ...current.clip, ...patch }, cue.duration);
-    setTransient({ id: current.clip.id, patch: current.patch });
-  }
-  function end(cancel = false) {
-    if (drag.current && !cancel)
-      dispatch({
-        type: "patchClip",
-        id: drag.current.clip.id,
-        patch: drag.current.patch,
-      });
-    drag.current = null;
-    setDragging(null);
-    setTransient(null);
-  }
+  const scroller = useRef<HTMLDivElement>(null);
+  const gesture = useTimelineGesture({
+    cue,
+    view,
+    time,
+    snap,
+    lane,
+    scroller,
+    dispatch,
+    setTransient,
+    onSeek,
+    onScrubStart,
+  });
   function add(group: GroupId, at: number, color?: Clip["color"]) {
     dispatch({ type: "addClip", group, at, color, id: crypto.randomUUID() });
     onNotice("已添加灯光片段；可拖动两端调整长度");
@@ -141,7 +94,8 @@ export function Timeline({
             className={"tool-button " + (snap ? "active" : "")}
             aria-pressed={snap}
             onClick={() => setSnap(!snap)}
-            title="吸附到 0.5 秒"
+            aria-label="吸附"
+            title="靠近片段边缘、播放头或刻度时吸附；按住 Shift 临时关闭"
           >
             <MagnetIcon /> <span>吸附</span>
           </button>
@@ -276,7 +230,7 @@ export function Timeline({
             <span>音乐参考</span>
           </div>
         </div>
-        <div className="tracks-scroll">
+        <div className="tracks-scroll" ref={scroller}>
           <div className="track-content" style={{ width: zoom * 100 + "%" }}>
             <div
               className="ruler"
@@ -284,12 +238,13 @@ export function Timeline({
               tabIndex={0}
               aria-label="时间线预览位置"
               aria-valuemin={0}
-              aria-valuemax={20}
+              aria-valuemax={cue.duration}
               aria-valuenow={Math.round(time * 10) / 10}
-              onPointerDown={(e) => {
-                const r = e.currentTarget.getBoundingClientRect();
-                onSeek(clamp(((e.clientX - r.left) / r.width) * 20, 0, 20));
-              }}
+              onPointerDown={(e) => gesture.begin(e)}
+              onPointerMove={gesture.move}
+              onPointerUp={gesture.end}
+              onPointerCancel={gesture.cancel}
+              onLostPointerCapture={gesture.lostCapture}
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault();
@@ -356,7 +311,7 @@ export function Timeline({
                           (state.selectedClipId === clip.id
                             ? "selected "
                             : "") +
-                          (dragging === clip.id ? "dragging" : "")
+                          (gesture.dragging === clip.id ? "dragging" : "")
                         }
                         key={clip.id}
                         role="button"
@@ -375,10 +330,13 @@ export function Timeline({
                           width: (clip.duration / 20) * 100 + "%",
                           backgroundColor: group.color,
                         }}
-                        onPointerDown={(e) => begin(e, savedClip, "move")}
-                        onPointerMove={move}
-                        onPointerUp={() => end()}
-                        onPointerCancel={() => end(true)}
+                        onPointerDown={(e) =>
+                          gesture.begin(e, savedClip, "move")
+                        }
+                        onPointerMove={gesture.move}
+                        onPointerUp={gesture.end}
+                        onPointerCancel={gesture.cancel}
+                        onLostPointerCapture={gesture.lostCapture}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
@@ -405,7 +363,9 @@ export function Timeline({
                         <div
                           className="clip-handle left"
                           title="拖动起点"
-                          onPointerDown={(e) => begin(e, savedClip, "left")}
+                          onPointerDown={(e) =>
+                            gesture.begin(e, savedClip, "left")
+                          }
                         />
                         <ClipEnvelope clip={clip} />
                         <span className="clip-name">{clip.name}</span>
@@ -416,7 +376,9 @@ export function Timeline({
                         <div
                           className="clip-handle right"
                           title="拖动终点"
-                          onPointerDown={(e) => begin(e, savedClip, "right")}
+                          onPointerDown={(e) =>
+                            gesture.begin(e, savedClip, "right")
+                          }
                         />
                       </div>
                     );
@@ -430,6 +392,15 @@ export function Timeline({
               duration={cue.duration}
               onNotice={onNotice}
             />
+            {gesture.snapTarget !== null && (
+              <div
+                className="snap-guide"
+                aria-hidden="true"
+                style={{
+                  left: `calc(8px + ${(gesture.snapTarget / cue.duration) * 100}% - ${(gesture.snapTarget / cue.duration) * 28}px)`,
+                }}
+              />
+            )}
             <div
               className="playhead"
               style={{
@@ -441,13 +412,27 @@ export function Timeline({
                   "px)",
               }}
             >
-              <span>{formatTime(time)}</span>
+              <button
+                className="playhead-handle"
+                aria-label="拖动播放头"
+                title="拖动预览位置"
+                onPointerDown={(e) => gesture.begin(e, undefined, "move", true)}
+                style={{
+                  transform: `translateX(-${(time / cue.duration) * 100}%)`,
+                }}
+                onPointerMove={gesture.move}
+                onPointerUp={gesture.end}
+                onPointerCancel={gesture.cancel}
+                onLostPointerCapture={gesture.lostCapture}
+              >
+                {formatTime(time)}
+              </button>
             </div>
           </div>
         </div>
       </div>
       <div className="timeline-footnote">
-        <span>拖动片段移动 · 拖动两端裁切 · 方向键微调</span>
+        <span>拖动播放头预览 · Shift 暂停吸附 · Esc 取消拖动</span>
         <button
           className="text-button"
           disabled={!state.selectedClipId}

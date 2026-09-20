@@ -349,7 +349,8 @@ svg {
   object-fit: cover;
   object-position: center 47%;
   display: block;
-  transition: filter 0.1s linear;
+  /* Direct manipulation should not trail the pointer with a filter tween. */
+  transition: none;
 }
 .stage-viewport:fullscreen {
   height: 100vh;
@@ -751,6 +752,8 @@ input[type="range"]::-moz-range-progress {
   margin: 0 8px;
   background: #16232d;
   cursor: col-resize;
+  touch-action: none;
+  user-select: none;
 }
 .ruler > span {
   position: absolute;
@@ -857,7 +860,7 @@ input[type="range"]::-moz-range-progress {
   z-index: 2;
   box-shadow: 0 0 6px #25d5de30;
 }
-.playhead > span {
+.playhead-handle {
   position: absolute;
   top: -32px;
   left: 0;
@@ -870,6 +873,18 @@ input[type="range"]::-moz-range-progress {
   border-radius: 4px;
   padding: 3px 5px;
   background: #112633;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  cursor: ew-resize;
+}
+.snap-guide {
+  position: absolute;
+  top: 38px;
+  bottom: 0;
+  border-left: 1px dashed #f4cb91;
+  pointer-events: none;
+  z-index: 2;
 }
 .audio-lane {
   height: 54px;
@@ -1576,7 +1591,6 @@ input[type="range"]::-moz-range-progress {
   }
   .timeline-tools > input,
   .timeline-tools > i,
-  .timeline-tools > .tool-button,
   .timeline-tools > .icon-button:nth-of-type(2),
   .timeline-tools > .icon-button:nth-of-type(3) {
     display: none;

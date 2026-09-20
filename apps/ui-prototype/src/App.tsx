@@ -515,6 +515,7 @@ export function App() {
         playing={playing}
         onSeek={seek}
         transient={transient}
+        onScrubStart={() => setPlaying(false)}
         setTransient={setTransient}
         view={view}
         setView={setView}

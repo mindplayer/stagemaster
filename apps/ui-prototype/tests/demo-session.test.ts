@@ -6,6 +6,7 @@ import {
   hasChanges,
   formatTime,
 } from "../src/demo-session.ts";
+import { dragClip, pointerTime } from "../src/timeline-interaction.ts";
 
 test("initial editing, running and next Cue have separate identities", () => {
   const state = createDemoState();
@@ -157,4 +158,67 @@ test("display time rounds across seconds and minutes without impossible .10 suff
   assert.equal(formatTime(9.99), "00:10.0");
   assert.equal(formatTime(59.99), "01:00.0");
   assert.equal(formatTime(-1), "00:00.0");
+});
+
+test("small pointer motion stays continuous and is retained after committing", () => {
+  const initial = createDemoState();
+  const clip = initial.drafts[14].clips[1];
+  const first = dragClip(clip, "move", 3, 24.35, 20, [], false).clip;
+  const second = dragClip(clip, "move", 5, 24.35, 20, [], false).clip;
+  assert.equal(first.start, 4.123);
+  assert.equal(second.start, 4.205);
+  const state = demoReducer(initial, {
+    type: "patchClip",
+    id: clip.id,
+    patch: second,
+  });
+  assert.equal(state.drafts[14].clips[1].start, 4.205);
+  assert.equal(state.history.length, 1);
+  assert.deepEqual(state.running, initial.running);
+  assert.deepEqual(demoReducer(state, { type: "undo" }).drafts, initial.drafts);
+});
+
+test("magnetic snapping applies only within six screen pixels, at either clip edge", () => {
+  const clip = createDemoState().drafts[14].clips[1];
+  assert.equal(dragClip(clip, "move", 30, 50, 20, [5], true).clip.start, 4.6);
+  const near = dragClip(clip, "move", 47, 50, 20, [5], true);
+  assert.equal(near.clip.start, 5);
+  assert.equal(near.snapTarget, 5);
+  assert.equal(dragClip(clip, "move", 47, 50, 20, [5], false).clip.start, 4.94);
+  const rightEdge = dragClip(clip, "move", 47, 50, 20, [15], true);
+  assert.equal(rightEdge.clip.start, 5);
+  assert.equal(rightEdge.clip.duration, 10);
+  // The same 0.1 s distance is outside the magnet at a higher zoom.
+  assert.equal(dragClip(clip, "move", 45, 50, 20, [5], true).clip.start, 5);
+  assert.equal(dragClip(clip, "move", 135, 150, 20, [5], true).clip.start, 4.9);
+});
+
+test("trimming keeps the opposite edge fixed and preserves legal fade lengths", () => {
+  const clip = createDemoState().drafts[14].clips[1];
+  const left = dragClip(clip, "left", 3, 24.35, 20, [], false).clip;
+  assert.equal(left.start, 4.123);
+  assert.equal(left.duration, 9.877);
+  assert.equal(left.start + left.duration, 14);
+  const right = dragClip(clip, "right", -3, 24.35, 20, [], false).clip;
+  assert.equal(right.start, 4);
+  assert.equal(right.duration, 9.877);
+  const tiny = dragClip(clip, "right", -9999, 50, 20, [0], true).clip;
+  assert.equal(tiny.start, 4);
+  assert.equal(tiny.duration, 0.2);
+  assert.ok(tiny.fadeIn + tiny.fadeOut <= tiny.duration);
+});
+
+test("dragging beyond the timeline is clamped without changing clip length", () => {
+  const clip = createDemoState().drafts[14].clips[1];
+  assert.equal(dragClip(clip, "move", -9999, 50, 20, [0], true).clip.start, 0);
+  const right = dragClip(clip, "move", 9999, 50, 20, [20], true).clip;
+  assert.equal(right.start, 10);
+  assert.equal(right.duration, 10);
+});
+
+test("scrubbing uses the visible lane geometry including scroll and zoom", () => {
+  assert.equal(pointerTime(450, 124, 487, 20), (326 / 487) * 20);
+  assert.equal(pointerTime(150, -350, 1000, 20), 10);
+  assert.equal(pointerTime(-10, 124, 487, 20), 0);
+  assert.equal(pointerTime(900, 124, 487, 20), 20);
 });

@@ -92,7 +92,7 @@ export function StagePreview({
           type="range"
           min={0}
           max={cue.duration}
-          step={0.1}
+          step="any"
           value={time}
           aria-label="预览位置"
           onChange={(e) => onSeek(Number(e.target.value))}

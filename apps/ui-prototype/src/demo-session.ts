@@ -60,7 +60,8 @@ export type Action =
   | { type: "go" }
   | { type: "standby"; id: number };
 const clone = <T>(value: T): T => structuredClone(value);
-const round = (n: number) => Math.round(n * 10) / 10;
+// UI gesture precision only; this adapter is not the execution clock.
+const round = (n: number) => Math.round(n * 1000) / 1000;
 export const clamp = (n: number, min: number, max: number) =>
   Math.min(max, Math.max(min, n));
 
