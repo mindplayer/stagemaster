@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
-| ESP32／ARM 独立 Cue 播放盒 | 首版已定现有微雪 ESP32-S3-RS485-CAN、1 路 DMX；无固件／设备实测 | [HW-001](development/tasks/HW-001-first-player-baseline.md)核对原理图；[首版 ADR](development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)把软件＋离线播放盒列为当前交付 | 实现受限参考执行器并验证板级输出；补隔离侧公共地接口及本地操作面；随后 USB 安装与 UI 接入 |
+| ESP32／ARM 独立场景播放盒 | 首版已定现有微雪 ESP32-S3-RS485-CAN、1 路 DMX；无固件／设备实测 | [HW-001](development/tasks/HW-001-first-player-baseline.md)核对原理图；[首版 ADR](development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)把软件＋离线播放盒列为当前交付 | 实现受限参考执行器并验证板级输出；补隔离侧公共地接口及本地操作面；随后 USB 安装与 UI 接入 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
 | 外部音视频／设备控制与监看 | 资料研究与接口草案；无协议接入 | [专项设计](audiovisual-stage-design.md)及 external-contracts／external-examples 区分控制、反馈和监看，已纳入 TS 检查 | 验证一个外部播放器、一个媒体返回源与灯光模拟的闭环 |
 | 实体控台／双向控制面 | 产品目标与接口草案；无硬件或固件实现 | [硬件设计](hardware-control-surfaces.md)及 surface-contracts 定义输入、反馈、映射屏障与接管，已纳入 TS 检查 | 先虚拟输入，再验证已有设备；电动推子单独实测 |
@@ -16,12 +16,12 @@
 | Depence R4 对照／多设备预演 | 公开资料重点对照；无仿真实现 | [12 项对照与架构补充](depence-r4-assessment.md)，含独立预演、仿真生命周期和图纸职责；未加入 TS 检查 | 先验证灯光／视频场景，再按项目扩展专项模型 |
 | 归一化属性和类型化 ID | 原型 | u16 数值、u64 ID 包装；未定义跨工程身份与传输规则 | 建立带类型值、离线身份、单位、物理范围和子灯地址 |
 | 有序 Group | 已有基础实现 | 保留选灯顺序并去重 | 增加二维／三维 Selection Layout 和选择变换 |
-| Programmer | 已有基础实现 | 选择、字面量、Preset 调用、激活／释放分开 | 增加属性过滤、来源范围、撤销命令和多用户上下文 |
-| Preset | Selective 原型 | Cue 保留引用；重新求值读取新值；已激活 Playback 不自动更新 | 作用域、循环检查、版本与现场更新策略 |
-| Cue／Sequence Tracking | 静态基础求值；R01 已解决 | 顺序处理 Set／引用／Release；新增和替换 Cue 均校验另一稳定 ID 的编号，6 项保护回归通过 | 补 Part、Block、Cue Only、MIB 和时间；其他约束按后续契约处理 |
-| 播放器 | 静态多 Playback 容器 | 激活数值集合、调电平、立即释放；没有时钟 | Cue 状态机、命令、编译计划、版本切换和时间推进 |
+| 编程器 | 已有基础实现 | 选择、字面量、预设调用、激活／释放分开 | 增加属性过滤、来源范围、撤销命令和多用户上下文 |
+| 预设 | Selective 原型 | 场景保留引用；重新求值读取新值；已激活播放通道不自动更新 | 作用域、循环检查、版本与现场更新策略 |
+| 场景／Sequence 跟踪 | 静态基础求值；R01 已解决 | 顺序处理 Set／引用／Release；新增和替换场景均校验另一稳定 ID 的编号，6 项保护回归通过 | 补 Part、Block、场景 Only、MIB 和时间；其他约束按后续契约处理 |
+| 播放器 | 静态多播放通道容器 | 激活数值集合、调电平、立即释放；没有时钟 | 场景状态机、命令、编译计划、版本切换和时间推进 |
 | 输出合成 | HTP／LTP 原型；R02 已解决 | HTP default 仅在无有效贡献时回退；8 项保护回归覆盖零值、权重、优先级和缩放；未知属性仍可被忽略 | 固定专业推杆／合成契约，编译前校验不支持属性；处理 R03、R07 |
-| 来源追踪 | 初步贡献记录 | 可见 Playback 等来源；未保留 Cue／Preset／效果链 | 编译 sourceMap、获胜／抑制／回退原因与帧关联 |
+| 来源追踪 | 初步贡献记录 | 可见播放通道等来源；未保留场景／预设／效果链 | 编译 sourceMap、获胜／抑制／回退原因与帧关联 |
 | DMX 配适 | 简单平面档案 | 地址、占用、粗细通道及跨界检查 | 领域档案与编码分离；多单元、功能范围、版本及校准 |
 | DMX 编码 | 8／16-bit 数据编码 | 一次快照生成 512-slot 通道负载，不是物理发送 | 中立数值帧、epoch／时序和真实输出适配器 |
 | 模拟逻辑链路 | 可运行 | demo 中两个灯具 Intensity 255、Blue 166 | 转为带虚拟时钟、状态和失败场景的验收工程 |
@@ -43,7 +43,7 @@ cargo clippy --workspace --all-targets --locked --offline -- -D warnings
 cargo run -p stagemaster-engine-demo
 ```
 
-G0 的 CORE-002 集成提交 `81ed816fff5d8a358d5e1ecf933057a148d02e8f` 已运行 fmt、离线 workspace 测试和严格 Clippy并通过。workspace 当前 24 项测试：原有 10 项，加 CORE-001 的 6 项 Cue 唯一性保护回归及 CORE-002 的 8 项 HTP 回退保护回归。demo 与真实设备未在 G0 重跑，不能据此扩大能力声明。
+G0 的 CORE-002 集成提交 `81ed816fff5d8a358d5e1ecf933057a148d02e8f` 已运行 fmt、离线 workspace 测试和严格 Clippy并通过。workspace 当前 24 项测试：原有 10 项，加 CORE-001 的 6 项场景唯一性保护回归及 CORE-002 的 8 项 HTP 回退保护回归。demo 与真实设备未在 G0 重跑，不能据此扩大能力声明。
 
 新增接口检查命令：
 
@@ -53,4 +53,4 @@ npm exec --yes --package=typescript@5.9.3 -- tsc -p docs/module-api/tsconfig.jso
 
 严格类型检查通过，并核查相关文档的本地链接与代码围栏。该检查只验证声明、调用样例和编译期错误反例，不证明业务服务、RPC、鉴权、时序或设备输出已实现。
 
-独立临时探针曾复现 Cue 编号替换碰撞、HTP 非零默认下限、未知属性被忽略、运行中 Preset 更新不传播、Cue 编号越界饱和行为。前两项现已由产品内保护回归验证修复；R03、R06、R09 仍保留。历史探针不计入当前 24 项测试，模拟运行也不代表现场实时性、完整确定性或商业可用性。
+独立临时探针曾复现场景编号替换碰撞、HTP 非零默认下限、未知属性被忽略、运行中预设更新不传播、场景编号越界饱和行为。前两项现已由产品内保护回归验证修复；R03、R06、R09 仍保留。历史探针不计入当前 24 项测试，模拟运行也不代表现场实时性、完整确定性或商业可用性。

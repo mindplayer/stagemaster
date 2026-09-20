@@ -68,10 +68,10 @@ export function Timeline({
     onNotice("已添加灯光片段；可拖动两端调整长度");
   }
   return (
-    <section className="timeline panel" aria-label="Cue 编排">
+    <section className="timeline panel" aria-label="场景编排">
       <div className="timeline-toolbar">
         <strong>
-          Cue {cue.id} · {cue.name}编排
+          场景 {cue.id} · {cue.name}编排
         </strong>
         <div className="view-switch" role="tablist" aria-label="编排视图">
           <button
@@ -86,7 +86,7 @@ export function Timeline({
             aria-selected={view === "cues"}
             onClick={() => setView("cues")}
           >
-            Cue 列表
+            场景列表
           </button>
         </div>
         <div className="timeline-tools">
@@ -95,7 +95,7 @@ export function Timeline({
             aria-pressed={snap}
             onClick={() => setSnap(!snap)}
             aria-label="吸附"
-            title="靠近片段边缘、播放头或刻度时吸附；按住 Shift 临时关闭"
+            title="靠近片段边缘、播放头或刻度时吸附；按住上档键（⇧）临时关闭"
           >
             <MagnetIcon /> <span>吸附</span>
           </button>
@@ -150,7 +150,7 @@ export function Timeline({
         <table className="cue-list">
           <thead>
             <tr>
-              <th>Cue</th>
+              <th>场景编号</th>
               <th>名称</th>
               <th>状态</th>
               <th>编辑</th>
@@ -432,7 +432,7 @@ export function Timeline({
         </div>
       </div>
       <div className="timeline-footnote">
-        <span>拖动播放头预览 · Shift 暂停吸附 · Esc 取消拖动</span>
+        <span>拖动播放头预览 · ⇧ 暂停吸附 · ⎋ 取消拖动</span>
         <button
           className="text-button"
           disabled={!state.selectedClipId}

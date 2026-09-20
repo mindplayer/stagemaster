@@ -31,7 +31,7 @@ function NumberField({
   min = 0,
   max,
   step = 0.1,
-  suffix = "s",
+  suffix = "秒",
   onCommit,
 }: {
   label: string;
@@ -157,7 +157,7 @@ export function App() {
     dispatch({ type: "save" });
     setSavedAt(state.editCueId);
     onNotice(
-      "Cue " + state.editCueId + " 已保存到本次演示；现场模拟播放保持不变",
+      "场景 " + state.editCueId + " 已保存到本次演示；现场模拟播放保持不变",
     );
   }, [state.editCueId, onNotice]);
   useEffect(() => {
@@ -204,9 +204,7 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="brand">
-          StageMaster <span>舞台大师</span>
-        </div>
+        <div className="brand">舞台大师</div>
         <span className="project-name">夏夜现场</span>
         <nav aria-label="工作区">
           <button
@@ -484,10 +482,10 @@ export function App() {
                 <button className="primary-button" onClick={save}>
                   {savedAt === cue.id && !dirty ? (
                     <>
-                      <CheckIcon /> 已保存 Cue {cue.id}
+                      <CheckIcon /> 已保存场景 {cue.id}
                     </>
                   ) : (
-                    "保存到 Cue " + cue.id
+                    "保存到场景 " + cue.id
                   )}
                 </button>
                 <span>仅保存，不触发播放</span>
@@ -537,7 +535,7 @@ export function App() {
           <ArrowRightIcon />
           <span>下一条</span>
           <select
-            aria-label="下一次 GO 目标"
+            aria-label="下次执行的场景"
             value={state.nextId ?? ""}
             onChange={(e) =>
               dispatch({ type: "standby", id: Number(e.target.value) })
@@ -561,11 +559,11 @@ export function App() {
             onNotice(
               state.nextId === null
                 ? "序列已结束"
-                : "模拟播放已切换到 Cue " + state.nextId + "；离线编辑不受影响",
+                : "模拟播放已切换到场景 " + state.nextId + "；离线编辑不受影响",
             );
           }}
         >
-          {state.nextId === null ? "序列结束" : "GO → " + state.nextId}
+          {state.nextId === null ? "序列结束" : "执行 → " + state.nextId}
         </button>
       </footer>
       <div
@@ -617,7 +615,7 @@ export function App() {
               你可以拖动灯光片段、修改颜色与强度、调整渐变，并在独立预览中播放。
             </p>
             <p>
-              底部 GO 只切换模拟播放。草稿、保存后的 Cue
+              底部“执行”只切换模拟播放。草稿、保存后的场景
               和模拟播放快照互相独立；刷新页面会恢复示例。
             </p>
             <p>

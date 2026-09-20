@@ -37,7 +37,7 @@ export function StagePreview({
         <span>
           预演画面 <i />{" "}
           <span className="subtle">
-            Cue {cue.id} {cue.name}
+            场景 {cue.id} {cue.name}
           </span>
         </span>
         <span className="preview-mode">离线预览 · 不改变现场</span>

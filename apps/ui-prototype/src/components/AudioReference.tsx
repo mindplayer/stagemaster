@@ -77,7 +77,7 @@ export function AudioReference({
   async function loadFile(file?: File) {
     if (!file) return;
     if (file.size > 30 * 1024 * 1024) {
-      onNotice("原型支持 30 MB 以内的音频参考");
+      onNotice("原型支持 30 兆字节以内的音频参考");
       return;
     }
     setLoading(true);
