@@ -2,13 +2,15 @@
 
 新项目工作目录：`/Users/sunqi/projects/stagemaster`。
 
-本文件用于新会话交接，产品设计与研究截至 2026-09-11，开发方法更新于 2026-09-18。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。Tauri／React、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
+本文件用于新会话交接，产品设计与研究截至 2026-09-11，开发方法更新于 2026-09-18，UI 原型更新于 2026-09-21。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。已新增独立 React 舞台画布交互原型；Tauri、Rust 与 UI 接入、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
 
 当前开发入口：
 
 - [开发方法](docs/development/README.md)：当前 Astra 会话直接负责规划、实现、验证和集成。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前状态](docs/development/STATE.md)。
 - [当前执行计划](docs/development/execution-plan.md)：产品主线与任务流程；已取消 Sol／Qwen 委派，旧计划、工作器与试验副本已清理。
 - [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内，工作目录只保留现行版本与有效参考资料。
+- [舞台画布交互原型](docs/ui-design/interaction-prototype.md)：已按第一张视觉方向加入剪映式灯光时间线；支持片段编辑、预览、音乐参考和独立 GO 模拟。源码在 `apps/ui-prototype/`，刷新重置，尚未连接 Rust 或设备。
+- [交互与展示设计研究](docs/ui-design/interaction-display-research.md)：2026-09-21 对 7 个专业软件／工业 HMI 参考对象的研究，区分交互与展示原则，并给出 StageMaster 的任务验证方案；属于待原型验证的讨论稿。
 - [Rust／C++26 核心语言复评](docs/core-language-rust-vs-cpp.md)：原生核心约束、实时性、内存／并发、工具链及 SDK／固件边界；继续推荐 Rust 主核心。
 - [独立 Cue 播放盒评估](docs/standalone-cue-player.md)：没有电脑时本地选 Cue 播放；ESP32 受限播放器、ARM 完整播放器、语言复用与文件交付；尚无固件或实测。
 - [模块伪 API 方案](docs/module-api/README.md)：模块职责、类／接口的调用方式、Rust 构造依赖、跨端传输和完整调用样例；声明可做类型检查，服务尚未实现。
