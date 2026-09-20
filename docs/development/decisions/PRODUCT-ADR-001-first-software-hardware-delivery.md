@@ -3,6 +3,7 @@
 - 状态：accepted（产品范围、模块边界与验证顺序）；固件框架、容量和电气实现尚待验证。
 - 日期／负责人／关联工单：2026-09-21；当前 Astra 会话；[HW-001](../tasks/HW-001-first-player-baseline.md)。
 - 基线：`8877846`。保留 Rust＋TypeScript 技术框架及既有架构原则；替代执行计划中“ESP32 全部留到后续”的优先级，不宣称完成 G1–G4。
+- 后续补充：[PRODUCT-ADR-002](PRODUCT-ADR-002-compiled-playback-and-transfer.md)明确主机编译与设备播放包、整场／片段选择及无线传输取舍；下文 USB 指首次有线验证路径，不是产品唯一通道。
 
 ## 触发证据与决定
 

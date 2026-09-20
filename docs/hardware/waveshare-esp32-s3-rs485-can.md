@@ -2,6 +2,8 @@
 
 核对日期：2026-09-21。关联：[HW-001](../development/tasks/HW-001-first-player-baseline.md)、[首版架构决定](../development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)。用户确认持有此型号；没有确认实物 PCB 修订、接线和当前固件，也没有连接设备实测。
 
+连接更新：[HW-002](../development/tasks/HW-002-project-segments.md) 在系统设备树中只读识别到乐鑫 USB 调试接口 `303A:1001` 和 `/dev/cu.usbmodem2101`。未打开串口或复位；具体容量、分区、蓝牙和 DMX 输出仍未验证。
+
 ## 已核对与尚待验证
 
 官方资料列出隔离 RS485、隔离电源、USB Type-C 和 16 MB Flash。原理图已下载并渲染阅读，确认收发器和方向控制路径；足以将此板选为一路 DMX 验证平台，不能据此认定整机已经符合 DMX512-A。[微雪产品文档](https://docs.waveshare.net/ESP32-S3-RS485-CAN/)

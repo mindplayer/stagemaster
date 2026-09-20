@@ -7,6 +7,7 @@
 | 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
 | ESP32／ARM 独立场景播放盒 | 首版已定现有微雪 ESP32-S3-RS485-CAN、1 路 DMX；无固件／设备实测 | [HW-001](development/tasks/HW-001-first-player-baseline.md)核对原理图；[首版 ADR](development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)把软件＋离线播放盒列为当前交付 | 实现受限参考执行器并验证板级输出；补隔离侧公共地接口及本地操作面；随后 USB 安装与 UI 接入 |
+| 主机编译、设备包与无线传输 | 已比较工程内容与实现路线；无编译包／无线原型 | [HW-002](development/tasks/HW-002-project-segments.md)记录厂商依据、容量算例和乐鑫 USB 只读枚举；[传输取舍](development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)推荐局域网传包、蓝牙配网／控制候选 | 先有线闭环，再按真实节目测大小、执行预算与无线有效速度；不把系统枚举当作固件验收 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
 | 外部音视频／设备控制与监看 | 资料研究与接口草案；无协议接入 | [专项设计](audiovisual-stage-design.md)及 external-contracts／external-examples 区分控制、反馈和监看，已纳入 TS 检查 | 验证一个外部播放器、一个媒体返回源与灯光模拟的闭环 |
 | 实体控台／双向控制面 | 产品目标与接口草案；无硬件或固件实现 | [硬件设计](hardware-control-surfaces.md)及 surface-contracts 定义输入、反馈、映射屏障与接管，已纳入 TS 检查 | 先虚拟输入，再验证已有设备；电动推子单独实测 |
