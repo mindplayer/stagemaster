@@ -1,0 +1,20 @@
+[package]
+name = "stagemaster-desktop"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "=2.6.3", features = [] }
+
+[dependencies]
+stagemaster-project = { path = "../../crates/stagemaster-project" }
+stagemaster-project-store = { path = "../../crates/stagemaster-project-store" }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+tauri = { version = "=2.11.6", features = [] }
+tauri-plugin-dialog = "=2.7.3"
+
+[lints]
+workspace = true

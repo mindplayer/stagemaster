@@ -301,7 +301,7 @@
       "items": {
         "$ref": "#/$defs/EntryPoint"
       },
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 10000
     },
     "stage": {

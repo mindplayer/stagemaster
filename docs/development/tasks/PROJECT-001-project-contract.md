@@ -1,6 +1,6 @@
 # PROJECT-001：最小工程标准与保存／重开
 
-- 状态：in progress（PROJECT-001A 格式设计完成；Rust 读写待实施）
+- 状态：in progress（格式设计与最小灯光 Rust 编辑读写完成；父任务未结项）
 - 负责人：当前 Astra 会话
 - 规划基线／分支：`9768f32`／`main`；实施前重新核对代码基线
 - 工作区：`/Users/sunqi/projects/stagemaster`
@@ -42,3 +42,5 @@ Rust 实施执行项目规定的格式化、离线工作区测试与严格 Clipp
 ## 当前记录
 
 此前完成官方资料研究、方案与任务依赖调整。2026-09-23 完成 [PROJECT-001A](PROJECT-001A-format-design.md)：[格式草案](../../project-format/README.md)、4 份 Schema、5 份样例及 49 项开发期测试；依据补充 [PRODUCT-ADR-005](../decisions/PRODUCT-ADR-005-multidomain-project-format.md)。尚未实现 Rust 读取／保存／重开、迁移恢复或正式编译，本父任务不结项。
+
+2026-09-23：用户要求可见且真实的交付增量，最小灯光子集随 [DESKTOP-001](DESKTOP-001-visible-workbench.md) 实现，依据 [ADR-006](../decisions/PRODUCT-ADR-006-visible-desktop-increments.md)。新增独立工程／存储 crate，桌面新建、配适、场景编辑、保存重开与未保存保护已接通。场景列表、时间线、播放器编译、旧版本迁移及崩溃恢复仍待实施；完整领域契约与父任务出口不能据此视为完成。

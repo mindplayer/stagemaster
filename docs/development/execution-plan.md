@@ -7,8 +7,8 @@
 - DEV-005、UX-003／004 已完成；用户对当前 UI 总体满意。G0 按开发基础范围结项，CORE-001／002 修复保留。
 - [HW-001](tasks/HW-001-first-player-baseline.md) 已完成范围和资料评估：首版同时交付软件与独立播放盒，现有微雪 ESP32-S3-RS485-CAN、1 路 DMX。
 - [HW-002](tasks/HW-002-project-segments.md) 已比较工程内容、存储与传输：主机生成自包含播放包；整场或片段由实际预算决定；USB 首先验证，产品无线文件传输优先局域网，蓝牙保留配网／控制候选。依据 [PRODUCT-ADR-002](decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)。
-- [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；产品读写与执行尚未接入。
-- 当前产品工作转向软硬件闭环。继续按 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 实现最小灯光工程的 Rust 读取／校验并验证保存／重开，再接 [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的工程编译与模拟播放；参考执行器可独立推进，板卡风险仍尽早交错验证。借鉴与 JSON／YAML 取舍见 [PRODUCT-ADR-003](decisions/PRODUCT-ADR-003-project-data-contract.md)。
+- [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；最小灯光子集已随 DESKTOP-001 接入 Rust 读写，执行尚未接入。
+- 桌面可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开。用户明确不增加演示数据／教学展板／空壳功能；下一项按[桌面迭代计划](desktop-iteration-plan.md)接场景列表与时间线，再接 Rust 播放和硬件。继续按 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 实现最小灯光工程的 Rust 读取／校验并验证保存／重开，再接 [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的工程编译与模拟播放；参考执行器可独立推进，板卡风险仍尽早交错验证。借鉴与 JSON／YAML 取舍见 [PRODUCT-ADR-003](decisions/PRODUCT-ADR-003-project-data-contract.md)。
 
 ## 软件先行与硬件承接
 
@@ -27,10 +27,11 @@
 
 ## 首次交付顺序
 
-以下任务中 PROJECT-001 已完成格式设计增量，持久化／编译尚未实现；PLAYER／AUTH 仍为计划任务。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
+以下任务中 PROJECT-001 已完成格式设计与最小灯光编辑持久化增量，场景列表／编译仍待实现；PLAYER／AUTH 仍为计划任务。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
 
 | 顺序／任务 | 最小结果 | 出口证据 |
 | --- | --- | --- |
+| DESKTOP-001：真实桌面工程编辑 | 空白新建、灯具配适、场景属性、撤销重做、保存重开 | 已完成本机原生闭环与 Rust／前端检查；详情见工单 |
 | PROJECT-001：最小工程标准与保存／重开 | 明确身份、引用、值／时间和版本；严格 JSON 正文、结构规范及 Rust 领域校验；完整快照读写 | 样例与错误用例；读写语义等价、未知能力、迁移、保存中断与过期保存验收；供 PLAYER-001 使用已校验快照 |
 | PLAYER-001：受限执行计划与参考执行器 | Rust 权威语义；单个活动节目、多场景；选择／执行／跳转／渐变／延时／循环／释放；片段起始状态、依赖闭合、资源报告 | 虚拟时间下的场景切换、渐变中断、重复命令、释放和超限测试；主机与受限执行计划可对照；无 UI／I/O 依赖 |
 | PLAYER-002：板卡固件与单路输出探针 | 锁定 Xtensa 工具链与固件依赖；GPIO17／18／21 板级适配；UART DMX 发送及帧完成状态 | 可重复交叉构建与资源报告；获授权后在受控测试负载上测启动首帧、Break／MAB、512 槽与持续刷新；补齐隔离公共地／接口方案 |

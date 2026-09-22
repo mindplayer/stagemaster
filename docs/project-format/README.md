@@ -1,6 +1,6 @@
 # StageMaster 工程格式 0.1.0-draft.1
 
-这是声光电与互动机构的**完整分层设计草案**，包含字段 Schema、两个工程及其现场绑定、一个部署清单示例。它为新增能力提供共同的数据基础；音乐播放、视频回传、电机执行仍需对应模块和设备适配器。当前 Rust 内核和界面尚未读写本格式。
+这是声光电与互动机构的**完整分层设计草案**，包含字段 Schema、两个工程及其现场绑定、一个部署清单示例。它为新增能力提供共同的数据基础；音乐播放、视频回传、电机执行仍需对应模块和设备适配器。DESKTOP-001 已由独立 Rust 工程模块及桌面工作台实现灯光编辑子集读写；完整多领域能力仍待逐模块接入。
 
 本次决定见 [PRODUCT-ADR-005](../development/decisions/PRODUCT-ADR-005-multidomain-project-format.md)，实施记录见 [PROJECT-001A](../development/tasks/PROJECT-001A-format-design.md)。字段仍处草案阶段，不能作为已发布的永久兼容承诺。
 
@@ -54,7 +54,7 @@
 | surfaces | 逻辑按钮／推子／编码器，与动作／入口／属性的绑定 |
 | extensions | 带命名空间、版本、必需性和显式引用的扩展 |
 
-七个模块对象 lighting/media/motion/io/stage/monitoring/surfaces 可省略。其他顶层数组必须显式出现，没有内容用 []。已出现的模块须完整携带其规定的数组；不要把“缺失”“空值”和“删除对象”混成同一含义。
+七个模块对象 lighting/media/motion/io/stage/monitoring/surfaces 可省略。其他顶层数组必须显式出现，没有内容用 []；编辑中的工程允许 entryPoints=[]，发布／执行必须另外选择有效入口（见 [ADR-006](../development/decisions/PRODUCT-ADR-006-visible-desktop-increments.md) 的草案修正）。已出现的模块须完整携带其规定的数组；不要把“缺失”“空值”和“删除对象”混成同一含义。
 
 requires 的本草案能力键为 lighting.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现。
 

@@ -5,7 +5,7 @@
 
 ## 产品基线
 
-- Rust 内核仍为 A0 静态原型；新增独立 React 交互原型 UX-003，未连接内核或设备，能力和限制见[实现状态](../implementation-status.md)。
+- 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
 - 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)，尚无固件、设备通信或真实输出。
 - 清理前主线：`121efa311855d977364f7ad8707ea729b5c0e367`；仅一个 `main` 工作区，无待合并分支、标签或远程。
 - CORE-001 已修复场景编号碰撞，集成 `df64f98603ca28462cf76a515b65fb39dda9b26d`。
@@ -29,12 +29,16 @@
 | [HW-001](tasks/HW-001-first-player-baseline.md) | done（范围／资料） | 已核对官方板卡资料与原理图，记录首版边界和实施顺序；发现隔离侧公共地需补引出方案，无刷机／接灯 |
 | [HW-002](tasks/HW-002-project-segments.md) | done（研究／取舍） | 核对控台工程内容，确定主机编译与设备播放包边界；比较传输方案，优先有线验证、局域网传包，蓝牙保留配网／控制候选；只读识别到乐鑫 USB 接口 |
 | [PROJECT-001A](tasks/PROJECT-001A-format-design.md) | done（格式设计） | 声光电与机构工程 `0.1.0-draft.1`、4 份 Schema、5 份样例、49 项开发期测试；未接入产品运行 |
-| [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 格式设计增量完成；Rust 读取／领域校验、保存／重开与迁移恢复待实施 |
+| [DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) | done | Tauri 工作台、最小灯光工程编辑／保存／重开、撤销及退出保护；无样例入口或模拟执行 |
+| [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表、时间线、迁移恢复及编译接入待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+DESKTOP-001：基线 `603f40f`；结果为本次 `feat(desktop): deliver real lighting project editing and persistence` 提交。43 项 Rust 测试、fmt 与严格 Clippy，UI 类型／15 项交互回归、50 项格式检查和 4 项 Sites 测试通过；本机 .app 原生窗口验收新建、灯具／场景属性、真实保存重开、地址冲突、撤销重做和未保存取消。修复无父窗口的原生提示无法正常显示，复测通过。Schema 允许空白工程零节目入口，发布语义未放宽。限制与详细记录见工单；未操作设备、固件或云端。
+
 
 PROJECT-001A：基线 `fc14472`；结果为本次 `feat(project): define modular audiovisual and motion JSON format` 提交。三层文件覆盖灯光、外部媒体、机构／输入输出、时间线联动、监看、空间与面板；4 份 Schema、5 份设计样例及 49 项检查通过。样例素材、程序和授权为明确占位，不可部署。只读重新识别到乐鑫 `303A:1001`、`/dev/cu.usbmodem2101`；未打开串口、刷机或输出。未改 Rust／UI，未重复其测试；持久化、编译、动作运行、设备预算及授权实现仍待办。
 
@@ -67,5 +71,5 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
-[格式设计增量](../project-format/README.md)已完成。下一项继续 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 的最小灯光工程 Rust 读取／校验及保存／重开验证；Rust 统一领域校验，区分编辑模型、持久正文与设备包，不照搬现有原型布局。[PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的正式编译依赖该快照，参考执行器可独立推进；渐变中断、跳转、循环、释放、片段入口、依赖闭合及资源拒绝分别验收。按[执行计划](execution-plan.md)尽早交错验证现有 ESP32 的工具链和物理输出风险，再接包安装、持久化及现有 UI。USB 先调通，局域网和蓝牙按适用角色分阶段验证。盒子应独立供电、自主播放并具备本地选场景操作面。演示适配器不能成为正式内核语义，R03–R09 仍待按实际覆盖处理。
+下一项按[桌面迭代计划](desktop-iteration-plan.md)继续真实场景列表和时间线编辑：Rust 校验／命令先行、渐变／延时和顺序持久化、接回已认可的时间线交互。父任务 PROJECT-001 不结项；播放器接已校验工程后再实现离线预览和通道监视。板卡风险按执行计划交错验证，硬件／AUTH 门槛仍保留。每轮围绕真实文件和真实操作交付，不增加演示样例页、假设备状态或尚未接通的控制按钮。
 旧独立项目 `yunwei-ma` 有未提交源码及未跟踪文件，删除范围尚待用户明确；当前不改动该仓库。

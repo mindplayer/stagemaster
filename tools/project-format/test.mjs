@@ -57,3 +57,10 @@ test('拒绝现场绑定的过期工程修订', () => { const docs=structuredClo
 test('拒绝部署遗漏执行域', () => { const docs=structuredClone(examples); docs.find(d=>d.format==='stagemaster.deployment-manifest').target.domainIds=['10000000-0000-4000-8000-000000000001']; assert.throws(()=>auditDocuments(docs),/引用不存在/); });
 test('拒绝在现场绑定内嵌密码', () => { const b=structuredClone(examples.find(d=>d.format==='stagemaster.site-binding')); b.routes[0].password='example'; assert.throws(()=>validateStructure(b),/结构/); });
 test('未知扩展可保留，但结构合格并不表示支持其执行', () => { const p=basic(); p.extensions=[{namespace:'com.example.future',version:1,role:'required-semantic',references:[],payload:{newFeature:true}}]; auditProject(p); /* Rust 编译器必须另行拒绝未知必需语义。 */ });
+
+test('空白编辑工程可以保存，但不生成虚假的执行入口', () => {
+  const p = basic();
+  for (const key of ['fixtures','groups','presets','scenes','sequences','patches']) p.lighting[key] = [];
+  p.entryPoints = [];
+  assert.doesNotThrow(() => auditProject(p));
+});

@@ -1,10 +1,13 @@
 [workspace]
 members = [
+  "apps/desktop",
   "apps/engine-demo",
   "crates/stagemaster-dmx",
   "crates/stagemaster-domain",
   "crates/stagemaster-engine",
   "crates/stagemaster-show",
+  "crates/stagemaster-project",
+  "crates/stagemaster-project-store",
 ]
 resolver = "3"
 

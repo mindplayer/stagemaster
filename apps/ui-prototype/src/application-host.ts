@@ -1,0 +1,78 @@
+export type EditCommand =
+  | { op: "setInfo"; name: string; description: string }
+  | {
+      op: "addFixture";
+      name: string;
+      profileId: string;
+      domainId: string;
+      universe: number;
+      address: number;
+    }
+  | {
+      op: "updateFixture";
+      id: string;
+      name: string;
+      universe: number;
+      address: number;
+    }
+  | { op: "removeFixture"; id: string }
+  | { op: "addScene"; name: string }
+  | { op: "renameScene"; id: string; name: string }
+  | { op: "removeScene"; id: string }
+  | {
+      op: "setSceneValue";
+      sceneId: string;
+      fixtureId: string;
+      attribute: string;
+      mode: "literal" | "release" | "remove";
+      value: number;
+    };
+export interface FixtureView {
+  id: string;
+  name: string;
+  profileName: string;
+  domainName: string;
+  footprint: number;
+  universe: number | null;
+  address: number | null;
+  attributes: { key: string; label: string; defaultValue: number }[];
+}
+export interface SceneView {
+  id: string;
+  name: string;
+  values: {
+    fixtureId: string;
+    attribute: string;
+    mode: string;
+    value: number | null;
+    presetName: string | null;
+  }[];
+}
+export interface ProjectView {
+  id: string;
+  name: string;
+  description: string;
+  profiles: { id: string; name: string; footprint: number }[];
+  domains: { id: string; name: string }[];
+  fixtures: FixtureView[];
+  scenes: SceneView[];
+}
+export interface Snapshot {
+  generation: number;
+  project: ProjectView | null;
+  fileName: string | null;
+  dirty: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+}
+export type ProjectRequest =
+  | { kind: "snapshot" | "close" }
+  | { kind: "new" | "open"; generation: number }
+  | { kind: "save"; generation: number; saveAs: boolean }
+  | { kind: "edit"; generation: number; command: EditCommand }
+  | { kind: "history"; generation: number; redo: boolean };
+export interface ApplicationHost {
+  kind: "desktop" | "browser";
+  request(request: ProjectRequest): Promise<Snapshot>;
+  onCloseRequested(handler: () => void): Promise<() => void>;
+}
