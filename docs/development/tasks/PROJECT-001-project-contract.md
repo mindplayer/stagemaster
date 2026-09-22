@@ -23,6 +23,8 @@
 
 JSON 编解码与具体文件 I/O 分离，给后续加密工程容器保留接入边界；当前仅实施明文读写，不引入加密库或密钥管理。格式识别不只依赖后缀，未知容器明确拒绝。工程结构和容器版本分开，详见 ADR 的后续加密边界。
 
+[PRODUCT-ADR-004](../decisions/PRODUCT-ADR-004-relayed-device-authorization.md) 的正式／24 小时临时许可属于发布授权层，绑定设备及执行内容；不在可编辑工程正文放入可自行修改的到期字段来充当授权。当前工单仍聚焦工程读写，商业授权另由 AUTH-001 实施。
+
 实施前记录精确源码路径、公共类型、转换错误及新增依赖；不新增一套 TypeScript 工程解释器。按需读取 `crates/stagemaster-domain/`、`crates/stagemaster-show/`、`crates/stagemaster-dmx/` 和模块伪 API；存储适配模块的具体拆分先评审。本轮仅写文档，不修改代码。
 
 ## 独立验收
