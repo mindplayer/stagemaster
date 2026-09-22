@@ -1,6 +1,6 @@
 # 当前开发状态
 
-更新：2026-09-21。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
+更新：2026-09-23。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
 ## 产品基线
@@ -28,10 +28,13 @@
 | [UX-005](tasks/UX-005-chinese-terminology.md) | done | 统一“场景／执行”等中文操作术语，同步界面、辅助功能标签及当前说明；类型检查、构建与浏览器保存／执行核验通过 |
 | [HW-001](tasks/HW-001-first-player-baseline.md) | done（范围／资料） | 已核对官方板卡资料与原理图，记录首版边界和实施顺序；发现隔离侧公共地需补引出方案，无刷机／接灯 |
 | [HW-002](tasks/HW-002-project-segments.md) | done（研究／取舍） | 核对控台工程内容，确定主机编译与设备播放包边界；比较传输方案，优先有线验证、局域网传包，蓝牙保留配网／控制候选；只读识别到乐鑫 USB 接口 |
-| [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 首先在电脑贯通最小工程、受限编译、虚拟时间播放与 512 通道输出核对；精确契约及实现待开始 |
+| [PROJECT-001](tasks/PROJECT-001-project-contract.md) | planned（研究／方向已记录） | 核对 JSON／YAML、OTIO、GDTF／MVR；确定严格 JSON 正文方向，最小工程标准与保存／重开前置；字段及实现待开始 |
+| [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 
 ## 最新验证
+
+PROJECT-001 研究与规划：基线 `9768f32`；结果为本次 `docs: define JSON project contract direction` 提交。核对官方格式／版本规范及当前代码，形成 [PRODUCT-ADR-003](decisions/PRODUCT-ADR-003-project-data-contract.md)；本地文档引用与差异检查通过。仅文档变更，未实现或测试工程读写、未测格式性能、未操作设备。
 
 PLAYER-001 规划：基线 `e461112`；结果为本次 `docs: sequence software playback before hardware integration` 提交。细化软件先行、硬件反馈能力的职责与分步验收；仅文档变更，本地引用与差异检查通过，未运行产品测试或操作设备。播放实现仍为待办。
 
@@ -54,5 +57,5 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 ## 下一步
 
-下一项按 [PLAYER-001 工单](tasks/PLAYER-001-software-playback-foundation.md) 实施：先形成精确行为契约与架构变更说明，再在电脑完成虚拟时间参考执行、受限编译和可核对的 DMX 逻辑输出；渐变中断、跳转、循环、释放、片段入口、依赖闭合及资源拒绝分别验收。按[执行计划](execution-plan.md)尽早交错验证现有 ESP32 的工具链和物理输出风险，再接传输无关的包安装、持久化及现有 UI。USB 先调通，局域网和蓝牙按各自适用角色分阶段验证。盒子应独立供电、自主播放，最终具备本地选场景的操作面。演示适配器不能成为正式内核语义，R03–R09 等既有问题仍待处理。
+下一项先按 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 形成最小工程标准、JSON 样例及保存／重开验证；Rust 统一领域校验，区分编辑模型、持久正文与设备包，不照搬现有原型布局。[PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的正式编译依赖该快照，参考执行器可独立推进；渐变中断、跳转、循环、释放、片段入口、依赖闭合及资源拒绝分别验收。按[执行计划](execution-plan.md)尽早交错验证现有 ESP32 的工具链和物理输出风险，再接包安装、持久化及现有 UI。USB 先调通，局域网和蓝牙按适用角色分阶段验证。盒子应独立供电、自主播放并具备本地选场景操作面。演示适配器不能成为正式内核语义，R03–R09 仍待按实际覆盖处理。
 旧独立项目 `yunwei-ma` 有未提交源码及未跟踪文件，删除范围尚待用户明确；当前不改动该仓库。
