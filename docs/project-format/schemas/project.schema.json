@@ -1,0 +1,2544 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stagemaster:schema:project:0.1.0-draft.1",
+  "title": "StageMaster project 0.1.0-draft.1",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "stagemaster.project"
+    },
+    "formatVersion": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FormatVersion"
+    },
+    "semanticsVersion": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FormatVersion"
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revisionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "parentRevisionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 0,
+          "maxItems": 10000,
+          "uniqueItems": true
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "revisionId",
+        "parentRevisionIds",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+      },
+      "minItems": 0,
+      "maxItems": 128
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Resource"
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "kind": {
+            "enum": [
+              "lighting",
+              "external-media",
+              "motion",
+              "io"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 256
+    },
+    "lighting": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Profile"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "fixtures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Fixture"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Group"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "presets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Preset"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "scenes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scene"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "sequences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Sequence"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "patches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Patch"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "profiles",
+        "fixtures",
+        "groups",
+        "presets",
+        "scenes",
+        "sequences",
+        "patches"
+      ],
+      "additionalProperties": false
+    },
+    "media": {
+      "type": "object",
+      "properties": {
+        "systems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MediaSystem"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MediaObject"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "systems",
+        "objects"
+      ],
+      "additionalProperties": false
+    },
+    "motion": {
+      "type": "object",
+      "properties": {
+        "controllers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Controller"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "axes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Axis"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "controllers",
+        "axes"
+      ],
+      "additionalProperties": false
+    },
+    "io": {
+      "type": "object",
+      "properties": {
+        "devices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IoDevice"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Signal"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Output"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "devices",
+        "signals",
+        "outputs"
+      ],
+      "additionalProperties": false
+    },
+    "syncGroups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SyncGroup"
+      },
+      "minItems": 0,
+      "maxItems": 256
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Condition"
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Rule"
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "timelines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Timeline"
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "entryPoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/EntryPoint"
+      },
+      "minItems": 1,
+      "maxItems": 10000
+    },
+    "stage": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StageNode"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
+    "monitoring": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MonitorSource"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MonitorView"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "sources",
+        "views"
+      ],
+      "additionalProperties": false
+    },
+    "surfaces": {
+      "type": "object",
+      "properties": {
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "controls": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/SurfaceControl"
+                },
+                "minItems": 0,
+                "maxItems": 1024
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "controls"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 256
+        }
+      },
+      "required": [
+        "pages"
+      ],
+      "additionalProperties": false
+    },
+    "extensions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Extension"
+      },
+      "minItems": 0,
+      "maxItems": 128
+    }
+  },
+  "required": [
+    "format",
+    "formatVersion",
+    "semanticsVersion",
+    "project",
+    "requires",
+    "resources",
+    "domains",
+    "syncGroups",
+    "actions",
+    "conditions",
+    "rules",
+    "timelines",
+    "entryPoints",
+    "extensions"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "AttributeTarget": {
+      "type": "object",
+      "properties": {
+        "fixtureId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "attribute": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+        }
+      },
+      "required": [
+        "fixtureId",
+        "attribute"
+      ],
+      "additionalProperties": false
+    },
+    "ValueSource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "literal"
+            },
+            "value": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "preset"
+            },
+            "presetId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            }
+          },
+          "required": [
+            "kind",
+            "presetId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Assignment": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "target": {
+              "$ref": "#/$defs/AttributeTarget"
+            },
+            "operation": {
+              "const": "set"
+            },
+            "source": {
+              "$ref": "#/$defs/ValueSource"
+            }
+          },
+          "required": [
+            "target",
+            "operation",
+            "source"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "target": {
+              "$ref": "#/$defs/AttributeTarget"
+            },
+            "operation": {
+              "const": "release"
+            }
+          },
+          "required": [
+            "target",
+            "operation"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "manufacturer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "sourceResourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "footprint": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+              },
+              "valueType": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/DataType"
+              },
+              "default": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+              },
+              "mix": {
+                "enum": [
+                  "htp",
+                  "ltp"
+                ]
+              }
+            },
+            "required": [
+              "key",
+              "valueType",
+              "default",
+              "mix"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 512
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "attribute": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+              },
+              "encoding": {
+                "enum": [
+                  "u8",
+                  "u16-be"
+                ]
+              },
+              "offsets": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 511
+                },
+                "minItems": 1,
+                "maxItems": 2
+              }
+            },
+            "required": [
+              "attribute",
+              "encoding",
+              "offsets"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 512
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "manufacturer",
+        "model",
+        "mode",
+        "revision",
+        "footprint",
+        "attributes",
+        "channels"
+      ],
+      "additionalProperties": false
+    },
+    "Fixture": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "profileId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "domainId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "profileId",
+        "domainId"
+      ],
+      "additionalProperties": false
+    },
+    "Group": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fixtureIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 0,
+          "maxItems": 10000,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "fixtureIds"
+      ],
+      "additionalProperties": false
+    },
+    "Preset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "$ref": "#/$defs/AttributeTarget"
+              },
+              "value": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+              }
+            },
+            "required": [
+              "target",
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "values"
+      ],
+      "additionalProperties": false
+    },
+    "Scene": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "assignments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Assignment"
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "assignments"
+      ],
+      "additionalProperties": false
+    },
+    "Sequence": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "tracking": {
+          "enum": [
+            "inherited",
+            "isolated"
+          ]
+        },
+        "repeat": {
+          "enum": [
+            "once",
+            "loop"
+          ]
+        },
+        "release": {
+          "const": "profile-defaults"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "number": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]{0,5})(?:\\.[0-9]{1,3})?$"
+              },
+              "sceneId": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "actionIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                },
+                "minItems": 0,
+                "maxItems": 10000,
+                "uniqueItems": true
+              },
+              "delay": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+              },
+              "fade": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+              },
+              "advance": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "manual"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "const": "after"
+                      },
+                      "wait": {
+                        "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "wait"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "number",
+              "sceneId",
+              "actionIds",
+              "delay",
+              "fade",
+              "advance"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tracking",
+        "repeat",
+        "release",
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "Patch": {
+      "type": "object",
+      "properties": {
+        "fixtureId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "domainId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "universe": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "address": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        }
+      },
+      "required": [
+        "fixtureId",
+        "domainId",
+        "universe",
+        "address"
+      ],
+      "additionalProperties": false
+    },
+    "MediaSystem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "audio-player",
+            "audio-console",
+            "video-player",
+            "media-server",
+            "projector",
+            "video-router",
+            "laser-controller",
+            "camera"
+          ]
+        },
+        "domainId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "adapterContract": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+        },
+        "externalProject": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          "required": [
+            "key",
+            "revision"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "domainId",
+        "adapterContract",
+        "externalProject"
+      ],
+      "additionalProperties": false
+    },
+    "MediaObject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "systemId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "externalObjectKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "audio",
+            "video",
+            "preset",
+            "laser-scene",
+            "input-source"
+          ]
+        },
+        "resourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "referenceResourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "expectedDuration": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "systemId",
+        "externalObjectKey",
+        "kind",
+        "requiredCapabilities"
+      ],
+      "additionalProperties": false
+    },
+    "Controller": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "domainId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "adapterContract": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+        },
+        "externalProject": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          "required": [
+            "key",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "safetyAuthority": {
+          "const": "external-controller"
+        },
+        "requiredFeedback": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "onConnectionLoss": {
+          "const": "controller-defined-stop"
+        },
+        "onControlLeaseLoss": {
+          "const": "controller-defined-stop"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "domainId",
+        "adapterContract",
+        "externalProject",
+        "safetyAuthority",
+        "requiredFeedback",
+        "onConnectionLoss",
+        "onControlLeaseLoss"
+      ],
+      "additionalProperties": false
+    },
+    "Axis": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "controllerId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "axisKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "unit": {
+          "enum": [
+            "mm",
+            "degree"
+          ]
+        },
+        "requestedTravel": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            },
+            "max": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "positionSignalId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "readyConditionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "motionProfileKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "controllerId",
+        "axisKey",
+        "unit",
+        "requestedTravel",
+        "positionSignalId",
+        "readyConditionId",
+        "motionProfileKey"
+      ],
+      "additionalProperties": false
+    },
+    "IoDevice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "domainId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "adapterContract": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+        },
+        "scope": {
+          "const": "non-safety-show-control"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "domainId",
+        "adapterContract",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "Signal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "valueType": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/DataType"
+        },
+        "meaning": {
+          "enum": [
+            "sensor",
+            "operator-input",
+            "position",
+            "ready",
+            "fault",
+            "limit",
+            "safety-status",
+            "media-status"
+          ]
+        },
+        "freshness": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "sourceId",
+        "sourceKey",
+        "valueType",
+        "meaning",
+        "freshness"
+      ],
+      "additionalProperties": false
+    },
+    "Output": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "deviceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "outputKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "valueType": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/DataType"
+        },
+        "idleValue": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+        },
+        "scope": {
+          "const": "non-safety-show-control"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "deviceId",
+        "outputKey",
+        "valueType",
+        "idleValue",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "lighting.apply-scene"
+            },
+            "sceneId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "fade": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "sceneId",
+            "fade"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "media.play"
+            },
+            "objectId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "position": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Time"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "objectId",
+            "position"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "enum": [
+                "media.pause",
+                "media.stop",
+                "external.recall"
+              ]
+            },
+            "objectId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "objectId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "media.seek"
+            },
+            "objectId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "position": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Time"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "objectId",
+            "position"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "motion.move"
+            },
+            "axisId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "request": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "linear"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        },
+                        "unit": {
+                          "const": "mm"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "speed": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        },
+                        "unit": {
+                          "const": "mm/s"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "position",
+                    "speed"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "angular"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        },
+                        "unit": {
+                          "const": "degree"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "speed": {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        },
+                        "unit": {
+                          "const": "degree/s"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "position",
+                    "speed"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "completionTolerance": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "axisId",
+            "request",
+            "completionTolerance"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "motion.stop"
+            },
+            "controllerId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "controllerId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FailurePolicy"
+            },
+            "requiresConditions": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "kind": {
+              "const": "io.set"
+            },
+            "outputId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "value": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "policy",
+            "requiresConditions",
+            "kind",
+            "outputId",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Condition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "expression": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "signal"
+                },
+                "signalId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                },
+                "operator": {
+                  "enum": [
+                    "equals",
+                    "above",
+                    "below"
+                  ]
+                },
+                "value": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Value"
+                },
+                "maxAge": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+                },
+                "stableFor": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+                }
+              },
+              "required": [
+                "kind",
+                "signalId",
+                "operator",
+                "value",
+                "maxAge",
+                "stableFor"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "all",
+                    "any"
+                  ]
+                },
+                "conditionIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                  },
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "kind",
+                "conditionIds"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "not"
+                },
+                "conditionId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                }
+              },
+              "required": [
+                "kind",
+                "conditionId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "onUnknown": {
+          "const": "propagate"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "expression",
+        "onUnknown"
+      ],
+      "additionalProperties": false
+    },
+    "Rule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "conditionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "edge": {
+          "const": "rising"
+        },
+        "actionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "arming": {
+          "const": "explicit-operator"
+        },
+        "rearm": {
+          "enum": [
+            "once-per-run",
+            "explicit-operator"
+          ]
+        },
+        "cooldown": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        },
+        "onLoad": {
+          "const": "disarmed"
+        },
+        "onReconnect": {
+          "const": "rebase-without-trigger"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "conditionId",
+        "edge",
+        "actionIds",
+        "arming",
+        "rearm",
+        "cooldown",
+        "onLoad",
+        "onReconnect"
+      ],
+      "additionalProperties": false
+    },
+    "SyncGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "clock": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "internal-monotonic"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "external-timecode"
+                },
+                "sourceCatalogKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "onLoss": {
+                  "enum": [
+                    "hold",
+                    "stop-group"
+                  ]
+                }
+              },
+              "required": [
+                "kind",
+                "sourceCatalogKey",
+                "onLoss"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ticksPerSecond": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PositiveInteger"
+        },
+        "onSeek": {
+          "const": "reconstruct-state-skip-actions"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "clock",
+        "ticksPerSecond",
+        "onSeek"
+      ],
+      "additionalProperties": false
+    },
+    "Item": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "kind": {
+              "const": "lighting.scene-clip"
+            },
+            "start": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "duration": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "sceneId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "fadeIn": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "onEnd": {
+              "enum": [
+                "hold",
+                "release"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "kind",
+            "start",
+            "duration",
+            "sceneId",
+            "fadeIn",
+            "onEnd"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "kind": {
+              "const": "media.reference-clip"
+            },
+            "start": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "duration": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "resourceId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "sourceIn": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Time"
+            },
+            "presentation": {
+              "const": "reference-only"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "kind",
+            "start",
+            "duration",
+            "resourceId",
+            "sourceIn",
+            "presentation"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "kind": {
+              "const": "action-event"
+            },
+            "at": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "actionId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "kind",
+            "at",
+            "actionId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "kind": {
+              "const": "marker"
+            },
+            "at": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "kind",
+            "at",
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Track": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "lighting",
+            "audio-reference",
+            "video-reference",
+            "events",
+            "markers"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Item"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "Timeline": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "syncGroupId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "duration": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        },
+        "repeat": {
+          "enum": [
+            "once",
+            "loop"
+          ]
+        },
+        "tracks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Track"
+          },
+          "minItems": 0,
+          "maxItems": 256
+        },
+        "overlap": {
+          "const": "reject-conflicting-writes"
+        },
+        "endActionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 0,
+          "maxItems": 10000,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "syncGroupId",
+        "duration",
+        "repeat",
+        "tracks",
+        "overlap",
+        "endActionIds"
+      ],
+      "additionalProperties": false
+    },
+    "EntryPoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "target": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "sequence"
+                },
+                "id": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                }
+              },
+              "required": [
+                "kind",
+                "id"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "timeline"
+                },
+                "id": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                }
+              },
+              "required": [
+                "kind",
+                "id"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "domainIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "ruleIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 0,
+          "maxItems": 10000,
+          "uniqueItems": true
+        },
+        "shutdown": {
+          "type": "object",
+          "properties": {
+            "maxTail": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "actionIds": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "minItems": 0,
+              "maxItems": 10000,
+              "uniqueItems": true
+            },
+            "noAutomaticRestart": {
+              "const": true
+            }
+          },
+          "required": [
+            "maxTail",
+            "actionIds",
+            "noAutomaticRestart"
+          ],
+          "additionalProperties": false
+        },
+        "completion": {
+          "enum": [
+            "finite",
+            "current-loop",
+            "operator-controlled"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "target",
+        "domainIds",
+        "ruleIds",
+        "shutdown",
+        "completion"
+      ],
+      "additionalProperties": false
+    },
+    "MonitorSource": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "systemId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "sourceKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "audio-return",
+            "video-return",
+            "camera",
+            "meters",
+            "reference"
+          ]
+        },
+        "tap": {
+          "enum": [
+            "reference",
+            "pre-output",
+            "post-output",
+            "capture",
+            "physical-observation"
+          ]
+        },
+        "referenceResourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "freshness": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "systemId",
+        "sourceKey",
+        "kind",
+        "tap",
+        "freshness"
+      ],
+      "additionalProperties": false
+    },
+    "MonitorView": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "audioDefault": {
+          "const": "muted"
+        },
+        "purpose": {
+          "const": "observe-only"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "sourceId",
+        "audioDefault",
+        "purpose"
+      ],
+      "additionalProperties": false
+    },
+    "SurfaceControl": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "button",
+            "fader",
+            "encoder"
+          ]
+        },
+        "target": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "action"
+                },
+                "actionId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                }
+              },
+              "required": [
+                "kind",
+                "actionId"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "entry-point"
+                },
+                "entryPointId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                }
+              },
+              "required": [
+                "kind",
+                "entryPointId"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "lighting-attribute"
+                },
+                "target": {
+                  "$ref": "#/$defs/AttributeTarget"
+                }
+              },
+              "required": [
+                "kind",
+                "target"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "behavior": {
+          "enum": [
+            "momentary",
+            "absolute-pickup",
+            "relative",
+            "motor-follow"
+          ]
+        },
+        "feedback": {
+          "const": "authoritative-state"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "target",
+        "behavior",
+        "feedback"
+      ],
+      "additionalProperties": false
+    },
+    "StageNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "parentId": {
+          "oneOf": [
+            {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deviceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "resourceId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "positionMeters": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "y": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "z": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "z"
+              ],
+              "additionalProperties": false
+            },
+            "rotationDegreesXYZ": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "y": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "z": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "z"
+              ],
+              "additionalProperties": false
+            },
+            "scale": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "y": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "z": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "positionMeters",
+            "rotationDegreesXYZ",
+            "scale"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "parentId",
+        "transform"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

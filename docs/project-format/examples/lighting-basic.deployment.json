@@ -1,0 +1,52 @@
+{
+  "format": "stagemaster.deployment-manifest",
+  "formatVersion": "0.1.0-draft.1",
+  "packageId": "00000000-0000-4000-8000-000000000320",
+  "source": {
+    "projectId": "00000000-0000-4000-8000-000000000001",
+    "revisionId": "00000000-0000-4000-8000-000000000002"
+  },
+  "binding": {
+    "id": "00000000-0000-4000-8000-000000000300",
+    "revisionId": "00000000-0000-4000-8000-000000000301"
+  },
+  "compiler": {
+    "name": "design-fixture-no-compiler",
+    "version": "0.0.0"
+  },
+  "semanticsVersion": "0.1.0-draft.1",
+  "target": {
+    "deviceClass": "esp32-s3-one-dmx",
+    "capabilityRevision": "unverified-example",
+    "capabilities": [
+      {
+        "key": "lighting.basic",
+        "version": 1
+      }
+    ],
+    "domainIds": [
+      "00000000-0000-4000-8000-000000000010"
+    ]
+  },
+  "entryPointIds": [
+    "00000000-0000-4000-8000-000000000050"
+  ],
+  "selectionPolicy": "reject-unsatisfied-dependencies",
+  "plan": {
+    "path": "plan/playback.bin",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "byteLength": "0"
+  },
+  "resources": [],
+  "budgets": {
+    "planBytes": "0",
+    "runtimeRamBytes": "0",
+    "maxActionsPerTick": 0
+  },
+  "authorizationEnvelope": {
+    "path": "authorization/envelope.bin",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "byteLength": "0"
+  },
+  "activation": "explicit-after-complete-validation"
+}

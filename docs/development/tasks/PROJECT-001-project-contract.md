@@ -1,6 +1,6 @@
 # PROJECT-001：最小工程标准与保存／重开
 
-- 状态：planned（研究、方向与验收范围已确定；字段及实现待开始）
+- 状态：in progress（PROJECT-001A 格式设计完成；Rust 读写待实施）
 - 负责人：当前 Astra 会话
 - 规划基线／分支：`9768f32`／`main`；实施前重新核对代码基线
 - 工作区：`/Users/sunqi/projects/stagemaster`
@@ -25,7 +25,7 @@ JSON 编解码与具体文件 I/O 分离，给后续加密工程容器保留接�
 
 [PRODUCT-ADR-004](../decisions/PRODUCT-ADR-004-relayed-device-authorization.md) 的正式／24 小时临时许可属于发布授权层，绑定设备及执行内容；不在可编辑工程正文放入可自行修改的到期字段来充当授权。当前工单仍聚焦工程读写，商业授权另由 AUTH-001 实施。
 
-实施前记录精确源码路径、公共类型、转换错误及新增依赖；不新增一套 TypeScript 工程解释器。按需读取 `crates/stagemaster-domain/`、`crates/stagemaster-show/`、`crates/stagemaster-dmx/` 和模块伪 API；存储适配模块的具体拆分先评审。本轮仅写文档，不修改代码。
+实施前记录精确源码路径、公共类型、转换错误及新增依赖；不新增一套 TypeScript 工程解释器。按需读取 `crates/stagemaster-domain/`、`crates/stagemaster-show/`、`crates/stagemaster-dmx/` 和模块伪 API；存储适配模块的具体拆分先评审。后续 Rust 实施按此范围另行细化；PROJECT-001A 的开发期检查不替代产品领域校验。
 
 ## 独立验收
 
@@ -41,4 +41,4 @@ Rust 实施执行项目规定的格式化、离线工作区测试与严格 Clipp
 
 ## 当前记录
 
-本轮完成官方资料研究、方案与任务依赖调整，结果对应 `docs: define JSON project contract direction` 提交；尚未实现字段标准、读写模块及产品测试。文档核验见 STATE。
+此前完成官方资料研究、方案与任务依赖调整。2026-09-23 完成 [PROJECT-001A](PROJECT-001A-format-design.md)：[格式草案](../../project-format/README.md)、4 份 Schema、5 份样例及 49 项开发期测试；依据补充 [PRODUCT-ADR-005](../decisions/PRODUCT-ADR-005-multidomain-project-format.md)。尚未实现 Rust 读取／保存／重开、迁移恢复或正式编译，本父任务不结项。

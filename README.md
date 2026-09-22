@@ -2,7 +2,7 @@
 
 新项目工作目录：`/Users/sunqi/projects/stagemaster`。
 
-本文件用于新会话交接，产品设计与研究截至 2026-09-11，开发方法更新于 2026-09-18，UI 原型更新于 2026-09-21。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。已新增独立 React 舞台画布交互原型；Tauri、Rust 与 UI 接入、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
+本文件用于新会话交接，产品设计与研究截至 2026-09-11，开发方法更新于 2026-09-18，UI 原型更新于 2026-09-21，工程格式草案更新于 2026-09-23。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型，架构审查发现编号校验、默认值合成及若干领域／运行边界问题；尚不能视为完整控台内核。已新增独立 React 舞台画布交互原型；Tauri、Rust 与 UI 接入、持续调度、真实输出和云端均未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
 
 当前开发入口：
 
@@ -10,7 +10,8 @@
 - [当前执行计划](docs/development/execution-plan.md)：产品主线与任务流程；已取消 Sol／Qwen 委派，旧计划、工作器与试验副本已清理。
 - [首次软硬件交付](docs/development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)：2026-09-21 确认软件＋独立播放盒，先用现有微雪 ESP32-S3-RS485-CAN 做 1 路 DMX；已核对板卡资料，尚无固件或设备实测。
 - [工程、设备播放包与传输分工](docs/development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)：核查 MA／老虎的工程内容；主机编译、自包含播放包、闪存预算与有线／局域网／蓝牙取舍，已只读识别插入的乐鑫 USB 接口。
-- [工程数据标准与格式借鉴](docs/development/decisions/PRODUCT-ADR-003-project-data-contract.md)：2026-09-23 核对 JSON／YAML、OpenTimelineIO、GDTF／MVR；采用严格 JSON 正文方向，先验证最小工程标准与保存／重开，再接正式编译；具体字段和读写实现尚未完成。
+- [工程数据标准与格式借鉴](docs/development/decisions/PRODUCT-ADR-003-project-data-contract.md)：2026-09-23 核对 JSON／YAML、OpenTimelineIO、GDTF／MVR；采用严格 JSON 正文方向，先验证最小工程标准与保存／重开，再接正式编译；字段草案见下方格式规范，Rust 读写实现尚未完成。
+- [声光电与密室机构 JSON 格式](docs/project-format/README.md)：`0.1.0-draft.1` 的三层文件、4 份 Schema、5 份示例及设计期检查；覆盖媒体控制／监看、传感器、机械轴与面板，49 项测试通过，尚未接入 Rust 或真实设备。
 - [设备包中转与临时授权](docs/development/decisions/PRODUCT-ADR-004-relayed-device-authorization.md)：手机／电脑连接服务器并向离线设备下发加密播放包；手机无网时当前文件可生成 24 小时临时包，到期提示并收尾后禁止新播放；离线签发、可信时间和量产保护待实现验证。
 - [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内，工作目录只保留现行版本与有效参考资料。
 - [舞台画布交互原型](docs/ui-design/interaction-prototype.md)：已按第一张视觉方向加入剪映式灯光时间线；支持片段编辑、预览、音乐参考和独立执行模拟。源码在 `apps/ui-prototype/`，刷新重置，尚未连接 Rust 或设备。

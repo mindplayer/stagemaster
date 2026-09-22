@@ -1,0 +1,545 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stagemaster:schema:common:0.1.0-draft.1",
+  "title": "StageMaster common 0.1.0-draft.1",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "Key": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "UnsignedInteger": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "SignedInteger": {
+      "type": "string",
+      "pattern": "^(0|-?[1-9][0-9]{0,18})$"
+    },
+    "PositiveInteger": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,18}$"
+    },
+    "Decimal": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^(0|-?[1-9][0-9]*|-?(0|[1-9][0-9]*)\\.[0-9]*[1-9])$"
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "PackagePath": {
+      "type": "string",
+      "maxLength": 512,
+      "pattern": "^[a-zA-Z0-9_-]+(?:/[a-zA-Z0-9_-]+)*(?:\\.[a-zA-Z0-9_-]+)?$"
+    },
+    "Time": {
+      "type": "object",
+      "properties": {
+        "ticks": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/SignedInteger"
+        },
+        "ticksPerSecond": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PositiveInteger"
+        }
+      },
+      "required": [
+        "ticks",
+        "ticksPerSecond"
+      ],
+      "additionalProperties": false
+    },
+    "Duration": {
+      "type": "object",
+      "properties": {
+        "ticks": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        },
+        "ticksPerSecond": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PositiveInteger"
+        }
+      },
+      "required": [
+        "ticks",
+        "ticksPerSecond"
+      ],
+      "additionalProperties": false
+    },
+    "Value": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "normalized"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "scalar"
+            },
+            "value": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            },
+            "unit": {
+              "enum": [
+                "normalized",
+                "db",
+                "mm",
+                "m",
+                "degree",
+                "mm/s",
+                "degree/s",
+                "mm/s2",
+                "degree/s2",
+                "hz",
+                "second",
+                "percent"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "value",
+            "unit"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "boolean"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "choice"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "integer"
+            },
+            "value": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/SignedInteger"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "text"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DataType": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "normalized",
+                "boolean",
+                "integer",
+                "text"
+              ]
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "scalar"
+            },
+            "unit": {
+              "enum": [
+                "normalized",
+                "db",
+                "mm",
+                "m",
+                "degree",
+                "mm/s",
+                "degree/s",
+                "mm/s2",
+                "degree/s2",
+                "hz",
+                "second",
+                "percent"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "unit"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "choice"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "minItems": 1,
+              "maxItems": 1024,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Capability": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      },
+      "required": [
+        "key",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "Resource": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "fixture-profile",
+            "audio",
+            "video",
+            "image",
+            "model",
+            "reference-proxy",
+            "other"
+          ]
+        },
+        "sha256": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+        },
+        "byteLength": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        },
+        "locator": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "package"
+                },
+                "path": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PackagePath"
+                }
+              },
+              "required": [
+                "kind",
+                "path"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "catalog"
+                },
+                "catalogKey": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+                },
+                "objectKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "revision": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              },
+              "required": [
+                "kind",
+                "catalogKey",
+                "objectKey",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "requiredFor": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "editing",
+              "compilation",
+              "reference-preview",
+              "external-playback"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "media": {
+          "type": "object",
+          "properties": {
+            "duration": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+            },
+            "sampleRate": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 768000
+            },
+            "channels": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1024
+            },
+            "frameRate": {
+              "type": "object",
+              "properties": {
+                "numerator": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "denominator": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                }
+              },
+              "required": [
+                "numerator",
+                "denominator"
+              ],
+              "additionalProperties": false
+            },
+            "width": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            }
+          },
+          "required": [
+            "duration"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "sha256",
+        "byteLength",
+        "locator",
+        "requiredFor"
+      ],
+      "additionalProperties": false
+    },
+    "Extension": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9-]*)+$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "role": {
+          "enum": [
+            "required-semantic",
+            "optional-metadata"
+          ]
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+              },
+              "id": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              }
+            },
+            "required": [
+              "kind",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "payload": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "namespace",
+        "version",
+        "role",
+        "references",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "FailurePolicy": {
+      "type": "object",
+      "properties": {
+        "onTimeout": {
+          "enum": [
+            "block",
+            "notify"
+          ]
+        },
+        "onUnknownOutcome": {
+          "const": "reconcile-no-retry"
+        },
+        "retry": {
+          "const": "never-automatically"
+        },
+        "onSeek": {
+          "const": "skip"
+        },
+        "onReconnect": {
+          "const": "require-reconciliation"
+        },
+        "onLate": {
+          "const": "block"
+        },
+        "maxLateness": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        },
+        "ackTimeout": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        },
+        "completionTimeout": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Duration"
+        }
+      },
+      "required": [
+        "onTimeout",
+        "onUnknownOutcome",
+        "retry",
+        "onSeek",
+        "onReconnect",
+        "onLate",
+        "maxLateness",
+        "ackTimeout",
+        "completionTimeout"
+      ],
+      "additionalProperties": false
+    },
+    "FormatVersion": {
+      "const": "0.1.0-draft.1"
+    }
+  }
+}

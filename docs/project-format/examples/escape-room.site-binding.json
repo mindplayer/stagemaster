@@ -1,0 +1,115 @@
+{
+  "format": "stagemaster.site-binding",
+  "formatVersion": "0.1.0-draft.1",
+  "binding": {
+    "id": "00000000-0000-4000-8000-000000000310",
+    "name": "密室现场绑定（示意）",
+    "revisionId": "00000000-0000-4000-8000-000000000311",
+    "project": {
+      "projectId": "00000000-0000-4000-8000-000000000100",
+      "revisionId": "00000000-0000-4000-8000-000000000101"
+    }
+  },
+  "routes": [
+    {
+      "kind": "dmx",
+      "domainId": "00000000-0000-4000-8000-000000000010",
+      "universe": 1,
+      "endpointCatalogKey": "example-only.player",
+      "portKey": "rs485-1",
+      "onSourceLoss": "commissioned-policy"
+    },
+    {
+      "kind": "external",
+      "objectId": "00000000-0000-4000-8000-000000000120",
+      "endpointCatalogKey": "example-only.device-120",
+      "adapterContract": {
+        "key": "adapter.audio-player",
+        "version": 1
+      },
+      "expectedRemoteProject": {
+        "key": "room-sound",
+        "revision": "demo-1"
+      }
+    },
+    {
+      "kind": "external",
+      "objectId": "00000000-0000-4000-8000-000000000121",
+      "endpointCatalogKey": "example-only.device-121",
+      "adapterContract": {
+        "key": "adapter.media-server",
+        "version": 1
+      },
+      "expectedRemoteProject": {
+        "key": "room-video",
+        "revision": "demo-1"
+      }
+    },
+    {
+      "kind": "external",
+      "objectId": "00000000-0000-4000-8000-000000000140",
+      "endpointCatalogKey": "example-only.device-140",
+      "adapterContract": {
+        "key": "adapter.motion-controller",
+        "version": 1
+      },
+      "expectedRemoteProject": {
+        "key": "room-machine",
+        "revision": "commissioned-demo"
+      }
+    },
+    {
+      "kind": "external",
+      "objectId": "00000000-0000-4000-8000-000000000150",
+      "endpointCatalogKey": "example-only.io",
+      "adapterContract": {
+        "key": "adapter.digital-io",
+        "version": 1
+      },
+      "expectedRemoteProject": {
+        "key": "room-inputs",
+        "revision": "demo-1"
+      }
+    }
+  ],
+  "monitorRoutes": [
+    {
+      "sourceId": "00000000-0000-4000-8000-000000000240",
+      "endpointCatalogKey": "example-only.monitor",
+      "streamKey": "program-return"
+    },
+    {
+      "sourceId": "00000000-0000-4000-8000-000000000241",
+      "endpointCatalogKey": "example-only.monitor",
+      "streamKey": "program-meters"
+    }
+  ],
+  "surfaceRoutes": [
+    {
+      "pageId": "00000000-0000-4000-8000-000000000250",
+      "surfaceCatalogKey": "example-only.surface",
+      "controlMap": [
+        {
+          "logicalControlId": "00000000-0000-4000-8000-000000000251",
+          "physicalControlKey": "control-1"
+        },
+        {
+          "logicalControlId": "00000000-0000-4000-8000-000000000252",
+          "physicalControlKey": "control-2"
+        },
+        {
+          "logicalControlId": "00000000-0000-4000-8000-000000000253",
+          "physicalControlKey": "control-3"
+        }
+      ]
+    }
+  ],
+  "commissioning": [
+    {
+      "controllerId": "00000000-0000-4000-8000-000000000140",
+      "configurationDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+      "recordCatalogKey": "example-only.not-commissioned",
+      "requiresLocalArming": true
+    }
+  ]
+}

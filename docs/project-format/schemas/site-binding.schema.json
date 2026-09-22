@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stagemaster:schema:site-binding:0.1.0-draft.1",
+  "title": "StageMaster site-binding 0.1.0-draft.1",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "stagemaster.site-binding"
+    },
+    "formatVersion": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FormatVersion"
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revisionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "projectId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            "revisionId": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            }
+          },
+          "required": [
+            "projectId",
+            "revisionId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "revisionId",
+        "project"
+      ],
+      "additionalProperties": false
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "dmx"
+              },
+              "domainId": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "universe": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535
+              },
+              "endpointCatalogKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "portKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "onSourceLoss": {
+                "const": "commissioned-policy"
+              }
+            },
+            "required": [
+              "kind",
+              "domainId",
+              "universe",
+              "endpointCatalogKey",
+              "portKey",
+              "onSourceLoss"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "external"
+              },
+              "objectId": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "endpointCatalogKey": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "adapterContract": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+              },
+              "expectedRemoteProject": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "revision": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "key",
+                  "revision"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "objectId",
+              "endpointCatalogKey",
+              "adapterContract",
+              "expectedRemoteProject"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "monitorRoutes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "endpointCatalogKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "streamKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "sourceId",
+          "endpointCatalogKey",
+          "streamKey"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "surfaceRoutes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pageId": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "surfaceCatalogKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "controlMap": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "logicalControlId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                },
+                "physicalControlKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              },
+              "required": [
+                "logicalControlId",
+                "physicalControlKey"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "maxItems": 10000
+          }
+        },
+        "required": [
+          "pageId",
+          "surfaceCatalogKey",
+          "controlMap"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "commissioning": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "controllerId": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "configurationDigest": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+          },
+          "recordCatalogKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "requiresLocalArming": {
+            "const": true
+          }
+        },
+        "required": [
+          "controllerId",
+          "configurationDigest",
+          "recordCatalogKey",
+          "requiresLocalArming"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    }
+  },
+  "required": [
+    "format",
+    "formatVersion",
+    "binding",
+    "routes",
+    "monitorRoutes",
+    "surfaceRoutes",
+    "commissioning"
+  ],
+  "additionalProperties": false
+}

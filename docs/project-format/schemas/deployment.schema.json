@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:stagemaster:schema:deployment:0.1.0-draft.1",
+  "title": "StageMaster deployment 0.1.0-draft.1",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "stagemaster.deployment-manifest"
+    },
+    "formatVersion": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FormatVersion"
+    },
+    "packageId": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "revisionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        }
+      },
+      "required": [
+        "projectId",
+        "revisionId"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "revisionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        }
+      },
+      "required": [
+        "id",
+        "revisionId"
+      ],
+      "additionalProperties": false
+    },
+    "compiler": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "semanticsVersion": {
+      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/FormatVersion"
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "deviceClass": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+        },
+        "capabilityRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Capability"
+          },
+          "minItems": 0,
+          "maxItems": 10000
+        },
+        "domainIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+          },
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "deviceClass",
+        "capabilityRevision",
+        "capabilities",
+        "domainIds"
+      ],
+      "additionalProperties": false
+    },
+    "entryPointIds": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+      },
+      "minItems": 1,
+      "maxItems": 10000,
+      "uniqueItems": true
+    },
+    "selectionPolicy": {
+      "const": "reject-unsatisfied-dependencies"
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PackagePath"
+        },
+        "sha256": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+        },
+        "byteLength": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "byteLength"
+      ],
+      "additionalProperties": false
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PackagePath"
+          },
+          "sha256": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+          },
+          "byteLength": {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+          }
+        },
+        "required": [
+          "path",
+          "sha256",
+          "byteLength"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "planBytes": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        },
+        "runtimeRamBytes": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        },
+        "maxActionsPerTick": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "required": [
+        "planBytes",
+        "runtimeRamBytes",
+        "maxActionsPerTick"
+      ],
+      "additionalProperties": false
+    },
+    "authorizationEnvelope": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/PackagePath"
+        },
+        "sha256": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+        },
+        "byteLength": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/UnsignedInteger"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "byteLength"
+      ],
+      "additionalProperties": false
+    },
+    "activation": {
+      "const": "explicit-after-complete-validation"
+    }
+  },
+  "required": [
+    "format",
+    "formatVersion",
+    "packageId",
+    "source",
+    "binding",
+    "compiler",
+    "semanticsVersion",
+    "target",
+    "entryPointIds",
+    "selectionPolicy",
+    "plan",
+    "resources",
+    "budgets",
+    "authorizationEnvelope",
+    "activation"
+  ],
+  "additionalProperties": false
+}

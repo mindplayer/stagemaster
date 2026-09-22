@@ -1,0 +1,1286 @@
+{
+  "format": "stagemaster.project",
+  "formatVersion": "0.1.0-draft.1",
+  "semanticsVersion": "0.1.0-draft.1",
+  "project": {
+    "id": "00000000-0000-4000-8000-000000000100",
+    "name": "密室声光电联动示例",
+    "revisionId": "00000000-0000-4000-8000-000000000101",
+    "parentRevisionIds": [],
+    "description": "纯设计夹具：外部音乐／视频播放、灯光、传感器和机械轴。目录、媒体、控制器及其验收记录均为示意，不可直接部署。"
+  },
+  "requires": [
+    {
+      "key": "lighting.basic",
+      "version": 1
+    },
+    {
+      "key": "media.external",
+      "version": 1
+    },
+    {
+      "key": "motion.external",
+      "version": 1
+    },
+    {
+      "key": "io.logic",
+      "version": 1
+    },
+    {
+      "key": "automation.rules",
+      "version": 1
+    },
+    {
+      "key": "timeline.basic",
+      "version": 1
+    },
+    {
+      "key": "stage.layout",
+      "version": 1
+    },
+    {
+      "key": "monitoring",
+      "version": 1
+    },
+    {
+      "key": "surface.mapping",
+      "version": 1
+    }
+  ],
+  "resources": [
+    {
+      "id": "00000000-0000-4000-8000-000000000130",
+      "name": "音乐参考（未附素材）",
+      "kind": "audio",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "byteLength": "0",
+      "locator": {
+        "kind": "catalog",
+        "catalogKey": "example-only",
+        "objectKey": "intro-reference.wav",
+        "revision": "placeholder"
+      },
+      "requiredFor": [
+        "reference-preview"
+      ],
+      "media": {
+        "duration": {
+          "ticks": "1440000",
+          "ticksPerSecond": "48000"
+        },
+        "sampleRate": 48000,
+        "channels": 2
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000131",
+      "name": "投影参考（未附素材）",
+      "kind": "video",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "byteLength": "0",
+      "locator": {
+        "kind": "catalog",
+        "catalogKey": "example-only",
+        "objectKey": "intro-reference.mp4",
+        "revision": "placeholder"
+      },
+      "requiredFor": [
+        "reference-preview"
+      ],
+      "media": {
+        "duration": {
+          "ticks": "900",
+          "ticksPerSecond": "30"
+        },
+        "frameRate": {
+          "numerator": 30,
+          "denominator": 1
+        },
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  ],
+  "domains": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "name": "灯光输出域",
+      "kind": "lighting"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000110",
+      "name": "外部音视频域",
+      "kind": "external-media"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000111",
+      "name": "机构域",
+      "kind": "motion"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000112",
+      "name": "互动输入输出域",
+      "kind": "io"
+    }
+  ],
+  "lighting": {
+    "profiles": [
+      {
+        "id": "00000000-0000-4000-8000-000000000011",
+        "name": "示例 RGB 调光档案",
+        "manufacturer": "模拟厂商",
+        "model": "RGBD-4",
+        "mode": "4 通道",
+        "revision": "00000000-0000-4000-8000-000000000012",
+        "footprint": 4,
+        "attributes": [
+          {
+            "key": "dimmer",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "htp"
+          },
+          {
+            "key": "red",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          },
+          {
+            "key": "green",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          },
+          {
+            "key": "blue",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          }
+        ],
+        "channels": [
+          {
+            "attribute": "dimmer",
+            "encoding": "u8",
+            "offsets": [
+              0
+            ]
+          },
+          {
+            "attribute": "red",
+            "encoding": "u8",
+            "offsets": [
+              1
+            ]
+          },
+          {
+            "attribute": "green",
+            "encoding": "u8",
+            "offsets": [
+              2
+            ]
+          },
+          {
+            "attribute": "blue",
+            "encoding": "u8",
+            "offsets": [
+              3
+            ]
+          }
+        ]
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "00000000-0000-4000-8000-000000000020",
+        "name": "入口染色灯",
+        "profileId": "00000000-0000-4000-8000-000000000011",
+        "domainId": "00000000-0000-4000-8000-000000000010"
+      }
+    ],
+    "groups": [
+      {
+        "id": "00000000-0000-4000-8000-000000000021",
+        "name": "入口灯组",
+        "fixtureIds": [
+          "00000000-0000-4000-8000-000000000020"
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "id": "00000000-0000-4000-8000-000000000022",
+        "name": "入口蓝色",
+        "values": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "blue"
+            },
+            "value": {
+              "kind": "normalized",
+              "value": 65535
+            }
+          }
+        ]
+      }
+    ],
+    "scenes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000030",
+        "name": "蓝色入场",
+        "assignments": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "dimmer"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 50000
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "red"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "green"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "blue"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "preset",
+              "presetId": "00000000-0000-4000-8000-000000000022"
+            }
+          }
+        ]
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000031",
+        "name": "熄灯",
+        "assignments": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "dimmer"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "sequences": [
+      {
+        "id": "00000000-0000-4000-8000-000000000040",
+        "name": "入场节目",
+        "tracking": "inherited",
+        "repeat": "once",
+        "release": "profile-defaults",
+        "steps": [
+          {
+            "id": "00000000-0000-4000-8000-000000000041",
+            "name": "亮起",
+            "number": "1",
+            "sceneId": "00000000-0000-4000-8000-000000000030",
+            "actionIds": [],
+            "delay": {
+              "ticks": "0",
+              "ticksPerSecond": "1000"
+            },
+            "fade": {
+              "ticks": "1500",
+              "ticksPerSecond": "1000"
+            },
+            "advance": {
+              "kind": "after",
+              "wait": {
+                "ticks": "5000",
+                "ticksPerSecond": "1000"
+              }
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000042",
+            "name": "熄灭",
+            "number": "2",
+            "sceneId": "00000000-0000-4000-8000-000000000031",
+            "actionIds": [],
+            "delay": {
+              "ticks": "0",
+              "ticksPerSecond": "1000"
+            },
+            "fade": {
+              "ticks": "1000",
+              "ticksPerSecond": "1000"
+            },
+            "advance": {
+              "kind": "after",
+              "wait": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "patches": [
+      {
+        "fixtureId": "00000000-0000-4000-8000-000000000020",
+        "domainId": "00000000-0000-4000-8000-000000000010",
+        "universe": 1,
+        "address": 1
+      }
+    ]
+  },
+  "syncGroups": [
+    {
+      "id": "00000000-0000-4000-8000-000000000190",
+      "name": "开场时钟",
+      "clock": {
+        "kind": "internal-monotonic"
+      },
+      "ticksPerSecond": "1000",
+      "onSeek": "reconstruct-state-skip-actions"
+    }
+  ],
+  "actions": [
+    {
+      "id": "00000000-0000-4000-8000-000000000170",
+      "name": "启动开场音乐",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "media.play",
+      "objectId": "00000000-0000-4000-8000-000000000125",
+      "position": {
+        "ticks": "0",
+        "ticksPerSecond": "48000"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000171",
+      "name": "启动开场投影",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "media.play",
+      "objectId": "00000000-0000-4000-8000-000000000126",
+      "position": {
+        "ticks": "0",
+        "ticksPerSecond": "30"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000172",
+      "name": "申请滑台移动",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [
+        "00000000-0000-4000-8000-000000000162"
+      ],
+      "kind": "motion.move",
+      "axisId": "00000000-0000-4000-8000-000000000141",
+      "request": {
+        "kind": "linear",
+        "position": {
+          "value": "200",
+          "unit": "mm"
+        },
+        "speed": {
+          "value": "20",
+          "unit": "mm/s"
+        }
+      },
+      "completionTolerance": "1"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000173",
+      "name": "点亮完成指示",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "io.set",
+      "outputId": "00000000-0000-4000-8000-000000000155",
+      "value": {
+        "kind": "boolean",
+        "value": true
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000174",
+      "name": "停止音乐",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "media.stop",
+      "objectId": "00000000-0000-4000-8000-000000000125"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000175",
+      "name": "停止投影",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "media.stop",
+      "objectId": "00000000-0000-4000-8000-000000000126"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000176",
+      "name": "请求滑台正常停止",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "motion.stop",
+      "controllerId": "00000000-0000-4000-8000-000000000140"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000177",
+      "name": "关闭完成指示",
+      "policy": {
+        "onTimeout": "block",
+        "onUnknownOutcome": "reconcile-no-retry",
+        "retry": "never-automatically",
+        "onSeek": "skip",
+        "onReconnect": "require-reconciliation",
+        "onLate": "block",
+        "maxLateness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "ackTimeout": {
+          "ticks": "2000",
+          "ticksPerSecond": "1000"
+        },
+        "completionTimeout": {
+          "ticks": "15000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "requiresConditions": [],
+      "kind": "io.set",
+      "outputId": "00000000-0000-4000-8000-000000000155",
+      "value": {
+        "kind": "boolean",
+        "value": false
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "id": "00000000-0000-4000-8000-000000000160",
+      "name": "设备已就绪",
+      "expression": {
+        "kind": "signal",
+        "signalId": "00000000-0000-4000-8000-000000000152",
+        "operator": "equals",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "maxAge": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "stableFor": {
+          "ticks": "50",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "onUnknown": "propagate"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000161",
+      "name": "保护状态允许申请",
+      "expression": {
+        "kind": "signal",
+        "signalId": "00000000-0000-4000-8000-000000000153",
+        "operator": "equals",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "maxAge": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "stableFor": {
+          "ticks": "50",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "onUnknown": "propagate"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000162",
+      "name": "可以申请移动",
+      "expression": {
+        "kind": "all",
+        "conditionIds": [
+          "00000000-0000-4000-8000-000000000160",
+          "00000000-0000-4000-8000-000000000161"
+        ]
+      },
+      "onUnknown": "propagate"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000163",
+      "name": "按钮稳定按下",
+      "expression": {
+        "kind": "signal",
+        "signalId": "00000000-0000-4000-8000-000000000154",
+        "operator": "equals",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "maxAge": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        },
+        "stableFor": {
+          "ticks": "50",
+          "ticksPerSecond": "1000"
+        }
+      },
+      "onUnknown": "propagate"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000164",
+      "name": "谜题触发且设备就绪",
+      "expression": {
+        "kind": "all",
+        "conditionIds": [
+          "00000000-0000-4000-8000-000000000162",
+          "00000000-0000-4000-8000-000000000163"
+        ]
+      },
+      "onUnknown": "propagate"
+    }
+  ],
+  "rules": [
+    {
+      "id": "00000000-0000-4000-8000-000000000180",
+      "name": "谜题完成后申请移动",
+      "conditionId": "00000000-0000-4000-8000-000000000164",
+      "edge": "rising",
+      "actionIds": [
+        "00000000-0000-4000-8000-000000000172"
+      ],
+      "arming": "explicit-operator",
+      "rearm": "once-per-run",
+      "cooldown": {
+        "ticks": "1000",
+        "ticksPerSecond": "1000"
+      },
+      "onLoad": "disarmed",
+      "onReconnect": "rebase-without-trigger"
+    }
+  ],
+  "timelines": [
+    {
+      "id": "00000000-0000-4000-8000-000000000200",
+      "name": "三十秒开场",
+      "syncGroupId": "00000000-0000-4000-8000-000000000190",
+      "duration": {
+        "ticks": "30000",
+        "ticksPerSecond": "1000"
+      },
+      "repeat": "once",
+      "tracks": [
+        {
+          "id": "00000000-0000-4000-8000-000000000201",
+          "name": "灯光",
+          "kind": "lighting",
+          "items": [
+            {
+              "id": "00000000-0000-4000-8000-000000000202",
+              "name": "入口蓝光",
+              "kind": "lighting.scene-clip",
+              "start": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              },
+              "duration": {
+                "ticks": "30000",
+                "ticksPerSecond": "1000"
+              },
+              "sceneId": "00000000-0000-4000-8000-000000000030",
+              "fadeIn": {
+                "ticks": "1500",
+                "ticksPerSecond": "1000"
+              },
+              "onEnd": "release"
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000203",
+          "name": "音乐参考",
+          "kind": "audio-reference",
+          "items": [
+            {
+              "id": "00000000-0000-4000-8000-000000000204",
+              "name": "音乐波形参考",
+              "kind": "media.reference-clip",
+              "start": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              },
+              "duration": {
+                "ticks": "30000",
+                "ticksPerSecond": "1000"
+              },
+              "resourceId": "00000000-0000-4000-8000-000000000130",
+              "sourceIn": {
+                "ticks": "0",
+                "ticksPerSecond": "48000"
+              },
+              "presentation": "reference-only"
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000205",
+          "name": "投影参考",
+          "kind": "video-reference",
+          "items": [
+            {
+              "id": "00000000-0000-4000-8000-000000000206",
+              "name": "投影画面参考",
+              "kind": "media.reference-clip",
+              "start": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              },
+              "duration": {
+                "ticks": "30000",
+                "ticksPerSecond": "1000"
+              },
+              "resourceId": "00000000-0000-4000-8000-000000000131",
+              "sourceIn": {
+                "ticks": "0",
+                "ticksPerSecond": "30"
+              },
+              "presentation": "reference-only"
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000207",
+          "name": "外部播放动作",
+          "kind": "events",
+          "items": [
+            {
+              "id": "00000000-0000-4000-8000-000000000208",
+              "name": "启动音乐",
+              "kind": "action-event",
+              "at": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              },
+              "actionId": "00000000-0000-4000-8000-000000000170"
+            },
+            {
+              "id": "00000000-0000-4000-8000-000000000209",
+              "name": "启动投影",
+              "kind": "action-event",
+              "at": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              },
+              "actionId": "00000000-0000-4000-8000-000000000171"
+            }
+          ]
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000210",
+          "name": "节目说明",
+          "kind": "markers",
+          "items": [
+            {
+              "id": "00000000-0000-4000-8000-000000000211",
+              "name": "互动提示",
+              "kind": "marker",
+              "at": {
+                "ticks": "10000",
+                "ticksPerSecond": "1000"
+              },
+              "text": "操作员另行使能互动规则，按键申请机构动作；参考视频不代表实际投影。"
+            }
+          ]
+        }
+      ],
+      "overlap": "reject-conflicting-writes",
+      "endActionIds": [
+        "00000000-0000-4000-8000-000000000174",
+        "00000000-0000-4000-8000-000000000175"
+      ]
+    }
+  ],
+  "entryPoints": [
+    {
+      "id": "00000000-0000-4000-8000-000000000220",
+      "name": "开场与互动体验",
+      "target": {
+        "kind": "timeline",
+        "id": "00000000-0000-4000-8000-000000000200"
+      },
+      "domainIds": [
+        "00000000-0000-4000-8000-000000000010",
+        "00000000-0000-4000-8000-000000000110",
+        "00000000-0000-4000-8000-000000000111",
+        "00000000-0000-4000-8000-000000000112"
+      ],
+      "ruleIds": [
+        "00000000-0000-4000-8000-000000000180"
+      ],
+      "shutdown": {
+        "maxTail": {
+          "ticks": "5000",
+          "ticksPerSecond": "1000"
+        },
+        "actionIds": [
+          "00000000-0000-4000-8000-000000000174",
+          "00000000-0000-4000-8000-000000000175",
+          "00000000-0000-4000-8000-000000000176",
+          "00000000-0000-4000-8000-000000000177"
+        ],
+        "noAutomaticRestart": true
+      },
+      "completion": "finite"
+    }
+  ],
+  "extensions": [],
+  "media": {
+    "systems": [
+      {
+        "id": "00000000-0000-4000-8000-000000000120",
+        "name": "音频播放系统（模拟）",
+        "kind": "audio-player",
+        "domainId": "00000000-0000-4000-8000-000000000110",
+        "adapterContract": {
+          "key": "adapter.audio-player",
+          "version": 1
+        },
+        "externalProject": {
+          "key": "room-sound",
+          "revision": "demo-1"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000121",
+        "name": "视频播放系统（模拟）",
+        "kind": "media-server",
+        "domainId": "00000000-0000-4000-8000-000000000110",
+        "adapterContract": {
+          "key": "adapter.media-server",
+          "version": 1
+        },
+        "externalProject": {
+          "key": "room-video",
+          "revision": "demo-1"
+        }
+      }
+    ],
+    "objects": [
+      {
+        "id": "00000000-0000-4000-8000-000000000125",
+        "name": "开场音乐",
+        "systemId": "00000000-0000-4000-8000-000000000120",
+        "externalObjectKey": "intro-music",
+        "kind": "audio",
+        "referenceResourceId": "00000000-0000-4000-8000-000000000130",
+        "requiredCapabilities": [
+          {
+            "key": "media.play",
+            "version": 1
+          },
+          {
+            "key": "media.stop",
+            "version": 1
+          }
+        ],
+        "expectedDuration": {
+          "ticks": "30000",
+          "ticksPerSecond": "1000"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000126",
+        "name": "开场投影",
+        "systemId": "00000000-0000-4000-8000-000000000121",
+        "externalObjectKey": "intro-projection",
+        "kind": "video",
+        "referenceResourceId": "00000000-0000-4000-8000-000000000131",
+        "requiredCapabilities": [
+          {
+            "key": "media.play",
+            "version": 1
+          },
+          {
+            "key": "media.stop",
+            "version": 1
+          }
+        ],
+        "expectedDuration": {
+          "ticks": "30000",
+          "ticksPerSecond": "1000"
+        }
+      }
+    ]
+  },
+  "motion": {
+    "controllers": [
+      {
+        "id": "00000000-0000-4000-8000-000000000140",
+        "name": "机关控制器（模拟）",
+        "domainId": "00000000-0000-4000-8000-000000000111",
+        "adapterContract": {
+          "key": "adapter.motion-controller",
+          "version": 1
+        },
+        "externalProject": {
+          "key": "room-machine",
+          "revision": "commissioned-demo"
+        },
+        "safetyAuthority": "external-controller",
+        "requiredFeedback": [
+          "00000000-0000-4000-8000-000000000151",
+          "00000000-0000-4000-8000-000000000152",
+          "00000000-0000-4000-8000-000000000153"
+        ],
+        "onConnectionLoss": "controller-defined-stop",
+        "onControlLeaseLoss": "controller-defined-stop"
+      }
+    ],
+    "axes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000141",
+        "name": "展柜滑台（模拟）",
+        "controllerId": "00000000-0000-4000-8000-000000000140",
+        "axisKey": "display-axis",
+        "unit": "mm",
+        "requestedTravel": {
+          "min": "0",
+          "max": "300"
+        },
+        "positionSignalId": "00000000-0000-4000-8000-000000000151",
+        "readyConditionId": "00000000-0000-4000-8000-000000000162",
+        "motionProfileKey": "commissioned-low-speed"
+      }
+    ]
+  },
+  "io": {
+    "devices": [
+      {
+        "id": "00000000-0000-4000-8000-000000000150",
+        "name": "互动按钮模块（模拟）",
+        "domainId": "00000000-0000-4000-8000-000000000112",
+        "adapterContract": {
+          "key": "adapter.digital-io",
+          "version": 1
+        },
+        "scope": "non-safety-show-control"
+      }
+    ],
+    "signals": [
+      {
+        "id": "00000000-0000-4000-8000-000000000151",
+        "name": "滑台位置",
+        "sourceId": "00000000-0000-4000-8000-000000000140",
+        "sourceKey": "position",
+        "valueType": {
+          "kind": "scalar",
+          "unit": "mm"
+        },
+        "meaning": "position",
+        "freshness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000152",
+        "name": "控制器就绪",
+        "sourceId": "00000000-0000-4000-8000-000000000140",
+        "sourceKey": "ready",
+        "valueType": {
+          "kind": "boolean"
+        },
+        "meaning": "ready",
+        "freshness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000153",
+        "name": "控制器保护许可（仅观察）",
+        "sourceId": "00000000-0000-4000-8000-000000000140",
+        "sourceKey": "protective-permit",
+        "valueType": {
+          "kind": "boolean"
+        },
+        "meaning": "safety-status",
+        "freshness": {
+          "ticks": "100",
+          "ticksPerSecond": "1000"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000154",
+        "name": "谜题按钮",
+        "sourceId": "00000000-0000-4000-8000-000000000150",
+        "sourceKey": "button-1",
+        "valueType": {
+          "kind": "boolean"
+        },
+        "meaning": "operator-input",
+        "freshness": {
+          "ticks": "200",
+          "ticksPerSecond": "1000"
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "id": "00000000-0000-4000-8000-000000000155",
+        "name": "完成指示灯",
+        "deviceId": "00000000-0000-4000-8000-000000000150",
+        "outputKey": "indicator-1",
+        "valueType": {
+          "kind": "boolean"
+        },
+        "idleValue": {
+          "kind": "boolean",
+          "value": false
+        },
+        "scope": "non-safety-show-control"
+      }
+    ]
+  },
+  "stage": {
+    "nodes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000230",
+        "name": "房间坐标根",
+        "parentId": null,
+        "transform": {
+          "positionMeters": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+          },
+          "rotationDegreesXYZ": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+          },
+          "scale": {
+            "x": "1",
+            "y": "1",
+            "z": "1"
+          }
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000231",
+        "name": "入口灯位置",
+        "parentId": "00000000-0000-4000-8000-000000000230",
+        "deviceId": "00000000-0000-4000-8000-000000000020",
+        "transform": {
+          "positionMeters": {
+            "x": "1",
+            "y": "2",
+            "z": "3"
+          },
+          "rotationDegreesXYZ": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+          },
+          "scale": {
+            "x": "1",
+            "y": "1",
+            "z": "1"
+          }
+        }
+      }
+    ]
+  },
+  "monitoring": {
+    "sources": [
+      {
+        "id": "00000000-0000-4000-8000-000000000240",
+        "name": "投影系统输出回传",
+        "systemId": "00000000-0000-4000-8000-000000000121",
+        "sourceKey": "program-return",
+        "kind": "video-return",
+        "tap": "post-output",
+        "freshness": {
+          "ticks": "500",
+          "ticksPerSecond": "1000"
+        }
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000241",
+        "name": "音乐系统电平回传",
+        "systemId": "00000000-0000-4000-8000-000000000120",
+        "sourceKey": "program-meters",
+        "kind": "meters",
+        "tap": "post-output",
+        "freshness": {
+          "ticks": "200",
+          "ticksPerSecond": "1000"
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "00000000-0000-4000-8000-000000000242",
+        "name": "现场视频监看",
+        "sourceId": "00000000-0000-4000-8000-000000000240",
+        "audioDefault": "muted",
+        "purpose": "observe-only"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000243",
+        "name": "现场音频电平",
+        "sourceId": "00000000-0000-4000-8000-000000000241",
+        "audioDefault": "muted",
+        "purpose": "observe-only"
+      }
+    ]
+  },
+  "surfaces": {
+    "pages": [
+      {
+        "id": "00000000-0000-4000-8000-000000000250",
+        "name": "操作面",
+        "controls": [
+          {
+            "id": "00000000-0000-4000-8000-000000000251",
+            "name": "执行开场",
+            "kind": "button",
+            "target": {
+              "kind": "entry-point",
+              "entryPointId": "00000000-0000-4000-8000-000000000220"
+            },
+            "behavior": "momentary",
+            "feedback": "authoritative-state"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000252",
+            "name": "入口亮度",
+            "kind": "fader",
+            "target": {
+              "kind": "lighting-attribute",
+              "target": {
+                "fixtureId": "00000000-0000-4000-8000-000000000020",
+                "attribute": "dimmer"
+              }
+            },
+            "behavior": "absolute-pickup",
+            "feedback": "authoritative-state"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000253",
+            "name": "机构停止请求",
+            "kind": "button",
+            "target": {
+              "kind": "action",
+              "actionId": "00000000-0000-4000-8000-000000000176"
+            },
+            "behavior": "momentary",
+            "feedback": "authoritative-state"
+          }
+        ]
+      }
+    ]
+  }
+}

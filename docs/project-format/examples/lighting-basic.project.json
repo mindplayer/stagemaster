@@ -1,0 +1,323 @@
+{
+  "format": "stagemaster.project",
+  "formatVersion": "0.1.0-draft.1",
+  "semanticsVersion": "0.1.0-draft.1",
+  "project": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "name": "单路灯光示例",
+    "revisionId": "00000000-0000-4000-8000-000000000002",
+    "parentRevisionIds": [],
+    "description": "设计样例；不连接真实设备。RGB 与调光共四通道。"
+  },
+  "requires": [
+    {
+      "key": "lighting.basic",
+      "version": 1
+    }
+  ],
+  "resources": [],
+  "domains": [
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "name": "灯光输出域",
+      "kind": "lighting"
+    }
+  ],
+  "lighting": {
+    "profiles": [
+      {
+        "id": "00000000-0000-4000-8000-000000000011",
+        "name": "示例 RGB 调光档案",
+        "manufacturer": "模拟厂商",
+        "model": "RGBD-4",
+        "mode": "4 通道",
+        "revision": "00000000-0000-4000-8000-000000000012",
+        "footprint": 4,
+        "attributes": [
+          {
+            "key": "dimmer",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "htp"
+          },
+          {
+            "key": "red",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          },
+          {
+            "key": "green",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          },
+          {
+            "key": "blue",
+            "valueType": {
+              "kind": "normalized"
+            },
+            "default": {
+              "kind": "normalized",
+              "value": 0
+            },
+            "mix": "ltp"
+          }
+        ],
+        "channels": [
+          {
+            "attribute": "dimmer",
+            "encoding": "u8",
+            "offsets": [
+              0
+            ]
+          },
+          {
+            "attribute": "red",
+            "encoding": "u8",
+            "offsets": [
+              1
+            ]
+          },
+          {
+            "attribute": "green",
+            "encoding": "u8",
+            "offsets": [
+              2
+            ]
+          },
+          {
+            "attribute": "blue",
+            "encoding": "u8",
+            "offsets": [
+              3
+            ]
+          }
+        ]
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "00000000-0000-4000-8000-000000000020",
+        "name": "入口染色灯",
+        "profileId": "00000000-0000-4000-8000-000000000011",
+        "domainId": "00000000-0000-4000-8000-000000000010"
+      }
+    ],
+    "groups": [
+      {
+        "id": "00000000-0000-4000-8000-000000000021",
+        "name": "入口灯组",
+        "fixtureIds": [
+          "00000000-0000-4000-8000-000000000020"
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "id": "00000000-0000-4000-8000-000000000022",
+        "name": "入口蓝色",
+        "values": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "blue"
+            },
+            "value": {
+              "kind": "normalized",
+              "value": 65535
+            }
+          }
+        ]
+      }
+    ],
+    "scenes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000030",
+        "name": "蓝色入场",
+        "assignments": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "dimmer"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 50000
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "red"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "green"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          },
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "blue"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "preset",
+              "presetId": "00000000-0000-4000-8000-000000000022"
+            }
+          }
+        ]
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000031",
+        "name": "熄灯",
+        "assignments": [
+          {
+            "target": {
+              "fixtureId": "00000000-0000-4000-8000-000000000020",
+              "attribute": "dimmer"
+            },
+            "operation": "set",
+            "source": {
+              "kind": "literal",
+              "value": {
+                "kind": "normalized",
+                "value": 0
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "sequences": [
+      {
+        "id": "00000000-0000-4000-8000-000000000040",
+        "name": "入场节目",
+        "tracking": "inherited",
+        "repeat": "once",
+        "release": "profile-defaults",
+        "steps": [
+          {
+            "id": "00000000-0000-4000-8000-000000000041",
+            "name": "亮起",
+            "number": "1",
+            "sceneId": "00000000-0000-4000-8000-000000000030",
+            "actionIds": [],
+            "delay": {
+              "ticks": "0",
+              "ticksPerSecond": "1000"
+            },
+            "fade": {
+              "ticks": "1500",
+              "ticksPerSecond": "1000"
+            },
+            "advance": {
+              "kind": "after",
+              "wait": {
+                "ticks": "5000",
+                "ticksPerSecond": "1000"
+              }
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000042",
+            "name": "熄灭",
+            "number": "2",
+            "sceneId": "00000000-0000-4000-8000-000000000031",
+            "actionIds": [],
+            "delay": {
+              "ticks": "0",
+              "ticksPerSecond": "1000"
+            },
+            "fade": {
+              "ticks": "1000",
+              "ticksPerSecond": "1000"
+            },
+            "advance": {
+              "kind": "after",
+              "wait": {
+                "ticks": "0",
+                "ticksPerSecond": "1000"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "patches": [
+      {
+        "fixtureId": "00000000-0000-4000-8000-000000000020",
+        "domainId": "00000000-0000-4000-8000-000000000010",
+        "universe": 1,
+        "address": 1
+      }
+    ]
+  },
+  "syncGroups": [],
+  "actions": [],
+  "conditions": [],
+  "rules": [],
+  "timelines": [],
+  "entryPoints": [
+    {
+      "id": "00000000-0000-4000-8000-000000000050",
+      "name": "完整入场节目",
+      "target": {
+        "kind": "sequence",
+        "id": "00000000-0000-4000-8000-000000000040"
+      },
+      "domainIds": [
+        "00000000-0000-4000-8000-000000000010"
+      ],
+      "ruleIds": [],
+      "shutdown": {
+        "maxTail": {
+          "ticks": "1500",
+          "ticksPerSecond": "1000"
+        },
+        "actionIds": [],
+        "noAutomaticRestart": true
+      },
+      "completion": "finite"
+    }
+  ],
+  "extensions": []
+}

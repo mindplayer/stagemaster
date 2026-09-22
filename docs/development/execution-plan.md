@@ -7,7 +7,8 @@
 - DEV-005、UX-003／004 已完成；用户对当前 UI 总体满意。G0 按开发基础范围结项，CORE-001／002 修复保留。
 - [HW-001](tasks/HW-001-first-player-baseline.md) 已完成范围和资料评估：首版同时交付软件与独立播放盒，现有微雪 ESP32-S3-RS485-CAN、1 路 DMX。
 - [HW-002](tasks/HW-002-project-segments.md) 已比较工程内容、存储与传输：主机生成自包含播放包；整场或片段由实际预算决定；USB 首先验证，产品无线文件传输优先局域网，蓝牙保留配网／控制候选。依据 [PRODUCT-ADR-002](decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)。
-- 当前产品工作转向软硬件闭环。先按 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 明确最小工程标准并验证保存／重开，再接 [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的工程编译与模拟播放；参考执行器可独立推进，板卡风险仍尽早交错验证。借鉴与 JSON／YAML 取舍见 [PRODUCT-ADR-003](decisions/PRODUCT-ADR-003-project-data-contract.md)。
+- [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；产品读写与执行尚未接入。
+- 当前产品工作转向软硬件闭环。继续按 [PROJECT-001](tasks/PROJECT-001-project-contract.md) 实现最小灯光工程的 Rust 读取／校验并验证保存／重开，再接 [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) 的工程编译与模拟播放；参考执行器可独立推进，板卡风险仍尽早交错验证。借鉴与 JSON／YAML 取舍见 [PRODUCT-ADR-003](decisions/PRODUCT-ADR-003-project-data-contract.md)。
 
 ## 软件先行与硬件承接
 
@@ -26,7 +27,7 @@
 
 ## 首次交付顺序
 
-以下 PROJECT／PLAYER／AUTH 编号为计划任务，尚未实施或验证。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
+以下任务中 PROJECT-001 已完成格式设计增量，持久化／编译尚未实现；PLAYER／AUTH 仍为计划任务。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
 
 | 顺序／任务 | 最小结果 | 出口证据 |
 | --- | --- | --- |

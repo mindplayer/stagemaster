@@ -1,0 +1,26 @@
+{
+  "format": "stagemaster.site-binding",
+  "formatVersion": "0.1.0-draft.1",
+  "binding": {
+    "id": "00000000-0000-4000-8000-000000000300",
+    "name": "单路灯光现场绑定（示意）",
+    "revisionId": "00000000-0000-4000-8000-000000000301",
+    "project": {
+      "projectId": "00000000-0000-4000-8000-000000000001",
+      "revisionId": "00000000-0000-4000-8000-000000000002"
+    }
+  },
+  "routes": [
+    {
+      "kind": "dmx",
+      "domainId": "00000000-0000-4000-8000-000000000010",
+      "universe": 1,
+      "endpointCatalogKey": "example-only.player",
+      "portKey": "rs485-1",
+      "onSourceLoss": "commissioned-policy"
+    }
+  ],
+  "monitorRoutes": [],
+  "surfaceRoutes": [],
+  "commissioning": []
+}
