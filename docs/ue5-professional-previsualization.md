@@ -8,6 +8,10 @@
 
 同日边界修订：按用户最新要求，音视频正式播放、处理、映射与输出由外部系统承担。UE 消费监听／监看返回或明确标记的离线参考；预演画面与方案录像属于设计交付，不作为现场媒体服务器输出。
 
+2026-09-23：用户在重新定义效果编辑界面时再次提出 UE 灯光预演及空间建模。已将其接入位置补入 [UX-006 界面设计](ui-design/effect-editor-design.md)：UE 可作为可交互的舞台空间后端，承担搭建、拾取、变换、视点和渲染；工程数据、撤销、效果求值和现场输出仍有独立权威模块。舞台搭建与通用网格建模分开，前者优先。独立进程先验证，嵌入 Tauri 和运行时编辑工具需另行实现；不将 UE 编辑器原样交给用户，也不认为 React 可直接嵌入原生 UE 视口。未安装或运行引擎。
+
+本轮重新核对 Epic 的 [DMX 概览](https://dev.epicgames.com/documentation/en-us/unreal-engine/dmx-overview)和 [MVR 导入／导出](https://dev.epicgames.com/documentation/en-us/unreal-engine/dmx-mvr-import-and-export-in-unreal-engine)：UE 已提供 Art-Net／sACN 与专业预演相关能力；普通 MVR 导入只包含 DMX 灯具／配适，场景几何另需 Datasmith 路径。插件可用不代表本产品已完成灯具覆盖、模型编辑、协议桥接或渲染精度验证。后续按目标版本实测，不从网页标题推定本机已具备某版本能力。
+
 ## 1. 产品价值
 
 专业预演应帮助灯光师在进场前判断节目，并向客户、导演和其他工种表达设计。UE5 值得验证的价值集中在以下场景：

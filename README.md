@@ -6,6 +6,7 @@
 
 当前开发入口：
 
+- [效果编辑界面重新定义](docs/ui-design/effect-editor-design.md)：当前优先任务；舞台选灯、曲线／灯具顺序与时间编排，含[三张布局候选](docs/ui-design/effect-editor-visuals.md)和 UE 空间视图边界；属于设计交付，未替换正式界面。
 - [桌面工作台](docs/ui-design/desktop-workbench.md)：空白新建、灯具配适、场景属性、撤销重做与真实 JSON 保存／重开；[后续迭代顺序](docs/development/desktop-iteration-plan.md)。
 
 - [开发方法](docs/development/README.md)：当前 Astra 会话直接负责规划、实现、验证和集成。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前状态](docs/development/STATE.md)。

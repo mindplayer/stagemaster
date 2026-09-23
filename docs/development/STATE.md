@@ -6,6 +6,7 @@
 ## 产品基线
 
 - 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
+- 用户最新要求先重定界面和效果编辑，暂缓扩展业务层。UX-006 已形成交互方案与三张视觉候选，具体布局待反馈；UE 专业预演／空间搭建继续保留为舞台视图的独立后端目标，尚未接入。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
 - 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)，尚无固件、设备通信或真实输出。
 - 清理前主线：`121efa311855d977364f7ad8707ea729b5c0e367`；仅一个 `main` 工作区，无待合并分支、标签或远程。
 - CORE-001 已修复场景编号碰撞，集成 `df64f98603ca28462cf76a515b65fb39dda9b26d`。
@@ -30,12 +31,15 @@
 | [HW-002](tasks/HW-002-project-segments.md) | done（研究／取舍） | 核对控台工程内容，确定主机编译与设备播放包边界；比较传输方案，优先有线验证、局域网传包，蓝牙保留配网／控制候选；只读识别到乐鑫 USB 接口 |
 | [PROJECT-001A](tasks/PROJECT-001A-format-design.md) | done（格式设计） | 声光电与机构工程 `0.1.0-draft.1`、4 份 Schema、5 份样例、49 项开发期测试；未接入产品运行 |
 | [DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) | done | Tauri 工作台、最小灯光工程编辑／保存／重开、撤销及退出保护；无样例入口或模拟执行 |
+| [UX-006](tasks/UX-006-effect-editor-design.md) | done（设计交付） | 效果编辑交互、三张布局候选、UE 空间视图边界；未选定新视觉稿，未实施界面或业务 |
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表、时间线、迁移恢复及编译接入待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+UX-006：基线 `9d81cc3`；结果为本次 `docs(ui): define effect-first workspace and UE stage integration` 提交。主界面围绕选灯／效果／时间编排，记录选择与修改范围、灯具顺序、连续拖动、跨端和任务验收；补 UE 空间搭建与渲染边界。三张静态图已检查并记录数值／光束等生成瑕疵，PNG 尺寸、副本哈希、本地引用和差异检查通过。只改设计资料、执行顺序和界面偏好；未改应用、Schema、公共接口或引擎，未运行产品测试、安装 UE 或操作设备。
 
 DESKTOP-001：基线 `603f40f`；结果为本次 `feat(desktop): deliver real lighting project editing and persistence` 提交。43 项 Rust 测试、fmt 与严格 Clippy，UI 类型／15 项交互回归、50 项格式检查和 4 项 Sites 测试通过；本机 .app 原生窗口验收新建、灯具／场景属性、真实保存重开、地址冲突、撤销重做和未保存取消。修复无父窗口的原生提示无法正常显示，复测通过。Schema 允许空白工程零节目入口，发布语义未放宽。限制与详细记录见工单；未操作设备、固件或云端。
 
@@ -71,5 +75,5 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
-下一项按[桌面迭代计划](desktop-iteration-plan.md)继续真实场景列表和时间线编辑：Rust 校验／命令先行、渐变／延时和顺序持久化、接回已认可的时间线交互。父任务 PROJECT-001 不结项；播放器接已校验工程后再实现离线预览和通道监视。板卡风险按执行计划交错验证，硬件／AUTH 门槛仍保留。每轮围绕真实文件和真实操作交付，不增加演示样例页、假设备状态或尚未接通的控制按钮。
+按用户最新优先级，先结合 [UX-006](../ui-design/effect-editor-design.md) 与视觉反馈收敛编排／效果编辑体验，再为真实界面接入制定小范围工单。既有配适、场景编辑和保存继续复用；场景列表／时间线契约、Rust 预览及 UE 接入按相应依赖后续实施，不用假业务填满新布局。父任务 PROJECT-001 不结项；板卡风险与 AUTH 商业门槛仍保留，当前不自动推进硬件。详见[桌面迭代计划](desktop-iteration-plan.md)。
 旧独立项目 `yunwei-ma` 有未提交源码及未跟踪文件，删除范围尚待用户明确；当前不改动该仓库。
