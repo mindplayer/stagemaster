@@ -1,13 +1,13 @@
 # 当前开发状态
 
-更新：2026-09-23。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
+更新：2026-09-24。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
 ## 产品基线
 
 - 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
 - 用户最新要求先重定界面和效果编辑，暂缓扩展业务层。UX-006 已形成交互方案与三张视觉候选，具体布局待反馈；UE 专业预演／空间搭建继续保留为舞台视图的独立后端目标，尚未接入。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
-- 用户明确未来灯光编排主力为 iPad；[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已调整为触控优先、本地完整编排和渲染分档。Mac 是当前开发入口，三张桌面图仅作参考；iPad 型号待补充，尚无移动宿主／真机验收。
+- 用户最新澄清当前没有 iPad，仍按 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已撤回平板优先布局和前置移动验证，只保留共享核心、输入／布局／宿主与渲染适配边界；无待补设备型号问题。
 - 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)，尚无固件、设备通信或真实输出。
 - 清理前主线：`121efa311855d977364f7ad8707ea729b5c0e367`；仅一个 `main` 工作区，无待合并分支、标签或远程。
 - CORE-001 已修复场景编号碰撞，集成 `df64f98603ca28462cf76a515b65fb39dda9b26d`。
@@ -39,6 +39,8 @@
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+UX-006 当前平台澄清：基线 `2c64d0f`；结果为本次 `docs: keep MacBook development primary and defer iPad work` 提交。修正将未来 iPad 目标提前为当前任务的误读，恢复 MacBook 布局、键鼠／触控板与效果编辑优先，移除前置移动宿主验收；未来适配边界保留。文档引用和差异检查通过，未改代码或运行产品测试，无当前 iPad 验收阻塞。
 
 UX-006 iPad 定位补充：基线 `4f3cc4b`；结果为本次 `docs: prioritize iPad as primary authoring device` 提交。新增 ADR-008，修订平板角色、触控／Pencil、移动宿主验证顺序、独立播放盒和 UE 移动边界；核对 Apple、Tauri 与 Epic 官方资料。文档本地引用与差异检查通过，未改代码、公共契约或工程格式，未运行产品测试或安装／接入 iOS 与 UE。
 
@@ -80,5 +82,5 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
-按用户最新优先级，先结合 [UX-006](../ui-design/effect-editor-design.md) 和 [iPad 定位](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 收敛触控编排／效果编辑体验，再为移动宿主可行性与真实界面接入制定小范围工单。既有配适、场景编辑和保存继续复用；场景列表／时间线契约、Rust 预览及 UE 接入按相应依赖后续实施，不用假业务填满新布局。父任务 PROJECT-001 不结项；板卡风险与 AUTH 商业门槛仍保留，当前不自动推进硬件。详见[编排端迭代计划](desktop-iteration-plan.md)。
+按用户最新澄清，结合 [UX-006](../ui-design/effect-editor-design.md) 继续收敛 MacBook 编排界面、效果编辑与三维拖动，再为真实界面接入制定小范围工单。[未来 iPad 准备](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 不改变当前推进顺序，不等待设备或前置移动宿主测试。既有配适、场景编辑和保存继续复用；场景列表／时间线契约、Rust 预览及 UE 接入按相应依赖后续实施，不用假业务填满新布局。父任务 PROJECT-001 不结项；板卡风险与 AUTH 商业门槛仍保留，当前不自动推进硬件。详见[编排端迭代计划](desktop-iteration-plan.md)。
 旧独立项目 `yunwei-ma` 有未提交源码及未跟踪文件，删除范围尚待用户明确；当前不改动该仓库。

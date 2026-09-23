@@ -88,9 +88,9 @@ StageMaster 工程是语义来源；UE 工程和 cooked 资源属于后端资源
 
 ## 6. 多端与云端
 
-2026-09-23 最新定位：iPad 为主要编排终端，详见 [ADR-008](development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)。其已支持范围内的工程／效果／时间线编辑须独立完成，本地基本三维编辑与预览不依赖远端 UE 在线。此前的“轻量端”仅可描述渲染负担，不能用来削减 iPad 的创作职责。
+2026-09-24 最新澄清：iPad 是未来主要编排终端，当前用户暂无设备，继续以 MacBook 开发，详见 [ADR-008](development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)。当前只保持中立场景、输入和渲染后端边界；进入移动阶段后，再实现独立编排及本地基本三维预览。此前的“轻量端”仅描述渲染负担，不代表未来 iPad 只能遥控。
 
-桌面专业端可按需运行 UE；iPad 本地继续比较轻量渲染（如 Three.js）与 UE 移动路径，尚不锁定。Epic 当前列明 Lumen 不支持 iPadOS，不能据此承诺桌面同画质，也不能据此断言 UE 在 iPad 无法做三维。[移动 Lumen 官方说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-lumen-global-illumination-on-mobile-in-unreal-engine) 两条路径共用中立场景与属性契约；图像、帧时间、包体和发热须实测，不另建节目语义。
+桌面专业端可按需运行 UE；未来移动阶段再比较 iPad 轻量渲染（如 Three.js）与 UE 移动路径，当前不锁定或提前实施。2026-09-23 核对的 Epic 文档列明 Lumen 不支持 iPadOS，不能据此承诺桌面同画质，也不能据此断言 UE 在 iPad 无法做三维。[移动 Lumen 官方说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-lumen-global-illumination-on-mobile-in-unreal-engine) 两条路径共用中立场景与属性契约；图像、帧时间、包体和发热留到对应阶段实测，不另建节目语义。
 
 手机／平板可选观看 Pixel Streaming，以查看远端 UE 画面；这需要渲染主机和连接，不能取代本地编排与离线保存。记录渲染端与客户端显示延迟，不把串流画面用于判断现场精确同步。[Pixel Streaming 官方说明](https://dev.epicgames.com/documentation/unreal-engine/overview-of-pixel-streaming-in-unreal-engine)
 
