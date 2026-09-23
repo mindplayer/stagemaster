@@ -124,6 +124,8 @@
 
 “空间建模”首期按舞台搭建理解：尺寸化基本形体、导入模型、布置灯具／桁架、对齐吸附、分组和视点。多边形雕刻、复杂网格编辑不作为编排的必经功能。UE 的 Modeling Mode 是编辑器工具，不能推定安装引擎就自动得到可分发给客户的舞台建模软件；需要自己的简洁交互和运行时工具。[Epic 建模模式说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/modeling-mode-in-unreal-engine)
 
+2026-09-24 补充[舞台与观众区创建](venue-layout-design.md)：在“布置”内用平面轮廓和尺寸驱动三维对象，舞台给台面高度，观众区按规则生成座位／人物，过道自动避让；二维和三维共用数据，不依赖 UE 编辑器完成基本搭建。
+
 原生 UE 画面并非一个可直接放进 React 的普通组件。产品层定义一致的舞台交互；桌面可先验证独立 UE 进程／窗口，不能把该进程方案直接搬到 iPad。未来移动阶段再验证本地空间编辑和基本预览，后端尚未锁定；本地 UE 原生集成另做实测，专业画质也可来自远端 UE。串流依赖主机与连接，不能成为基本编排的必需条件。[Epic Pixel Streaming 说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/overview-of-pixel-streaming-in-unreal-engine)
 
 UE 模块可以使用必要的 C++／蓝图适配，其规模限制在渲染与交互桥接，不改变 Rust＋TypeScript 主框架。关闭／崩溃／降帧时，编辑与输出不能等待 UE；同机资源争用仍需实测。普通控制端与 ESP32 不携带三维场景和 UE 运行时。
