@@ -56,6 +56,8 @@ const activation = await awaitJob(stage.jobs, activationJob);
 
 ## 模块与方法索引
 
+灯具定义后续扩展依据 [ADR-009](../development/decisions/PRODUCT-ADR-009-fixture-definition.md) 与[建档设计](../ui-design/fixture-definition-design.md)。档案编辑、修订应用和受控测试须另行形成精确契约；下列已有伪 API 不代表这些新能力已实现，也不授权普通客户端绕过输出仲裁发送原始帧。
+
 | 模块 | 内部类／接口 | 客户端入口／代表方法 | 谁拥有状态 |
 | --- | --- | --- | --- |
 | 工程编辑 | `ProjectService` | `projects.create/edit/previewEdit/commitPreview/undo/save` | 单写者工程事务服务 |

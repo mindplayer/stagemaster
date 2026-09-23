@@ -6,6 +6,7 @@
 
 当前开发入口：
 
+- [灯具定义与个人灯库](docs/ui-design/fixture-definition-design.md)：可复用属性、硬件变体／模式、通道功能分段及建档工作流，借鉴 MA3／Titan／GDTF；已形成设计，尚未实现通用灯具编辑器或实灯测试台。
 - [当前 Mac 开发与未来 iPad 准备](docs/development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)：用户目前没有 iPad，现阶段按 MacBook 设计、开发和验收；保留未来主力平板所需的共享核心、输入／布局和渲染适配空间，不前置移动开发。
 - [效果编辑界面重新定义](docs/ui-design/effect-editor-design.md)：当前优先任务；舞台选灯、曲线／灯具顺序与时间编排，含[三张布局候选](docs/ui-design/effect-editor-visuals.md)和 UE 空间视图边界；属于设计交付，未替换正式界面。
 - [桌面工作台](docs/ui-design/desktop-workbench.md)：空白新建、灯具配适、场景属性、撤销重做与真实 JSON 保存／重开；[后续迭代顺序](docs/development/desktop-iteration-plan.md)。
