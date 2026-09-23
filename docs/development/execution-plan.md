@@ -4,11 +4,12 @@
 
 ## 当前任务
 
+- 用户最新明确未来编排主力为 iPad，按 [ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 调整为触控优先、本地创作、可选专业预演；当前 Mac 继续开发，移动宿主可行性应尽早验证，不等桌面全部完成后再移植。尚未进行 iPad 构建／真机验收。
 - DEV-005、UX-003／004 已完成；用户曾认可舞台画布／时间线，DESKTOP-001 后要求重新定义主界面与效果编辑。当前优先级以 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md) 为准；G0 按开发基础范围结项，CORE-001／002 修复保留。
 - [HW-001](tasks/HW-001-first-player-baseline.md) 已完成范围和资料评估：首版同时交付软件与独立播放盒，现有微雪 ESP32-S3-RS485-CAN、1 路 DMX。
 - [HW-002](tasks/HW-002-project-segments.md) 已比较工程内容、存储与传输：主机生成自包含播放包；整场或片段由实际预算决定；USB 首先验证，产品无线文件传输优先局域网，蓝牙保留配网／控制候选。依据 [PRODUCT-ADR-002](decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)。
 - [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；最小灯光子集已随 DESKTOP-001 接入 Rust 读写，执行尚未接入。
-- 桌面可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开；[UX-006](tasks/UX-006-effect-editor-design.md) 已交付主界面／效果编辑设计和三张视觉候选，具体布局待反馈。当前先收敛交互，暂不扩展业务层；随后按[桌面迭代计划](desktop-iteration-plan.md)把已有能力接到新工作区，再推进 PROJECT-001 场景列表／时间线与 PLAYER-001 Rust 播放。UE 空间搭建和专业预演沿用独立后端方向，尚未实现。真实交付原则继续有效，不增加演示数据、教学展板或空壳功能。
+- 可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开；[UX-006](tasks/UX-006-effect-editor-design.md) 已交付交互设计和三张桌面视觉参考，按 iPad 主力定位继续收敛布局。当前暂不扩展业务层；随后按[编排端迭代计划](desktop-iteration-plan.md)验证移动宿主、把已有能力接到新工作区，再推进 PROJECT-001 场景列表／时间线与 PLAYER-001 Rust 播放。UE 空间搭建和专业预演沿用独立后端方向，iPad 本地路线尚待实测。正式入口不增加演示数据、教学展板或空壳功能。
 
 ## 软件先行与硬件承接
 

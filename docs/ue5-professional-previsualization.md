@@ -37,7 +37,7 @@ UE 的 DMX 插件支持 Art-Net／sACN、预演与像素映射；MVR／GDTF 相�
 | UE 预演后端 | 场景资源、虚拟灯具、材质、光束、镜头和渲染 | 就绪、缺失能力、已渲染来源、延迟及诊断 |
 | 监听／监看服务 | 外部返回接收、编辑参考、本地呈现与耳机监听 | 带来源、取点、时间戳及新鲜度的媒体通路 |
 
-首个原型采用独立 UE 应用／进程，先验证窗口间协作；嵌入 Tauri 窗口留到必要时评估。UE 适配所需的 C++／蓝图限定在这个可选模块，核心不依赖 UE SDK。普通控制端和无界面执行设备不携带 UE 运行时。UE 的主要编程方式是 C++ 与蓝图。[官方编程说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/coding-in-unreal-engine-blueprint-vs-cplusplus)
+桌面首个原型采用独立 UE 应用／进程，先验证窗口间协作；嵌入 Tauri 窗口留到必要时评估。此进程方案不直接套用到 iPad；移动端本地渲染与原生视图集成需单独验证。UE 适配所需的 C++／蓝图限定在这个可选模块，核心不依赖 UE SDK。普通控制端和无界面执行设备不强制携带 UE 运行时。UE 的主要编程方式是 C++ 与蓝图。[官方编程说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/coding-in-unreal-engine-blueprint-vs-cplusplus)
 
 StageMaster 工程是语义来源；UE 工程和 cooked 资源属于后端资源或派生产物。核心格式不保存 UObject 指针、Actor 类名或仅 UE 能理解的场景结构。UE 特有视觉扩展使用带 schema／版本的命名空间保存；其他端原样保留，并明确显示无法预览的部分。
 
@@ -88,7 +88,9 @@ StageMaster 工程是语义来源；UE 工程和 cooked 资源属于后端资源
 
 ## 6. 多端与云端
 
-桌面专业端可按需运行 UE；轻量端继续评估 Three.js 并共享中立场景与属性契约。共用对象和节目语义不要求共用渲染实现，也不保证两个后端的图像一致。
+2026-09-23 最新定位：iPad 为主要编排终端，详见 [ADR-008](development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)。其已支持范围内的工程／效果／时间线编辑须独立完成，本地基本三维编辑与预览不依赖远端 UE 在线。此前的“轻量端”仅可描述渲染负担，不能用来削减 iPad 的创作职责。
+
+桌面专业端可按需运行 UE；iPad 本地继续比较轻量渲染（如 Three.js）与 UE 移动路径，尚不锁定。Epic 当前列明 Lumen 不支持 iPadOS，不能据此承诺桌面同画质，也不能据此断言 UE 在 iPad 无法做三维。[移动 Lumen 官方说明](https://dev.epicgames.com/documentation/en-us/unreal-engine/using-lumen-global-illumination-on-mobile-in-unreal-engine) 两条路径共用中立场景与属性契约；图像、帧时间、包体和发热须实测，不另建节目语义。
 
 手机／平板可选观看 Pixel Streaming，以查看远端 UE 画面；这需要渲染主机和连接，不能取代本地编排与离线保存。记录渲染端与客户端显示延迟，不把串流画面用于判断现场精确同步。[Pixel Streaming 官方说明](https://dev.epicgames.com/documentation/unreal-engine/overview-of-pixel-streaming-in-unreal-engine)
 
