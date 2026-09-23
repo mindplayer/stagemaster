@@ -1,0 +1,220 @@
+<div id="sm-target-workspace" aria-label="舞台大师编排工作区设计">
+  <style>
+    #sm-target-workspace { --sm-bg:light-dark(#edf0f5,#111720);--sm-panel:light-dark(#fff,#19222e);--sm-stage:light-dark(#e5ecf4,#101b28);--sm-text:light-dark(#1c2939,#e3ebf5);--sm-muted:light-dark(#526378,#9babbd);--sm-line:light-dark(#c9d3df,#304052);--sm-accent:light-dark(#007785,#62d6e0);--sm-tint:light-dark(#d9f1f3,#193b46);--sm-fixture:light-dark(#3a536b,#7891aa); color:var(--sm-text);background:var(--sm-bg);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border:1px solid var(--sm-line);border-radius:10px;overflow:hidden; }
+    #sm-target-workspace * { box-sizing:border-box; }
+    #sm-target-workspace button,#sm-target-workspace input { font:inherit;color:inherit; }
+    #sm-target-workspace button { border:1px solid var(--sm-line);border-radius:5px;background:var(--sm-panel);padding:5px 10px; }
+    #sm-target-workspace button:disabled { opacity:.45; }
+    #sm-target-workspace button[aria-pressed="true"] { color:var(--sm-accent);background:var(--sm-tint);border-color:var(--sm-accent); }
+    #sm-target-workspace .sm-top { padding:12px 16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--sm-line);background:var(--sm-panel); }
+    #sm-target-workspace .sm-brand { font-weight:600;letter-spacing:.5px; }
+    #sm-target-workspace .sm-muted { color:var(--sm-muted);font-size:12px; }
+    #sm-target-workspace .sm-status { margin-left:auto;display:flex;align-items:center;gap:12px; }
+    #sm-target-workspace .sm-active { color:var(--sm-accent); }
+    #sm-target-workspace .sm-main { display:grid;grid-template-columns:160px minmax(0,1fr) 210px; }
+    #sm-target-workspace .sm-library { padding:15px 12px;border-right:1px solid var(--sm-line);background:var(--sm-panel); }
+    #sm-target-workspace h3 { margin:0 0 12px;font-size:13px;font-weight:600; }
+    #sm-target-workspace .sm-resource { padding:9px 8px;border-radius:5px;margin-bottom:6px; }
+    #sm-target-workspace .sm-resource.is-chosen { background:var(--sm-tint);color:var(--sm-accent); }
+    #sm-target-workspace .sm-numbers { display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:10px 0 28px; }
+    #sm-target-workspace .sm-numbers span { text-align:center;border:1px solid var(--sm-line);border-radius:4px;padding:3px;color:var(--sm-accent);font-variant-numeric:tabular-nums; }
+    #sm-target-workspace .sm-viewport { min-width:0;background:var(--sm-stage); }
+    #sm-target-workspace .sm-viewbar { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;flex-wrap:wrap; }
+    #sm-target-workspace .sm-viewtools { display:flex;align-items:center;gap:8px;font-size:12px; }
+    #sm-target-workspace .sm-viewtools > span { color:var(--sm-muted); }
+    #sm-target-workspace .sm-spatial { position:relative;height:360px;touch-action:none; }
+    #sm-target-workspace .sm-spatial svg { width:100%;height:100%;display:block; }
+    #sm-target-workspace .sm-grid { stroke:var(--sm-line);stroke-width:1;fill:none; }
+    #sm-target-workspace .sm-floor { fill:var(--sm-panel);stroke:var(--sm-line);stroke-width:1; }
+    #sm-target-workspace .sm-beam { fill:var(--sm-accent);opacity:.065; }
+    #sm-target-workspace .sm-ray { stroke:var(--sm-accent);stroke-width:1;opacity:.58; }
+    #sm-target-workspace .sm-head { fill:var(--sm-fixture);stroke:var(--sm-text);stroke-width:.6; }
+    #sm-target-workspace .sm-svglabel { fill:var(--sm-muted);font-size:11px; }
+    #sm-target-workspace .sm-point { position:absolute;min-width:40px;height:40px;padding:0;border:2px solid var(--sm-accent);border-radius:50%;color:var(--sm-accent);background:var(--sm-tint);transform:translate(-50%,-50%);cursor:grab;touch-action:none; }
+    #sm-target-workspace .sm-point:active { cursor:grabbing; }
+    #sm-target-workspace .sm-target-label { position:absolute;pointer-events:none;transform:translate(-50%,28px);padding:2px 6px;background:var(--sm-panel);color:var(--sm-text);border-radius:4px;font-size:12px;white-space:nowrap; }
+    #sm-target-workspace .sm-viewfoot { display:flex;justify-content:space-between;gap:8px;padding:8px 12px;color:var(--sm-muted);font-size:12px;flex-wrap:wrap; }
+    #sm-target-workspace .sm-inspector { padding:15px;border-left:1px solid var(--sm-line);background:var(--sm-panel); }
+    #sm-target-workspace .sm-scope { padding-bottom:13px;margin-bottom:15px;border-bottom:1px solid var(--sm-line); }
+    #sm-target-workspace .sm-scope strong { display:block;margin:5px 0;font-weight:600; }
+    #sm-target-workspace .sm-field { display:grid;grid-template-columns:1fr 80px 16px;gap:6px;align-items:center;margin:13px 0; }
+    #sm-target-workspace input { min-width:0;width:100%;background:var(--sm-bg);border:1px solid var(--sm-line);border-radius:5px;padding:5px 7px;font-variant-numeric:tabular-nums; }
+    #sm-target-workspace .sm-inspector hr { border:0;border-top:1px solid var(--sm-line);margin:20px 0; }
+    #sm-target-workspace .sm-pair { display:flex;justify-content:space-between;gap:10px;margin:10px 0; }
+    #sm-target-workspace .sm-timeline { border-top:1px solid var(--sm-line);background:var(--sm-panel); }
+    #sm-target-workspace .sm-timelinebar { display:flex;gap:20px;padding:10px 14px;align-items:center; }
+    #sm-target-workspace .sm-track { display:grid;grid-template-columns:145px minmax(0,1fr);min-height:52px;border-top:1px solid var(--sm-line); }
+    #sm-target-workspace .sm-trackname { padding:14px;color:var(--sm-muted);font-size:12px; }
+    #sm-target-workspace .sm-ruler { display:flex;justify-content:space-between;padding:7px 14px;color:var(--sm-muted);font-size:11px;font-variant-numeric:tabular-nums; }
+    #sm-target-workspace .sm-lane { padding:8px 14px;background:repeating-linear-gradient(90deg,transparent,transparent calc(25% - 1px),var(--sm-line) calc(25% - 1px),var(--sm-line) 25%); }
+    #sm-target-workspace .sm-clip { width:65%;min-width:155px;padding:6px 10px;background:var(--sm-tint);color:var(--sm-accent);border:1px solid var(--sm-accent);border-radius:4px; }
+    #sm-target-workspace .sm-summary { padding:9px 14px;border-top:1px solid var(--sm-line);color:var(--sm-muted);font-size:12px; }
+    #sm-target-workspace .sm-sr { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%); }
+    #sm-target-workspace[data-spacious="true"] .sm-spatial { height:440px; }
+    @media(max-width:800px) { #sm-target-workspace .sm-main { grid-template-columns:minmax(0,1fr) 195px; } #sm-target-workspace .sm-library { display:none; } }
+    @media(max-width:540px) { #sm-target-workspace .sm-main { display:block; } #sm-target-workspace .sm-inspector { border-left:0;border-top:1px solid var(--sm-line); } #sm-target-workspace .sm-fields { display:grid;grid-template-columns:1fr; } #sm-target-workspace .sm-field { margin:5px 0; } #sm-target-workspace .sm-spatial { height:320px; } #sm-target-workspace .sm-track { grid-template-columns:92px minmax(0,1fr); } #sm-target-workspace .sm-clip { width:100%;min-width:0; } #sm-target-workspace .sm-top { gap:10px; } #sm-target-workspace .sm-status { margin-left:0; } }
+  </style>
+  <header class="sm-top">
+    <span class="sm-brand">舞台大师</span><span class="sm-active">编排</span><span class="sm-muted">现场</span>
+    <span>主舞台</span><div class="sm-status"><span class="sm-muted">离线预览</span><button type="button" data-undo disabled>撤销</button><button type="button" data-redo disabled>重做</button></div>
+  </header>
+  <div class="sm-main">
+    <aside class="sm-library" aria-label="资源">
+      <h3>灯具与灯组</h3><div class="sm-resource is-chosen">逆光灯组　8 台</div>
+      <div class="sm-numbers"><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span></div>
+      <h3>当前场景</h3><div class="sm-resource">01　定点汇聚</div>
+      <h3 style="margin-top:25px">位置与目标</h3><div class="sm-resource">目标点 1</div><div class="sm-muted">当前片段独立目标</div>
+    </aside>
+    <section class="sm-viewport" aria-label="三维舞台指向关系">
+      <div class="sm-viewbar"><div class="sm-viewtools"><span>选择</span><span>布置</span><strong class="sm-active">共同指向</strong></div><button type="button" data-view aria-pressed="false">俯视</button></div>
+      <div class="sm-spatial">
+        <svg role="img" aria-label="八台灯具的指向线汇聚在可移动的空间目标点"><g data-geometry></g></svg>
+        <button type="button" class="sm-point" aria-label="拖动目标点；方向键微调，Esc 取消">＋</button><span class="sm-target-label">目标点 1</span>
+      </div>
+      <div class="sm-viewfoot"><span data-viewname>空间视图 · 指向关系</span><span>已选 8 台 · 水平面拖动</span></div>
+    </section>
+    <aside class="sm-inspector" aria-label="当前片段属性">
+      <div class="sm-scope"><span class="sm-muted">正在编辑 · 当前片段</span><strong>共同指向</strong><span class="sm-muted">逆光灯组 · 8 台</span></div>
+      <h3>目标点 1</h3><span class="sm-muted">本片段 · 舞台坐标</span>
+      <div class="sm-fields">
+        <label class="sm-field"><span>横向 X</span><input data-axis="x" type="number" min="-6" max="6" step="0.1" value="0" aria-label="目标横向坐标"><span>米</span></label>
+        <label class="sm-field"><span>纵深 Y</span><input data-axis="y" type="number" min="-4" max="4" step="0.1" value="-0.5" aria-label="目标纵深坐标"><span>米</span></label>
+        <label class="sm-field"><span>高度 Z</span><input data-axis="z" type="number" min="0" max="3" step="0.1" value="0" aria-label="目标高度"><span>米</span></label>
+      </div>
+      <hr><div class="sm-pair"><span>参与灯具</span><span>8 台</span></div><div class="sm-pair"><span>运动录制</span><span class="sm-muted">关闭</span></div><div class="sm-pair"><span>修改范围</span><span>当前片段</span></div>
+    </aside>
+  </div>
+  <section class="sm-timeline" aria-label="节目时间编排布局">
+    <div class="sm-timelinebar"><strong>时间编排</strong><span class="sm-muted">场景列表</span><span class="sm-muted" style="margin-left:auto">00:00.000</span></div>
+    <div class="sm-track" style="min-height:30px"><div></div><div class="sm-ruler"><span>0 秒</span><span>5 秒</span><span>10 秒</span><span>15 秒</span><span>20 秒</span></div></div>
+    <div class="sm-track"><div class="sm-trackname">逆光 · 指向</div><div class="sm-lane"><div class="sm-clip">共同指向 · 13 秒</div></div></div>
+    <div class="sm-summary">逆光灯组 / 共同指向 / 目标点 1</div>
+  </section>
+  <div class="sm-sr" role="status" aria-live="polite" data-announcement></div>
+  <script>
+    (() => {
+      const root = document.getElementById('sm-target-workspace');
+      const stage = root.querySelector('.sm-spatial');
+      const svg = root.querySelector('svg');
+      const geometry = root.querySelector('[data-geometry]');
+      const handle = root.querySelector('.sm-point');
+      const targetLabel = root.querySelector('.sm-target-label');
+      const undoButton = root.querySelector('[data-undo]');
+      const redoButton = root.querySelector('[data-redo]');
+      const viewButton = root.querySelector('[data-view]');
+      const inputs = [...root.querySelectorAll('[data-axis]')];
+      const state = { point:{x:0,y:-0.5,z:0}, top:false, spacious:false };
+      const bounds = {x:[-6,6],y:[-4,4],z:[0,3]};
+      const history = [], future = [];
+      let drag = null, scheduled = 0, dimensions = {width:600,height:360,scale:32};
+      const copy = p => ({x:p.x,y:p.y,z:p.z});
+      const clamp = (n,axis) => Math.max(bounds[axis][0],Math.min(bounds[axis][1],n));
+      const same = (a,b) => ['x','y','z'].every(k => Math.abs(a[k]-b[k]) < 1e-7);
+      function restore(saved) {
+        const p = saved?.privateContent?.point;
+        if (p && ['x','y','z'].every(k => Number.isFinite(p[k]))) state.point = Object.fromEntries(['x','y','z'].map(k => [k,clamp(p[k],k)]));
+        state.top = saved?.privateContent?.top === true;
+      }
+      restore(window.openai?.widgetState);
+      function persist() {
+        window.openai?.setWidgetState?.({modelContent:{targetMeters:copy(state.point),interaction:'共同指向'},privateContent:{point:copy(state.point),top:state.top}})?.catch(() => {});
+      }
+      function commit(before) {
+        if (!same(before,state.point)) { history.push(before); if(history.length>60) history.shift(); future.length=0; persist(); }
+        render();
+        root.querySelector('[data-announcement]').textContent = `目标点：横向 ${state.point.x.toFixed(2)} 米，纵深 ${state.point.y.toFixed(2)} 米，高度 ${state.point.z.toFixed(2)} 米`;
+      }
+      function project(x,y,z=0) {
+        const {width:w,height:h,scale:s} = dimensions;
+        return state.top ? [w/2+s*x,h*.5-s*y] : [w/2+s*(.9*x-.48*y),h*.72+s*(-.4*y-.78*z)];
+      }
+      const pair = p => p.map(n => n.toFixed(2)).join(',');
+      const line = (a,b,cls) => `<line class="${cls}" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;
+      function render() {
+        root.dataset.spacious=String(state.spacious);
+        const width = stage.clientWidth, height = stage.clientHeight;
+        dimensions = {width,height,scale:Math.min((width-52)/15,(height-56)/(state.top?9:8))};
+        svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+        const floor=[[-6,-4],[-6,4],[6,4],[6,-4]].map(p=>project(...p));
+        let markup=`<polygon class="sm-floor" points="${floor.map(pair).join(' ')}"/>`;
+        for(let x=-6;x<=6;x++) markup+=line(project(x,-4),project(x,4),'sm-grid');
+        for(let y=-4;y<=4;y++) markup+=line(project(-6,y),project(6,y),'sm-grid');
+        if(!state.top) {
+          for(const x of [-5.7,5.7]) markup+=line(project(x,3.3),project(x,3.3,5),'sm-grid');
+        }
+        markup+=line(project(-5.7,3.3,5),project(5.7,3.3,5),'sm-grid');
+        const p=state.point,t=project(p.x,p.y,p.z), foot=project(p.x,p.y,0);
+        if(p.z>0&&!state.top) markup+=`<line x1="${t[0]}" y1="${t[1]}" x2="${foot[0]}" y2="${foot[1]}" stroke="var(--sm-accent)" stroke-dasharray="3 4"/>`;
+        const fixtures=Array.from({length:8},(_,i)=>({i,a:project(-5.25+i*1.5,3.3,4.85)}));
+        for(const {a} of fixtures) {
+          const angle=Math.atan2(t[1]-a[1],t[0]-a[0]), nx=Math.sin(angle)*5,ny=-Math.cos(angle)*5;
+          markup+=`<polygon class="sm-beam" points="${pair(a)} ${pair([t[0]+nx,t[1]+ny])} ${pair([t[0]-nx,t[1]-ny])}"/>`+line(a,t,'sm-ray');
+        }
+        for(const {i,a} of fixtures) {
+          const angle=Math.atan2(t[1]-a[1],t[0]-a[0])*180/Math.PI;
+          markup+=`<rect class="sm-head" x="-6" y="-4" width="12" height="8" rx="2" transform="translate(${a[0]} ${a[1]}) rotate(${angle})"/><text class="sm-svglabel" text-anchor="middle" x="${a[0]}" y="${a[1]-13}">${String(i+1).padStart(2,'0')}</text>`;
+        }
+        const front=project(0,-4);
+        markup+=`<text class="sm-svglabel" text-anchor="middle" x="${front[0]}" y="${front[1]+20}">舞台前沿</text>`;
+        geometry.innerHTML=markup;
+        for(const el of [handle,targetLabel]) { el.style.left=`${t[0]}px`;el.style.top=`${t[1]}px`; }
+        for(const input of inputs) if(document.activeElement!==input) input.value=state.point[input.dataset.axis].toFixed(2);
+        undoButton.disabled=!history.length||!!drag; redoButton.disabled=!future.length||!!drag;
+        viewButton.setAttribute('aria-pressed',String(state.top)); viewButton.disabled=!!drag;
+        root.querySelector('[data-viewname]').textContent=(state.top?'俯视':'空间视图')+' · 指向关系';
+      }
+      function requestRender() { if(!scheduled) scheduled=requestAnimationFrame(()=>{scheduled=0;render();}); }
+      function cancelDrag() {
+        if(!drag) return;
+        const previous=drag;drag=null;state.point=copy(previous.before);
+        if(handle.hasPointerCapture(previous.id)) handle.releasePointerCapture(previous.id);
+        render();
+      }
+      handle.addEventListener('pointerdown',e=>{
+        if(e.button!==0||drag) return;
+        drag={id:e.pointerId,before:copy(state.point),x:e.clientX,y:e.clientY,scale:dimensions.scale,top:state.top};
+        handle.setPointerCapture(e.pointerId);handle.focus();e.preventDefault();render();
+      });
+      function move(e) {
+        if(!drag||drag.id!==e.pointerId) return;
+        const dx=(e.clientX-drag.x)/drag.scale,dy=(e.clientY-drag.y)/drag.scale;
+        const worldY=drag.top?-dy:-dy/.4;
+        state.point={x:clamp(drag.before.x+(drag.top?dx:(dx+.48*worldY)/.9),'x'),y:clamp(drag.before.y+worldY,'y'),z:drag.before.z};
+        requestRender();
+      }
+      handle.addEventListener('pointermove',move);
+      handle.addEventListener('pointerup',e=>{
+        if(!drag||drag.id!==e.pointerId) return;
+        move(e);const before=drag.before;drag=null;handle.releasePointerCapture(e.pointerId);commit(before);
+      });
+      handle.addEventListener('pointercancel',cancelDrag);
+      handle.addEventListener('lostpointercapture',cancelDrag);
+      root.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();cancelDrag();}});
+      window.addEventListener('blur',cancelDrag);
+      document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelDrag();});
+      handle.addEventListener('keydown',e=>{
+        if(drag) return;
+        const changes={ArrowLeft:['x',-1],ArrowRight:['x',1],ArrowUp:['y',1],ArrowDown:['y',-1]};
+        const change=changes[e.key];if(!change)return;e.preventDefault();
+        const before=copy(state.point);state.point[change[0]]=clamp(state.point[change[0]]+change[1]*(e.shiftKey?.5:.1),change[0]);commit(before);
+      });
+      inputs.forEach(input=>input.addEventListener('change',()=>{
+        const before=copy(state.point),n=input.valueAsNumber,axis=input.dataset.axis;
+        if(Number.isFinite(n))state.point[axis]=clamp(n,axis);
+        input.value=state.point[axis].toFixed(2);commit(before);
+      }));
+      undoButton.addEventListener('click',()=>{if(!history.length||drag)return;future.push(copy(state.point));state.point=history.pop();render();persist();});
+      redoButton.addEventListener('click',()=>{if(!future.length||drag)return;history.push(copy(state.point));state.point=future.pop();render();persist();});
+      viewButton.addEventListener('click',()=>{if(drag)return;state.top=!state.top;render();persist();});
+      window.addEventListener('openai:set_globals',e=>{
+        const saved=e.detail?.globals?.widgetState,p=saved?.privateContent?.point;
+        if(!p||!['x','y','z'].every(k=>Number.isFinite(p[k])))return;
+        if(same(p,state.point)&&(saved.privateContent.top===true)===state.top)return;
+        cancelDrag();restore(saved);history.length=0;future.length=0;render();
+      });
+      new ResizeObserver(()=>{cancelDrag();requestRender();}).observe(stage);
+      render();
+      if(globalThis.Tweak) { const tweak=new Tweak({container:root,onChange:render});tweak.addToggle(state,'spacious',{label:'扩大舞台区域'}); }
+    })();
+  </script>
+</div>
