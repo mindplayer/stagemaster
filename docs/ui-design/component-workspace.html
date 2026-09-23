@@ -1,0 +1,534 @@
+<div id="sm-component-workspace" aria-label="舞台大师组件工作台">
+  <style>
+    #sm-component-workspace{--cw-bg:#101822;--cw-panel:#17222e;--cw-raised:#1e2d3b;--cw-stage:#111d2a;--cw-line:#304152;--cw-text:#e5edf6;--cw-muted:#9db0c3;--cw-accent:#52d4de;--cw-tint:#193b45;--cw-error:#ffb0a6;color-scheme:dark;color:var(--cw-text);background:var(--cw-bg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;border:1px solid var(--cw-line);border-radius:10px;max-width:100%;isolation:isolate}
+    #sm-component-workspace *{box-sizing:border-box}
+    #sm-component-workspace [hidden]{display:none!important}
+    #sm-component-workspace button,#sm-component-workspace input,#sm-component-workspace select{font:inherit;color:inherit}
+    #sm-component-workspace button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:6px 10px;border:1px solid transparent;border-radius:5px;background:transparent;white-space:nowrap}
+    #sm-component-workspace button:hover{background:var(--cw-raised)}
+    #sm-component-workspace button[aria-pressed="true"]{background:var(--cw-tint);color:var(--cw-accent);border-color:transparent}
+    #sm-component-workspace button:disabled{opacity:.45}
+    #sm-component-workspace .cw-outline{border-color:var(--cw-line);background:var(--cw-panel)}
+    #sm-component-workspace .cw-primary{background:var(--cw-accent);color:#10212b;font-weight:600}
+    #sm-component-workspace .cw-primary:hover{background:#8fe4eb}
+    #sm-component-workspace .cw-muted{color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-number{font-variant-numeric:tabular-nums}
+    #sm-component-workspace .cw-grow{flex:1;min-width:0}
+    #sm-component-workspace .cw-top{display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--cw-line)}
+    #sm-component-workspace .cw-brand{font-weight:650;font-size:17px;letter-spacing:.5px}
+    #sm-component-workspace .cw-project{border-left:1px solid var(--cw-line);padding-left:15px}
+    #sm-component-workspace .cw-nav{display:flex;gap:4px;margin-left:auto}
+    #sm-component-workspace .cw-top .cw-nav button{padding:6px 15px}
+    #sm-component-workspace .cw-context{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #30415270;background:var(--cw-panel);flex-wrap:wrap}
+    #sm-component-workspace .cw-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    #sm-component-workspace .cw-icon{width:17px;height:17px;flex:none}
+    #sm-component-workspace .cw-viewbody{display:grid;grid-template-columns:158px minmax(0,1fr)}
+    #sm-component-workspace .cw-resources{padding:14px 10px;background:var(--cw-panel);border-right:1px solid var(--cw-line)}
+    #sm-component-workspace h2,#sm-component-workspace h3{margin:0;font-weight:600;font-size:14px}
+    #sm-component-workspace .cw-smallhead{font-size:12px;color:var(--cw-muted);margin:4px 7px 12px}
+    #sm-component-workspace .cw-resource{display:flex;width:100%;justify-content:space-between;margin:3px 0;padding:8px;border-radius:5px}
+    #sm-component-workspace .cw-resource.cw-chosen{background:var(--cw-tint);color:var(--cw-accent)}
+    #sm-component-workspace .cw-main{min-width:0}
+    #sm-component-workspace .cw-propertybar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:11px 12px;background:var(--cw-panel);border-bottom:1px solid #30415270}
+    #sm-component-workspace .cw-propertybar button{background:var(--cw-raised);padding:7px 11px}
+    #sm-component-workspace .cw-propertybar button[aria-pressed="true"]{background:var(--cw-tint);color:var(--cw-accent)}
+    #sm-component-workspace .cw-propertybar button span:last-child{color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-color-dot{width:12px;height:12px;border-radius:3px;display:inline-block;background:#559bff}
+    #sm-component-workspace .cw-stagegrid{display:grid;grid-template-columns:minmax(0,1fr)}
+    #sm-component-workspace[data-panel-open="true"] .cw-stagegrid{grid-template-columns:minmax(0,1fr) 252px}
+    #sm-component-workspace .cw-stagearea{min-width:0;background:var(--cw-stage)}
+    #sm-component-workspace .cw-viewbar{display:flex;justify-content:space-between;gap:8px;padding:8px 12px;flex-wrap:wrap}
+    #sm-component-workspace .cw-spatial{height:354px;position:relative;touch-action:none;overflow:hidden}
+    #sm-component-workspace .cw-spatial>svg{display:block;width:100%;height:100%}
+    #sm-component-workspace .cw-target{position:absolute;transform:translate(-50%,-50%);width:34px;min-height:34px;border:2px solid var(--cw-accent);border-radius:50%;color:var(--cw-accent);background:var(--cw-tint);padding:6px;cursor:grab;touch-action:none}
+    #sm-component-workspace .cw-target:active{cursor:grabbing}
+    #sm-component-workspace .cw-pointlabel{position:absolute;transform:translate(-50%,23px);pointer-events:none;font-size:12px;color:var(--cw-text);padding:2px 7px;background:var(--cw-panel);border-radius:4px;white-space:nowrap}
+    #sm-component-workspace .cw-stagefoot{display:flex;justify-content:space-between;gap:10px;padding:7px 13px;color:var(--cw-muted);font-size:12px;flex-wrap:wrap}
+    #sm-component-workspace .cw-panel{padding:12px 15px;background:var(--cw-panel);border-left:1px solid var(--cw-line);min-width:0}
+    #sm-component-workspace .cw-panelhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
+    #sm-component-workspace .cw-panelhead h2{font-size:16px}
+    #sm-component-workspace .cw-panelcontext{margin:0 0 20px;color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-field{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
+    #sm-component-workspace .cw-field>span:first-child{color:var(--cw-muted)}
+    #sm-component-workspace .cw-control{display:flex;align-items:center;gap:6px}
+    #sm-component-workspace input:not([type="range"]):not([type="color"]),#sm-component-workspace select{border:1px solid var(--cw-line);border-radius:5px;background:var(--cw-bg);min-height:34px;padding:5px 8px;min-width:0}
+    #sm-component-workspace input[type="number"]{width:78px;text-align:right;font-variant-numeric:tabular-nums}
+    #sm-component-workspace input[type="range"]{width:100%;accent-color:var(--cw-accent);margin:0;touch-action:pan-y}
+    #sm-component-workspace input[type="color"]{width:48px;height:38px;border:1px solid var(--cw-line);border-radius:5px;padding:3px;background:var(--cw-bg)}
+    #sm-component-workspace .cw-block{margin-top:22px;padding-top:17px;border-top:1px solid var(--cw-line)}
+    #sm-component-workspace .cw-swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}
+    #sm-component-workspace .cw-swatches button{display:flex;flex-direction:column;gap:7px;padding:8px 4px;font-size:12px;border:1px solid var(--cw-line);white-space:normal}
+    #sm-component-workspace .cw-swatch{display:block;width:24px;height:24px;border-radius:5px;background:var(--swatch)}
+    #sm-component-workspace .cw-fulllabel{display:block;margin:14px 0}
+    #sm-component-workspace .cw-fulllabel>span{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;color:var(--cw-muted)}
+    #sm-component-workspace .cw-fulllabel input[type="text"]{width:100%}
+    #sm-component-workspace .cw-timeline{border-top:1px solid var(--cw-line);background:var(--cw-panel)}
+    #sm-component-workspace .cw-timelinebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 13px}
+    #sm-component-workspace .cw-timeinput{display:flex;align-items:center;gap:6px;margin-left:auto;color:var(--cw-accent)}
+    #sm-component-workspace .cw-timeinput input{width:76px}
+    #sm-component-workspace .cw-rulerrow,#sm-component-workspace .cw-track{display:grid;grid-template-columns:136px minmax(0,1fr)}
+    #sm-component-workspace .cw-ruler{position:relative;height:33px;touch-action:none;cursor:ew-resize}
+    #sm-component-workspace .cw-ruler span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--cw-muted);top:6px}
+    #sm-component-workspace .cw-ruler span:first-child{transform:none}
+    #sm-component-workspace .cw-ruler span:last-child{transform:translateX(-100%)}
+    #sm-component-workspace .cw-track{border-top:1px solid var(--cw-line);height:45px}
+    #sm-component-workspace .cw-trackname{padding:10px 14px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--cw-muted)}
+    #sm-component-workspace .cw-lane{position:relative;min-width:0;background:repeating-linear-gradient(90deg,transparent,transparent calc(25% - 1px),#30415280 calc(25% - 1px),#30415280 25%)}
+    #sm-component-workspace .cw-clip{position:absolute;height:31px;top:6px;justify-content:flex-start;padding:4px 9px;min-height:31px;overflow:hidden;font-size:12px;background:#243e49;color:#d3e5ed;border:1px solid #435b6a;border-radius:4px;white-space:nowrap}
+    #sm-component-workspace .cw-clip[data-selected="true"]{background:#204d66;border:1px solid var(--cw-accent);color:var(--cw-text)}
+    #sm-component-workspace .cw-clip.cw-purple{background:#38344c;border-color:#5a526d}
+    #sm-component-workspace .cw-playline{position:absolute;top:0;bottom:0;width:1px;background:var(--cw-accent);pointer-events:none;z-index:1}
+    #sm-component-workspace .cw-timelinecontent{position:relative}
+    #sm-component-workspace .cw-timelinefooter{padding:9px 14px;border-top:1px solid var(--cw-line);display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-fixturespace{background:var(--cw-panel)}
+    #sm-component-workspace .cw-fixtureheading{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border-bottom:1px solid var(--cw-line)}
+    #sm-component-workspace .cw-fixtureheading h2{font-size:18px}
+    #sm-component-workspace .cw-fixturelayout{display:grid;grid-template-columns:minmax(0,1fr) 285px;min-height:505px}
+    #sm-component-workspace .cw-channelarea{padding:16px 20px;min-width:0}
+    #sm-component-workspace .cw-modebar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+    #sm-component-workspace .cw-channelhead,#sm-component-workspace .cw-channelrow{display:grid;grid-template-columns:52px 1fr 90px;gap:8px;align-items:center;width:100%;text-align:left}
+    #sm-component-workspace .cw-channelhead{padding:5px 12px 10px;color:var(--cw-muted);font-size:12px;border-bottom:1px solid var(--cw-line)}
+    #sm-component-workspace .cw-channelrow{padding:9px 12px;border-radius:0;border-bottom:1px solid #30415290;justify-content:initial}
+    #sm-component-workspace .cw-channelrow[aria-pressed="true"]{border:0;border-left:2px solid var(--cw-accent);border-bottom:1px solid var(--cw-line)}
+    #sm-component-workspace .cw-profilepanel{border-left:1px solid var(--cw-line);padding:18px 20px}
+    #sm-component-workspace .cw-profilepanel .cw-panelcontext{margin-top:6px}
+    #sm-component-workspace .cw-ranges{margin-top:17px;display:flex;height:25px;border-radius:4px;overflow:hidden}
+    #sm-component-workspace .cw-ranges>span{background:#435166;border-right:2px solid var(--cw-panel)}
+    #sm-component-workspace .cw-ranges>span:nth-child(2){background:#55847e}
+    #sm-component-workspace .cw-ranges>span:nth-child(3){background:#776289}
+    #sm-component-workspace .cw-rangerow{display:grid;grid-template-columns:1fr 50px 10px 50px;gap:5px;margin:10px 0;align-items:center;font-size:12px}
+    #sm-component-workspace .cw-rangerow input[type="number"]{width:50px;padding:4px;font-size:12px}
+    #sm-component-workspace .cw-error{color:var(--cw-error);margin:12px 0;font-size:12px}
+    #sm-component-workspace .cw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+    #sm-component-workspace[data-resources="false"] .cw-resources{display:none}
+    #sm-component-workspace[data-resources="false"] .cw-viewbody{grid-template-columns:minmax(0,1fr)}
+    #sm-component-workspace[data-large="true"] .cw-spatial{height:440px}
+    @media(max-width:950px){#sm-component-workspace .cw-viewbody{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-project{display:none}#sm-component-workspace .cw-resources{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--cw-line);padding:8px 12px}#sm-component-workspace .cw-resources .cw-smallhead{display:none}#sm-component-workspace .cw-resources .cw-block{display:flex;gap:5px;flex-wrap:wrap;margin:0;padding:0;border:0}#sm-component-workspace .cw-resources .cw-resource{width:auto;gap:8px;margin:0}#sm-component-workspace[data-resources="false"] .cw-resources{display:none}}
+    @media(max-width:700px){#sm-component-workspace .cw-top{gap:7px;padding:10px}#sm-component-workspace .cw-top .cw-nav button{padding:6px 9px}#sm-component-workspace .cw-context{gap:8px}#sm-component-workspace .cw-fixturelayout{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-profilepanel{border-left:0;border-top:1px solid var(--cw-line)}}
+    @media(max-width:560px){#sm-component-workspace .cw-stagegrid,#sm-component-workspace[data-panel-open="true"] .cw-stagegrid{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-panel{border-left:0;border-top:1px solid var(--cw-line)}#sm-component-workspace .cw-spatial{height:295px}#sm-component-workspace .cw-propertybar{gap:5px;padding:8px}#sm-component-workspace .cw-propertybar button{padding:6px 8px}#sm-component-workspace .cw-rulerrow,#sm-component-workspace .cw-track{grid-template-columns:82px minmax(0,1fr)}#sm-component-workspace .cw-trackname{padding:10px 7px}#sm-component-workspace .cw-top .cw-offline{display:none}#sm-component-workspace .cw-channelarea,#sm-component-workspace .cw-profilepanel{padding:14px}#sm-component-workspace .cw-fixtureheading{padding:12px}}
+    @media(pointer:coarse){#sm-component-workspace button{min-height:44px}#sm-component-workspace input:not([type="range"]){font-size:16px}#sm-component-workspace .cw-target{width:44px;height:44px}#sm-component-workspace .cw-track{height:54px}#sm-component-workspace .cw-clip{min-height:40px;height:40px}}
+  </style>
+  <header class="cw-top">
+    <span class="cw-brand">舞台大师</span><span class="cw-project cw-muted">主节目</span>
+    <nav class="cw-nav" aria-label="工作区">
+      <button type="button" data-action="arrange">布置</button>
+      <button type="button" data-action="fixtures">灯具</button>
+      <button type="button" data-action="compose" aria-pressed="true">编排</button>
+    </nav>
+    <span class="cw-muted cw-offline">设备未连接</span>
+    <div class="cw-tools"><button type="button" data-action="undo" aria-label="撤销" aria-keyshortcuts="Meta+Z Control+Z" data-tooltip="撤销 · ⌘Z / Ctrl+Z" disabled><i class="cw-icon" data-lucide="undo-2" aria-hidden="true"></i></button><button type="button" data-action="redo" aria-label="重做" aria-keyshortcuts="Meta+Shift+Z Control+Shift+Z" data-tooltip="重做 · ⇧⌘Z / Ctrl+Shift+Z" disabled><i class="cw-icon" data-lucide="redo-2" aria-hidden="true"></i></button></div>
+  </header>
+  <div data-compose>
+    <div class="cw-context">
+      <button type="button" class="cw-outline" data-action="resources" aria-pressed="true"><i class="cw-icon" data-lucide="panel-left" aria-hidden="true"></i>资源</button>
+      <span class="cw-muted">主节目 /</span><strong data-clipname>汇聚开场</strong>
+      <span class="cw-muted" data-context>当前片段 · 逆光组 8 台</span>
+      <span class="cw-grow"></span><span class="cw-muted">离线预览</span>
+    </div>
+    <div class="cw-viewbody">
+      <aside class="cw-resources" id="cw-resource-panel" aria-label="编排资源">
+        <h2 class="cw-smallhead">灯具与灯组</h2>
+        <div class="cw-resource cw-chosen">逆光组 <span>8 台</span></div>
+        <h2 class="cw-smallhead" style="margin-top:25px">场景</h2>
+        <button type="button" class="cw-resource cw-chosen" data-clip="opening">汇聚开场</button>
+        <button type="button" class="cw-resource" data-clip="ending">谢幕定点</button>
+        <div class="cw-block"><h2 class="cw-smallhead">灯具档案</h2><button type="button" data-action="fixtures"><i class="cw-icon" data-lucide="sliders-horizontal" aria-hidden="true"></i>编辑定义</button></div>
+      </aside>
+      <div class="cw-main">
+        <div class="cw-propertybar" aria-label="当前片段功能">
+          <button type="button" data-panel="intensity"><i class="cw-icon" data-lucide="sun" aria-hidden="true"></i>亮度 <span data-intensity-summary>65%</span></button>
+          <button type="button" data-panel="color"><span class="cw-color-dot" data-color-dot></span>颜色 <span data-color-summary>冷蓝</span></button>
+          <button type="button" data-panel="aim"><i class="cw-icon" data-lucide="crosshair" aria-hidden="true"></i>指向 <span>目标点</span></button>
+          <button type="button" data-panel="timing"><i class="cw-icon" data-lucide="spline" aria-hidden="true"></i>渐变 <span data-timing-summary>2.0 秒</span></button>
+        </div>
+        <div class="cw-stagegrid">
+          <section class="cw-stagearea" aria-label="舞台空间">
+            <div class="cw-viewbar"><div class="cw-tools"><span class="cw-muted">主舞台</span><button type="button" data-action="aim-tool" aria-pressed="false">共同指向</button></div><div class="cw-tools"><button type="button" data-action="top" aria-pressed="false">俯视</button><button type="button" data-action="large" aria-label="放大舞台" aria-pressed="false"><i class="cw-icon" data-lucide="maximize" aria-hidden="true"></i></button></div></div>
+            <div class="cw-spatial">
+              <svg role="img" aria-label="八台灯具在舞台上的安装位置与共同指向关系"><g data-geometry></g></svg>
+              <button type="button" class="cw-target" hidden aria-label="拖动目标点，方向键微调，Esc 取消"><i class="cw-icon" data-lucide="crosshair" aria-hidden="true"></i></button>
+              <span class="cw-pointlabel" hidden>目标点</span>
+            </div>
+            <div class="cw-stagefoot"><span data-stage-caption>三维 · 主舞台</span><span data-coordinate-summary>目标 0.0 / −0.5 / 0.0 米</span></div>
+          </section>
+          <aside class="cw-panel" id="cw-function-panel" data-editor hidden aria-label="功能编辑器">
+            <div class="cw-panelhead"><h2 data-panel-title>颜色</h2><button type="button" data-action="close-panel" aria-label="收起编辑器"><i class="cw-icon" data-lucide="x" aria-hidden="true"></i></button></div>
+            <p class="cw-panelcontext" data-panel-context>汇聚开场 · 逆光组 8 台</p>
+            <section data-component="intensity" hidden aria-label="亮度编辑">
+              <label class="cw-field"><span>总亮度</span><span class="cw-control"><input type="number" data-value="intensity" min="0" max="100" step="1" aria-label="总亮度百分比"><span>%</span></span></label>
+              <input type="range" data-value="intensity" min="0" max="100" step="1" aria-label="亮度滑块">
+              <div class="cw-block"><span class="cw-muted">修改范围</span><div class="cw-field"><span>当前片段</span><strong>8 台</strong></div></div>
+            </section>
+            <section data-component="color" hidden aria-label="颜色编辑">
+              <label class="cw-field"><span>当前颜色</span><input type="color" data-value="color" aria-label="自定义颜色"></label>
+              <div class="cw-swatches" data-swatches></div>
+              <div class="cw-block">
+                <label class="cw-fulllabel"><span>红 <output data-rgb-value="0"></output></span><input type="range" min="0" max="255" data-rgb="0" aria-label="红色分量"></label>
+                <label class="cw-fulllabel"><span>绿 <output data-rgb-value="1"></output></span><input type="range" min="0" max="255" data-rgb="1" aria-label="绿色分量"></label>
+                <label class="cw-fulllabel"><span>蓝 <output data-rgb-value="2"></output></span><input type="range" min="0" max="255" data-rgb="2" aria-label="蓝色分量"></label>
+              </div>
+            </section>
+            <section data-component="aim" hidden aria-label="指向编辑">
+              <h3>当前片段目标</h3>
+              <label class="cw-field"><span>横向</span><span class="cw-control"><input type="number" data-axis="x" min="-6" max="6" step="0.1" aria-label="目标横向"><span>米</span></span></label>
+              <label class="cw-field"><span>纵深</span><span class="cw-control"><input type="number" data-axis="y" min="-4" max="4" step="0.1" aria-label="目标纵深"><span>米</span></span></label>
+              <label class="cw-field"><span>高度</span><span class="cw-control"><input type="number" data-axis="z" min="0" max="3" step="0.1" aria-label="目标高度"><span>米</span></span></label>
+              <div class="cw-block"><div class="cw-field"><span>跟随灯具</span><span>8 台</span></div><div class="cw-field"><span>路径录制</span><span>关闭</span></div></div>
+            </section>
+            <section data-component="timing" hidden aria-label="渐变编辑">
+              <label class="cw-field"><span>渐入</span><span class="cw-control"><input type="number" data-value="fadeIn" min="0" max="5" step="0.1" aria-label="渐入秒数"><span>秒</span></span></label>
+              <label class="cw-field"><span>渐出</span><span class="cw-control"><input type="number" data-value="fadeOut" min="0" max="5" step="0.1" aria-label="渐出秒数"><span>秒</span></span></label>
+              <svg data-envelope role="img" aria-label="当前片段的进入与退出渐变包络" style="width:100%;height:110px"></svg>
+              <div class="cw-field"><span>片段时长</span><span>10.0 秒</span></div>
+            </section>
+            <section data-component="venue" hidden aria-label="舞台尺寸编辑">
+              <h3>舞台</h3>
+              <label class="cw-field"><span>宽度</span><span class="cw-control"><input type="number" data-venue="width" min="12" max="18" step="0.5" aria-label="舞台宽度"><span>米</span></span></label>
+              <label class="cw-field"><span>纵深</span><span class="cw-control"><input type="number" data-venue="depth" min="8" max="12" step="0.5" aria-label="舞台纵深"><span>米</span></span></label>
+              <div class="cw-block"><h3>观众区</h3><div class="cw-field"><span>区域数量</span><span>2</span></div><label class="cw-field"><span>中央过道</span><span class="cw-control"><input type="number" data-venue="aisle" min="1" max="4" step="0.1" aria-label="中央过道宽度"><span>米</span></span></label></div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <section class="cw-timeline" aria-label="节目时间线">
+      <div class="cw-timelinebar"><h2>时间线</h2><span class="cw-muted">主节目</span><label class="cw-timeinput"><span>位置</span><input type="number" data-time min="0" max="30" step="0.1" aria-label="时间线位置"><span>秒</span></label></div>
+      <div class="cw-rulerrow"><div></div><div class="cw-ruler" aria-label="拖动时间尺定位"><span style="left:0">00:00</span><span style="left:25%">00:07.5</span><span style="left:50%">00:15</span><span style="left:75%">00:22.5</span><span style="left:100%">00:30</span></div></div>
+      <div class="cw-timelinecontent">
+        <div class="cw-track"><div class="cw-trackname">逆光 · 指向</div><div class="cw-lane"><button type="button" class="cw-clip" data-clip="opening" style="left:13.333%;width:33.333%" data-selected="true">汇聚开场</button><button type="button" class="cw-clip" data-clip="ending" style="left:60%;width:33.333%">谢幕定点</button><span class="cw-playline"></span></div></div>
+        <div class="cw-track"><div class="cw-trackname">逆光 · 颜色</div><div class="cw-lane"><span class="cw-clip cw-purple" style="left:13.333%;width:33.333%" data-opening-color>冷蓝</span><span class="cw-clip cw-purple" style="left:60%;width:33.333%" data-ending-color>暖白</span><span class="cw-playline"></span></div></div>
+      </div>
+      <div class="cw-timelinefooter"><span data-edit-status>当前片段 · 逆光组 8 台</span><span class="cw-grow"></span><span>输出未连接</span></div>
+    </section>
+  </div>
+  <section class="cw-fixturespace" data-fixture-space hidden aria-label="灯具档案工作区">
+    <header class="cw-fixtureheading"><button type="button" class="cw-outline" data-action="compose"><i class="cw-icon" data-lucide="arrow-left" aria-hidden="true"></i>返回编排</button><div class="cw-grow"><h2>我的摇头灯</h2><span class="cw-muted">个人灯库 / 自定义档案</span></div><span class="cw-muted" data-profile-status>草稿</span></header>
+    <div class="cw-fixturelayout">
+      <div class="cw-channelarea">
+        <div class="cw-modebar"><h3>通道映射</h3><span class="cw-muted">标准模式 · 10 通道</span></div>
+        <div class="cw-channelhead"><span>通道</span><span>功能</span><span>精度</span></div><div data-channel-list></div>
+      </div>
+      <aside class="cw-profilepanel" aria-label="通道定义组件">
+        <h2 data-channel-title>红色</h2><p class="cw-panelcontext">当前模式 · 独立草稿</p>
+        <label class="cw-field"><span>相对通道</span><input type="number" data-channel-offset min="1" max="10" step="1" aria-label="相对通道编号"></label>
+        <label class="cw-fulllabel"><span>显示名称</span><input type="text" data-channel-name maxlength="16" aria-label="通道显示名称"></label>
+        <div class="cw-block" data-range-editor hidden><h3>功能区间</h3><div class="cw-ranges" aria-hidden="true"><span style="width:12.5%"></span><span style="width:12.5%"></span><span style="width:75%"></span></div>
+          <div class="cw-rangerow"><span>关闭</span><input data-range="0" data-bound="0" type="number" min="0" max="255" aria-label="关闭起始值"><span>–</span><input data-range="0" data-bound="1" type="number" min="0" max="255" aria-label="关闭结束值"></div>
+          <div class="cw-rangerow"><span>常亮</span><input data-range="1" data-bound="0" type="number" min="0" max="255" aria-label="常亮起始值"><span>–</span><input data-range="1" data-bound="1" type="number" min="0" max="255" aria-label="常亮结束值"></div>
+          <div class="cw-rangerow"><span>频闪</span><input data-range="2" data-bound="0" type="number" min="0" max="255" aria-label="频闪起始值"><span>–</span><input data-range="2" data-bound="1" type="number" min="0" max="255" aria-label="频闪结束值"></div>
+        </div>
+        <div class="cw-block" data-continuous><h3>连续属性</h3><div class="cw-field"><span>控制范围</span><span>0 – 255</span></div><div class="cw-field"><span>字节关系</span><span data-byte-relation>独立</span></div></div>
+        <p class="cw-error" role="alert" data-profile-error hidden></p>
+        <div class="cw-block"><button type="button" class="cw-primary" data-action="keep-profile">保留草稿</button><button type="button" data-action="revert-profile">还原草稿</button></div>
+      </aside>
+    </div>
+  </section>
+  <div class="cw-sr" role="status" aria-live="polite" data-announcement></div>
+  <script>
+  (() => {
+    const root = document.getElementById('sm-component-workspace');
+    const q = s => root.querySelector(s), qa = s => [...root.querySelectorAll(s)];
+    const clone = x => JSON.parse(JSON.stringify(x));
+    const names = {opening:'汇聚开场',ending:'谢幕定点'};
+    const palettes = [['冷蓝','#559bff'],['暖白','#ffe2b5'],['纯白','#f4f6ff'],['紫色','#ab81ff'],['青色','#56ddd2'],['红色','#f46b80']];
+    const defaults = {
+      clips:{opening:{intensity:65,color:'#559bff',point:{x:0,y:-.5,z:0},fadeIn:2,fadeOut:2},ending:{intensity:80,color:'#ffe2b5',point:{x:1.5,y:1,z:0},fadeIn:1,fadeOut:3}},
+      venue:{width:12,depth:8,aisle:2},
+      channels:[['dim','亮度',1,'8 位'],['red','红色',2,'8 位'],['green','绿色',3,'8 位'],['blue','蓝色',4,'8 位'],['pan','水平粗调',5,'16 位'],['panFine','水平细调',6,'低位'],['tilt','俯仰粗调',7,'16 位'],['tiltFine','俯仰细调',8,'低位'],['shutter','快门',9,'分段'],['gobo','图案盘',10,'档位']].map(([id,name,offset,resolution])=>({id,name,offset,resolution})),
+      ranges:[[0,31],[32,63],[64,255]]
+    };
+    const state={data:clone(defaults),selected:'opening',panel:null,composePanel:null,workspace:'compose',time:8.4,top:false,resources:true,large:false,channel:'red',aim:false};
+    let keptProfile={channels:clone(defaults.channels),ranges:clone(defaults.ranges)};
+    const history=[],future=[];
+    let gesture=null, scrub=null, fieldBefore=null, pending=0, dims={w:600,h:354,s:28}, focusReturn=null, lastWidget='';
+    const clip=()=>state.data.clips[state.selected];
+    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+    const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+    const announce=text=>{q('[data-announcement]').textContent=text;};
+    const labelColor=hex=>palettes.find(p=>p[1]===hex)?.[0]||'自定义';
+    const safeText=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function persist(){
+      const privateContent={version:1,data:state.data,keptProfile,selected:state.selected,panel:state.panel,composePanel:state.composePanel,workspace:state.workspace,time:state.time,top:state.top,resources:state.resources,large:state.large,channel:state.channel,aim:state.aim};
+      lastWidget=JSON.stringify(privateContent);
+      window.openai?.setWidgetState?.({modelContent:{design:'按需组件工作台',workspace:state.workspace,panel:state.panel,clip:names[state.selected]},privateContent})?.catch(()=>{});
+    }
+    function restore(saved){
+      const v=saved?.privateContent;
+      if(v?.version!==1||!v.data||!Array.isArray(v.data.channels)||v.data.channels.length!==10)return false;
+      for(const id of ['opening','ending']){
+        const c=v.data.clips?.[id];
+        if(!c||!/^#[0-9a-f]{6}$/i.test(c.color)||!['intensity','fadeIn','fadeOut'].every(k=>Number.isFinite(c[k]))||!['x','y','z'].every(k=>Number.isFinite(c.point?.[k])))return false;
+      }
+      if(!['width','depth','aisle'].every(k=>Number.isFinite(v.data.venue?.[k]))||!Array.isArray(v.data.ranges)||v.data.ranges.length!==3)return false;
+      if(v.data.channels.some((c,i)=>c.id!==defaults.channels[i].id||typeof c.name!=='string'||c.name.length>16||!Number.isFinite(c.offset)||c.resolution!==defaults.channels[i].resolution))return false;
+      if(v.data.ranges.some(r=>!Array.isArray(r)||r.length!==2||r.some(n=>!Number.isFinite(n))))return false;
+      if(v.data.clips.opening.intensity<0||v.data.clips.opening.intensity>100||v.data.clips.ending.intensity<0||v.data.clips.ending.intensity>100)return false;
+      state.data=clone(v.data);state.selected=names[v.selected]?v.selected:'opening';
+      state.panel=['color','aim','intensity','timing','venue'].includes(v.panel)?v.panel:null;
+      const composePanel=v.composePanel===undefined?v.panel:v.composePanel;
+      state.composePanel=['color','aim','intensity','timing'].includes(composePanel)?composePanel:null;
+      state.workspace=['compose','arrange','fixtures'].includes(v.workspace)?v.workspace:'compose';
+      state.time=Number.isFinite(v.time)?clamp(v.time,0,30):8.4;
+      state.top=v.top===true;state.resources=v.resources!==false;state.large=v.large===true;state.aim=v.aim===true;
+      state.channel=state.data.channels.some(c=>c.id===v.channel)?v.channel:'red';
+      if(v.keptProfile?.channels?.length===10&&v.keptProfile?.ranges?.length===3)keptProfile=clone(v.keptProfile);
+      lastWidget=JSON.stringify(v);return true;
+    }
+    restore(window.openai?.widgetState);
+    function commit(before,message){
+      if(before&&!same(before,state.data)){history.push(before);if(history.length>60)history.shift();future.length=0;}
+      render();persist();if(message)announce(message);
+    }
+    function finishField(){if(!fieldBefore)return;const before=fieldBefore;fieldBefore=null;commit(before);}
+    function changeHistory(redo=false){
+      if(gesture||scrub)return;
+      finishField();const source=redo?future:history,target=redo?history:future;
+      if(!source.length)return;target.push(clone(state.data));state.data=source.pop();
+      render();persist();announce(redo?'已重做':'已撤销');
+    }
+    function setValue(input,value){if(document.activeElement!==input)input.value=value;}
+    function project(x,y,z=0){
+      const {w,h,s}=dims;
+      return state.top?[w*.5+s*x,h*.42-s*y]:[w*.5+s*(.92*x-.32*y),h*.52+s*(-.48*y-.83*z)];
+    }
+    const pair=p=>p.map(n=>n.toFixed(2)).join(',');
+    const line=(a,b,stroke,opacity=1)=>'<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+stroke+'" opacity="'+opacity+'"/>';
+    const polygon=(points,fill,stroke)=>'<polygon points="'+points.map(pair).join(' ')+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1"/>';
+    const rectangle=(x0,y0,x1,y1,z=0)=>[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(p=>project(p[0],p[1],z));
+    const stage={
+      node:q('.cw-spatial'),svg:q('.cw-spatial>svg'),group:q('[data-geometry]'),handle:q('.cw-target'),label:q('.cw-pointlabel'),
+      draw(){
+        if(state.workspace==='fixtures')return;
+        const w=this.node.clientWidth,h=this.node.clientHeight;if(!w)return;
+        const venue=state.data.venue,half=venue.width/2,back=venue.depth/2;
+        dims={w,h,s:Math.max(8,Math.min((w-65)/(venue.width+3),(h-60)/(state.top?venue.depth+6:11)))};
+        this.svg.setAttribute('viewBox','0 0 '+w+' '+h);
+        let out=polygon(rectangle(-half,-back,half,back), '#192b39','#40556b');
+        if(!state.top){out+=polygon([project(-half,-back),project(half,-back),project(half,-back,-.35),project(-half,-back,-.35)],'#142431','#40556b');}
+        for(let x=-Math.floor(half);x<=half;x++)out+=line(project(x,-back),project(x,back),'#2b4153',.8);
+        for(let y=-Math.floor(back);y<=back;y++)out+=line(project(-half,y),project(half,y),'#2b4153',.8);
+        for(const side of [-1,1]){
+          const inner=venue.aisle/2,outer=half;
+          for(let row=0;row<3;row++)for(let col=0;col<5;col++){
+            const x=inner+col*(outer-inner)/5+.14,yy=-back-1.2-row*.8;
+            out+=polygon(rectangle(side*x,yy,side*(x+(outer-inner)/5-.22),yy-.48,-.35),'#203141','#34495d');
+          }
+        }
+        if(!state.top){
+          for(const x of [-5.75,5.75])out+=line(project(x,3.3),project(x,3.3,5),'#576e86');
+          out+=line(project(-5.75,3.3,5),project(5.75,3.3,5),'#73869a');
+          out+=line(project(-5.75,3.3,5.25),project(5.75,3.3,5.25),'#425970');
+          for(let x=-5.7;x<5.6;x+=.6)out+=line(project(x,3.3,5),project(x+.55,3.3,5.25),'#344e65');
+        }
+        const p=clip().point,t=project(p.x,p.y,p.z),foot=project(p.x,p.y,0),color=clip().color,opacity=clip().intensity/100;
+        const fixtures=Array.from({length:8},(_,i)=>({i,a:project(-5.25+i*1.5,3.3,4.85)}));
+        for(const {a} of fixtures){
+          const angle=Math.atan2(t[1]-a[1],t[0]-a[0]),nx=Math.sin(angle)*8,ny=-Math.cos(angle)*8;
+          out+='<polygon points="'+pair(a)+' '+pair([t[0]+nx,t[1]+ny])+' '+pair([t[0]-nx,t[1]-ny])+'" fill="'+color+'" opacity="'+(.09*opacity)+'"/>';
+          out+=line(a,t,color,.18+.45*opacity);
+        }
+        if(p.z>0)out+=line(t,foot,'#7a8b9e',.7);
+        out+='<ellipse cx="'+t[0]+'" cy="'+t[1]+'" rx="19" ry="'+(state.top?19:8)+'" fill="'+color+'" opacity="'+(.2*opacity)+'"/>';
+        for(const {a,i} of fixtures){
+          out+='<rect data-fixture="'+i+'" x="'+(a[0]-5)+'" y="'+(a[1]-5)+'" width="10" height="10" rx="2" fill="#46667c" stroke="#63d3de"/><text x="'+a[0]+'" y="'+(a[1]-13)+'" text-anchor="middle" font-size="11" fill="#a6bdcf">'+String(i+1).padStart(2,'0')+'</text>';
+        }
+        const front=project(0,-back-3.3,-.35);
+        out+='<text x="'+front[0]+'" y="'+front[1]+'" text-anchor="middle" font-size="11" fill="#9db0c3">观众区</text>';
+        this.group.innerHTML=out;
+        for(const node of [this.handle,this.label]){node.hidden=!state.aim;node.style.left=t[0]+'px';node.style.top=t[1]+'px';}
+        q('[data-coordinate-summary]').textContent='目标 '+p.x.toFixed(1)+' / '+p.y.toFixed(1)+' / '+p.z.toFixed(1)+' 米';
+        q('[data-stage-caption]').textContent=(state.top?'俯视':'三维')+' · 主舞台';
+      }
+    };
+    const panels={
+      render(){
+        const c=clip();
+        q('[data-editor]').hidden=!state.panel;
+        q('[data-panel-title]').textContent=({color:'颜色',aim:'共同指向',intensity:'亮度',timing:'渐变',venue:'场地布置'})[state.panel]||'';
+        q('[data-panel-context]').textContent=state.panel==='venue'?'主舞台 · 空间参数':names[state.selected]+' · 逆光组 8 台';
+        qa('[data-component]').forEach(n=>n.hidden=n.dataset.component!==state.panel);
+        qa('[data-panel]').forEach(n=>{const open=n.dataset.panel===state.panel;n.setAttribute('aria-pressed',String(open));n.setAttribute('aria-expanded',String(open));n.setAttribute('aria-controls','cw-function-panel');});
+        qa('[data-value]').forEach(n=>setValue(n,c[n.dataset.value]));
+        qa('[data-axis]').forEach(n=>setValue(n,c.point[n.dataset.axis].toFixed(1)));
+        qa('[data-venue]').forEach(n=>setValue(n,state.data.venue[n.dataset.venue]));
+        const rgb=[1,3,5].map(i=>parseInt(c.color.slice(i,i+2),16));
+        qa('[data-rgb]').forEach(n=>setValue(n,rgb[Number(n.dataset.rgb)]));
+        qa('[data-rgb-value]').forEach(n=>n.textContent=rgb[Number(n.dataset.rgbValue)]);
+        qa('[data-swatch]').forEach(n=>n.setAttribute('aria-pressed',String(n.dataset.swatch===c.color)));
+        if(state.panel==='timing'){
+          const svg=q('[data-envelope]'),w=svg.clientWidth||218,h=110;
+          svg.setAttribute('viewBox','0 0 '+w+' '+h);
+          const x0=4,x1=w-4,y0=86,y1=20;
+          const pts=[[x0,y0],[x0+(x1-x0)*c.fadeIn/10,y1],[x1-(x1-x0)*c.fadeOut/10,y1],[x1,y0]];
+          svg.innerHTML='<path d="M'+pts.map(pair).join(' L')+'" fill="none" stroke="#52d4de" stroke-width="2"/><text x="4" y="105" font-size="11" fill="#9db0c3">0 秒</text><text x="'+(w-4)+'" y="105" text-anchor="end" font-size="11" fill="#9db0c3">10 秒</text>';
+        }
+      }
+    };
+    const fixtureEditor={
+      error(){
+        const channels=state.data.channels,ranges=state.data.ranges;
+        if(channels.some(c=>!Number.isInteger(c.offset)||c.offset<1||c.offset>10))return '相对通道必须是 1–10 的整数。';
+        if(new Set(channels.map(c=>c.offset)).size!==10)return '通道编号重复，请为各功能分配不同通道。';
+        if(channels.some(c=>!c.name.trim()))return '显示名称不能为空。';
+        if(ranges.some(r=>r.length!==2||r.some(n=>!Number.isInteger(n)||n<0||n>255)||r[0]>r[1]))return '区间必须是 0–255 内有效的整数范围。';
+        if(ranges[0][0]!==0||ranges[2][1]!==255||ranges[0][1]+1!==ranges[1][0]||ranges[1][1]+1!==ranges[2][0])return '区间应连续覆盖 0–255，不能重叠或留空。';
+        return '';
+      },
+      render(){
+        const focused=document.activeElement?.dataset.channel;
+        const selected=state.data.channels.find(c=>c.id===state.channel);
+        q('[data-channel-list]').innerHTML=state.data.channels.map(c=>'<button type="button" class="cw-channelrow cursor-interaction" data-channel="'+c.id+'" aria-pressed="'+(c.id===state.channel)+'"><span class="cw-number">'+c.offset+'</span><span>'+safeText(c.name)+'</span><span class="cw-muted">'+c.resolution+'</span></button>').join('');
+        if(focused)qa('[data-channel]').find(n=>n.dataset.channel===focused)?.focus({preventScroll:true});
+        q('[data-channel-title]').textContent=selected.name||'未命名功能';
+        setValue(q('[data-channel-offset]'),selected.offset);setValue(q('[data-channel-name]'),selected.name);
+        q('[data-range-editor]').hidden=state.channel!=='shutter';
+        q('[data-continuous]').hidden=state.channel==='shutter'||state.channel==='gobo';
+        q('[data-byte-relation]').textContent=selected.id==='pan'?'水平细调':selected.id==='tilt'?'俯仰细调':selected.id.endsWith('Fine')?'对应粗调通道':'独立';
+        qa('[data-range]').forEach(n=>setValue(n,state.data.ranges[Number(n.dataset.range)][Number(n.dataset.bound)]));
+        const error=this.error(),node=q('[data-profile-error]');
+        node.textContent=error;node.hidden=!error;q('[data-action="keep-profile"]').disabled=!!error;
+        q('[data-profile-status]').textContent=same(keptProfile,{channels:state.data.channels,ranges:state.data.ranges})?'草稿已保留':'草稿有修改';
+        qa('.cw-ranges>span').forEach((n,i)=>n.style.width=Math.max(0,(state.data.ranges[i][1]-state.data.ranges[i][0]+1)/256*100)+'%');
+      }
+    };
+    const timeline={
+      render(){
+        if(scrub)q('[data-time]').value=state.time.toFixed(1);
+        else setValue(q('[data-time]'),state.time.toFixed(1));
+        qa('.cw-playline').forEach(n=>n.style.left=(state.time/30*100)+'%');
+        qa('[data-clip]').forEach(n=>{n.dataset.selected=String(n.dataset.clip===state.selected);if(n.classList.contains('cw-resource'))n.classList.toggle('cw-chosen',n.dataset.clip===state.selected);});
+        q('[data-opening-color]').textContent=labelColor(state.data.clips.opening.color);
+        q('[data-ending-color]').textContent=labelColor(state.data.clips.ending.color);
+      }
+    };
+    function render(){
+      root.dataset.panelOpen=String(!!state.panel);root.dataset.resources=String(state.resources);root.dataset.large=String(state.large);
+      q('[data-compose]').hidden=state.workspace==='fixtures';q('[data-fixture-space]').hidden=state.workspace!=='fixtures';
+      q('.cw-propertybar').hidden=state.workspace==='arrange';q('.cw-timeline').hidden=state.workspace==='arrange';
+      qa('.cw-nav [data-action]').forEach(n=>n.setAttribute('aria-pressed',String(n.dataset.action===state.workspace)));
+      q('[data-action="resources"]').setAttribute('aria-pressed',String(state.resources));
+      q('[data-action="resources"]').setAttribute('aria-expanded',String(state.resources));
+      q('[data-action="resources"]').setAttribute('aria-controls','cw-resource-panel');
+      q('[data-action="top"]').setAttribute('aria-pressed',String(state.top));q('[data-action="large"]').setAttribute('aria-pressed',String(state.large));
+      q('[data-action="aim-tool"]').setAttribute('aria-pressed',String(state.aim));
+      q('[data-action="undo"]').disabled=!history.length||!!gesture;
+      q('[data-action="redo"]').disabled=!future.length||!!gesture;
+      q('[data-clipname]').textContent=state.workspace==='arrange'?'场地布置':names[state.selected];
+      q('[data-context]').textContent=state.workspace==='arrange'?'主舞台 · 观众区':'当前片段 · 逆光组 8 台';
+      q('[data-intensity-summary]').textContent=clip().intensity+'%';
+      q('[data-color-summary]').textContent=labelColor(clip().color);
+      q('[data-color-dot]').style.background=clip().color;
+      q('[data-timing-summary]').textContent=clip().fadeIn.toFixed(1)+' 秒';
+      q('[data-edit-status]').textContent=names[state.selected]+' · 当前片段 · 逆光组 8 台';
+      panels.render();timeline.render();if(state.workspace==='fixtures')fixtureEditor.render();
+      stage.draw();
+    }
+    function schedule(){if(!pending)pending=requestAnimationFrame(()=>{pending=0;render();});}
+    function cancelDrag(){
+      if(!gesture)return;const old=gesture;gesture=null;state.data=old.before;
+      if(stage.handle.hasPointerCapture(old.id))stage.handle.releasePointerCapture(old.id);render();
+    }
+    function openPanel(panel,trigger){
+      finishField();cancelDrag();state.workspace=panel==='venue'?'arrange':'compose';
+      state.panel=state.panel===panel?null:panel;
+      if(state.workspace==='compose')state.composePanel=state.panel;
+      if(panel==='aim')state.aim=state.panel==='aim';
+      focusReturn=trigger||focusReturn;render();persist();
+    }
+    function closePanel(){
+      const trigger=state.panel==='venue'?q('[data-action="arrange"]'):q('[data-panel="'+state.panel+'"]');
+      state.panel=null;if(state.workspace==='compose')state.composePanel=null;
+      render();persist();(trigger||focusReturn)?.focus();
+    }
+    q('[data-swatches]').innerHTML=palettes.map(([name,hex])=>'<button type="button" data-swatch="'+hex+'" aria-label="'+name+'"><span class="cw-swatch" style="--swatch:'+hex+'"></span>'+name+'</button>').join('');
+    root.addEventListener('click',e=>{
+      const button=e.target.closest('button');if(!button||button.disabled)return;
+      finishField();cancelDrag();
+      if(button.dataset.panel){openPanel(button.dataset.panel,button);return;}
+      if(button.dataset.swatch){const before=clone(state.data);clip().color=button.dataset.swatch;commit(before,'颜色已修改');return;}
+      if(button.dataset.clip){state.selected=button.dataset.clip;render();persist();return;}
+      if(button.dataset.channel){state.channel=button.dataset.channel;fixtureEditor.render();persist();return;}
+      const action=button.dataset.action;
+      if(action==='undo')changeHistory();
+      else if(action==='redo')changeHistory(true);
+      else if(action==='close-panel')closePanel();
+      else if(action==='resources'){state.resources=!state.resources;render();persist();}
+      else if(action==='top'){state.top=!state.top;render();persist();}
+      else if(action==='large'){state.large=!state.large;render();persist();}
+      else if(action==='aim-tool'){state.aim=!state.aim;if(state.aim){state.panel='aim';state.composePanel='aim';focusReturn=button;}render();persist();}
+      else if(action==='fixtures'){state.workspace='fixtures';render();persist();}
+      else if(action==='compose'){state.workspace='compose';state.panel=state.composePanel;state.aim=state.panel==='aim';render();persist();}
+      else if(action==='arrange'){if(state.workspace==='compose')state.composePanel=state.panel;state.workspace='arrange';state.panel='venue';state.aim=false;render();persist();}
+      else if(action==='keep-profile'&&!fixtureEditor.error()){keptProfile={channels:clone(state.data.channels),ranges:clone(state.data.ranges)};fixtureEditor.render();persist();announce('已保留当前档案草稿');}
+      else if(action==='revert-profile'){const before=clone(state.data);state.data.channels=clone(keptProfile.channels);state.data.ranges=clone(keptProfile.ranges);commit(before,'已还原到保留的草稿');}
+    });
+    root.addEventListener('input',e=>{
+      const input=e.target;if(!(input instanceof HTMLInputElement))return;
+      if(input.hasAttribute('data-time')){if(Number.isFinite(input.valueAsNumber)){state.time=clamp(input.valueAsNumber,0,30);timeline.render();}return;}
+      const editable=['data-value','data-axis','data-venue','data-rgb','data-channel-offset','data-channel-name','data-range'].some(a=>input.hasAttribute(a));if(!editable)return;
+      if(!fieldBefore)fieldBefore=clone(state.data);
+      const n=input.valueAsNumber;
+      if(input.dataset.value){const key=input.dataset.value;if(key==='color')clip().color=input.value.toLowerCase();else if(Number.isFinite(n))clip()[key]=clamp(n,0,key==='intensity'?100:5);}
+      else if(input.dataset.axis&&Number.isFinite(n)){const axis=input.dataset.axis,b={x:[-6,6],y:[-4,4],z:[0,3]}[axis];clip().point[axis]=clamp(n,...b);}
+      else if(input.dataset.venue&&Number.isFinite(n)){const key=input.dataset.venue,b={width:[12,18],depth:[8,12],aisle:[1,4]}[key];state.data.venue[key]=clamp(n,...b);}
+      else if(input.hasAttribute('data-rgb')){const rgb=[1,3,5].map(i=>parseInt(clip().color.slice(i,i+2),16));rgb[Number(input.dataset.rgb)]=clamp(n,0,255);clip().color='#'+rgb.map(x=>x.toString(16).padStart(2,'0')).join('');}
+      else if(input.hasAttribute('data-channel-offset')){if(Number.isFinite(n))state.data.channels.find(c=>c.id===state.channel).offset=n;}
+      else if(input.hasAttribute('data-channel-name'))state.data.channels.find(c=>c.id===state.channel).name=input.value;
+      else if(input.hasAttribute('data-range')&&Number.isFinite(n))state.data.ranges[Number(input.dataset.range)][Number(input.dataset.bound)]=n;
+      schedule();
+    });
+    root.addEventListener('change',e=>{if(e.target.hasAttribute('data-time')){render();persist();}else finishField();});
+    root.addEventListener('focusout',()=>finishField());
+    stage.handle.addEventListener('pointerdown',e=>{
+      if(e.button!==0||gesture)return;finishField();
+      gesture={id:e.pointerId,before:clone(state.data),x:e.clientX,y:e.clientY,s:dims.s,top:state.top};
+      stage.handle.setPointerCapture(e.pointerId);stage.handle.focus();e.preventDefault();render();
+    });
+    function move(e){
+      if(!gesture||e.pointerId!==gesture.id)return;
+      const dx=(e.clientX-gesture.x)/gesture.s,dy=(e.clientY-gesture.y)/gesture.s,y=gesture.top?-dy:-dy/.48;
+      const p=gesture.before.clips[state.selected].point;
+      clip().point={x:clamp(p.x+(gesture.top?dx:(dx+.32*y)/.92),-6,6),y:clamp(p.y+y,-4,4),z:p.z};schedule();
+    }
+    stage.handle.addEventListener('pointermove',move);
+    stage.handle.addEventListener('pointerup',e=>{
+      if(!gesture||gesture.id!==e.pointerId)return;move(e);const before=gesture.before;gesture=null;stage.handle.releasePointerCapture(e.pointerId);commit(before,'目标点已修改');
+    });
+    stage.handle.addEventListener('pointercancel',cancelDrag);stage.handle.addEventListener('lostpointercapture',cancelDrag);
+    stage.handle.addEventListener('keydown',e=>{
+      const change={ArrowLeft:['x',-.1],ArrowRight:['x',.1],ArrowUp:['y',.1],ArrowDown:['y',-.1]}[e.key];
+      if(!change||gesture)return;e.preventDefault();const before=clone(state.data),[axis,d]=change;
+      clip().point[axis]=clamp(clip().point[axis]+d*(e.shiftKey?5:1),axis==='x'?-6:-4,axis==='x'?6:4);commit(before,'目标点已修改');
+    });
+    root.addEventListener('keydown',e=>{
+      if((e.metaKey||e.ctrlKey)&&!e.altKey&&e.key.toLowerCase()==='z'){
+        if(e.target.matches('input,textarea,select,[contenteditable]'))return;
+        e.preventDefault();changeHistory(e.shiftKey);return;
+      }
+      if(e.key!=='Escape')return;
+      if(gesture){e.preventDefault();cancelDrag();}
+      else if(scrub){e.preventDefault();cancelScrub();}
+      else if(fieldBefore){e.preventDefault();state.data=fieldBefore;fieldBefore=null;e.target.blur();render();announce('已取消本次输入');}
+      else if(state.panel){e.preventDefault();closePanel();}
+    });
+    const ruler=q('.cw-ruler');
+    function cancelScrub(){if(!scrub)return;const old=scrub;scrub=null;state.time=old.before;if(ruler.hasPointerCapture(old.id))ruler.releasePointerCapture(old.id);q('[data-time]').value=state.time.toFixed(1);timeline.render();}
+    function scrubMove(e){const b=ruler.getBoundingClientRect();state.time=clamp((e.clientX-b.left)/b.width*30,0,30);timeline.render();}
+    ruler.addEventListener('pointerdown',e=>{if(e.button!==0)return;finishField();scrub={id:e.pointerId,before:state.time};ruler.setPointerCapture(e.pointerId);q('[data-time]').focus({preventScroll:true});scrubMove(e);e.preventDefault();});
+    ruler.addEventListener('pointermove',e=>{if(scrub?.id===e.pointerId)scrubMove(e);});
+    ruler.addEventListener('pointerup',e=>{if(scrub?.id!==e.pointerId)return;scrubMove(e);scrub=null;ruler.releasePointerCapture(e.pointerId);persist();});
+    ruler.addEventListener('pointercancel',cancelScrub);ruler.addEventListener('lostpointercapture',cancelScrub);
+    window.addEventListener('blur',()=>{cancelDrag();cancelScrub();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelDrag();cancelScrub();}});
+    window.addEventListener('openai:set_globals',e=>{
+      const saved=e.detail?.globals?.widgetState;if(!saved?.privateContent||JSON.stringify(saved.privateContent)===lastWidget||gesture||fieldBefore)return;
+      if(restore(saved)){history.length=0;future.length=0;render();}
+    });
+    new ResizeObserver(()=>{cancelDrag();schedule();}).observe(stage.node);
+    render();
+    qa('button').forEach(n=>n.classList.add('cursor-interaction'));
+    if(globalThis.lucide)lucide.createIcons({attrs:{width:17,height:17}});
+    if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:render});tweak.addToggle(state,'resources',{label:'显示资源侧栏'});tweak.addToggle(state,'large',{label:'扩大舞台区域'});}
+  })();
+  </script>
+</div>

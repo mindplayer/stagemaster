@@ -6,7 +6,7 @@
 
 当前开发入口：
 
-- [最新 UI 工作区提案](docs/ui-design/modular-workspace-design.md)：回应完整功能的承载问题，保留深色舞台风格，比较任务工作区、对象标签页与全景布局；三张静态图待选择，尚未接入正式界面。
+- [最新可交互组件工作台](docs/ui-design/component-workspace-design.md)：采用现代创作式界面，舞台与时间线为主，颜色／指向等组件按需展开，支持布置与灯具建档往返；交互已验证，尚未接入正式界面。[此前三张结构提案](docs/ui-design/modular-workspace-design.md)保留参考。
 - [灯具定义与个人灯库](docs/ui-design/fixture-definition-design.md)：可复用属性、硬件变体／模式、通道功能分段及建档工作流，借鉴 MA3／Titan／GDTF；已形成设计，尚未实现通用灯具编辑器或实灯测试台。
 - [当前 Mac 开发与未来 iPad 准备](docs/development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)：用户目前没有 iPad，现阶段按 MacBook 设计、开发和验收；保留未来主力平板所需的共享核心、输入／布局和渲染适配空间，不前置移动开发。
 - [效果编辑界面重新定义](docs/ui-design/effect-editor-design.md)：当前优先任务；舞台选灯、曲线／灯具顺序与时间编排，含[三张布局候选](docs/ui-design/effect-editor-visuals.md)和 UE 空间视图边界；属于设计交付，未替换正式界面。

@@ -3,10 +3,12 @@
 更新：2026-09-24。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
+用户已要求使用持续目标模式改进界面，并强调吸收成熟经验。当前目标保持推进；UX-009 是第一轮交互交付，继续检查编辑错误恢复、撤销作用范围与完整工作流。先核对官方机制和项目已有实现，复用优先的要求已写入根开发规则；不重启大范围选型或把设计夹具接进正式业务。
+
 ## 产品基线
 
 - 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
-- 用户最新要求基于完整功能重新设计 UI，担心旧布局承载不足。UX-008 已形成[模块工作区结构与三张最新提案](../ui-design/modular-workspace-design.md)，分开布置／灯具／编排／现场，资源／设备／监看按需打开；待用户选型，尚无新版交互实现。UX-006 的[共同指向](../ui-design/workspace-framework.md)与编辑规则继续有效；UE 保留独立后端。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
+- 用户要求通过组件保持清晰，并接近现代创作软件的操作体验。UX-009 已交付[可交互组件工作台](../ui-design/component-workspace-design.md)：舞台与时间线为主，属性按需展开，布置／灯具／编排往返保留上下文。UX-008 三张静态提案保留参考，未认定用户选中某图；正式入口未替换。UX-006 的[共同指向](../ui-design/workspace-framework.md)与编辑规则继续有效；UE 保留独立后端。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
 - UX-007 已补[舞台与观众区创建方法](../ui-design/venue-layout-design.md)：借鉴 Vectorworks、SketchUp 与 Depence，以平面轮廓／尺寸生成三维舞台和观众区，过道自动避让；用户已认可方向并要求记录，尚无产品建模或座位生成实现。
 - FIXTURE-001 已整理[灯具定义与个人灯库](../ui-design/fixture-definition-design.md)：参考 MA3／Titan／GDTF／OFL，分开可复用能力、硬件变体／模式／档案修订与工程实例，设计功能分段、色盘／图案盘和受控测试。依据 [ADR-009](decisions/PRODUCT-ADR-009-fixture-definition.md)；当前线性映射不足以承载全部语义，具体契约与编辑器未实施。
 - 用户最新澄清当前没有 iPad，仍按 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已撤回平板优先布局和前置移动验证，只保留共享核心、输入／布局／宿主与渲染适配边界；无待补设备型号问题。
@@ -37,13 +39,16 @@
 | [UX-006](tasks/UX-006-effect-editor-design.md) | done（设计交付） | 总体工作区、效果编辑、共同指向可拖设计稿与 UE 边界；已验证理想指向交互，未实施产品业务／真实求解 |
 | [UX-007](tasks/UX-007-venue-layout-design.md) | done（研究／设计） | 舞台、观众区、过道创建及二维／三维联动；已核对成熟软件资料，尚无产品实现 |
 | [FIXTURE-001](tasks/FIXTURE-001-definition-design.md) | done（研究／设计） | 复用灯具能力、自定义档案、模式／变体／版本、建档交互与核心扩展边界；尚无编辑器、导入器或实灯测试 |
-| [UX-008](tasks/UX-008-modular-workspace-design.md) | done（静态提案） | 功能落位与三张工作区布局；待用户选型，未实现页面切换、完整灯具编辑或正式 UI 替换 |
+| [UX-008](tasks/UX-008-modular-workspace-design.md) | done（静态提案） | 功能落位与三张工作区布局；后续组件化交互由 UX-009 继续，未认定选中某图 |
+| [UX-009](tasks/UX-009-component-workspace.md) | done（独立交互设计） | 按需属性组件、工作区往返、指向拖动和灯具草稿子集验证；未替换正式 UI 或接入业务 |
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表、时间线、迁移恢复及编译接入待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+UX-009：基线 `76f1598`；结果为本次 `docs(ui): add interactive component workspace` 提交。完成现代创作式可交互工作台，验证组件展开、颜色修改、工作区往返、片段／时间位置保持、通道与区间错误、草稿还原、目标拖动／取消／单次撤销和时间尺定位；补标准快捷键、展开语义及焦点保持，时间尺 Esc 取消复查通过。约 1024／736／305 像素宽度无横向溢出，修复窄窗口资源区无法展开。浏览器无脚本错误，脚本语法、本地引用和差异检查通过。仅独立设计资料，无正式产品代码／格式变更、真实保存／播放、UE 或设备测试；未运行无关产品测试。
 
 UX-008 组件化反馈：基线 `3909d1f`；结果为本次 `docs(ui): record functional component composition principle` 提交。补记用户希望通过组件封装功能来保持页面清晰，细化功能组件按需展开、明确编辑目标、共享状态与关闭生命周期。文档引用与差异检查通过；无产品代码／公共契约变更，未运行产品测试，三张视觉提案仍待选型。
 
@@ -95,7 +100,7 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 ## 下一步
 
-先依据 [UX-008](../ui-design/modular-workspace-design.md) 收集最新布局选择，再制作可切换设计稿；按用户的组件化偏好组织功能编辑器，验证按需展开、编排与灯具建档之间的往返和上下文保留。当前三图只是静态提案，不据此自动替换正式入口。UX-006／007／FIXTURE-001 的业务边界继续有效。
+依据 [UX-009](../ui-design/component-workspace-design.md) 收集具体操作反馈，再为真实工作台接入确定小范围工单；延续现代创作式布局与组件按需展开，不再以静态三图选型阻塞设计迭代。设计中的草稿、场地与片段是交互夹具，正式入口仍接真实工程与命令。UX-006／007／FIXTURE-001 的业务边界继续有效。
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
