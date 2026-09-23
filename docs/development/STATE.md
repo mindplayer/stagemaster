@@ -6,7 +6,7 @@
 ## 产品基线
 
 - 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
-- 用户最新要求先构思总体界面，暂缓扩展业务层。UX-006 已收敛[总体框架与共同指向](../ui-design/workspace-framework.md)，提供可拖目标设计稿：整组光束在目标拖动中持续跟随。三张既有候选保留参考，推荐结构待实际反馈；UE 专业预演／空间搭建保留为独立后端，尚未接入。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
+- 用户最新要求基于完整功能重新设计 UI，担心旧布局承载不足。UX-008 已形成[模块工作区结构与三张最新提案](../ui-design/modular-workspace-design.md)，分开布置／灯具／编排／现场，资源／设备／监看按需打开；待用户选型，尚无新版交互实现。UX-006 的[共同指向](../ui-design/workspace-framework.md)与编辑规则继续有效；UE 保留独立后端。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
 - UX-007 已补[舞台与观众区创建方法](../ui-design/venue-layout-design.md)：借鉴 Vectorworks、SketchUp 与 Depence，以平面轮廓／尺寸生成三维舞台和观众区，过道自动避让；用户已认可方向并要求记录，尚无产品建模或座位生成实现。
 - FIXTURE-001 已整理[灯具定义与个人灯库](../ui-design/fixture-definition-design.md)：参考 MA3／Titan／GDTF／OFL，分开可复用能力、硬件变体／模式／档案修订与工程实例，设计功能分段、色盘／图案盘和受控测试。依据 [ADR-009](decisions/PRODUCT-ADR-009-fixture-definition.md)；当前线性映射不足以承载全部语义，具体契约与编辑器未实施。
 - 用户最新澄清当前没有 iPad，仍按 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已撤回平板优先布局和前置移动验证，只保留共享核心、输入／布局／宿主与渲染适配边界；无待补设备型号问题。
@@ -37,12 +37,15 @@
 | [UX-006](tasks/UX-006-effect-editor-design.md) | done（设计交付） | 总体工作区、效果编辑、共同指向可拖设计稿与 UE 边界；已验证理想指向交互，未实施产品业务／真实求解 |
 | [UX-007](tasks/UX-007-venue-layout-design.md) | done（研究／设计） | 舞台、观众区、过道创建及二维／三维联动；已核对成熟软件资料，尚无产品实现 |
 | [FIXTURE-001](tasks/FIXTURE-001-definition-design.md) | done（研究／设计） | 复用灯具能力、自定义档案、模式／变体／版本、建档交互与核心扩展边界；尚无编辑器、导入器或实灯测试 |
+| [UX-008](tasks/UX-008-modular-workspace-design.md) | done（静态提案） | 功能落位与三张工作区布局；待用户选型，未实现页面切换、完整灯具编辑或正式 UI 替换 |
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表、时间线、迁移恢复及编译接入待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+UX-008：基线 `d5890c6`；结果为本次 `docs(ui): explore scalable modular workspaces` 提交。保留已选视觉风格，生成三张不同信息结构的静态图；完整提示词、功能归属、上下文和限制均入库。逐张检查，PNG 尺寸／副本哈希、本地引用及差异检查通过；第三图九光源与八台标签不符已记录。未改产品代码／格式或运行产品测试，未启动服务、操作设备或部署。
 
 FIXTURE-001：基线 `9c76803`；结果为本次 `docs(fixtures): define reusable capabilities and profile editing` 提交。核对 MA3 类型编辑／功能档位、Titan 19 个人档案／虚拟调光、GDTF 规范和 OFL 模式，并检查现有 Rust 映射／工程校验的不足；形成 ADR-009 和交互设计。补记用户确认 UX-007 方向。本地文档引用与差异检查通过；未修改代码、Schema 或公共 API，未运行产品测试、连接串口或输出。
 
@@ -89,6 +92,8 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 - 真实灯具、固件、云端及共享模型环境未操作。
 
 ## 下一步
+
+先依据 [UX-008](../ui-design/modular-workspace-design.md) 收集最新布局选择，再制作可切换设计稿，验证编排与灯具建档之间的往返和上下文保留。当前三图只是静态提案，不据此自动替换正式入口。UX-006／007／FIXTURE-001 的业务边界继续有效。
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
