@@ -10,6 +10,9 @@ use serde_json::{Value, json};
     deny_unknown_fields
 )]
 pub enum EditCommand {
+    Batch {
+        commands: Vec<EditCommand>,
+    },
     SetInfo {
         name: String,
         description: String,
@@ -31,6 +34,10 @@ pub enum EditCommand {
         id: String,
     },
     AddScene {
+        name: String,
+    },
+    DuplicateScene {
+        id: String,
         name: String,
     },
     RenameScene {
@@ -58,6 +65,21 @@ pub enum ValueMode {
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
+        EditCommand::Batch { commands } => {
+            if commands.is_empty() || commands.len() > 256 {
+                return Err("一次批量编辑需要 1–256 项操作".into());
+            }
+            if commands
+                .iter()
+                .any(|c| matches!(c, EditCommand::Batch { .. }))
+            {
+                return Err("批量编辑不能嵌套".into());
+            }
+            // Document::edit validates and installs only the final cloned document.
+            for command in commands {
+                apply(root, command)?;
+            }
+        }
         EditCommand::SetInfo { name, description } => {
             root["project"]["name"] = name.into();
             root["project"]["description"] = description.into();
@@ -99,6 +121,12 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
             list(root, "patches")?.retain(|p| p["fixtureId"] != id);
         }
         EditCommand::AddScene { name } => add_scene(root, &name)?,
+        EditCommand::DuplicateScene { id: source, name } => {
+            let mut copy = find(list(root, "scenes")?, &source)?.clone();
+            copy["id"] = id().into();
+            copy["name"] = name.into();
+            list(root, "scenes")?.push(copy);
+        }
         EditCommand::RenameScene { id, name } => {
             find(list(root, "scenes")?, &id)?["name"] = name.into();
         }
@@ -110,6 +138,7 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
             mode,
             value,
         } => {
+            validate_target(root, &fixture_id, &attribute)?;
             let scene = find(list(root, "scenes")?, &scene_id)?;
             let entries = scene["assignments"].as_array_mut().ok_or("场景属性无效")?;
             let target = json!({"fixtureId":fixture_id,"attribute":attribute});
@@ -134,6 +163,24 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
     }
     Ok(())
 }
+fn validate_target(root: &Value, fixture_id: &str, attribute: &str) -> Result<(), String> {
+    let fixture = array(&root["lighting"], "fixtures")
+        .iter()
+        .find(|f| f["id"] == fixture_id)
+        .ok_or("灯具已不存在，请重新选择")?;
+    let profile = array(&root["lighting"], "profiles")
+        .iter()
+        .find(|p| p["id"] == fixture["profileId"])
+        .ok_or("灯具档案不存在")?;
+    if !array(profile, "attributes")
+        .iter()
+        .any(|a| a["key"] == attribute)
+    {
+        return Err("灯具没有这个属性".into());
+    }
+    Ok(())
+}
+
 fn list<'a>(root: &'a mut Value, key: &str) -> Result<&'a mut Vec<Value>, String> {
     root["lighting"][key]
         .as_array_mut()

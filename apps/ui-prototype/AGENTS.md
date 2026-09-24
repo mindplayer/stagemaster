@@ -1,5 +1,7 @@
 # Prototype Instructions
 
+2026-09-24：用户授权 goal 模式丰满正式工作台，并要求对照成熟软件补齐细节。按 DESKTOP-002 / PRODUCT-ADR-012 将已收敛的组件式布局接到真实工程；选择、搜索、批量编辑、取消、错误恢复、撤销与保存均须闭环。之前的“先设计、暂不介入业务”不再阻止本轮明确范围的实现；仍禁止用设计夹具或占位按钮冒充功能。
+
 面向用户的业务术语统一中文，按 `../../docs/product-terminology.md` 执行。页面、辅助功能标签、提示和说明采用“场景”“场景列表”“执行”“渐变”“延时”，时间单位显示“秒”；原始参考图中的旧英文标签由此规则替代，代码标识符不作机械翻译。
 
 StageMaster context: the user selected the first 舞台画布 visual direction and then requested a 剪映-like timeline workflow. Follow `../../docs/ui-design/visual-directions.md` and the refined `../../data/ui-design/2026-09-21/01-stage-canvas-timeline.png`. Keep runtime state, editing and offline preview distinct. The current Workbench is the real Tauri project editor backed by Rust. The older App/Timeline sources are retained as an in-memory interaction reference for later integration, not a TypeScript lighting engine. The root StageMaster rules take precedence: no subagents, real device output, deployment or files outside the project. Use TypeScript for app code. Keep generated caches under project `tmp/` and runtime logs under `logs/`.

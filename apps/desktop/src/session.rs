@@ -232,6 +232,35 @@ mod tests {
         }
     }
     #[test]
+    fn batch_is_one_history_step_and_failure_keeps_redo_and_generation() {
+        let mut s = session();
+        let original = s.document.clone();
+        s.edit(
+            s.generation,
+            EditCommand::Batch {
+                commands: vec![rename("一"), rename("二")],
+            },
+        )
+        .unwrap();
+        assert_eq!(s.undo.len(), 1);
+        s.history(s.generation, false).unwrap();
+        assert_eq!(s.document, original);
+        let generation = s.generation;
+        assert!(
+            s.edit(
+                generation,
+                EditCommand::Batch {
+                    commands: vec![rename("三"), rename(" ")]
+                }
+            )
+            .is_err()
+        );
+        assert_eq!(s.generation, generation);
+        assert_eq!(s.redo.len(), 1);
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.document.as_ref().unwrap().view().name, "二");
+    }
+    #[test]
     fn stale_edits_and_failed_edits_never_replace_active_document() {
         let mut s = session();
         let before = s.document.clone();

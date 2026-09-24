@@ -1,4 +1,7 @@
 export type EditCommand =
+  | EditOperation
+  | { op: "batch"; commands: EditOperation[] };
+export type EditOperation =
   | { op: "setInfo"; name: string; description: string }
   | {
       op: "addFixture";
@@ -17,6 +20,7 @@ export type EditCommand =
     }
   | { op: "removeFixture"; id: string }
   | { op: "addScene"; name: string }
+  | { op: "duplicateScene"; id: string; name: string }
   | { op: "renameScene"; id: string; name: string }
   | { op: "removeScene"; id: string }
   | {
@@ -32,6 +36,7 @@ export interface FixtureView {
   name: string;
   profileName: string;
   domainName: string;
+  domainId: string;
   footprint: number;
   universe: number | null;
   address: number | null;

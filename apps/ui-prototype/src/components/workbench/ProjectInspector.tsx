@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { TrashIcon } from "@phosphor-icons/react";
+import { availableAddress } from "../../editor-tools";
 import type { ProjectView, FixtureView } from "../../application-host";
 export type ProjectForm = {
   kind: "addFixture" | "fixture" | "info" | "scene";
@@ -10,6 +11,7 @@ export type ProjectForm = {
   domainId: string;
   universe: string;
   address: string;
+  count: string;
 };
 
 export function ProjectInspector({
@@ -42,6 +44,14 @@ export function ProjectInspector({
       {form ? (
         <form
           ref={htmlProjectForm}
+          noValidate
+          onInputCapture={(e) => {
+            if (
+              e.target instanceof HTMLInputElement ||
+              e.target instanceof HTMLTextAreaElement
+            )
+              e.target.setCustomValidity("");
+          }}
           onSubmit={(event) => {
             event.preventDefault();
             onApply();
@@ -83,6 +93,19 @@ export function ProjectInspector({
             )}
             {form.kind === "addFixture" && (
               <>
+                <label>
+                  数量
+                  <input
+                    aria-label="添加数量"
+                    type="number"
+                    required
+                    min={1}
+                    max={128}
+                    step={1}
+                    value={form.count}
+                    onChange={(e) => onChange({ count: e.target.value })}
+                  />
+                </label>
                 <label>
                   灯具模式
                   <select
@@ -151,6 +174,45 @@ export function ProjectInspector({
                     />
                   </label>
                 </div>
+                {form.kind === "addFixture" && (
+                  <>
+                    <p className="wb-dim">
+                      占用地址：{form.address || "—"}–
+                      {Number(form.address) +
+                        Number(form.count) *
+                          (project.profiles.find((p) => p.id === form.profileId)
+                            ?.footprint ?? 1) -
+                        1}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const address = availableAddress(
+                          project,
+                          form.domainId,
+                          Number(form.universe),
+                          project.profiles.find((p) => p.id === form.profileId)
+                            ?.footprint ?? 1,
+                          Number(form.count),
+                        );
+                        if (address !== null)
+                          onChange({ address: String(address) });
+                      }}
+                      disabled={
+                        availableAddress(
+                          project,
+                          form.domainId,
+                          Number(form.universe),
+                          project.profiles.find((p) => p.id === form.profileId)
+                            ?.footprint ?? 1,
+                          Number(form.count),
+                        ) === null
+                      }
+                    >
+                      寻找连续空位
+                    </button>
+                  </>
+                )}
                 {activeFixture && (
                   <p className="wb-dim">{activeFixture.profileName}</p>
                 )}
@@ -164,7 +226,11 @@ export function ProjectInspector({
               >
                 {form.kind === "addFixture" ? "添加" : "应用"}
               </button>
-              <button type="button" onClick={onCancel}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={onCancel}
+              >
                 取消
               </button>
             </div>

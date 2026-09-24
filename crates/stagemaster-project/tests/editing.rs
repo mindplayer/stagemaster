@@ -215,6 +215,20 @@ fn preset_references_survive_rename_and_revision_without_being_baked() {
     assert_ne!(new["project"]["revisionId"], root["project"]["revisionId"]);
     assert_eq!(saved.view().scenes[0].values[3].value, Some(65535));
     assert!(saved.same_content(&doc));
+    doc.edit(EditCommand::DuplicateScene {
+        id: saved.view().scenes[0].id.clone(),
+        name: "保留引用的副本".into(),
+    })
+    .unwrap();
+    let copied = value(&doc);
+    assert_eq!(
+        copied["lighting"]["scenes"][0]["assignments"],
+        copied["lighting"]["scenes"]
+            .as_array()
+            .unwrap()
+            .last()
+            .unwrap()["assignments"]
+    );
 }
 #[test]
 fn release_is_distinct_from_zero_and_clearing_last_assignment_is_rejected() {
@@ -275,4 +289,93 @@ fn integer_decimal_spelling_keeps_profile_and_patch_values() {
     assert_eq!(reopened.view().fixtures[0].footprint, 4);
     assert_eq!(reopened.view().fixtures[0].address, Some(1));
     assert!(document.same_content(&reopened));
+}
+
+fn command(value: Value) -> EditCommand {
+    serde_json::from_value(value).unwrap()
+}
+#[test]
+fn batch_commits_final_state_and_rolls_back_any_failure() {
+    let mut doc = with_fixture();
+    let view = doc.view();
+    doc.edit(command(json!({"op":"addFixture","name":"面光 2","profileId":view.profiles[1].id,"domainId":view.domains[0].id,"universe":1,"address":5}))).unwrap();
+    let view = doc.view();
+    let a = &view.fixtures[0].id;
+    let b = &view.fixtures[1].id;
+    // Address swaps require validating the final state, not the intermediate collision.
+    doc.edit(command(json!({"op":"batch","commands":[
+        {"op":"updateFixture","id":a,"name":"面光 1","universe":1,"address":5},
+        {"op":"updateFixture","id":b,"name":"面光 2","universe":1,"address":1}
+    ]})))
+    .unwrap();
+    assert_eq!(doc.view().fixtures[0].address, Some(5));
+    let before = doc.clone();
+    for last in [
+        json!({"op":"removeFixture","id":"missing"}),
+        json!({"op":"updateFixture","id":b,"name":"面光 2","universe":1,"address":8}),
+    ] {
+        assert!(
+            doc.edit(command(json!({"op":"batch","commands":[
+                {"op":"setInfo","name":"不能留下这个改名","description":""},last
+            ]})))
+            .is_err()
+        );
+        assert_eq!(doc, before);
+    }
+}
+#[test]
+fn batch_rejects_empty_nested_and_excessive_commands() {
+    let mut doc = with_fixture();
+    let before = doc.clone();
+    let rename = json!({"op":"setInfo","name":"变化","description":""});
+    for commands in [
+        vec![],
+        vec![json!({"op":"batch","commands":[rename.clone()]})],
+        vec![rename; 257],
+    ] {
+        assert!(
+            doc.edit(command(json!({"op":"batch","commands":commands})))
+                .is_err()
+        );
+        assert_eq!(doc, before);
+    }
+}
+#[test]
+fn duplicated_scene_has_independent_identity_and_preserves_assignments() {
+    let mut doc = with_fixture();
+    doc.edit(command(json!({"op":"addScene","name":"主场景"})))
+        .unwrap();
+    let fixture = doc.view().fixtures[0].id.clone();
+    let scene = doc.view().scenes[0].id.clone();
+    doc.edit(command(json!({"op":"setSceneValue","sceneId":scene,"fixtureId":fixture,"attribute":"red","mode":"release","value":0}))).unwrap();
+    doc.edit(command(
+        json!({"op":"duplicateScene","id":scene,"name":"副本"}),
+    ))
+    .unwrap();
+    let root = value(&doc);
+    assert_ne!(
+        root["lighting"]["scenes"][0]["id"],
+        root["lighting"]["scenes"][1]["id"]
+    );
+    assert_eq!(
+        root["lighting"]["scenes"][0]["assignments"],
+        root["lighting"]["scenes"][1]["assignments"]
+    );
+    let copied = doc.view().scenes[1].id.clone();
+    doc.edit(command(json!({"op":"setSceneValue","sceneId":copied,"fixtureId":fixture,"attribute":"red","mode":"literal","value":12345}))).unwrap();
+    assert_eq!(doc.view().scenes[0].values[1].mode, "release");
+    assert_eq!(doc, Document::decode(&doc.encode().unwrap()).unwrap());
+}
+#[test]
+fn clearing_unknown_targets_is_rejected_even_when_nothing_would_be_removed() {
+    let mut doc = with_fixture();
+    doc.edit(command(json!({"op":"addScene","name":"场景"})))
+        .unwrap();
+    let view = doc.view();
+    for (fixture, attr) in [
+        ("missing", "red"),
+        (view.fixtures[0].id.as_str(), "missing"),
+    ] {
+        assert!(doc.edit(command(json!({"op":"setSceneValue","sceneId":view.scenes[0].id,"fixtureId":fixture,"attribute":attr,"mode":"remove","value":0}))).is_err());
+    }
 }

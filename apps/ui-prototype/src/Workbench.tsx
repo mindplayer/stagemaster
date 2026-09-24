@@ -13,16 +13,22 @@ import {
 import type {
   ApplicationHost,
   EditCommand,
+  EditOperation,
   FixtureView,
   ProjectRequest,
+  ProjectView,
   SceneView,
   Snapshot,
 } from "./application-host";
 import { ProjectInspector } from "./components/workbench/ProjectInspector";
 import type { ProjectForm } from "./components/workbench/ProjectInspector";
-import { FixtureTable } from "./components/workbench/FixtureTable";
-import { SceneEditor } from "./components/workbench/SceneEditor";
+import { FixtureBrowser } from "./components/workbench/FixtureBrowser";
+import { SceneLibrary } from "./components/workbench/SceneLibrary";
+import { ParameterPanel } from "./components/workbench/ParameterPanel";
+import type { ParameterHandle } from "./components/workbench/ParameterPanel";
 import { DeleteDialog } from "./components/workbench/DeleteDialog";
+import { availableAddress, fixtureMatches, uniqueName } from "./editor-tools";
+import { validateEditorForm } from "./components/workbench/form-validation";
 import "./workbench.css";
 
 const EMPTY: Snapshot = {
@@ -34,47 +40,81 @@ const EMPTY: Snapshot = {
   canRedo: false,
 };
 type Page = "fixtures" | "scenes" | "settings";
-function blankProjectForm(): ProjectForm {
-  return {
-    kind: "info",
-    id: "",
-    name: "",
-    description: "",
-    profileId: "",
-    domainId: "",
-    universe: "1",
-    address: "1",
-  };
-}
+const blank = (): ProjectForm => ({
+  kind: "info",
+  id: "",
+  name: "",
+  description: "",
+  profileId: "",
+  domainId: "",
+  universe: "1",
+  address: "1",
+  count: "1",
+});
+const fixtureForm = (f: FixtureView): ProjectForm => ({
+  ...blank(),
+  kind: "fixture",
+  id: f.id,
+  name: f.name,
+  universe: String(f.universe ?? 1),
+  address: String(f.address ?? 1),
+});
+const sceneForm = (s: SceneView): ProjectForm => ({
+  ...blank(),
+  kind: "scene",
+  id: s.id,
+  name: s.name,
+});
+const infoForm = (p: ProjectView): ProjectForm => ({
+  ...blank(),
+  name: p.name,
+  description: p.description,
+});
 
 export function Workbench({ host }: { host: ApplicationHost }) {
   const [snapshot, setSnapshot] = useState(EMPTY);
   const current = useRef(EMPTY);
   const [busy, setBusy] = useState(false);
-  const lock = useRef(false);
+  const queue = useRef(Promise.resolve(true));
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
-  const [selected, setSelected] = useState("");
-  const [form, setProjectFormState] = useState<ProjectForm | null>(null);
+  const [patchId, setPatchId] = useState("");
+  const [sceneId, setSceneId] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [patchQuery, setPatchQuery] = useState("");
+  const [fixtureQuery, setFixtureQuery] = useState("");
+  const [sceneQuery, setSceneQuery] = useState("");
+  const [onlySelected, setOnlySelected] = useState(false);
+  const [form, setFormState] = useState<ProjectForm | null>(null);
   const formRef = useRef<ProjectForm | null>(null);
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
+  const [parameterPending, setParameterPending] = useState(false);
+  const parameters = useRef<ParameterHandle>(null);
   const htmlProjectForm = useRef<HTMLFormElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const operation = useRef<
-    (work: () => Promise<void>, flush?: boolean) => Promise<boolean>
-  >(async () => false);
+  const actions = useRef({
+    close: () => {},
+    save: (_as: boolean) => {},
+    file: (_kind: "new" | "open") => {},
+    history: (_redo: boolean) => {},
+    duplicate: () => {},
+    selectAll: () => {},
+  });
   const project = snapshot.project;
-  const dirty = snapshot.dirty || pending;
+  const selected = selectedIds.filter((id) =>
+    project?.fixtures.some((f) => f.id === id),
+  );
+  const activeScene = project?.scenes.find((s) => s.id === sceneId);
+  const activeFixture = project?.fixtures.find((f) => f.id === patchId);
+  const dirty = snapshot.dirty || pending || parameterPending;
 
-  function setProjectForm(next: ProjectForm | null, changed = false) {
+  function setForm(next: ProjectForm | null, changed = false) {
     formRef.current = next;
-    setProjectFormState(next);
+    setFormState(next);
     pendingRef.current = changed;
     setPending(changed);
-  }
-  function changeProjectForm(patch: Partial<ProjectForm>) {
-    if (formRef.current) setProjectForm({ ...formRef.current, ...patch }, true);
   }
   const request = useCallback(
     async (value: ProjectRequest) => {
@@ -94,62 +134,268 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   }
   async function flush() {
     const draft = formRef.current;
-    if (!draft || !pendingRef.current) return;
-    if (htmlProjectForm.current && !htmlProjectForm.current.reportValidity())
-      throw new Error("请先检查当前填写的内容");
-    let command: EditCommand;
-    if (draft.kind === "info")
-      command = {
-        op: "setInfo",
-        name: draft.name.trim(),
-        description: draft.description,
-      };
-    else if (draft.kind === "scene")
-      command = { op: "renameScene", id: draft.id, name: draft.name.trim() };
-    else if (draft.kind === "fixture")
-      command = {
-        op: "updateFixture",
-        id: draft.id,
-        name: draft.name.trim(),
-        universe: Number(draft.universe),
-        address: Number(draft.address),
-      };
-    else
-      command = {
-        op: "addFixture",
-        name: draft.name.trim(),
-        profileId: draft.profileId,
-        domainId: draft.domainId,
-        universe: Number(draft.universe),
-        address: Number(draft.address),
-      };
-    await edit(command);
-    if (draft.kind === "addFixture") {
-      const added = current.current.project?.fixtures.at(-1);
-      if (added) {
-        selectFixture(added);
-        setSelected(added.id);
+    const commands: EditOperation[] = [];
+    if (draft && pendingRef.current) {
+      validateEditorForm(htmlProjectForm.current);
+      if (!draft.name.trim()) throw new Error("名称不能为空");
+      if (draft.kind === "info")
+        commands.push({
+          op: "setInfo",
+          name: draft.name.trim(),
+          description: draft.description,
+        });
+      else if (draft.kind === "scene")
+        commands.push({
+          op: "renameScene",
+          id: draft.id,
+          name: draft.name.trim(),
+        });
+      else if (draft.kind === "fixture")
+        commands.push({
+          op: "updateFixture",
+          id: draft.id,
+          name: draft.name.trim(),
+          universe: Number(draft.universe),
+          address: Number(draft.address),
+        });
+      else {
+        const p = current.current.project!;
+        const footprint = p.profiles.find(
+          (profile) => profile.id === draft.profileId,
+        )?.footprint;
+        if (!footprint) throw new Error("请选择灯具模式");
+        const count = Number(draft.count);
+        if (!Number.isInteger(count) || count < 1 || count > 128)
+          throw new Error("一次可添加 1–128 台灯具");
+        if (Number(draft.address) + count * footprint - 1 > 512)
+          throw new Error(
+            "这批灯具超出本线路的 512 个地址，请减少数量或调整起始地址",
+          );
+        const names = p.fixtures.map((f) => f.name);
+        for (let i = 0; i < count; i++) {
+          const name = uniqueName(
+            count > 1 ? `${draft.name.trim()} ${i + 1}` : draft.name.trim(),
+            names,
+          );
+          names.push(name);
+          commands.push({
+            op: "addFixture",
+            name,
+            profileId: draft.profileId,
+            domainId: draft.domainId,
+            universe: Number(draft.universe),
+            address: Number(draft.address) + i * footprint,
+          });
+        }
       }
-    } else setProjectForm(draft, false);
-  }
-  async function run(work: () => Promise<void>, flushFirst = true) {
-    if (lock.current) return false;
-    lock.current = true;
-    setBusy(true);
-    setError("");
-    try {
-      if (flushFirst) await flush();
-      await work();
-      return true;
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
-      return false;
-    } finally {
-      lock.current = false;
-      setBusy(false);
+    }
+    commands.push(...(parameters.current?.collect() ?? []));
+    if (!commands.length) return;
+    if (commands.length > 256)
+      throw new Error("一次最多修改 256 项，请先应用部分修改");
+    await edit({ op: "batch", commands });
+    parameters.current?.accept();
+    setParameterPending(false);
+    setNotice("修改已应用");
+    if (draft && pendingRef.current) {
+      if (draft.kind === "addFixture") {
+        const added = current.current.project!.fixtures.at(-1)!;
+        setPatchId(added.id);
+        setForm(fixtureForm(added));
+        setNotice(`已添加 ${draft.count} 台灯具`);
+      } else setForm({ ...draft, name: draft.name.trim() });
     }
   }
-  operation.current = run;
+  function run(work: () => Promise<void>, flushFirst = true): Promise<boolean> {
+    const next = queue.current.then(async () => {
+      const focused = document.activeElement;
+      setBusy(true);
+      setError("");
+      try {
+        if (flushFirst) await flush();
+        await work();
+        return true;
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : String(reason));
+        return false;
+      } finally {
+        setBusy(false);
+        requestAnimationFrame(() => {
+          if (
+            focused instanceof HTMLElement &&
+            focused.isConnected &&
+            (document.activeElement === document.body ||
+              document.activeElement === document.documentElement)
+          ) {
+            focused.focus({ preventScroll: true });
+          }
+        });
+      }
+    });
+    queue.current = next;
+    return next;
+  }
+  function restoreForm(nextPage = page) {
+    const p = current.current.project;
+    if (!p) {
+      setForm(null);
+      return;
+    }
+    const fixture = p.fixtures.find((f) => f.id === patchId);
+    const scene = p.scenes.find((s) => s.id === sceneId);
+    setForm(
+      nextPage === "settings"
+        ? infoForm(p)
+        : nextPage === "fixtures"
+          ? fixture
+            ? fixtureForm(fixture)
+            : null
+          : scene
+            ? sceneForm(scene)
+            : null,
+    );
+  }
+  function fileAction(kind: "new" | "open") {
+    void run(async () => {
+      const previousGeneration = current.current.generation;
+      const next = await request({
+        kind,
+        generation: current.current.generation,
+      });
+      if (next.project && next.generation !== previousGeneration) {
+        setPage(next.project.fixtures.length ? "scenes" : "fixtures");
+        setPatchId("");
+        setSceneId(next.project.scenes[0]?.id ?? "");
+        setSelectedIds([]);
+        setPatchQuery("");
+        setFixtureQuery("");
+        setSceneQuery("");
+        setOnlySelected(false);
+        setParameterPending(false);
+        setForm(
+          next.project.scenes[0] && next.project.fixtures.length
+            ? sceneForm(next.project.scenes[0])
+            : null,
+        );
+        setNotice(kind === "new" ? "已创建工程" : "已打开工程");
+      }
+    });
+  }
+  function save(saveAs = false) {
+    void run(async () => {
+      const next = await request({
+        kind: "save",
+        generation: current.current.generation,
+        saveAs,
+      });
+      if (!next.dirty && next.fileName) setNotice("工程已保存");
+    });
+  }
+  function history(redo: boolean) {
+    void run(async () => {
+      await request({
+        kind: "history",
+        generation: current.current.generation,
+        redo,
+      });
+      restoreForm();
+      setNotice(redo ? "已重做" : "已撤销");
+    });
+  }
+  function switchPage(next: Page) {
+    void run(async () => {
+      setPage(next);
+      restoreForm(next);
+    });
+  }
+  function addFixture() {
+    void run(async () => {
+      const p = current.current.project!;
+      const profile = p.profiles[0];
+      const domain = p.domains[0];
+      setForm({
+        ...blank(),
+        kind: "addFixture",
+        name: "灯具",
+        profileId: profile?.id ?? "",
+        domainId: domain?.id ?? "",
+        address: String(
+          availableAddress(p, domain?.id ?? "", 1, profile?.footprint ?? 1) ??
+            1,
+        ),
+      });
+    });
+  }
+  function chooseScene(scene: SceneView) {
+    void run(async () => {
+      setSceneId(scene.id);
+      setForm(sceneForm(scene));
+    });
+  }
+  function addScene() {
+    void run(async () => {
+      await edit({
+        op: "addScene",
+        name: uniqueName(
+          "场景",
+          current.current.project!.scenes.map((s) => s.name),
+        ),
+      });
+      const scene = current.current.project!.scenes.at(-1)!;
+      setSceneId(scene.id);
+      setForm(sceneForm(scene));
+      setSceneQuery("");
+      setNotice("已创建场景");
+    });
+  }
+  function duplicateScene() {
+    if (!activeScene) return;
+    void run(async () => {
+      const scene = current.current.project!.scenes.find(
+        (s) => s.id === sceneId,
+      )!;
+      await edit({
+        op: "duplicateScene",
+        id: scene.id,
+        name: uniqueName(
+          `${scene.name} 副本`,
+          current.current.project!.scenes.map((s) => s.name),
+        ),
+      });
+      const copy = current.current.project!.scenes.at(-1)!;
+      setSceneId(copy.id);
+      setForm(sceneForm(copy));
+      setSceneQuery("");
+      setNotice("已复制场景");
+    });
+  }
+  actions.current = {
+    close: () => {
+      void run(async () => {
+        await request({ kind: "close" });
+      });
+    },
+    save,
+    file: fileAction,
+    history,
+    duplicate: () => {
+      if (page === "scenes") duplicateScene();
+    },
+    selectAll: () => {
+      if (page === "scenes" && project)
+        void run(async () => {
+          setSelectedIds(
+            project.fixtures
+              .filter(
+                (f) =>
+                  fixtureMatches(f, fixtureQuery) &&
+                  (!onlySelected || selected.includes(f.id)),
+              )
+              .map((f) => f.id),
+          );
+        });
+    },
+  };
   useEffect(() => {
     let active = true;
     if (host.kind === "desktop")
@@ -166,11 +412,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         });
     let dispose: (() => void) | undefined;
     void host
-      .onCloseRequested(() => {
-        void operation.current(async () => {
-          await request({ kind: "close" });
-        });
-      })
+      .onCloseRequested(() => actions.current.close())
       .then((fn) => {
         if (active) dispose = fn;
         else fn();
@@ -179,135 +421,50 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       active = false;
       dispose?.();
     };
-  }, [host, request]);
+  }, [host]);
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey)) return;
-      const key = event.key.toLowerCase();
-      if (key === "s") {
-        event.preventDefault();
-        if (current.current.project)
-          void operation.current(async () => {
-            await request({
-              kind: "save",
-              generation: current.current.generation,
-              saveAs: event.shiftKey,
-            });
-          });
-      }
-      if (key === "o" || key === "n") {
-        event.preventDefault();
-        void operation.current(async () => {
-          const previous = current.current.generation;
-          await request({
-            kind: key === "o" ? "open" : "new",
-            generation: current.current.generation,
-          });
-          if (current.current.generation !== previous) {
-            setProjectForm(null);
-            setSelected("");
-            setPage("fixtures");
-          }
-        });
-      }
       if (
-        key === "z" &&
-        !(
-          event.target instanceof HTMLInputElement ||
-          event.target instanceof HTMLTextAreaElement
-        )
-      ) {
+        !(event.metaKey || event.ctrlKey) ||
+        host.kind !== "desktop" ||
+        document.querySelector("dialog[open]")
+      )
+        return;
+      const key = event.key.toLowerCase();
+      const typing =
+        (event.target instanceof HTMLInputElement &&
+          !["range", "color", "checkbox", "radio", "button"].includes(
+            event.target.type,
+          )) ||
+        event.target instanceof HTMLTextAreaElement ||
+        (event.target instanceof HTMLElement && event.target.isContentEditable);
+      if (key === "s" && current.current.project) {
         event.preventDefault();
-        void operation.current(async () => {
-          await request({
-            kind: "history",
-            generation: current.current.generation,
-            redo: event.shiftKey,
-          });
-          setProjectForm(null);
-        });
+        actions.current.save(event.shiftKey);
+      } else if (key === "o" || key === "n") {
+        event.preventDefault();
+        actions.current.file(key === "o" ? "open" : "new");
+      } else if (key === "z" && !typing) {
+        event.preventDefault();
+        actions.current.history(event.shiftKey);
+      } else if (key === "d" && !typing) {
+        event.preventDefault();
+        actions.current.duplicate();
+      } else if (key === "a" && !typing) {
+        event.preventDefault();
+        actions.current.selectAll();
       }
     };
     window.addEventListener("keydown", keydown);
     return () => window.removeEventListener("keydown", keydown);
-  }, [request]);
-  function selectFixture(fixture: FixtureView) {
-    setProjectForm({
-      ...blankProjectForm(),
-      kind: "fixture",
-      id: fixture.id,
-      name: fixture.name,
-      universe: String(fixture.universe ?? 1),
-      address: String(fixture.address ?? 1),
-    });
-  }
-  function selectScene(scene: SceneView) {
-    setSelected(scene.id);
-    setProjectForm({
-      ...blankProjectForm(),
-      kind: "scene",
-      id: scene.id,
-      name: scene.name,
-    });
-  }
-  function switchPage(next: Page) {
-    void run(async () => {
-      setPage(next);
-      setSelected("");
-      setProjectForm(
-        next === "settings" && current.current.project
-          ? {
-              ...blankProjectForm(),
-              kind: "info",
-              name: current.current.project.name,
-              description: current.current.project.description,
-            }
-          : null,
-      );
-    });
-  }
-  function fileAction(kind: "new" | "open") {
-    void run(async () => {
-      const previous = current.current.generation;
-      await request({ kind, generation: current.current.generation });
-      if (current.current.generation !== previous) {
-        setProjectForm(null);
-        setSelected("");
-        setPage("fixtures");
-      }
-    });
-  }
-  function addFixture() {
-    void run(async () => {
-      const p = current.current.project!;
-      setSelected("");
-      setProjectForm({
-        ...blankProjectForm(),
-        kind: "addFixture",
-        name: `灯具 ${p.fixtures.length + 1}`,
-        profileId: p.profiles[0]?.id ?? "",
-        domainId: p.domains[0]?.id ?? "",
-      });
-    });
-  }
-  function addScene() {
-    void run(async () => {
-      await edit({
-        op: "addScene",
-        name: `场景 ${current.current.project!.scenes.length + 1}`,
-      });
-      const scene = current.current.project!.scenes.at(-1)!;
-      selectScene(scene);
-    });
-  }
-  const activeFixture = project?.fixtures.find((item) => item.id === selected);
+  }, [host]);
 
   return (
     <main className="workbench">
       <header className="workbench-header">
         <div className="wb-brand">
           <span className="wb-logo">
-            <LightbulbIcon weight="fill" size={21} />
+            <LightbulbIcon weight="fill" size={22} />
           </span>
           舞台大师
         </div>
@@ -321,6 +478,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         )}
         <div className="wb-file-actions">
           <button
+            title="新建工程（⌘N / Ctrl+N）"
             disabled={busy || host.kind !== "desktop"}
             onClick={() => fileAction("new")}
           >
@@ -328,200 +486,228 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             新建
           </button>
           <button
+            title="打开工程（⌘O / Ctrl+O）"
             disabled={busy || host.kind !== "desktop"}
             onClick={() => fileAction("open")}
           >
             <FolderOpenIcon />
             打开
           </button>
-          {project && (
-            <>
-              <button
-                disabled={busy || !snapshot.canUndo}
-                title="撤销"
-                aria-label="撤销"
-                onClick={() =>
-                  void run(async () => {
-                    await request({
-                      kind: "history",
-                      generation: current.current.generation,
-                      redo: false,
-                    });
-                    setProjectForm(null);
-                  })
-                }
-              >
-                <ArrowCounterClockwiseIcon />
-              </button>
-              <button
-                disabled={busy || !snapshot.canRedo}
-                title="重做"
-                aria-label="重做"
-                onClick={() =>
-                  void run(async () => {
-                    await request({
-                      kind: "history",
-                      generation: current.current.generation,
-                      redo: true,
-                    });
-                    setProjectForm(null);
-                  })
-                }
-              >
-                <ArrowClockwiseIcon />
-              </button>
-              <button
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await request({
-                      kind: "save",
-                      generation: current.current.generation,
-                      saveAs: true,
-                    });
-                  })
-                }
-              >
-                另存为
-              </button>
-              <button
-                className="wb-primary"
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await request({
-                      kind: "save",
-                      generation: current.current.generation,
-                      saveAs: false,
-                    });
-                  })
-                }
-              >
-                <FloppyDiskIcon />
-                保存
-              </button>
-            </>
-          )}
+          <span className="wb-toolbar-separator" />
+          <button
+            aria-label="撤销"
+            title="撤销（⌘Z / Ctrl+Z）"
+            disabled={
+              busy || (!snapshot.canUndo && !pending && !parameterPending)
+            }
+            onClick={() => history(false)}
+          >
+            <ArrowCounterClockwiseIcon />
+          </button>
+          <button
+            aria-label="重做"
+            title="重做（⇧⌘Z / Ctrl+Shift+Z）"
+            disabled={busy || !snapshot.canRedo || pending || parameterPending}
+            onClick={() => history(true)}
+          >
+            <ArrowClockwiseIcon />
+          </button>
+          <button disabled={busy || !project} onClick={() => save(true)}>
+            另存为
+          </button>
+          <button
+            className="wb-primary"
+            title="保存工程（⌘S / Ctrl+S）"
+            disabled={busy || !project || !dirty}
+            onClick={() => save()}
+          >
+            <FloppyDiskIcon />
+            保存
+          </button>
         </div>
       </header>
       {error && (
         <div className="wb-error" role="alert">
           <span>{error}</span>
-          <button aria-label="关闭提示" onClick={() => setError("")}>
+          <button aria-label="关闭错误提示" onClick={() => setError("")}>
             <XIcon />
           </button>
         </div>
       )}
       {!project ? (
-        <section className="wb-welcome">
-          <LightbulbIcon size={48} weight="duotone" />
-          <h1>舞台大师</h1>
+        <div className="wb-welcome">
+          <LightbulbIcon size={52} weight="duotone" />
+          <h1>开始编排</h1>
+          <p>
+            {host.kind === "browser"
+              ? "请使用桌面应用打开本地工程"
+              : "创建工程，或继续已有编排"}
+          </p>
           <div>
             <button
               className="wb-primary"
-              disabled={busy || host.kind !== "desktop"}
+              disabled={host.kind !== "desktop" || busy}
               onClick={() => fileAction("new")}
             >
-              <PlusIcon />
               新建工程
             </button>
             <button
-              disabled={busy || host.kind !== "desktop"}
+              disabled={host.kind !== "desktop" || busy}
               onClick={() => fileAction("open")}
             >
-              <FolderOpenIcon />
               打开工程
             </button>
           </div>
-          {host.kind === "browser" && <p>本地工程请使用桌面应用</p>}
-        </section>
+        </div>
       ) : (
         <>
           <nav className="wb-nav" aria-label="工作区">
             <button
-              aria-current={page === "fixtures" ? "page" : undefined}
-              onClick={() => switchPage("fixtures")}
+              className={page === "scenes" ? "active" : ""}
+              aria-pressed={page === "scenes"}
               disabled={busy}
-            >
-              <LightbulbIcon />
-              灯具配适<span>{project.fixtures.length}</span>
-            </button>
-            <button
-              aria-current={page === "scenes" ? "page" : undefined}
               onClick={() => switchPage("scenes")}
-              disabled={busy}
             >
               <StackIcon />
-              场景<span>{project.scenes.length}</span>
+              编排<span>{project.scenes.length}</span>
             </button>
             <button
-              aria-current={page === "settings" ? "page" : undefined}
-              onClick={() => switchPage("settings")}
+              className={page === "fixtures" ? "active" : ""}
+              aria-pressed={page === "fixtures"}
               disabled={busy}
+              onClick={() => switchPage("fixtures")}
+            >
+              <LightbulbIcon />
+              灯具<span>{project.fixtures.length}</span>
+            </button>
+            <button
+              className={page === "settings" ? "active" : ""}
+              aria-pressed={page === "settings"}
+              disabled={busy}
+              onClick={() => switchPage("settings")}
             >
               <GearSixIcon />
               工程
             </button>
           </nav>
-          <div className="wb-content">
-            <section className="wb-main">
-              <div className="wb-section-heading">
-                <h1>
-                  {page === "fixtures"
-                    ? "灯具配适"
-                    : page === "scenes"
-                      ? "场景"
-                      : "工程设置"}
-                </h1>
+          <div
+            className={`wb-layout ${page === "scenes" ? "wb-arrangement" : ""}`}
+          >
+            {page === "scenes" && (
+              <SceneLibrary
+                scenes={project.scenes}
+                selected={activeScene?.id ?? ""}
+                query={sceneQuery}
+                busy={busy}
+                canCreate={project.fixtures.length > 0}
+                onQuery={setSceneQuery}
+                onSelect={chooseScene}
+                onAdd={addScene}
+                onDuplicate={duplicateScene}
+              />
+            )}
+            <section className="wb-content">
+              <div className="wb-content-heading">
+                <div>
+                  <span className="wb-eyebrow">
+                    {page === "scenes"
+                      ? "灯光编排"
+                      : page === "fixtures"
+                        ? "灯具管理"
+                        : "工程管理"}
+                  </span>
+                  <h1>
+                    {page === "scenes"
+                      ? (activeScene?.name ?? "场景编排")
+                      : page === "fixtures"
+                        ? "灯具配适"
+                        : "工程信息"}
+                  </h1>
+                </div>
                 {page === "fixtures" && (
                   <button
                     className="wb-primary"
-                    disabled={
-                      busy ||
-                      !project.profiles.length ||
-                      !project.domains.length
-                    }
+                    disabled={busy}
                     onClick={addFixture}
                   >
                     <PlusIcon />
                     添加灯具
                   </button>
                 )}
-                {page === "scenes" && (
-                  <button
-                    className="wb-primary"
-                    disabled={busy || !project.fixtures.length}
-                    onClick={addScene}
-                  >
-                    <PlusIcon />
-                    新建场景
-                  </button>
+                {page === "scenes" && activeScene && (
+                  <span className="wb-dim">
+                    {activeScene.values.length} 项记录
+                  </span>
                 )}
               </div>
               {page === "fixtures" && (
-                <FixtureTable
+                <FixtureBrowser
                   fixtures={project.fixtures}
-                  selected={selected}
+                  selected={activeFixture ? [activeFixture.id] : []}
+                  query={patchQuery}
+                  onlySelected={false}
                   busy={busy}
-                  onSelect={(fixture) =>
+                  onQuery={setPatchQuery}
+                  onFilter={() => {}}
+                  onSelect={(ids) => {
                     void run(async () => {
-                      setSelected(fixture.id);
-                      selectFixture(fixture);
-                    })
-                  }
+                      const fixture = current.current.project!.fixtures.find(
+                        (f) => f.id === ids[0],
+                      );
+                      if (fixture) {
+                        setPatchId(fixture.id);
+                        setForm(fixtureForm(fixture));
+                      }
+                    });
+                  }}
+                  table
                 />
               )}
-              {page === "scenes" && (
-                <SceneEditor
-                  project={project}
-                  selected={selected}
-                  busy={busy}
-                  onSelect={(item) => void run(async () => selectScene(item))}
-                  onEdit={(command) => run(async () => edit(command))}
-                />
-              )}
+              {page === "scenes" &&
+                (activeScene ? (
+                  <FixtureBrowser
+                    fixtures={project.fixtures}
+                    selected={selected}
+                    scene={activeScene}
+                    query={fixtureQuery}
+                    onlySelected={onlySelected}
+                    busy={busy}
+                    onQuery={setFixtureQuery}
+                    onFilter={setOnlySelected}
+                    onSelect={(ids) => {
+                      void run(async () => {
+                        setSelectedIds(ids);
+                      });
+                    }}
+                  />
+                ) : (
+                  <div className="wb-empty">
+                    <StackIcon size={40} />
+                    <h2>
+                      {project.scenes.length
+                        ? "选择一个场景"
+                        : "创建第一个场景"}
+                    </h2>
+                    {project.fixtures.length ? (
+                      <button
+                        className="wb-primary"
+                        disabled={busy}
+                        onClick={addScene}
+                      >
+                        新建场景
+                      </button>
+                    ) : (
+                      <button
+                        disabled={busy}
+                        onClick={() => switchPage("fixtures")}
+                      >
+                        添加灯具
+                      </button>
+                    )}
+                  </div>
+                ))}
               {page === "settings" && (
-                <dl className="wb-project-details">
+                <dl className="wb-project-summary">
                   <dt>工程名称</dt>
                   <dd>{project.name}</dd>
                   <dt>文件位置</dt>
@@ -533,36 +719,69 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 </dl>
               )}
             </section>
-            <ProjectInspector
-              form={form}
-              htmlProjectForm={htmlProjectForm}
-              busy={busy}
-              pending={pending}
-              page={page}
-              project={project}
-              activeFixture={activeFixture}
-              onChange={changeProjectForm}
-              onApply={() => {
-                if (formRef.current?.kind === "addFixture") {
-                  pendingRef.current = true;
-                  setPending(true);
-                }
-                void run(async () => {});
-              }}
-              onCancel={() => {
-                setProjectForm(null);
-                setSelected("");
-                setError("");
-              }}
-              onDelete={() => setConfirmDelete(true)}
-            />
+            <div className="wb-properties">
+              {page === "scenes" && activeScene && (
+                <ParameterPanel
+                  key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
+                  ref={parameters}
+                  scene={activeScene}
+                  fixtures={selected.map(
+                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  )}
+                  busy={busy}
+                  onApply={() => {
+                    void run(async () => {});
+                  }}
+                  onPending={(value) => {
+                    setParameterPending(value);
+                    if (!value) setError("");
+                  }}
+                />
+              )}
+              <ProjectInspector
+                form={form}
+                htmlProjectForm={htmlProjectForm}
+                busy={busy}
+                pending={pending}
+                page={page}
+                project={project}
+                activeFixture={page === "fixtures" ? activeFixture : undefined}
+                onChange={(patch) => {
+                  if (formRef.current)
+                    setForm({ ...formRef.current, ...patch }, true);
+                }}
+                onApply={() => {
+                  if (formRef.current?.kind === "addFixture") {
+                    pendingRef.current = true;
+                    setPending(true);
+                  }
+                  void run(async () => {});
+                }}
+                onCancel={() => {
+                  restoreForm();
+                  setError("");
+                }}
+                onDelete={() => {
+                  setError("");
+                  setConfirmDelete(true);
+                }}
+              />
+            </div>
           </div>
           <footer className="wb-status">
-            <span>
-              {busy ? "正在处理…" : dirty ? "有未保存的修改" : "已保存"}
+            <span role="status">
+              {busy
+                ? "正在处理…"
+                : error
+                  ? "修改未完成"
+                  : pending || parameterPending
+                    ? "有待应用的修改"
+                    : notice || (dirty ? "有未保存的修改" : "已保存")}
             </span>
             <span>
-              {snapshot.fileName?.split(/[\\/]/).at(-1) ?? "未命名文件"}
+              {snapshot.fileName?.split(/[\\/]/).at(-1) ?? "尚未保存到文件"}
+              <i />
+              {project.fixtures.length} 台灯具 · {project.scenes.length} 个场景
             </span>
           </footer>
         </>
@@ -570,21 +789,39 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       {confirmDelete && (
         <DeleteDialog
           name={form?.name ?? ""}
+          error={error}
           busy={busy}
           onCancel={() => setConfirmDelete(false)}
           onDelete={() => {
-            setConfirmDelete(false);
             const target = formRef.current;
-            if (target)
-              void run(async () => {
+            void run(async () => {
+              if (
+                !target ||
+                (target.kind !== "fixture" && target.kind !== "scene")
+              )
+                return;
+              try {
                 await edit({
                   op:
                     target.kind === "fixture" ? "removeFixture" : "removeScene",
                   id: target.id,
                 });
-                setProjectForm(null);
-                setSelected("");
-              }, false);
+              } catch (reason) {
+                if (
+                  target.kind === "fixture" &&
+                  String(reason).includes("引用")
+                ) {
+                  throw new Error(
+                    "这台灯具仍被场景、分组或预设使用。请先移除相关记录，再删除灯具。",
+                  );
+                }
+                throw reason;
+              }
+              setForm(null);
+              setParameterPending(false);
+              setConfirmDelete(false);
+              setNotice("已删除，可撤销恢复");
+            }, false);
           }}
         />
       )}
