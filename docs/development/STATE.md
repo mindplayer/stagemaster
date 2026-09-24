@@ -10,7 +10,7 @@
 - 播放内核仍为 A0 静态原型；DESKTOP-001 已新增 Tauri 桌面工作台，接独立 Rust 工程／存储模块，完成最小灯光编辑与保存重开。原时间线交互代码保留待接入，尚无设备输出；详见[实现状态](../implementation-status.md)。
 - 用户要求通过组件保持清晰，并接近现代创作软件的操作体验。UX-009 已交付[可交互组件工作台](../ui-design/component-workspace-design.md)：舞台与时间线为主，属性按需展开，布置／灯具／编排往返保留上下文。UX-008 三张静态提案保留参考，未认定用户选中某图；正式入口未替换。UX-006 的[共同指向](../ui-design/workspace-framework.md)与编辑规则继续有效；UE 保留独立后端。依据 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md)。
 - UX-007 已补[舞台与观众区创建方法](../ui-design/venue-layout-design.md)：借鉴 Vectorworks、SketchUp 与 Depence，以平面轮廓／尺寸生成三维舞台和观众区，过道自动避让；用户已认可方向并要求记录，尚无产品建模或座位生成实现。
-- UX-011 按用户补充修订为[可组合空间](decisions/PRODUCT-ADR-010-composable-spaces.md)：支持设计多个不同轮廓、地面标高和净高的室内房间，区分共用墙、洞口与连接；房间／全场查看不影响输出。已核对 Vectorworks 与 IFC 空间机制，尚无正式空间契约、房间编辑器或多房间交互验证；当前组件稿仍是单空间。
+- UX-011 按用户补充修订为[可组合空间](decisions/PRODUCT-ADR-010-composable-spaces.md)，UX-012 已在独立组件稿验证三空间选择、矩形／L 形尺寸、独立标高／净高、边界拖动与房间／全场查看。正式空间契约、房间建模、共享墙／门洞及工程保存仍未实施；设计稿不能代替真实空间编辑器。
 - FIXTURE-001 已整理[灯具定义与个人灯库](../ui-design/fixture-definition-design.md)：参考 MA3／Titan／GDTF／OFL，分开可复用能力、硬件变体／模式／档案修订与工程实例，设计功能分段、色盘／图案盘和受控测试。依据 [ADR-009](decisions/PRODUCT-ADR-009-fixture-definition.md)；当前线性映射不足以承载全部语义，具体契约与编辑器未实施。
 - 用户最新澄清当前没有 iPad，仍按 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已撤回平板优先布局和前置移动验证，只保留共享核心、输入／布局／宿主与渲染适配边界；无待补设备型号问题。
 - 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)，尚无固件、设备通信或真实输出。
@@ -44,12 +44,15 @@
 | [UX-009](tasks/UX-009-component-workspace.md) | done（独立交互设计） | 按需属性组件、工作区往返、指向拖动和灯具草稿子集验证；未替换正式 UI 或接入业务 |
 | [UX-010](tasks/UX-010-editing-recovery.md) | done（交互改进／目标验收） | 输入草稿／错误定位、分范围具名撤销、连续点击和快捷键修复；两轮可操作界面目标验收通过，正式产品接入仍待实施 |
 | [UX-011](tasks/UX-011-multi-space-layout.md) | done（需求／架构方向） | 异形室内、多空间、独立标高／净高、共享构件与连接、房间查看；更新场地闭环顺序，契约与产品实现待办 |
+| [UX-012](tasks/UX-012-space-workspace.md) | done（独立交互优化） | 多空间布置、参数编辑、平面边界拖动／取消／撤销、立体和当前空间查看；已验证，未接正式工程 |
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表、时间线、迁移恢复及编译接入待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | planned（已细化） | 正式工程编译接 PROJECT-001 已校验快照，参考执行器可独立推进；虚拟时间播放与 512 通道输出核对尚未实现 |
 | PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+UX-012：基线 `0b08e01`；结果为本次 `feat(ui-design): add multi-space layout interactions` 提交。验证独立标高／净高、L 形参数、画布选房间、输入错误跨空间／工作区定位、刷新恢复；拖宽 6→7→单次撤销 6、拖深 6→7→Esc 6、方向键微调至 6.1。与基线同状态截图对照编排布局，回归颜色、片段／时间保持及灯具草稿独立撤销；多种窗口宽度检查无横向溢出。脚本语法、片段约束、文档引用与差异检查通过，浏览器无脚本错误。仅设计稿及说明，未改正式产品代码、Schema、硬件或部署。
 
 UX-011：基线 `cf13e72`；结果为本次 `docs(spaces): plan irregular multi-room venues` 提交。核对 Vectorworks 2026 与 IFC4 ADD2 TC1 官方空间／边界机制，形成 ADR-010，修订场地创建和多房间验收范围。与现有坐标、目标附着、输出及端侧裁剪边界核对，本地文档链接与差异检查通过。仅文档变更，未修改 Schema／核心／交互稿，未运行产品测试或声称已实现建模、遮挡与性能验证。
 

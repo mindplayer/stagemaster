@@ -105,13 +105,38 @@
     #sm-component-workspace .cw-top .cw-error{margin:0}
     #sm-component-workspace input[aria-invalid="true"]{border-color:var(--cw-error)!important}
     #sm-component-workspace .cw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+    #sm-component-workspace .cw-space-list{display:flex;flex-direction:column;gap:5px}
+    #sm-component-workspace [data-compose-resources]{display:contents}
+    #sm-component-workspace .cw-space-list button{justify-content:flex-start;text-align:left;width:100%;gap:9px;padding:10px 8px;white-space:normal}
+    #sm-component-workspace .cw-space-list button>span{min-width:0}
+    #sm-component-workspace .cw-space-list strong{display:block;font-weight:500;overflow-wrap:anywhere}
+    #sm-component-workspace .cw-space-list small{display:block;color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-space-list .cw-space-index{font-size:12px;color:var(--cw-muted);align-self:flex-start;margin-top:2px}
+    #sm-component-workspace .cw-space-overview{margin:6px 0 14px;width:100%;justify-content:flex-start}
+    #sm-component-workspace .cw-view-switch{display:inline-flex;padding:2px;background:var(--cw-bg);border-radius:6px}
+    #sm-component-workspace .cw-view-switch button{padding:4px 10px}
+    #sm-component-workspace .cw-space-name{width:100%;max-width:100%}
+    #sm-component-workspace .cw-space-summary{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 20px;color:var(--cw-muted);font-size:12px}
+    #sm-component-workspace .cw-space-summary strong{color:var(--cw-text);font-weight:500}
+    #sm-component-workspace[data-workspace="arrange"] .cw-viewbody{grid-template-columns:180px minmax(0,1fr)}
+    #sm-component-workspace[data-workspace="arrange"][data-resources="false"] .cw-viewbody{grid-template-columns:minmax(0,1fr)}
+    #sm-component-workspace[data-workspace="arrange"] .cw-spatial{height:475px}
+    #sm-component-workspace .cw-space-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px}
+    #sm-component-workspace .cw-room-resize{position:absolute;transform:translate(-50%,-50%);min-height:30px;width:30px;padding:4px;border:1px solid var(--cw-accent);background:var(--cw-panel);color:var(--cw-accent);touch-action:none}
+    #sm-component-workspace .cw-room-resize[data-resize-room="width"]{cursor:ew-resize}
+    #sm-component-workspace .cw-room-resize[data-resize-room="depth"]{cursor:ns-resize}
+    #sm-component-workspace [data-component="space"] .cw-field{margin:9px 0}
+    #sm-component-workspace [data-component="space"] .cw-block{margin-top:17px;padding-top:12px}
+    #sm-component-workspace [data-component="space"] .cw-panelcontext{margin-bottom:14px}
     #sm-component-workspace[data-resources="false"] .cw-resources{display:none}
     #sm-component-workspace[data-resources="false"] .cw-viewbody{grid-template-columns:minmax(0,1fr)}
     #sm-component-workspace[data-large="true"] .cw-spatial{height:440px}
     @media(max-width:950px){#sm-component-workspace .cw-viewbody{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-project{display:none}#sm-component-workspace .cw-resources{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--cw-line);padding:8px 12px}#sm-component-workspace .cw-resources .cw-smallhead{display:none}#sm-component-workspace .cw-resources .cw-block{display:flex;gap:5px;flex-wrap:wrap;margin:0;padding:0;border:0}#sm-component-workspace .cw-resources .cw-resource{width:auto;gap:8px;margin:0}#sm-component-workspace[data-resources="false"] .cw-resources{display:none}}
     @media(max-width:700px){#sm-component-workspace .cw-top{gap:7px;padding:10px}#sm-component-workspace .cw-top .cw-nav button{padding:6px 9px}#sm-component-workspace .cw-context{gap:8px}#sm-component-workspace .cw-fixturelayout{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-profilepanel{border-left:0;border-top:1px solid var(--cw-line)}}
     @media(max-width:560px){#sm-component-workspace .cw-stagegrid,#sm-component-workspace[data-panel-open="true"] .cw-stagegrid{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-panel{border-left:0;border-top:1px solid var(--cw-line)}#sm-component-workspace .cw-spatial{height:295px}#sm-component-workspace .cw-propertybar{gap:5px;padding:8px}#sm-component-workspace .cw-propertybar button{padding:6px 8px}#sm-component-workspace .cw-rulerrow,#sm-component-workspace .cw-track{grid-template-columns:82px minmax(0,1fr)}#sm-component-workspace .cw-trackname{padding:10px 7px}#sm-component-workspace .cw-top .cw-offline{display:none}#sm-component-workspace .cw-channelarea,#sm-component-workspace .cw-profilepanel{padding:14px}#sm-component-workspace .cw-fixtureheading{padding:12px}}
-    @media(pointer:coarse){#sm-component-workspace button{min-height:44px}#sm-component-workspace input:not([type="range"]){font-size:16px}#sm-component-workspace .cw-target{width:44px;height:44px}#sm-component-workspace .cw-track{height:54px}#sm-component-workspace .cw-clip{min-height:40px;height:40px}}
+    @media(pointer:coarse){#sm-component-workspace button{min-height:44px}#sm-component-workspace input:not([type="range"]){font-size:16px}#sm-component-workspace .cw-target,#sm-component-workspace .cw-room-resize{width:44px;height:44px;min-height:44px}#sm-component-workspace .cw-track{height:54px}#sm-component-workspace .cw-clip{min-height:40px;height:40px}}
+    @media(max-width:950px){#sm-component-workspace[data-workspace="arrange"] .cw-viewbody{grid-template-columns:minmax(0,1fr)}#sm-component-workspace .cw-space-resources{width:100%}#sm-component-workspace .cw-space-list{flex-direction:row;flex-wrap:wrap}#sm-component-workspace .cw-space-list button{width:auto;flex:1;min-width:120px}#sm-component-workspace .cw-space-overview{width:auto;margin:0 0 5px}}
+    @media(max-width:560px){#sm-component-workspace[data-workspace="arrange"] .cw-spatial{height:345px}#sm-component-workspace .cw-space-list button{padding:6px;min-width:95px}#sm-component-workspace .cw-space-list small{display:none}#sm-component-workspace .cw-space-index{display:none}}
   </style>
   <header class="cw-top">
     <span class="cw-brand">舞台大师</span><span class="cw-project cw-muted">主节目</span>
@@ -133,12 +158,19 @@
     </div>
     <div class="cw-viewbody">
       <aside class="cw-resources" id="cw-resource-panel" aria-label="编排资源">
+        <div data-compose-resources>
         <h2 class="cw-smallhead">灯具与灯组</h2>
         <div class="cw-resource cw-chosen">逆光组 <span>8 台</span></div>
         <h2 class="cw-smallhead" style="margin-top:25px">场景</h2>
         <button type="button" class="cw-resource cw-chosen" data-clip="opening">汇聚开场</button>
         <button type="button" class="cw-resource" data-clip="ending">谢幕定点</button>
         <div class="cw-block"><h2 class="cw-smallhead">灯具档案</h2><button type="button" data-action="fixtures"><i class="cw-icon" data-lucide="sliders-horizontal" aria-hidden="true"></i>编辑定义</button></div>
+        </div>
+        <div class="cw-space-resources" data-space-resources hidden>
+          <h2 class="cw-smallhead">场地空间</h2>
+          <button type="button" class="cw-space-overview" data-action="space-all"><i class="cw-icon" data-lucide="scan" aria-hidden="true"></i>查看全场</button>
+          <div class="cw-space-list" data-space-list aria-label="空间列表"></div>
+        </div>
       </aside>
       <div class="cw-main">
         <div class="cw-propertybar" aria-label="当前片段功能">
@@ -149,11 +181,13 @@
         </div>
         <div class="cw-stagegrid">
           <section class="cw-stagearea" aria-label="舞台空间">
-            <div class="cw-viewbar"><div class="cw-tools"><span class="cw-muted">主舞台</span><button type="button" data-action="aim-tool" aria-pressed="false">共同指向</button></div><div class="cw-tools"><button type="button" data-action="top" aria-pressed="false">俯视</button><button type="button" data-action="large" aria-label="放大舞台" aria-pressed="false"><i class="cw-icon" data-lucide="maximize" aria-hidden="true"></i></button></div></div>
+            <div class="cw-viewbar"><div class="cw-tools"><span class="cw-muted" data-view-context>演出厅 / 主舞台</span><button type="button" data-action="aim-tool" aria-pressed="false">共同指向</button></div><div class="cw-tools"><div class="cw-view-switch" data-space-view hidden aria-label="空间视图"><button type="button" data-action="space-plan">平面</button><button type="button" data-action="space-volume">立体</button></div><button type="button" data-action="space-isolate" hidden>只看当前</button><button type="button" data-action="space-roof" hidden>隐藏顶部</button><button type="button" data-action="top" aria-pressed="false">俯视</button><button type="button" data-action="large" aria-label="放大舞台" aria-pressed="false"><i class="cw-icon" data-lucide="maximize" aria-hidden="true"></i></button></div></div>
             <div class="cw-spatial">
               <svg role="img" aria-label="八台灯具在舞台上的安装位置与共同指向关系"><g data-geometry></g></svg>
               <button type="button" class="cw-target" hidden aria-label="拖动目标点，方向键微调，Esc 取消"><i class="cw-icon" data-lucide="crosshair" aria-hidden="true"></i></button>
               <span class="cw-pointlabel" hidden>目标点</span>
+              <button type="button" class="cw-room-resize" data-resize-room="width" hidden aria-label="拖动横向边界，左右键微调，Esc 取消"><i data-lucide="move-horizontal" aria-hidden="true"></i></button>
+              <button type="button" class="cw-room-resize" data-resize-room="depth" hidden aria-label="拖动纵向边界，上下键微调，Esc 取消"><i data-lucide="move-vertical" aria-hidden="true"></i></button>
             </div>
             <div class="cw-stagefoot"><span data-stage-caption>三维 · 主舞台</span><span data-coordinate-summary>目标 0.0 / −0.5 / 0.0 米</span></div>
           </section>
@@ -188,10 +222,28 @@
               <div class="cw-field"><span>片段时长</span><span>10.0 秒</span></div>
             </section>
             <section data-component="venue" hidden aria-label="舞台尺寸编辑">
+              <button type="button" class="cw-outline" data-action="room-properties">返回空间属性</button>
               <h3>舞台</h3>
               <label class="cw-field"><span>宽度</span><span class="cw-control"><input type="number" data-venue="width" min="12" max="18" step="0.5" aria-label="舞台宽度"><span>米</span></span></label>
               <label class="cw-field"><span>纵深</span><span class="cw-control"><input type="number" data-venue="depth" min="8" max="12" step="0.5" aria-label="舞台纵深"><span>米</span></span></label>
               <div class="cw-block"><h3>观众区</h3><div class="cw-field"><span>区域数量</span><span>2</span></div><label class="cw-field"><span>中央过道</span><span class="cw-control"><input type="number" data-venue="aisle" min="1" max="4" step="0.1" aria-label="中央过道宽度"><span>米</span></span></label></div>
+            </section>
+            <section data-component="space" hidden aria-label="空间属性">
+              <label class="cw-fulllabel"><span>名称</span><input class="cw-space-name" type="text" data-room-value="name" maxlength="16" aria-label="空间名称"></label>
+              <div class="cw-space-summary"><span>面积 <strong data-space-area></strong> 平方米</span><span>顶面标高 <strong data-space-top></strong> 米</span></div>
+              <label class="cw-field"><span>轮廓</span><select data-room-shape aria-label="空间轮廓"><option value="rectangle">矩形</option><option value="l-shape">L 形</option></select></label>
+              <label class="cw-field"><span>横向长度</span><span class="cw-control"><input type="number" data-room-value="width" min="2" max="24" step="0.1" aria-label="空间横向长度"><span>米</span></span></label>
+              <label class="cw-field"><span>纵向长度</span><span class="cw-control"><input type="number" data-room-value="depth" min="2" max="20" step="0.1" aria-label="空间纵向长度"><span>米</span></span></label>
+              <div data-space-notch hidden>
+                <label class="cw-field"><span>缺口宽度</span><span class="cw-control"><input type="number" data-room-value="notchWidth" min="0.5" max="23.5" step="0.1" aria-label="缺口宽度"><span>米</span></span></label>
+                <label class="cw-field"><span>缺口深度</span><span class="cw-control"><input type="number" data-room-value="notchDepth" min="0.5" max="19.5" step="0.1" aria-label="缺口深度"><span>米</span></span></label>
+              </div>
+              <div class="cw-block">
+                <label class="cw-field"><span>地面标高</span><span class="cw-control"><input type="number" data-room-value="elevation" min="-5" max="20" step="0.1" aria-label="空间地面标高"><span>米</span></span></label>
+                <label class="cw-field"><span>室内净高</span><span class="cw-control"><input type="number" data-room-value="height" min="1.8" max="12" step="0.1" aria-label="空间室内净高"><span>米</span></span></label>
+                <span class="cw-muted">标高基准：场地地面 0 米</span>
+              </div>
+              <div class="cw-space-actions"><button type="button" class="cw-outline" data-action="stage-properties">舞台与观众区</button></div>
             </section>
           </aside>
         </div>
@@ -239,32 +291,37 @@
     const palettes = [['冷蓝','#559bff'],['暖白','#ffe2b5'],['纯白','#f4f6ff'],['紫色','#ab81ff'],['青色','#56ddd2'],['红色','#f46b80']];
     const defaults = {
       clips:{opening:{intensity:65,color:'#559bff',point:{x:0,y:-.5,z:0},fadeIn:2,fadeOut:2},ending:{intensity:80,color:'#ffe2b5',point:{x:1.5,y:1,z:0},fadeIn:1,fadeOut:3}},
-      venue:{width:12,depth:8,aisle:2},
+      venue:{width:12,depth:8,aisle:2,rooms:[
+        {id:'hall',name:'演出厅',x:-6,y:-4,width:12,depth:8,elevation:0,height:6,shape:'rectangle',notchWidth:3,notchDepth:3},
+        {id:'passage',name:'连接通道',x:6.3,y:-4,width:2.5,depth:8,elevation:0,height:3,shape:'rectangle',notchWidth:.8,notchDepth:2},
+        {id:'gallery',name:'异形展厅',x:9.1,y:-4,width:6,depth:6,elevation:.6,height:3.8,shape:'l-shape',notchWidth:2.5,notchDepth:2.5}
+      ]},
       channels:[['dim','亮度',1,'8 位'],['red','红色',2,'8 位'],['green','绿色',3,'8 位'],['blue','蓝色',4,'8 位'],['pan','水平粗调',5,'16 位'],['panFine','水平细调',6,'低位'],['tilt','俯仰粗调',7,'16 位'],['tiltFine','俯仰细调',8,'低位'],['shutter','快门',9,'分段'],['gobo','图案盘',10,'档位']].map(([id,name,offset,resolution])=>({id,name,offset,resolution})),
       ranges:[[0,31],[32,63],[64,255]]
     };
-    const state={data:clone(defaults),selected:'opening',panel:null,composePanel:null,workspace:'compose',time:8.4,top:false,resources:true,large:false,channel:'red',aim:false};
+    const state={data:clone(defaults),selected:'opening',panel:'space',composePanel:null,workspace:'arrange',time:8.4,top:false,resources:true,large:false,channel:'red',aim:false,room:'hall',spaceTop:false,isolated:false,roofHidden:true};
     let keptProfile={channels:clone(defaults.channels),ranges:clone(defaults.ranges)};
     const histories={show:{past:[],future:[]},profile:{past:[],future:[]}};
     const ownSnapshots=new Set();
     const historyScope=()=>state.workspace==='fixtures'?'profile':'show';
     const historyState=(data,scope)=>scope==='profile'?{channels:clone(data.channels),ranges:clone(data.ranges)}:{clips:clone(data.clips),venue:clone(data.venue)};
     let drafts={};
-    let gesture=null, scrub=null, fieldBefore=null, pending=0, dims={w:600,h:354,s:28}, focusReturn=null, lastWidget='';
+    let gesture=null, scrub=null, spaceResize=null, fieldBefore=null, pending=0, dims={w:600,h:354,s:28}, focusReturn=null, lastWidget='';
     const clip=()=>state.data.clips[state.selected];
+    const currentRoom=()=>state.data.venue.rooms.find(r=>r.id===state.room)||state.data.venue.rooms[0];
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
     const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
     const announce=text=>{q('[data-announcement]').textContent=text;};
     const labelColor=hex=>palettes.find(p=>p[1]===hex)?.[0]||'自定义';
     function persist(){
-      const privateContent={version:1,data:clone(state.data),keptProfile:clone(keptProfile),drafts:clone(drafts),selected:state.selected,panel:state.panel,composePanel:state.composePanel,workspace:state.workspace,time:state.time,top:state.top,resources:state.resources,large:state.large,channel:state.channel,aim:state.aim};
+      const privateContent={version:2,data:clone(state.data),keptProfile:clone(keptProfile),drafts:clone(drafts),selected:state.selected,panel:state.panel,composePanel:state.composePanel,workspace:state.workspace,time:state.time,top:state.top,resources:state.resources,large:state.large,channel:state.channel,aim:state.aim,room:state.room,spaceTop:state.spaceTop,isolated:state.isolated,roofHidden:state.roofHidden};
       lastWidget=JSON.stringify(privateContent);
       ownSnapshots.add(lastWidget);if(ownSnapshots.size>40)ownSnapshots.delete(ownSnapshots.values().next().value);
-      window.openai?.setWidgetState?.({modelContent:{design:'按需组件工作台',workspace:state.workspace,panel:state.panel,clip:names[state.selected]},privateContent})?.catch(()=>{});
+      window.openai?.setWidgetState?.({modelContent:{design:'多空间组件工作台',workspace:state.workspace,panel:state.panel,clip:names[state.selected],space:currentRoom().name},privateContent})?.catch(()=>{});
     }
     function restore(saved){
       const v=saved?.privateContent;
-      if(v?.version!==1||!v.data||!Array.isArray(v.data.channels)||v.data.channels.length!==10)return false;
+      if(![1,2].includes(v?.version)||!v.data||!Array.isArray(v.data.channels)||v.data.channels.length!==10)return false;
       for(const id of ['opening','ending']){
         const c=v.data.clips?.[id];
         if(!c||!/^#[0-9a-f]{6}$/i.test(c.color)||!['intensity','fadeIn','fadeOut'].every(k=>Number.isFinite(c[k]))||!['x','y','z'].every(k=>Number.isFinite(c.point?.[k])))return false;
@@ -273,24 +330,28 @@
       if(v.data.channels.some((c,i)=>!c||c.id!==defaults.channels[i].id||typeof c.name!=='string'||c.name.length>16||!Number.isFinite(c.offset)||c.resolution!==defaults.channels[i].resolution))return false;
       if(v.data.ranges.some(r=>!Array.isArray(r)||r.length!==2||r.some(n=>!Number.isFinite(n))))return false;
       if(v.data.clips.opening.intensity<0||v.data.clips.opening.intensity>100||v.data.clips.ending.intensity<0||v.data.clips.ending.intensity>100)return false;
-      state.data=clone(v.data);state.selected=names[v.selected]?v.selected:'opening';
-      state.panel=['color','aim','intensity','timing','venue'].includes(v.panel)?v.panel:null;
+      const rooms=v.version===1?defaults.venue.rooms:v.data.venue.rooms;
+      if(!Array.isArray(rooms)||rooms.length!==3||rooms.some((r,i)=>r.id!==defaults.venue.rooms[i].id||typeof r.name!=='string'||!r.name.trim()||r.name.length>16||!['rectangle','l-shape'].includes(r.shape)||!['x','y','width','depth','elevation','height','notchWidth','notchDepth'].every(k=>Number.isFinite(r[k]))||r.width<2||r.width>24||r.depth<2||r.depth>20||r.height<1.8||r.height>12||r.elevation< -5||r.elevation>20||r.notchWidth<.5||r.notchDepth<.5||r.notchWidth>r.width-.5||r.notchDepth>r.depth-.5))return false;
+      state.data=clone(v.data);state.data.venue.rooms=clone(rooms);state.selected=names[v.selected]?v.selected:'opening';
+      state.panel=['color','aim','intensity','timing','venue','space'].includes(v.panel)?v.panel:null;
       const composePanel=v.composePanel===undefined?v.panel:v.composePanel;
       state.composePanel=['color','aim','intensity','timing'].includes(composePanel)?composePanel:null;
       state.workspace=['compose','arrange','fixtures'].includes(v.workspace)?v.workspace:'compose';
       state.time=Number.isFinite(v.time)?clamp(v.time,0,30):8.4;
       state.top=v.top===true;state.resources=v.resources!==false;state.large=v.large===true;state.aim=v.aim===true;
       state.channel=state.data.channels.some(c=>c.id===v.channel)?v.channel:'red';
+      state.room=rooms.some(r=>r.id===v.room)?v.room:'hall';state.spaceTop=v.spaceTop===true;state.isolated=v.isolated===true;state.roofHidden=v.roofHidden!==false;
       if(v.keptProfile?.channels?.length===10&&v.keptProfile?.ranges?.length===3)keptProfile=clone(v.keptProfile);
       drafts={};
       if(v.drafts&&typeof v.drafts==='object')for(const [key,draft] of Object.entries(v.drafts).slice(0,40)){
-        if(/^(time|clip:(opening|ending):(intensity|fadeIn|fadeOut|point:[xyz])|venue:(width|depth|aisle)|profile:(dim|red|green|blue|pan|panFine|tilt|tiltFine|shutter|gobo):(offset|name)|range:[012]:[01])$/.test(key)&&draft&&typeof draft.value==='string'&&draft.value.length<=32&&typeof draft.error==='string'&&draft.error.length<=100)drafts[key]=clone(draft);
+        if(/^(time|clip:(opening|ending):(intensity|fadeIn|fadeOut|point:[xyz])|venue:(width|depth|aisle)|room:(hall|passage|gallery):(name|width|depth|elevation|height|notchWidth|notchDepth)|profile:(dim|red|green|blue|pan|panFine|tilt|tiltFine|shutter|gobo):(offset|name)|range:[012]:[01])$/.test(key)&&draft&&typeof draft.value==='string'&&draft.value.length<=32&&typeof draft.error==='string'&&draft.error.length<=100)drafts[key]=clone(draft);
       }
       lastWidget=JSON.stringify(v);return true;
     }
     restore(window.openai?.widgetState);
     function describeEdit(before,after){
       if(!same(before.channels,after.channels)||!same(before.ranges,after.ranges))return '灯具草稿 · '+(after.channels.find(c=>c.id===state.channel)?.name||'通道定义');
+      if(!same(before.venue.rooms,after.venue.rooms))return currentRoom().name+' · 空间属性';
       if(!same(before.venue,after.venue))return '主舞台 · 场地尺寸';
       const old=before.clips[state.selected],next=after.clips[state.selected];
       const property=old.color!==next.color?'颜色':old.intensity!==next.intensity?'亮度':!same(old.point,next.point)?'目标点':'渐变';
@@ -303,6 +364,7 @@
         for(const axis of ['x','y','z'])if(before.clips[id].point[axis]!==after.clips[id].point[axis])keys.push('clip:'+id+':point:'+axis);
       }
       for(const key of ['width','depth','aisle'])if(before.venue[key]!==after.venue[key])keys.push('venue:'+key);
+      after.venue.rooms.forEach((room,i)=>{for(const key of ['name','width','depth','elevation','height','notchWidth','notchDepth','shape'])if(before.venue.rooms[i][key]!==room[key])keys.push('room:'+room.id+':'+key);});
       after.channels.forEach((c,i)=>{for(const key of ['offset','name'])if(before.channels[i][key]!==c[key])keys.push('profile:'+c.id+':'+key);});
       after.ranges.forEach((r,i)=>r.forEach((n,j)=>{if(n!==before.ranges[i][j])keys.push('range:'+i+':'+j);}));
       return keys;
@@ -310,21 +372,21 @@
     function commit(before,message){
       if(before&&!same(before,state.data)){
         const scope=historyScope(),stack=histories[scope];
-        stack.past.push({before:historyState(before,scope),after:historyState(state.data,scope),keys:changedFields(before,state.data),label:describeEdit(before,state.data),context:{workspace:state.workspace,selected:state.selected,panel:state.panel,channel:state.channel}});
+        stack.past.push({before:historyState(before,scope),after:historyState(state.data,scope),keys:changedFields(before,state.data),label:describeEdit(before,state.data),context:{workspace:state.workspace,selected:state.selected,panel:state.panel,channel:state.channel,room:state.room}});
         if(stack.past.length>60)stack.past.shift();stack.future.length=0;
       }
       render();persist();if(message)announce(message);
     }
     function finishField(){if(!fieldBefore)return;const before=fieldBefore;fieldBefore=null;commit(before);}
     function changeHistory(redo=false){
-      if(gesture||scrub)return;
+      if(gesture||scrub||spaceResize)return;
       finishField();const scope=historyScope(),stack=histories[scope],source=redo?stack.future:stack.past,target=redo?stack.past:stack.future;
       if(!source.length)return;const entry=source.pop();target.push(entry);
       entry.keys.forEach(key=>delete drafts[key]);
       Object.assign(state.data,clone(redo?entry.after:entry.before));
       if(scope==='profile')state.channel=entry.context.channel;
       else{
-        state.workspace=entry.context.workspace;state.selected=entry.context.selected;state.panel=entry.context.panel;
+        state.workspace=entry.context.workspace;state.selected=entry.context.selected;state.panel=entry.context.panel;state.room=entry.context.room;
         if(state.workspace==='compose'){state.composePanel=state.panel;state.aim=state.panel==='aim';}else state.aim=false;
       }
       render();persist();announce((redo?'已重做：':'已撤销：')+entry.label);
@@ -335,13 +397,14 @@
       if(d.value)return 'clip:'+state.selected+':'+d.value;
       if(d.axis)return 'clip:'+state.selected+':point:'+d.axis;
       if(d.venue)return 'venue:'+d.venue;
+      if(d.roomValue)return 'room:'+state.room+':'+d.roomValue;
       if(input.hasAttribute('data-channel-offset'))return 'profile:'+state.channel+':offset';
       if(input.hasAttribute('data-channel-name'))return 'profile:'+state.channel+':name';
       if(input.hasAttribute('data-range'))return 'range:'+d.range+':'+d.bound;
       return '';
     }
     function setValue(input,value){if(document.activeElement!==input){const draft=input.type==='number'||input.type==='text'?drafts[fieldKey(input)]:null;input.value=draft?.value??value;}}
-    const fieldControls=qa('input[type="number"],input[data-channel-name]').map((input,index)=>{
+    const fieldControls=qa('input[type="number"],input[type="text"]').map((input,index)=>{
       input.required=true;
       const node=document.createElement('div');node.id='cw-input-error-'+index;node.className='cw-field-error';node.hidden=true;
       const text=document.createElement('span');text.setAttribute('role','alert');
@@ -374,6 +437,11 @@
       if(!Number.isFinite(input.valueAsNumber))return '请填写'+input.getAttribute('aria-label')+'。';
       if(input.validity.rangeUnderflow||input.validity.rangeOverflow)return '请输入 '+input.min+' 至 '+input.max+' 范围内的数值。';
       if(input.validity.stepMismatch)return input.step==='1'||!input.step?'请输入整数。':'请以 '+input.step+' 为步长填写。';
+      const room=currentRoom(),value=input.valueAsNumber,key=input.dataset.roomValue;
+      if(room.shape==='l-shape'&&key==='width'&&value<room.notchWidth+.5)return '横向长度至少比缺口宽度多 0.5 米。';
+      if(room.shape==='l-shape'&&key==='depth'&&value<room.notchDepth+.5)return '纵向长度至少比缺口深度多 0.5 米。';
+      if(key==='notchWidth'&&value>room.width-.5)return '缺口宽度须比横向长度小至少 0.5 米。';
+      if(key==='notchDepth'&&value>room.depth-.5)return '缺口深度须比纵向长度小至少 0.5 米。';
       return '';
     }
     function pendingInputs(){
@@ -392,6 +460,7 @@
       const parts=key.split(':');
       if(parts[0]==='profile'||parts[0]==='range'){state.workspace='fixtures';state.channel=parts[0]==='range'?'shutter':parts[1];}
       else if(parts[0]==='venue'){state.workspace='arrange';state.panel='venue';state.aim=false;}
+      else if(parts[0]==='room'){state.workspace='arrange';state.panel='space';state.room=parts[1];state.aim=false;}
       else{state.workspace='compose';state.panel=state.composePanel;if(parts[0]==='clip'){state.selected=parts[1];state.panel=({point:'aim',intensity:'intensity',fadeIn:'timing',fadeOut:'timing'})[parts[2]];state.composePanel=state.panel;}state.aim=state.panel==='aim';}
       render();persist();fieldControls.find(({input})=>fieldKey(input)===key)?.input.focus();
     }
@@ -403,10 +472,87 @@
     const line=(a,b,stroke,opacity=1)=>'<line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'" stroke="'+stroke+'" opacity="'+opacity+'"/>';
     const polygon=(points,fill,stroke)=>'<polygon points="'+points.map(pair).join(' ')+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1"/>';
     const rectangle=(x0,y0,x1,y1,z=0)=>[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(p=>project(p[0],p[1],z));
+    const spaces={
+      outline(r){const w=r.width,d=r.depth;return r.shape==='l-shape'?[[0,0],[w,0],[w,d-r.notchDepth],[w-r.notchWidth,d-r.notchDepth],[w-r.notchWidth,d],[0,d]]:[[0,0],[w,0],[w,d],[0,d]];},
+      select(id){finishField();cancelDrag();state.room=id;state.panel='space';state.aim=false;render();persist();announce('已选择'+currentRoom().name);},
+      render(){
+        const r=currentRoom(),list=q('[data-space-list]');
+        if(!list.childElementCount)for(const [i,room] of state.data.venue.rooms.entries()){
+          const button=document.createElement('button');button.type='button';button.dataset.room=room.id;button.className='cursor-interaction';
+          const index=document.createElement('span');index.className='cw-space-index';index.textContent=String(i+1).padStart(2,'0');
+          const label=document.createElement('span');label.append(document.createElement('strong'),document.createElement('small'));button.append(index,label);list.append(button);
+        }
+        qa('[data-room]').forEach(button=>{const room=state.data.venue.rooms.find(r=>r.id===button.dataset.room);button.setAttribute('aria-pressed',String(room.id===r.id));button.querySelector('strong').textContent=room.name;button.querySelector('small').textContent=(room.shape==='l-shape'?'L 形':'矩形')+' · 净高 '+room.height.toFixed(1)+' 米';});
+        qa('[data-room-value]').forEach(input=>setValue(input,r[input.dataset.roomValue]));
+        q('[data-room-shape]').value=r.shape;q('[data-space-notch]').hidden=r.shape!=='l-shape'&&!['notchWidth','notchDepth'].some(key=>drafts['room:'+r.id+':'+key]);
+        const area=r.width*r.depth-(r.shape==='l-shape'?r.notchWidth*r.notchDepth:0);
+        q('[data-space-area]').textContent=(Math.round((area+1e-8)*10)/10).toFixed(1);q('[data-space-top]').textContent=(r.elevation+r.height).toFixed(1);
+        q('[data-action="stage-properties"]').hidden=r.id!=='hall';
+        q('[data-action="space-all"]').setAttribute('aria-pressed',String(!state.isolated));
+        q('[data-action="space-plan"]').setAttribute('aria-pressed',String(state.spaceTop));
+        q('[data-action="space-volume"]').setAttribute('aria-pressed',String(!state.spaceTop));
+        q('[data-action="space-isolate"]').setAttribute('aria-pressed',String(state.isolated));
+        q('[data-action="space-roof"]').setAttribute('aria-pressed',String(state.roofHidden));
+        q('[data-action="space-roof"]').disabled=state.spaceTop;
+      },
+      draw(){
+        const node=q('.cw-spatial'),svg=q('.cw-spatial>svg'),w=node.clientWidth,h=node.clientHeight;if(!w)return;
+        const rooms=state.isolated?[currentRoom()]:state.data.venue.rooms;
+        const raw=(x,y,z)=>state.spaceTop?[x,-y]:[.92*x-.42*y,-.25*x-.5*y-.8*z];
+        const all=rooms.flatMap(r=>this.outline(r).flatMap(([x,y])=>[raw(x+r.x,y+r.y,r.elevation),raw(x+r.x,y+r.y,r.elevation+r.height)]));
+        const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+        const margin=w<420?38:55;
+        const camera=spaceResize?.camera||{scale:Math.max(1,Math.min((w-2*margin)/(maxX-minX+2),(h-90)/(maxY-minY+1))),cx:(minX+maxX)/2,cy:(minY+maxY)/2};
+        this.camera=camera;const {scale,cx,cy}=camera;
+        const toScreen=(x,y,z)=>{const p=raw(x,y,z);return [w/2+(p[0]-cx)*scale,h/2+(p[1]-cy)*scale];};
+        svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.setAttribute('aria-label',(state.spaceTop?'平面':'立体')+'场地，'+rooms.length+' 个空间，选中'+currentRoom().name);
+        const group=q('[data-geometry]');group.replaceChildren();const ns='http://www.w3.org/2000/svg';
+        const make=(tag,attrs,parent=group)=>{const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));parent.append(n);return n;};
+        const edge=(a,b,color,parent=group)=>make('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:color,'stroke-width':1},parent);
+        const face=(points,fill,stroke,parent)=>make('polygon',{points:points.map(pair).join(' '),fill,stroke,'stroke-width':1.2},parent);
+        const label=(p,text,color='#b7c8d8',size=12,parent=group)=>{const n=make('text',{x:p[0],y:p[1],fill:color,'font-size':size,'text-anchor':'middle','pointer-events':'none'},parent);n.textContent=text;return n;};
+        // Projection is a presentation component. Source parameters remain independent of view state.
+        const sorted=[...rooms].sort((a,b)=>(b.x+b.y)-(a.x+a.y));
+        for(const r of sorted){
+          const selected=r.id===state.room,outline=this.outline(r),floor=outline.map(([x,y])=>toScreen(x+r.x,y+r.y,r.elevation)),top=outline.map(([x,y])=>toScreen(x+r.x,y+r.y,r.elevation+r.height));
+          const g=make('g',{'data-room-hit':r.id,'data-room-elevation':r.elevation,'data-room-height':r.height});
+          face(floor,selected?'#203f4d':'#1d2c3b',selected?'#52d4de':'#516477',g);
+          if(!state.spaceTop){
+            // Back faces provide height cues; front edges remain open for interior inspection.
+            for(let i=0;i<outline.length;i++){
+              const j=(i+1)%outline.length,[ax,ay]=outline[i],[bx,by]=outline[j];
+              if(by<ay||bx<ax)face([floor[i],floor[j],top[j],top[i]],selected?'#263e4b':'#243340','#526779',g);
+              edge(floor[i],top[i],selected?'#69a5ad':'#465d70',g);edge(top[i],top[j],selected?'#72b6c2':'#60788d',g);
+            }
+            if(!state.roofHidden)face(top,selected?'#344e5d':'#354451',selected?'#77bcc5':'#76899b',g).setAttribute('data-room-roof',r.id);
+          }
+          const labelPosition=toScreen(r.x+r.width*.38,r.y+r.depth*.36,!state.spaceTop&&!state.roofHidden?r.elevation+r.height:r.elevation);
+          if(w>=420||state.isolated||selected){
+            label([labelPosition[0],labelPosition[1]-2],r.name.length>8?r.name.slice(0,8)+'…':r.name,selected?'#ecf7fc':'#bacad7',12,g);
+            if(state.isolated||w>=550)label([labelPosition[0],labelPosition[1]+17],'净高 '+r.height.toFixed(1)+' 米',selected?'#9dc4cc':'#9aafc2',11,g);
+          }
+        }
+        const r=currentRoom(),a=toScreen(r.x,r.y,r.elevation),b=toScreen(r.x+r.width,r.y,r.elevation),c=toScreen(r.x,r.y+r.depth,r.elevation);
+        edge([a[0],a[1]+21],[b[0],b[1]+21],'#7897ab');
+        label([(a[0]+b[0])/2,(a[1]+b[1])/2+38],r.width.toFixed(1)+' 米');
+        if(state.spaceTop||state.isolated){edge([a[0]-18,a[1]],[c[0]-18,c[1]],'#7897ab');label([(a[0]+c[0])/2-29,(a[1]+c[1])/2],r.depth.toFixed(1)+' 米');}
+        q('.cw-target').hidden=true;q('.cw-pointlabel').hidden=true;
+        for(const handle of qa('[data-resize-room]')){
+          handle.hidden=!state.spaceTop;
+          const p=handle.dataset.resizeRoom==='width'?toScreen(r.x+r.width,r.y+(r.depth-(r.shape==='l-shape'?r.notchDepth:0))*.5,r.elevation):toScreen(r.x+(r.width-(r.shape==='l-shape'?r.notchWidth:0))*.5,r.y+r.depth,r.elevation);
+          handle.style.left=p[0]+'px';handle.style.top=p[1]+'px';
+        }
+        q('[data-stage-caption]').textContent=(state.spaceTop?'平面':'立体')+' · '+(state.isolated?r.name:'全场 '+rooms.length+' 个空间');
+        q('[data-coordinate-summary]').textContent='地面 '+r.elevation.toFixed(1)+' 米 · 净高 '+r.height.toFixed(1)+' 米';
+      }
+    };
     const stage={
       node:q('.cw-spatial'),svg:q('.cw-spatial>svg'),group:q('[data-geometry]'),handle:q('.cw-target'),label:q('.cw-pointlabel'),
       draw(){
         if(state.workspace==='fixtures')return;
+        if(state.workspace==='arrange'&&state.panel!=='venue'){spaces.draw();return;}
+        qa('[data-resize-room]').forEach(handle=>handle.hidden=true);
+        this.svg.setAttribute('aria-label','八台灯具在舞台上的安装位置与共同指向关系');
         const w=this.node.clientWidth,h=this.node.clientHeight;if(!w)return;
         const venue=state.data.venue,half=venue.width/2,back=venue.depth/2;
         dims={w,h,s:Math.max(8,Math.min((w-65)/(venue.width+3),(h-60)/(state.top?venue.depth+6:11)))};
@@ -452,8 +598,8 @@
       render(){
         const c=clip();
         q('[data-editor]').hidden=!state.panel;
-        q('[data-panel-title]').textContent=({color:'颜色',aim:'共同指向',intensity:'亮度',timing:'渐变',venue:'场地布置'})[state.panel]||'';
-        q('[data-panel-context]').textContent=state.panel==='venue'?'主舞台 · 空间参数':names[state.selected]+' · 逆光组 8 台';
+        q('[data-panel-title]').textContent=({color:'颜色',aim:'共同指向',intensity:'亮度',timing:'渐变',venue:'舞台与观众区',space:currentRoom().name})[state.panel]||'';
+        q('[data-panel-context]').textContent=state.panel==='space'?'空间属性 · '+(currentRoom().shape==='l-shape'?'L 形':'矩形'):state.panel==='venue'?'演出厅 / 主舞台':names[state.selected]+' · 逆光组 8 台';
         qa('[data-component]').forEach(n=>n.hidden=n.dataset.component!==state.panel);
         qa('[data-panel]').forEach(n=>{const open=n.dataset.panel===state.panel;n.setAttribute('aria-pressed',String(open));n.setAttribute('aria-expanded',String(open));n.setAttribute('aria-controls','cw-function-panel');});
         qa('[data-value]').forEach(n=>setValue(n,c[n.dataset.value]));
@@ -513,9 +659,17 @@
       }
     };
     function render(){
+      root.dataset.workspace=state.workspace;
       root.dataset.panelOpen=String(!!state.panel);root.dataset.resources=String(state.resources);root.dataset.large=String(state.large);
       q('[data-compose]').hidden=state.workspace==='fixtures';q('[data-fixture-space]').hidden=state.workspace!=='fixtures';
       q('.cw-propertybar').hidden=state.workspace==='arrange';q('.cw-timeline').hidden=state.workspace==='arrange';
+      const arranging=state.workspace==='arrange',spaceView=arranging&&state.panel!=='venue';
+      q('[data-compose-resources]').hidden=arranging;q('[data-space-resources]').hidden=!arranging;
+      q('.cw-resources').setAttribute('aria-label',arranging?'场地空间':'编排资源');
+      q('[data-view-context]').textContent=spaceView?(state.isolated?currentRoom().name:'全场空间'):'演出厅 / 主舞台';
+      q('[data-space-view]').hidden=!spaceView;
+      for(const a of ['space-isolate','space-roof'])q('[data-action="'+a+'"]').hidden=!spaceView;
+      q('[data-action="top"]').hidden=spaceView;q('[data-action="large"]').hidden=spaceView;q('[data-action="aim-tool"]').hidden=arranging;
       qa('.cw-nav [data-action]').forEach(n=>n.setAttribute('aria-pressed',String(n.dataset.action===state.workspace)));
       q('[data-action="resources"]').setAttribute('aria-pressed',String(state.resources));
       q('[data-action="resources"]').setAttribute('aria-expanded',String(state.resources));
@@ -526,18 +680,18 @@
       const issues=pendingInputs(),review=q('[data-action="review-inputs"]');review.hidden=!issues.length;review.textContent=issues.length+' 项输入待修正';
       for(const [action,stack] of [['undo',activeHistory.past],['redo',activeHistory.future]]){
         const button=q('[data-action="'+action+'"]'),verb=action==='undo'?'撤销':'重做',entry=stack.at(-1);
-        button.disabled=!entry||!!gesture||!!scrub;
+        button.disabled=!entry||!!gesture||!!scrub||!!spaceResize;
         button.setAttribute('aria-label',entry?verb+'：'+entry.label:verb);
         button.dataset.tooltip=entry?verb+'：'+entry.label:verb+' · 当前没有可用记录';
       }
       q('[data-clipname]').textContent=state.workspace==='arrange'?'场地布置':names[state.selected];
-      q('[data-context]').textContent=state.workspace==='arrange'?'主舞台 · 观众区':'当前片段 · 逆光组 8 台';
+      q('[data-context]').textContent=arranging?currentRoom().name+' · 3 个空间':'当前片段 · 逆光组 8 台';
       q('[data-intensity-summary]').textContent=clip().intensity+'%';
       q('[data-color-summary]').textContent=labelColor(clip().color);
       q('[data-color-dot]').style.background=clip().color;
       q('[data-timing-summary]').textContent=clip().fadeIn.toFixed(1)+' 秒';
       q('[data-edit-status]').textContent=names[state.selected]+' · 当前片段 · 逆光组 8 台';
-      panels.render();timeline.render();if(state.workspace==='fixtures')fixtureEditor.render();
+      spaces.render();panels.render();timeline.render();if(state.workspace==='fixtures')fixtureEditor.render();
       stage.draw();renderFieldErrors();
     }
     function schedule(){if(!pending)pending=requestAnimationFrame(()=>{pending=0;render();});}
@@ -547,14 +701,14 @@
       if(stage.handle.hasPointerCapture(old.id))stage.handle.releasePointerCapture(old.id);render();
     }
     function openPanel(panel,trigger){
-      finishField();cancelDrag();state.workspace=panel==='venue'?'arrange':'compose';
+      finishField();cancelDrag();state.workspace=['venue','space'].includes(panel)?'arrange':'compose';
       state.panel=state.panel===panel?null:panel;
       if(state.workspace==='compose')state.composePanel=state.panel;
       if(panel==='aim')state.aim=state.panel==='aim';
       focusReturn=trigger||focusReturn;render();persist();
     }
     function closePanel(){
-      const trigger=state.panel==='venue'?q('[data-action="arrange"]'):q('[data-panel="'+state.panel+'"]');
+      const trigger=['venue','space'].includes(state.panel)?q('[data-action="arrange"]'):q('[data-panel="'+state.panel+'"]');
       state.panel=null;if(state.workspace==='compose')state.composePanel=null;
       render();persist();(trigger||focusReturn)?.focus();
     }
@@ -569,25 +723,32 @@
       if(button.dataset.swatch){const before=clone(state.data);clip().color=button.dataset.swatch;commit(before,'颜色已修改');return;}
       if(button.dataset.clip){state.selected=button.dataset.clip;render();persist();return;}
       if(button.dataset.channel){state.channel=button.dataset.channel;fixtureEditor.render();persist();return;}
+      if(button.dataset.room){spaces.select(button.dataset.room);return;}
       const action=button.dataset.action;
       if(action==='undo')changeHistory();
       else if(action==='redo')changeHistory(true);
       else if(action==='review-inputs')revealInput(pendingInputs()[0]);
       else if(action==='close-panel')closePanel();
       else if(action==='resources'){state.resources=!state.resources;render();persist();}
+      else if(action==='space-all'){state.isolated=false;render();persist();}
+      else if(action==='space-plan'||action==='space-volume'){state.spaceTop=action==='space-plan';render();persist();}
+      else if(action==='space-isolate'){state.isolated=!state.isolated;render();persist();}
+      else if(action==='space-roof'){state.roofHidden=!state.roofHidden;render();persist();}
+      else if(action==='stage-properties'){state.panel='venue';render();persist();}
+      else if(action==='room-properties'){state.panel='space';render();persist();}
       else if(action==='top'){state.top=!state.top;render();persist();}
       else if(action==='large'){state.large=!state.large;render();persist();}
       else if(action==='aim-tool'){state.aim=!state.aim;if(state.aim){state.panel='aim';state.composePanel='aim';focusReturn=button;}render();persist();}
       else if(action==='fixtures'){state.workspace='fixtures';render();persist();}
       else if(action==='compose'){state.workspace='compose';state.panel=state.composePanel;state.aim=state.panel==='aim';render();persist();}
-      else if(action==='arrange'){if(state.workspace==='compose')state.composePanel=state.panel;state.workspace='arrange';state.panel='venue';state.aim=false;render();persist();}
+      else if(action==='arrange'){if(state.workspace==='compose')state.composePanel=state.panel;state.workspace='arrange';state.panel='space';state.aim=false;render();persist();}
       else if(action==='keep-profile'&&!fixtureEditor.error()){keptProfile={channels:clone(state.data.channels),ranges:clone(state.data.ranges)};fixtureEditor.render();persist();announce('已保留当前档案草稿');}
       else if(action==='revert-profile'){const before=clone(state.data);for(const key of Object.keys(drafts))if(key.startsWith('profile:')||key.startsWith('range:'))delete drafts[key];state.data.channels=clone(keptProfile.channels);state.data.ranges=clone(keptProfile.ranges);commit(before,'已还原到保留的草稿');}
     });
     root.addEventListener('input',e=>{
       const input=e.target;if(!(input instanceof HTMLInputElement))return;
       const timeInput=input.hasAttribute('data-time');
-      const editable=timeInput||['data-value','data-axis','data-venue','data-rgb','data-channel-offset','data-channel-name','data-range'].some(a=>input.hasAttribute(a));if(!editable)return;
+      const editable=timeInput||['data-value','data-axis','data-venue','data-room-value','data-rgb','data-channel-offset','data-channel-name','data-range'].some(a=>input.hasAttribute(a));if(!editable)return;
       if(!timeInput&&!fieldBefore)fieldBefore=clone(state.data);
       const key=fieldKey(input),error=(input.type==='number'||input.type==='text')?inputError(input):'';
       if(error){drafts[key]={value:input.value,error};if(fieldBefore)state.data=clone(fieldBefore);schedule();return;}
@@ -597,13 +758,47 @@
       if(input.dataset.value){const key=input.dataset.value;if(key==='color')clip().color=input.value.toLowerCase();else if(Number.isFinite(n))clip()[key]=clamp(n,0,key==='intensity'?100:5);}
       else if(input.dataset.axis&&Number.isFinite(n)){const axis=input.dataset.axis,b={x:[-6,6],y:[-4,4],z:[0,3]}[axis];clip().point[axis]=clamp(n,...b);}
       else if(input.dataset.venue&&Number.isFinite(n)){const key=input.dataset.venue,b={width:[12,18],depth:[8,12],aisle:[1,4]}[key];state.data.venue[key]=clamp(n,...b);}
+      else if(input.dataset.roomValue){const r=currentRoom(),key=input.dataset.roomValue;r[key]=key==='name'?input.value:n;if(r.shape==='rectangle'){r.notchWidth=Math.min(r.notchWidth,r.width-.5);r.notchDepth=Math.min(r.notchDepth,r.depth-.5);}}
       else if(input.hasAttribute('data-rgb')){const rgb=[1,3,5].map(i=>parseInt(clip().color.slice(i,i+2),16));rgb[Number(input.dataset.rgb)]=clamp(n,0,255);clip().color='#'+rgb.map(x=>x.toString(16).padStart(2,'0')).join('');}
       else if(input.hasAttribute('data-channel-offset')){if(Number.isFinite(n))state.data.channels.find(c=>c.id===state.channel).offset=n;}
       else if(input.hasAttribute('data-channel-name'))state.data.channels.find(c=>c.id===state.channel).name=input.value;
       else if(input.hasAttribute('data-range')&&Number.isFinite(n))state.data.ranges[Number(input.dataset.range)][Number(input.dataset.bound)]=n;
       schedule();
     });
-    root.addEventListener('change',e=>{if(e.target.hasAttribute('data-time')){render();persist();}else finishField();});
+    root.addEventListener('change',e=>{
+      if(e.target.hasAttribute('data-room-shape')){finishField();const before=clone(state.data);currentRoom().shape=e.target.value;commit(before,'空间轮廓已修改');}
+      else if(e.target.hasAttribute('data-time')){render();persist();}else finishField();
+    });
+    q('[data-geometry]').addEventListener('click',e=>{const id=e.target.closest('[data-room-hit]')?.getAttribute('data-room-hit');if(id&&state.workspace==='arrange')spaces.select(id);});
+    function resizeRoomValue(key,value){
+      const r=currentRoom(),min=r.shape==='l-shape'?r[key==='width'?'notchWidth':'notchDepth']+.5:2;
+      r[key]=Math.round(clamp(value,Math.max(2,min),key==='width'?24:20)*10)/10;
+      if(r.shape==='rectangle'){r.notchWidth=Math.min(r.notchWidth,r.width-.5);r.notchDepth=Math.min(r.notchDepth,r.depth-.5);}
+      delete drafts['room:'+r.id+':'+key];
+    }
+    function cancelSpaceResize(){
+      if(!spaceResize)return;const old=spaceResize;spaceResize=null;state.data=old.before;drafts=old.drafts;
+      if(old.handle.hasPointerCapture(old.id))old.handle.releasePointerCapture(old.id);render();
+    }
+    function moveSpaceResize(e){
+      if(!spaceResize||spaceResize.id!==e.pointerId)return;const g=spaceResize;
+      const delta=(g.key==='width'?e.clientX-g.x:g.y-e.clientY)/g.camera.scale;
+      resizeRoomValue(g.key,g.before.venue.rooms.find(r=>r.id===state.room)[g.key]+delta);schedule();
+    }
+    for(const handle of qa('[data-resize-room]')){
+      handle.addEventListener('pointerdown',e=>{
+        if(e.button!==0||spaceResize)return;finishField();
+        spaceResize={id:e.pointerId,key:handle.dataset.resizeRoom,handle,x:e.clientX,y:e.clientY,camera:{...spaces.camera},before:clone(state.data),drafts:clone(drafts)};
+        handle.setPointerCapture(e.pointerId);handle.focus();e.preventDefault();render();
+      });
+      handle.addEventListener('pointermove',moveSpaceResize);
+      handle.addEventListener('pointerup',e=>{if(spaceResize?.id!==e.pointerId)return;moveSpaceResize(e);const before=spaceResize.before;spaceResize=null;handle.releasePointerCapture(e.pointerId);commit(before,'空间尺寸已修改');});
+      handle.addEventListener('pointercancel',cancelSpaceResize);handle.addEventListener('lostpointercapture',cancelSpaceResize);
+      handle.addEventListener('keydown',e=>{
+        const key=handle.dataset.resizeRoom,delta=(key==='width'?{ArrowLeft:-1,ArrowRight:1}:{ArrowDown:-1,ArrowUp:1})[e.key];
+        if(!delta||spaceResize)return;e.preventDefault();const before=clone(state.data);resizeRoomValue(key,currentRoom()[key]+delta*(e.shiftKey?.5:.1));commit(before,'空间尺寸已修改');
+      });
+    }
     root.addEventListener('focusout',()=>finishField());
     stage.handle.addEventListener('pointerdown',e=>{
       if(e.button!==0||gesture)return;finishField();
@@ -635,7 +830,8 @@
         e.preventDefault();changeHistory(e.shiftKey);return;
       }
       if(e.key!=='Escape')return;
-      if(gesture){e.preventDefault();cancelDrag();}
+      if(spaceResize){e.preventDefault();cancelSpaceResize();}
+      else if(gesture){e.preventDefault();cancelDrag();}
       else if(scrub){e.preventDefault();cancelScrub();}
       else if(fieldBefore||drafts[fieldKey(e.target)]){e.preventDefault();if(fieldBefore)state.data=fieldBefore;fieldBefore=null;delete drafts[fieldKey(e.target)];e.target.blur();render();persist();announce('已取消本次输入');}
       else if(state.panel){e.preventDefault();closePanel();}
@@ -647,13 +843,13 @@
     ruler.addEventListener('pointermove',e=>{if(scrub?.id===e.pointerId)scrubMove(e);});
     ruler.addEventListener('pointerup',e=>{if(scrub?.id!==e.pointerId)return;scrubMove(e);scrub=null;ruler.releasePointerCapture(e.pointerId);persist();});
     ruler.addEventListener('pointercancel',cancelScrub);ruler.addEventListener('lostpointercapture',cancelScrub);
-    window.addEventListener('blur',()=>{cancelDrag();cancelScrub();});
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelDrag();cancelScrub();}});
+    window.addEventListener('blur',()=>{cancelDrag();cancelScrub();cancelSpaceResize();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelDrag();cancelScrub();cancelSpaceResize();}});
     window.addEventListener('openai:set_globals',e=>{
-      const saved=e.detail?.globals?.widgetState;if(!saved?.privateContent||ownSnapshots.has(JSON.stringify(saved.privateContent))||JSON.stringify(saved.privateContent)===lastWidget||gesture||fieldBefore)return;
+      const saved=e.detail?.globals?.widgetState;if(!saved?.privateContent||ownSnapshots.has(JSON.stringify(saved.privateContent))||JSON.stringify(saved.privateContent)===lastWidget||gesture||spaceResize||fieldBefore)return;
       if(restore(saved)){Object.values(histories).forEach(s=>{s.past.length=0;s.future.length=0;});render();}
     });
-    new ResizeObserver(()=>{cancelDrag();schedule();}).observe(stage.node);
+    new ResizeObserver(()=>{cancelDrag();cancelSpaceResize();schedule();}).observe(stage.node);
     render();
     qa('button').forEach(n=>n.classList.add('cursor-interaction'));
     if(globalThis.lucide)lucide.createIcons({attrs:{width:17,height:17}});
