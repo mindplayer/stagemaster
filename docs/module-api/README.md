@@ -8,6 +8,8 @@
 
 本目录的 TypeScript 是接口描述与客户端调用草案，不是用 TS 实现灯光引擎。核心语言约束与 C++26 比较见[专项复评](../core-language-rust-vs-cpp.md)；权威语义和输出关键路径继续使用 Rust。
 
+2026-09-24 新增独立的[AI 辅助编辑扩展 draft-1](assisted-editing.md)，依据 [ADR-011](../development/decisions/PRODUCT-ADR-011-assisted-editing.md)。复用现有工程命令，补能力发现、受限上下文、不可变提案、范围内连续编辑及撤销；未改主协议／StageClient，服务和模型尚未接入。
+
 ## 直接从哪里看
 
 | 文件 | 内容 |
@@ -22,6 +24,8 @@
 | [rust-modules.md](rust-modules.md) | 内部服务如何构造、哪些依赖可以注入、纯核心与硬件 trait 怎样调用 |
 | [workflows.md](workflows.md) | 跨模块调用顺序、失败与超时处理、关闭和回收 |
 | [contract-checks.ts](contract-checks.ts) | 应被类型系统拒绝的调用；不替代运行时验证 |
+| [automation-contracts.ts](automation-contracts.ts) | AI／自动化窄编辑入口与可信宿主入口；范围、提案、回执和生命周期 |
+| [automation-examples.ts](automation-examples.ts)／[automation-checks.ts](automation-checks.ts) | 修改所选场景亮度的调用、应用／撤销与越权／任意补丁编译期反例 |
 
 专业渲染扩展见 [UE5 预演接口边界](../ue5-professional-previsualization.md)：补充 `PreviewRenderer` 的能力、准备、绑定只读来源、观察与释放生命周期。该扩展当前仅有设计，尚未加入 `contracts.ts` 或其类型检查范围。
 
@@ -140,10 +144,10 @@ ControlLease 是用户／控制器操作某个范围的授权；OutputLease 是�
 
 ## 检查与下一步
 
-类型检查命令（开发工具，可使用已安装的 tsc；这里用临时工具包，不加入应用依赖）：
+类型检查命令（复用项目已安装的开发编译器，不新增应用依赖；包含独立辅助编辑扩展）：
 
 ```sh
-npm exec --yes --package=typescript@5.9.3 -- tsc -p docs/module-api/tsconfig.json
+apps/ui-prototype/node_modules/.bin/tsc -p docs/module-api/tsconfig.json
 ```
 
 该检查验证接口与样例能匹配，并拒绝列出的错误调用。它不能证明 RPC 可连接、鉴权正确、真实帧输出、运行无分配或商业可用。Rust 伪接口也尚未编译或实现。

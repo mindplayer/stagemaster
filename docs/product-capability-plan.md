@@ -38,6 +38,7 @@
 | CAP-18 开放接入与跨端 | GDTF／MVR 等交换、Art-Net／sACN／RDM、OSC／MIDI 等协议适配、远程控制、网页／平板编辑、版本化扩展能力和兼容性报告 | [M16](console-research/M16-dmx-network.md)、[M17](console-research/M17-remotes-api.md)、[格式借鉴](development/decisions/PRODUCT-ADR-003-project-data-contract.md) | 导入导出适配、生成契约、宿主／传输；沿用四工作区 | 设计；现在保持接口可移植，协议按软硬件能力逐项验证，不承诺任意格式无损往返或现有板卡支持全部协议 |
 | CAP-19 运行连续性 | 断连策略、程序与系统故障恢复、运行记录、备份／恢复、后续主备切换与输出所有权交接 | [M18](console-research/M18-sessions-backup.md)、[架构 C09](architecture-evolution-review.md) | RuntimeKernel／PlanManager／OutputArbiter；现场与设备状态 | 设计；首版离线自治／掉电一致性／明确故障行为，冗余和热备后续，不能仅靠心跳判定接管 |
 | CAP-20 现场交付资料 | 灯位图、地址／模式／通道表、设备与资源清单、标签、安装与校准记录、节目备注／检查单、带版本的导出 | [Depence 图纸职责](depence-r4-assessment.md)、[M04](console-research/M04-fixtures-patch.md) | 工程只读投影＋PlotService／导出；布置与工程菜单 | 设计；首版必要连接／版本说明，表格与图纸随真实数据完善，结构计算不在通用绘图能力内 |
+| CAP-21 AI 辅助编辑 | 按任务查询对象／能力、生成修改提案、查看差异／隔离预演、指定范围连续编辑、原子应用／撤销与结果对账 | [ADR-011](development/decisions/PRODUCT-ADR-011-assisted-editing.md)、[接口与 MCP 取舍](module-api/assisted-editing.md) | 编辑自动化窄代理＋ProjectService；编排中的按需助手组件，不独立复制灯光规则 | AI-001 仅可类型检查的接口与例子；先接已有场景参数，后续随核心能力扩展，不是首版前置条件 |
 
 检索、标签、批量属性、多选混合值、键盘／触控板操作、焦点与错误定位是横贯这些能力的基础交互，不另建一个“高级模式”。未来触控与实体面板使用相同语义，操作手势可以不同。
 

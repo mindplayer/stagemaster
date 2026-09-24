@@ -11,5 +11,5 @@
     "noUnusedParameters": true,
     "lib": ["ES2022", "DOM"]
   },
-  "include": ["shared-contracts.ts", "contracts.ts", "examples.ts", "contract-checks.ts", "external-contracts.ts", "external-examples.ts", "surface-contracts.ts", "evolution-examples.ts"]
+  "include": ["shared-contracts.ts", "contracts.ts", "examples.ts", "contract-checks.ts", "external-contracts.ts", "external-examples.ts", "surface-contracts.ts", "evolution-examples.ts", "automation-contracts.ts", "automation-examples.ts", "automation-checks.ts"]
 }
