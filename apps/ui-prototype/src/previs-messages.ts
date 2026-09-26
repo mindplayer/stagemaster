@@ -2,7 +2,7 @@ import type { PrevisPlacement } from "./previs-types.ts";
 import type { SpatialVector3 } from "./stage-types.ts";
 
 type ViewMessage =
-  | { kind: "state"; status: string; selection: string; workLight: string; move: boolean }
+  | { kind: "state"; status: string; selection: string; workLight: string; move: boolean; cutaway: boolean }
   | { kind: "selection"; fixtureId: string }
   | ({ kind: "placement"; requestId: string } & PrevisPlacement);
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
@@ -16,8 +16,8 @@ export function readPrevisMessage(json: string): ViewMessage | null {
   try {
     const v: unknown = JSON.parse(json);
     if (!record(v)) return null;
-    if (v.kind === "state" && text(v.status, 4096) && text(v.selection, 1024) && text(v.workLight) && typeof v.move === "boolean")
-      return { kind: "state", status: v.status, selection: v.selection, workLight: v.workLight, move: v.move };
+    if (v.kind === "state" && text(v.status, 4096) && text(v.selection, 1024) && text(v.workLight) && typeof v.move === "boolean" && (v.cutaway === undefined || typeof v.cutaway === "boolean"))
+      return { kind: "state", status: v.status, selection: v.selection, workLight: v.workLight, move: v.move, cutaway: v.cutaway === true };
     if (v.kind === "selection" && text(v.fixtureId)) return { kind: "selection", fixtureId: v.fixtureId };
     if (v.kind !== "placement" || !text(v.requestId, 36) || !/^[a-f0-9]{32}$/.test(v.requestId) ||
       !Number.isInteger(v.generation) || Number(v.generation) < 0 || Number(v.generation) > 0xffffffff ||

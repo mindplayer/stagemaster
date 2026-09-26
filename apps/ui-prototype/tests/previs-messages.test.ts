@@ -18,3 +18,9 @@ test("renderer proposals reject malformed, oversized and lossy payloads", () => 
   assert.equal(readPrevisMessage("{"), null);
   assert.equal(readPrevisMessage('{"kind":"execute"}'), null);
 });
+test('剖视状态兼容旧渲染器，拒绝错误字段类型', () => {
+  const state = { kind: 'state', status: '场景预演', selection: '', workLight: '工作照明：开', move: false };
+  assert.deepEqual(readPrevisMessage(JSON.stringify(state)), { ...state, cutaway: false });
+  assert.deepEqual(readPrevisMessage(JSON.stringify({ ...state, cutaway: true })), { ...state, cutaway: true });
+  assert.equal(readPrevisMessage(JSON.stringify({ ...state, cutaway: 'false' })), null);
+});

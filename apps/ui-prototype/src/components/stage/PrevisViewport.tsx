@@ -9,13 +9,13 @@ export function PrevisViewport({ url, busy, ...interactions }: { url: string | n
   const stream = useRef<PixelStreaming | null>(null);
   const [message, setMessage] = useState("");
   const [playing, setPlaying] = useState(false);
-  const [viewState, setViewState] = useState({ status: "", selection: "", workLight: "工作照明", move: false });
+  const [viewState, setViewState] = useState({ status: "", selection: "", workLight: "工作照明", move: false, cutaway: false });
   const callbacks = useRef(interactions);
   callbacks.current = interactions;
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     setPlaying(false);
-    setViewState({ status: "", selection: "", workLight: "工作照明", move: false });
+    setViewState({ status: "", selection: "", workLight: "工作照明", move: false, cutaway: false });
     setMessage(url ? "正在连接三维画面…" : "");
     if (!url || !parent.current) return;
     let active = true;
@@ -105,6 +105,7 @@ export function PrevisViewport({ url, busy, ...interactions }: { url: string | n
           if (ok && player && player === stream.current) player.emitUIInteraction({ action: "move" });
         });
       }}>移动灯位</button>
+      <button disabled={!playing} aria-pressed={viewState.cutaway} onClick={() => view("cutaway")}>剖视</button>
       <button disabled={!playing} onClick={() => view("workLight")}>{viewState.workLight}</button>
     </div>
     <div className="previs-viewport" aria-label="三维舞台视窗">

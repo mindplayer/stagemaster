@@ -101,6 +101,17 @@ bool FPreviewValidationTest::RunTest(const FString& Parameters)
     SceneObject->SetArrayField(TEXT("fixtures"), Fixtures);
     TestFalse(TEXT("duplicate fixture rejected"), StageMaster::ReadScene(Object, Scene, Error));
 
+    Object = Parse(SceneJson);
+    auto MeshObject = Object->GetObjectField(TEXT("scene"))->GetArrayField(TEXT("meshes"))[0]->AsObject();
+    TestTrue(TEXT("legacy mesh accepted"), StageMaster::ReadScene(Object, Scene, Error));
+    TestFalse(TEXT("legacy mesh stays solid"), Scene.Meshes[0].EnclosureShell);
+    MeshObject->SetStringField(TEXT("viewRole"), TEXT("enclosureShell"));
+    TestTrue(TEXT("shell display role accepted"), StageMaster::ReadScene(Object, Scene, Error));
+    TestTrue(TEXT("shell display role retained"), Scene.Meshes[0].EnclosureShell);
+    MeshObject->SetStringField(TEXT("viewRole"), TEXT("unknown"));
+    TestFalse(TEXT("unknown display role rejected"), StageMaster::ReadScene(Object, Scene, Error));
+    TestTrue(TEXT("bad role retains prior scene"), Scene.Meshes[0].EnclosureShell);
+
     StageMaster::FFrame Frame;
     Object = Parse(TEXT(R"json({"protocol":1,"bridgeId":"bridge","generation":0,"version":"2","status":"running",
         "source":{"kind":"playback"},"canEdit":false,"lights":[{"fixtureId":"fixture","intensity":0.5,"color":[1,0.25,0]}]})json"));

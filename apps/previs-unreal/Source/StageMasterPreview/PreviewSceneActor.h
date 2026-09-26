@@ -45,6 +45,8 @@ public:
     bool CommitPosition(const FString& Id, const FVector& Location);
     void ToggleWorkLight();
     bool HasWorkLight() const;
+    void ToggleCutaway();
+    bool IsCutaway() const { return Cutaway; }
 protected:
     virtual void BeginPlay() override;
 private:
@@ -65,4 +67,6 @@ private:
     uint64 SceneSerial = 0;
     bool CanEdit = false;
     bool FrameValid = false;
+    bool Cutaway = false;
+    void ApplyCutaway();
 };

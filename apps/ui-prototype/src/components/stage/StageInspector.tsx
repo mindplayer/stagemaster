@@ -1,3 +1,4 @@
+import { OutlineDimensions } from "./OutlineDimensions";
 import type { RefObject } from "react";
 import { CopyIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import type { ProjectView } from "../../application-host";
@@ -156,6 +157,7 @@ export function StageInspector({
               }
             </strong>
           )}
+          {outline && <OutlineDimensions object={object} onChange={onChange} />}
           {object.kind === "space" && (
             <>
               {numeric(
@@ -371,10 +373,10 @@ export function StageInspector({
             </>
           )}
           {outline && (
-            <section className="stage-outline">
-              <h3>
-                平面轮廓 <span>米</span>
-              </h3>
+            <>
+            <details className="stage-outline">
+              <summary>高级轮廓 · {outline.length} 个顶点</summary>
+              <h3>顶点坐标 <span>米</span></h3>
               <div className="stage-point-head">
                 <span>顶点</span>
                 <span>X</span>
@@ -436,7 +438,8 @@ export function StageInspector({
                 <PlusIcon />
                 添加轮廓顶点
               </button>
-            </section>
+            </details>
+            </>
           )}
         </fieldset>
         {error && (

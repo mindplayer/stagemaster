@@ -5,6 +5,8 @@
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
+已完成 [UX-013](tasks/UX-013-modeling-workflow.md)：基线 `8d49ada`，结果为本次 `feat(stage): streamline modeling workflow and add cutaway view` 提交。正式建模增加矩形／L 形尺寸创建、整体宽深与位置编辑、实时草稿轮廓、标注与八向缩放手柄、键盘微调、房间层级／搜索／折叠和聚焦所选；高级顶点折叠。按 [ADR-020](decisions/PRODUCT-ADR-020-modeling-view-controls.md) 拆分可重建围护投影，三维剖视保留地板／舞台，工程格式与输出语义未改。原生创建、错误恢复、尺寸拖动／单次撤销重做、连续键盘微调、独立保存重开及剖视实测通过；122 Rust／38 UI／4 UE、类型／fmt／严格 Clippy、双端构建通过。用户原窗口存在未保存编辑，本轮以独立验收实例完成，当前正式构建已更新但未强制重启原窗口。HTML 创建弹窗的原生自动化辅助树仍缺失，读屏验收待补；门洞／共享墙／观众区域、物理光学与性能仍属后续。
+
 已完成首个可运行闭环：[PREVIS-001](tasks/PREVIS-001-real-stage-preview.md)。原始基线 `9d49939`，内部视窗提交 `e50cfbd`，本轮基线 `e50cfbd`，结果为本次 `feat(previs): integrate embedded placement editing and playback verification` 提交。Xcode 26.1.1／Metal 17B54／UE 5.8.3 已工作；首个真实固定调光／RGB 预演目标完成，不等同于完整专业预演或客户安装包交付。
 
 “舞台 → 三维预演”在 Tauri 内显示真实 UE 画面，后台离屏运行。房间／舞台／灯位保存、双向选灯与属性、相机导航、工作照明、水平拖动、一次撤销／重做、重开和播放源同步已原生验证。按 [ADR-019](decisions/PRODUCT-ADR-019-embedded-previsualization.md)，UE 只提案，当前窗口队列先处理草稿，Rust 校验精确版本并写入统一历史；没有长期开放 HTTP 编辑资格。修复官方输入的松手端点丢失、越界哨兵误作有效坐标；快速拖动和拖出取消原生复测通过。无效 X 草稿时三维选灯保留原草稿并定位字段。
@@ -47,6 +49,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [UX-013](tasks/UX-013-modeling-workflow.md) | done（交互增量） | 正式尺寸建模、对象层级、缩放手柄／历史／保存重开与三维剖视通过；完整 CAD／读屏／专业光学后续 |
 | [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) | done（首个闭环） | 应用内真实 UE、双向选择／拖动／历史／保存与列表播放联动已验收；专业光学、规模性能和客户独立打包后续推进 |
 | [DEV-001](tasks/DEV-001-delivery-foundation.md) | done | Git 与验证基线保留 |
 | [CORE-001](tasks/CORE-001-cue-uniqueness.md) | done | 实现与保护验收保留 |

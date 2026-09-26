@@ -115,14 +115,22 @@ fn small_valid_wall_edges_do_not_use_floor_area_threshold() {
         json!({"op":"stage","command":{"op":"putConstruction","id":null,"name":"围护","shape":{"kind":"enclosure","spaceId":id,"wallThicknessMeters":"0.001","floorThicknessMeters":"0.1","ceilingThicknessMeters":"0.2"}}}),
     );
     let projected = scene(&doc).unwrap();
-    let mesh = &projected.meshes[0];
+    assert_eq!(projected.meshes.len(), 2);
+    assert_eq!(projected.meshes[0].view_role, "solid");
+    assert_eq!(projected.meshes[1].view_role, "enclosureShell");
+    assert_ne!(projected.meshes[0].id, projected.meshes[1].id);
+    let triangles: Vec<_> = projected
+        .meshes
+        .iter()
+        .flat_map(|m| m.triangles.iter().copied())
+        .collect();
     assert!(
-        mesh.triangles
+        triangles
             .iter()
             .flatten()
             .all(|p| p.iter().all(|v| v.is_finite()))
     );
-    assert!((volume(&mesh.triangles) - (48.0 * 0.3 + 28.0 * 0.001 * 4.5)).abs() < 1e-8);
+    assert!((volume(&triangles) - (48.0 * 0.3 + 28.0 * 0.001 * 4.5)).abs() < 1e-8);
 }
 #[test]
 fn isolated_scene_and_playback_use_identical_committed_light_values() {

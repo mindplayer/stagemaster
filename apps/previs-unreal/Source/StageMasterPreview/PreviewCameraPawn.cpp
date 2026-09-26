@@ -87,6 +87,7 @@ void APreviewCameraPawn::ViewAction(const FString& Action)
     else if (Action == TEXT("top")) TopView();
     else if (Action == TEXT("perspective")) { Pitch = -35; Yaw = -45; FocusAll(); }
     else if (Action == TEXT("selected")) FocusSelected();
+    else if (Action == TEXT("cutaway")) { CancelDrag(); if (Scene) Scene->ToggleCutaway(); }
     else if (Action == TEXT("workLight")) ToggleWorkLight();
     else if (Action == TEXT("cancel")) CancelDrag();
     else if (Action == TEXT("move")) { CancelDrag(); MoveMode = true; }
@@ -281,3 +282,5 @@ FText APreviewCameraPawn::SelectionText() const
 }
 FText APreviewCameraPawn::MoveText() const { return FText::FromString(MoveMode ? TEXT("灯位移动") : TEXT("查看与选择")); }
 FText APreviewCameraPawn::WorkLightText() const { return FText::FromString(Scene && Scene->HasWorkLight() ? TEXT("工作照明：开") : TEXT("工作照明：关")); }
+
+bool APreviewCameraPawn::IsCutaway() const { return Scene && Scene->IsCutaway(); }

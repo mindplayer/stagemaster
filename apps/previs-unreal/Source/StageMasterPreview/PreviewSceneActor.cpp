@@ -172,6 +172,7 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
         }
     }
     Current = MoveTemp(Scene);
+    ApplyCutaway();
     Status = TEXT("正在同步灯光");
 }
 void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
@@ -259,3 +260,18 @@ bool APreviewSceneActor::CommitPosition(const FString& Id, const FVector& Locati
 }
 void APreviewSceneActor::ToggleWorkLight() { WorkLight->SetVisibility(!WorkLight->IsVisible()); }
 bool APreviewSceneActor::HasWorkLight() const { return WorkLight->IsVisible(); }
+
+void APreviewSceneActor::ApplyCutaway()
+{
+    for (const auto& Mesh : Current.Meshes)
+    {
+        if (auto Component = Meshes.Find(Mesh.Id))
+        {
+            const bool Hidden = Cutaway && Mesh.EnclosureShell;
+            (*Component)->SetCastHiddenShadow(true);
+            (*Component)->SetHiddenInGame(Hidden);
+            (*Component)->SetCollisionResponseToChannel(ECC_Visibility, Hidden ? ECR_Ignore : ECR_Block);
+        }
+    }
+}
+void APreviewSceneActor::ToggleCutaway() { Cutaway = !Cutaway; ApplyCutaway(); }

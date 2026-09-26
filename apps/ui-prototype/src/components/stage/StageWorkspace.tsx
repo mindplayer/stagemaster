@@ -2,7 +2,6 @@ import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } fro
 import {
   PlusIcon,
   HouseLineIcon,
-  LightbulbIcon,
   CubeIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
@@ -15,13 +14,14 @@ import type { StageEdit, StageObject, StageSelection } from "../../stage-types";
 import {
   bounds,
   decimal,
-  rectangle,
   selectedStage,
   stageCommand,
 } from "../../stage-tools";
 import { uniqueName } from "../../editor-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
+import { StageCreateDialog, type Creation } from "./StageCreateDialog";
+import { StageOutliner } from "./StageOutliner";
 import { StageInspector } from "./StageInspector";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import "./stage.css";
@@ -50,6 +50,8 @@ export const StageWorkspace = forwardRef<
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
   const moving = useRef(false);
+  const [creation, setCreation] = useState<Creation | null>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
   const [query, setQuery] = useState("");
   const [fixtureId, setFixtureId] = useState("");
   const [localError, setLocalError] = useState("");
@@ -99,56 +101,20 @@ export const StageWorkspace = forwardRef<
   function edit(command: StageEdit) {
     return onEdit({ op: "stage", command });
   }
-  async function addSpace() {
-    const max = project.stage.spaces.flatMap((s) =>
-      s.outlineMeters.map((p) => Number(p[0])),
-    );
-    const x = max.length ? Math.max(...max) + 2 : 0;
-    const next = await edit({
-      op: "putSpace",
-      id: null,
-      name: uniqueName(
-        "空间",
-        project.stage.spaces.map((s) => s.name),
-      ),
-      outlineMeters: rectangle(x, 0, 8, 6),
-      floorElevationMeters: "0",
-      clearHeightMeters: "5",
-    });
-    if (next) {
-      setSelection({ kind: "space", id: next.stage.spaces.at(-1)!.id });
-      setQuery("");
-      cancel();
-    }
+  async function create(kind: "space" | "platform") {
+    if (!(await beforeChange())) return;
+    const max = project.stage.spaces.flatMap(s => s.outlineMeters.map(p => Number(p[0])));
+    const b = selectedSpace ? bounds(selectedSpace.outlineMeters.map(p => [Number(p[0]), Number(p[1])])) : null;
+    setCreation({ kind, name: uniqueName(kind === "space" ? "空间" : "舞台", (kind === "space" ? project.stage.spaces : project.stage.constructions).map(v => v.name)),
+      x: kind === "space" ? (max.length ? Math.max(...max) + 2 : 0) : b?.minX ?? 0,
+      y: kind === "space" ? 0 : b?.minY ?? 0,
+      elevation: kind === "space" ? "0" : selectedSpace?.floorElevationMeters ?? "0", spaceId: selectedSpace?.id ?? null });
   }
-  async function addPlatform() {
-    const room = selectedSpace;
-    const b = room
-      ? bounds(room.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]))
-      : null;
-    const next = await edit({
-      op: "putConstruction",
-      id: null,
-      name: uniqueName(
-        "舞台",
-        project.stage.constructions.map((s) => s.name),
-      ),
-      shape: {
-        kind: "platform",
-        spaceId: room?.id ?? null,
-        outlineMeters: rectangle(b?.minX ?? 0, b?.minY ?? 0, 4, 2),
-        baseElevationMeters: room?.floorElevationMeters ?? "0",
-        heightMeters: "0.6",
-      },
-    });
-    if (next) {
-      setSelection({
-        kind: "construction",
-        id: next.stage.constructions.at(-1)!.id,
-      });
-      setQuery("");
-      cancel();
-    }
+  async function createObject(command: StageEdit) {
+    const next = await edit(command);
+    if (!next) return;
+    const target: StageSelection = command.op === "putSpace" ? { kind: "space", id: next.stage.spaces.at(-1)!.id } : { kind: "construction", id: next.stage.constructions.at(-1)!.id };
+    setSelection(target); setCreation(null); setQuery(""); cancel(); setView("plan"); setFocusRequest(v => v + 1);
   }
   async function placeFixture() {
     if (!chosenFixture) return;
@@ -240,23 +206,6 @@ export const StageWorkspace = forwardRef<
       cancel();
     }
   }
-  const entries: { target: StageSelection; name: string; detail: string }[] = [
-    ...project.stage.spaces.map((s) => ({
-      target: { kind: "space" as const, id: s.id },
-      name: s.name,
-      detail: `${s.clearHeightMeters === null ? "开放空间" : `净高 ${s.clearHeightMeters} 米`}`,
-    })),
-    ...project.stage.constructions.map((c) => ({
-      target: { kind: "construction" as const, id: c.id },
-      name: c.name,
-      detail: c.shape.kind === "enclosure" ? "墙体与地板" : "舞台构件",
-    })),
-    ...project.stage.placements.map((p) => ({
-      target: { kind: "placement" as const, id: p.fixtureId },
-      name: project.fixtures.find((f) => f.id === p.fixtureId)?.name ?? "灯具",
-      detail: `高度 ${p.positionMeters.z} 米`,
-    })),
-  ];
   return (
     <div className="stage-workspace" hidden={!visible} aria-hidden={!visible}>
       <aside className="stage-browser">
@@ -265,11 +214,11 @@ export const StageWorkspace = forwardRef<
           <span>{project.stage.spaces.length} 个空间</span>
         </header>
         <div className="stage-create">
-          <button disabled={busy} onClick={() => void addSpace()}>
+          <button disabled={busy} onClick={() => void create("space")}>
             <HouseLineIcon />
             新建空间
           </button>
-          <button disabled={busy} onClick={() => void addPlatform()}>
+          <button disabled={busy} onClick={() => void create("platform")}>
             <CubeIcon />
             新建舞台
           </button>
@@ -283,44 +232,7 @@ export const StageWorkspace = forwardRef<
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <div className="stage-objects" aria-label="场地对象">
-          {entries
-            .filter((e) =>
-              e.name
-                .toLocaleLowerCase()
-                .includes(query.trim().toLocaleLowerCase()),
-            )
-            .map((e) => (
-              <button
-                key={`${e.target.kind}:${e.target.id}`}
-                className={
-                  selection?.kind === e.target.kind &&
-                  selection.id === e.target.id
-                    ? "active"
-                    : ""
-                }
-                aria-pressed={
-                  selection?.kind === e.target.kind &&
-                  selection.id === e.target.id
-                }
-                disabled={busy}
-                onClick={() => void choose(e.target)}
-              >
-                {e.target.kind === "space" ? (
-                  <HouseLineIcon />
-                ) : e.target.kind === "placement" ? (
-                  <LightbulbIcon />
-                ) : (
-                  <CubeIcon />
-                )}
-                <span>
-                  <strong>{e.name}</strong>
-                  <small>{e.detail}</small>
-                </span>
-              </button>
-            ))}
-          {!entries.length && <p className="wb-dim">尚未创建场地</p>}
-        </div>
+        <StageOutliner project={project} selection={selection} query={query} busy={busy} onSelect={target => void choose(target)} />
         <div className="stage-place">
           <label>
             布置灯具
@@ -353,9 +265,9 @@ export const StageWorkspace = forwardRef<
       <div className="stage-center">
         <div className="stage-view-tabs" aria-label="舞台视图">
           <button aria-pressed={view === "plan"} onClick={() => setView("plan")}>平面布置</button>
-          <button aria-pressed={view === "three"} onClick={() => setView("three")}>三维预演</button>
+          <button aria-pressed={view === "three"} onClick={() => { void beforeChange().then(ok => { if (ok) setView("three"); }); }}>三维预演</button>
         </div>
-        {view === "three" ? previs({
+        {view === "three" && previs({
           selectedId: selection?.kind === "placement" ? selection.id : "",
           onSelect: async (id) => {
             if (!(await beforeChange())) return false;
@@ -364,9 +276,12 @@ export const StageWorkspace = forwardRef<
             cancel();
             return true;
           },
-        }) : <StageCanvas
+        })}
+        <div className="stage-plan-container" hidden={view !== "plan"}><StageCanvas
         project={project}
         selection={selection}
+        preview={draft}
+        focusRequest={focusRequest}
         busy={busy}
         pending={draft !== null}
         onSelect={(target) => void choose(target)}
@@ -377,7 +292,7 @@ export const StageWorkspace = forwardRef<
           moving.current = value;
           onPending(value || draftRef.current !== null);
         }}
-      />}
+      /></div>
       </div>
       <StageInspector
         object={object}
@@ -404,6 +319,7 @@ export const StageWorkspace = forwardRef<
         }}
         onEnclose={() => void enclose()}
       />
+      {creation && <StageCreateDialog initial={creation} busy={busy} error={error} onCreate={command => void createObject(command)} onCancel={() => setCreation(null)} />}
       {deleteTarget && (
         <DeleteDialog
           name={

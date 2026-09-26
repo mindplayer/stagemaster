@@ -348,3 +348,65 @@
 .previs-live { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .previs-tools { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-bottom: 1px solid #26313e; }
 .previs-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px 12px; color: #95aabc; font-size: 11px; border-top: 1px solid #26313e; }
+
+/* Modeling workspace: hierarchy, canvas, task-specific properties. */
+.stage-workspace { grid-template-columns: 220px minmax(320px, 1fr) 280px; }
+.stage-browser { padding: 16px 10px; gap: 14px; }
+.stage-create { grid-template-columns: 1fr 1fr; gap: 6px; }
+.workbench .stage-create button { padding: 8px 5px; gap: 5px; font-size: 11px; }
+.stage-plan-container { display: flex; flex: 1; min-height: 0; }
+.stage-plan-container[hidden] { display: none; }
+.stage-plan-container > .stage-canvas-panel { flex: 1; }
+.stage-view-tabs { padding: 6px 12px; }
+.workbench .stage-view-tabs button { padding: 7px 12px; font-size: 12px; border-color: transparent; background: transparent; }
+.workbench .stage-view-tabs button[aria-pressed="true"] { background: #253b42; color: #a5e7de; }
+.stage-canvas-toolbar { min-height: 42px; padding: 5px 12px; }
+.stage-canvas-toolbar button { font-size: 11px; }
+.stage-room-row { display: flex; align-items: center; }
+.workbench .stage-disclosure { flex: 0 0 22px; padding: 4px 0; background: transparent; border: 0; color: #8b9eac; }
+.stage-disclosure[aria-expanded="true"] svg { transform: rotate(90deg); }
+.stage-object-group { padding-bottom: 7px; border-bottom: 1px solid #20303a; }
+.stage-object-group h3 { font-size: 10px; font-weight: 500; color: #8da1b2; margin: 8px; }
+.workbench .stage-object { display: flex; gap: 8px; justify-content: flex-start; width: 100%; padding: 8px; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 6px; }
+.workbench .stage-object.nested { padding-left: 30px; }
+.workbench .stage-object[aria-pressed="true"] { background: #223a3e; border-color: #3e6167; }
+.stage-object svg { flex-shrink: 0; color: #9ab5c3; width: 16px; height: 16px; }
+.stage-objects button span { gap: 3px; }
+.stage-objects small { color: #7d939f; }
+.stage-objects strong { color: #c6d5df; }
+.stage-inspector { padding: 16px 14px; }
+.stage-inspector fieldset { gap: 16px; }
+.stage-inspector form { gap: 14px; }
+.stage-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stage-dimensions { display: grid; gap: 10px; border-top: 1px solid #273440; padding-top: 12px; }
+.stage-dimensions h3 { display: flex; justify-content: space-between; align-items: center; margin: 0; }
+.stage-dimensions h3 span { color: #7e95a4; font-size: 10px; font-weight: 400; }
+.stage-outline { border-top: 1px solid #273440; padding-top: 12px; }
+.stage-outline summary { cursor: pointer; color: #95aab8; font-size: 11px; padding: 4px 0; }
+.stage-outline summary:focus-visible { outline: 1px solid #83d9c9; }
+.stage-measurements { stroke: #8fbbbd; }
+.stage-measurements text { stroke: #0b1118; stroke-width: .08em; paint-order: stroke; fill: #b7d9d7; user-select: none; }
+.stage-resize { fill: #d3eee9; stroke: #397f77; cursor: nesw-resize; }
+.stage-resize-e, .stage-resize-w { cursor: ew-resize; }
+.stage-resize-n, .stage-resize-s { cursor: ns-resize; }
+.stage-resize-nw, .stage-resize-se { cursor: nwse-resize; }
+.stage-resize:focus, .stage-resize:hover { fill: #67e2c6; outline: none; }
+.workbench .stage-create-dialog { width: 430px; max-height: 90vh; overflow: auto; }
+.stage-create-dialog form, .stage-create-dialog fieldset { display: grid; gap: 16px; }
+.stage-create-dialog h2 { margin: 0; }
+.stage-create-dialog label { display: grid; gap: 6px; font-size: 12px; color: #a4b9c6; }
+.stage-create-dialog input { width: 100%; min-width: 0; }
+.stage-create-dialog .stage-check input { width: auto; }
+.stage-shapes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.workbench .stage-shapes button[aria-pressed="true"] { border-color: #508b80; background: #25403e; color: #adebd9; }
+.stage-shape-preview { height: 130px; background: #0b141d; border-radius: 8px; position: relative; padding: 10px 30px 25px; }
+.stage-shape-preview svg { width: 100%; height: 100%; }
+.stage-shape-preview polygon { fill: #274844; stroke: #8acebd; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.stage-shape-preview span { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; color: #a3c0c5; font-size: 11px; }
+.previs-workspace .wb-previs { padding: 6px 12px; }
+.previs-workspace .wb-previs label { flex-direction: row; align-items: center; gap: 8px; }
+.workbench .previs-workspace button { font-size: 11px; padding: 7px 10px; }
+.previs-tools { padding: 6px 12px; }
+@media (max-width: 1180px) { .stage-workspace { grid-template-columns: 180px minmax(240px, 1fr) 260px; } }
+@media (max-width: 880px) { .stage-workspace { grid-template-columns: 165px minmax(220px, 1fr); } }
+.stage-resize[aria-disabled="true"] { opacity: .35; cursor: default; }

@@ -27,6 +27,7 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
         State->SetStringField(TEXT("selection"), Camera->SelectionText().ToString());
         State->SetStringField(TEXT("workLight"), Camera->WorkLightText().ToString());
         State->SetBoolField(TEXT("move"), Camera->IsMoveMode());
+        State->SetBoolField(TEXT("cutaway"), Camera->IsCutaway());
         FString Json;
         FJsonSerializer::Serialize(State, TJsonWriterFactory<>::Create(&Json));
         // Send periodically as viewers may reconnect while the scene stays unchanged.

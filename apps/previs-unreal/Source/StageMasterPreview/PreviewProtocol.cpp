@@ -60,6 +60,9 @@ bool ReadMesh(const TSharedPtr<FJsonObject>& Object, FMesh& Out, int32& TotalTri
 {
     const TArray<TSharedPtr<FJsonValue>>* Triangles = nullptr;
     if (!Text(Object, TEXT("id"), Out.Id) || !Text(Object, TEXT("name"), Out.Name) || !Color(Object, Out.Color) || !Array(Object, TEXT("triangles"), Triangles, 100000)) return false;
+    FString Role(TEXT("solid"));
+    if (Object->HasField(TEXT("viewRole")) && (!Object->TryGetStringField(TEXT("viewRole"), Role) || (Role != TEXT("solid") && Role != TEXT("enclosureShell")))) return false;
+    Out.EnclosureShell = Role == TEXT("enclosureShell");
     TotalTriangles += Triangles->Num();
     if (TotalTriangles > 100000) return false;
     Out.Vertices.Reserve(Triangles->Num() * 3);
@@ -132,7 +135,7 @@ bool ReadScene(const TSharedPtr<FJsonObject>& Object, FScene& Out, FString& Erro
     const TArray<TSharedPtr<FJsonValue>> *Meshes = nullptr, *Fixtures = nullptr;
     if (!ReadStamp(Object, Next.Stamp) || !ObjectField(Object, TEXT("scene"), Scene) ||
         !Text(Scene, TEXT("projectId"), Next.ProjectId) || !Text(Scene, TEXT("projectName"), Next.Name) ||
-        !Array(Scene, TEXT("meshes"), Meshes, 512) || !Array(Scene, TEXT("fixtures"), Fixtures, 128)) return false;
+        !Array(Scene, TEXT("meshes"), Meshes, 1024) || !Array(Scene, TEXT("fixtures"), Fixtures, 128)) return false;
     int32 TotalTriangles = 0;
     TSet<FString> Ids;
     for (const auto& Value : *Meshes)

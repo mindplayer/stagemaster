@@ -14,6 +14,7 @@ pub struct Mesh {
     pub id: String,
     pub name: String,
     pub color: [f32; 3],
+    pub view_role: &'static str,
     pub triangles: Vec<Triangle>,
 }
 #[derive(Clone, Serialize)]
@@ -55,6 +56,7 @@ pub fn scene(document: &Document) -> Result<Scene, String> {
     let mut triangle_count = 0;
     for construction in &view.stage.constructions {
         let mut triangles = Vec::new();
+        let mut floor_triangles = None;
         let color = match &construction.shape {
             ConstructionShape::Platform {
                 outline_meters,
@@ -93,6 +95,7 @@ pub fn scene(document: &Document) -> Result<Scene, String> {
                     floor - number(floor_thickness_meters)?,
                     floor,
                 )?;
+                floor_triangles = Some(std::mem::take(&mut triangles));
                 if let Some(thickness) = ceiling_thickness_meters {
                     geometry::prism(&mut triangles, &outline, top, top + number(thickness)?)?;
                 }
@@ -104,12 +107,31 @@ pub fn scene(document: &Document) -> Result<Scene, String> {
                 [0.18, 0.21, 0.25]
             }
         };
-        triangle_count += triangles.len();
+        triangle_count += triangles.len() + floor_triangles.as_ref().map_or(0, Vec::len);
         if triangle_count > MAX_TRIANGLES {
             return Err("场地超出当前预演的 100000 个三角面限制".into());
         }
+        let is_enclosure = floor_triangles.is_some();
+        if let Some(floor) = floor_triangles {
+            meshes.push(Mesh {
+                id: format!("{}:floor", construction.id),
+                name: construction.name.clone(),
+                triangles: floor,
+                color,
+                view_role: "solid",
+            });
+        }
         meshes.push(Mesh {
-            id: construction.id.clone(),
+            id: if is_enclosure {
+                format!("{}:shell", construction.id)
+            } else {
+                construction.id.clone()
+            },
+            view_role: if is_enclosure {
+                "enclosureShell"
+            } else {
+                "solid"
+            },
             name: construction.name.clone(),
             triangles,
             color,

@@ -76,3 +76,36 @@ test("无效选择不降级选中其他对象，安装点按灯具身份恢复",
     lamp,
   );
 });
+
+// Protect topology-preserving UI transforms before Rust performs authoritative validation.
+import { footprintArea, footprintBounds, lShape, resized, resizedByHandle } from '../src/stage-geometry.ts';
+test('L 形尺寸生成保留缺口面积，拒绝穿透外边界的缺口', () => {
+  const outline = lShape(-2, 3, 8, 6, 2, 3);
+  assert.equal(footprintArea(outline), 42);
+  assert.deepEqual(footprintBounds(outline), { minX: -2, minY: 3, maxX: 6, maxY: 9 });
+  for (const notch of [[0, 2], [8, 2], [2, 6], [2, -1]]) assert.throws(() => lShape(0, 0, 8, 6, notch[0]!, notch[1]!));
+});
+test('整体尺寸调整保留凹形拓扑、标高、身份和原始输入', () => {
+  if (room.kind !== 'space') throw Error('type');
+  const source: StageObject = { kind: 'space', value: { ...room.value, outlineMeters: lShape(-2, 3, 8, 6, 2, 3) } };
+  const before = structuredClone(source);
+  const next = resized(source, { minX: -2, minY: 3, maxX: 14, maxY: 6 });
+  assert.equal(next.kind, 'space');
+  if (next.kind !== 'space') throw Error('type');
+  assert.deepEqual(next.value.outlineMeters, lShape(-2, 3, 16, 3, 4, 1.5));
+  assert.equal(next.value.floorElevationMeters, '1.20');
+  assert.equal(next.value.id, source.value.id);
+  assert.deepEqual(source, before);
+});
+test('从左下缩放固定对边，跨越对边时限幅且不翻转轮廓', () => {
+  const next = resizedByHandle(room, 'sw', 1, 2);
+  if (next.kind !== 'space') throw Error('type');
+  assert.deepEqual(next.value.outlineMeters, rectangle(1, 2, 7, 4));
+  const crossed = resizedByHandle(room, 'sw', 99, 99);
+  if (crossed.kind !== 'space') throw Error('type');
+  assert.deepEqual(crossed.value.outlineMeters, rectangle(7.9, 5.9, .1, .1));
+});
+test('空值或非法包围框不应压扁空间，灯位不能被尺寸操作改变', () => {
+  for (const maxX of [0, -1, NaN, Infinity]) assert.throws(() => resized(room, { minX: 0, minY: 0, maxX, maxY: 6 }));
+  assert.deepEqual(resizedByHandle(lamp, 'ne', 3, 3), lamp);
+});

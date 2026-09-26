@@ -14,6 +14,7 @@ struct FStamp
 };
 struct FMesh
 {
+    bool EnclosureShell = false;
     FString Id;
     FString Name;
     FLinearColor Color;

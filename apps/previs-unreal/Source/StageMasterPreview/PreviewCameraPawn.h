@@ -32,6 +32,7 @@ public:
     void CancelDrag();
     void ToggleMove();
     void ToggleWorkLight();
+    bool IsCutaway() const;
     FText StatusText() const;
     FText SelectionText() const;
     FText MoveText() const;

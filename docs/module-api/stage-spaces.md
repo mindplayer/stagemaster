@@ -23,3 +23,9 @@ host.request({kind: "edit", generation, command: {
 桌面 `StageWorkspace` 持有选择／搜索／未提交草稿；`StageInspector` 精确编辑；`StageCanvas` 只处理镜头与平面手势。手势中不写核心，结束提交一次；取消不提交。字段草稿与原生保存／切换／关闭共享 collect／accept 流程，验证失败保留输入。渲染器不得直接改写 JSON。
 
 开发期 JS 格式审计覆盖 Schema、引用与数值边界，几何有效性由 Rust／geo 权威校验；JS 工具不能代替产品加载器。三维预演桥、UE 构件生成和现场联动仍在父任务中实施；本文不把平面编辑或静态指向求解视为已完成 UE 预演。
+
+## UX-013 前端尺寸适配
+
+`StageCreateDialog` 将矩形／L 形尺寸转换为既有轮廓命令，确认后一次创建，取消不发命令。`OutlineDimensions` 保留未完成数字草稿，统一表单校验后才发命令；按包围框缩放原多边形，不转换成矩形。`StageSelectionOverlay` 与 `StageCanvas` 提交单次手势结果，原坐标／标高／灯位成员关系仍由工程对象持有。移动空间轮廓或改变尺寸不移动成员的世界坐标。
+
+层级、折叠、搜索、相机与尺寸标注均为临时 UI 状态；不新增工程字段。高级顶点仍可编辑任意合法轮廓。门洞、共享墙及空间间碰撞暂未实现。

@@ -5,6 +5,8 @@ import {
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
 } from "@phosphor-icons/react";
+import { StageSelectionOverlay } from "./StageSelectionOverlay";
+import { resizedByHandle } from "../../stage-geometry";
 import type { ProjectView } from "../../application-host";
 import type { StageObject, StageSelection } from "../../stage-types";
 import {
@@ -24,10 +26,13 @@ type Gesture = {
   target: StageSelection | null;
   dx: number;
   dy: number;
+  handle: string | null;
 };
 export function StageCanvas({
   project,
   selection,
+  preview,
+  focusRequest,
   busy,
   pending,
   onSelect,
@@ -36,6 +41,8 @@ export function StageCanvas({
 }: {
   project: ProjectView;
   selection: StageSelection | null;
+  preview: StageObject | null;
+  focusRequest: number;
   busy: boolean;
   pending: boolean;
   onSelect(target: StageSelection): void;
@@ -80,12 +87,14 @@ export function StageCanvas({
         ],
     ),
   ];
-  function fit() {
-    if (!allPoints.length) {
+  const currentObject = preview ?? selectedStage(project.stage, selection);
+  function fit(selected = false) {
+    const points = selected && currentObject ? (objectOutline(currentObject)?.map(p => [Number(p[0]), Number(p[1])] as [number, number]) ?? (currentObject.kind === "placement" ? [[Number(currentObject.value.positionMeters.x), Number(currentObject.value.positionMeters.y)] as [number, number]] : [])) : allPoints;
+    if (!points.length) {
       setCamera({ x: 4, y: 3, width: 20 });
       return;
     }
-    const b = bounds(allPoints);
+    const b = bounds(points);
     setCamera({
       x: (b.minX + b.maxX) / 2,
       y: (b.minY + b.maxY) / 2,
@@ -96,6 +105,8 @@ export function StageCanvas({
       ),
     });
   }
+  const lastFocus = useRef(0);
+  useEffect(() => { if (focusRequest !== lastFocus.current) { lastFocus.current = focusRequest; fit(true); } }, [focusRequest]);
   function world(e: { clientX: number; clientY: number }): [number, number] {
     const rect = svg.current!.getBoundingClientRect();
     return [
@@ -130,6 +141,7 @@ export function StageCanvas({
       target: movable ? target : null,
       dx: 0,
       dy: 0,
+      handle: hit?.dataset.handle ?? null,
     };
     active.current = g;
     setGesture(g);
@@ -177,17 +189,14 @@ export function StageCanvas({
       return;
     }
     if (g.object && (g.dx !== 0 || g.dy !== 0))
-      onMove(translated(g.object, g.dx, g.dy));
+      onMove(g.handle ? resizedByHandle(g.object, g.handle, g.dx, g.dy) : translated(g.object, g.dx, g.dy));
   }
-  const drawn = (object: StageObject) =>
-    gesture?.object &&
-    gesture.target?.id ===
-      (object.kind === "placement"
-        ? object.value.fixtureId
-        : object.value.id) &&
-    gesture.target.kind === object.kind
-      ? translated(object, gesture.dx, gesture.dy)
-      : object;
+  const identity = (object: StageObject) => object.kind === "placement" ? object.value.fixtureId : object.value.id;
+  const drawn = (object: StageObject): StageObject => {
+    if (gesture?.object && gesture.target?.id === identity(object) && gesture.target.kind === object.kind)
+      return gesture.handle ? resizedByHandle(object, gesture.handle, gesture.dx, gesture.dy) : translated(object, gesture.dx, gesture.dy);
+    return preview && preview.kind === object.kind && identity(preview) === identity(object) ? preview : object;
+  };
   const isSelected = (kind: StageSelection["kind"], id: string) =>
     selection?.kind === kind && selection.id === id;
   const unit = camera.width / 100;
@@ -200,7 +209,7 @@ export function StageCanvas({
   return (
     <section className="stage-canvas-panel">
       <div className="stage-canvas-toolbar">
-        <strong>平面布置</strong>
+        <strong>选择与调整</strong>
         <label className="stage-check">
           <input
             type="checkbox"
@@ -229,7 +238,8 @@ export function StageCanvas({
         >
           <MagnifyingGlassPlusIcon />
         </button>
-        <button aria-label="查看全场" onClick={fit}>
+        <button aria-label="聚焦所选" title="聚焦所选（F）" disabled={!currentObject} onClick={() => fit(true)}>聚焦所选</button>
+        <button aria-label="查看全场" title="查看全场" onClick={() => fit()}>
           <ArrowsOutIcon />
         </button>
       </div>
@@ -242,7 +252,7 @@ export function StageCanvas({
         viewBox={`${camera.x - camera.width / 2} ${-camera.y - height / 2} ${camera.width} ${height}`}
         onPointerDown={start}
         onPointerMove={move}
-        onPointerUp={() => end(true)}
+        onPointerUp={(e) => { move(e); end(true); }}
         onPointerCancel={() => end(false)}
         onLostPointerCapture={() => end(false)}
         onKeyDown={(e) => {
@@ -250,17 +260,18 @@ export function StageCanvas({
             e.preventDefault();
             end(false);
           }
-          if (e.key.toLowerCase() === "f") fit();
+          if (e.key.toLowerCase() === "f") fit(!e.shiftKey);
         }}
         onWheel={(e) => {
           if (active.current) return;
           const factor = Math.exp(
             Math.max(-100, Math.min(100, e.deltaY)) * 0.003,
           );
-          setCamera((c) => ({
-            ...c,
-            width: Math.max(1, Math.min(200000, c.width * factor)),
-          }));
+          const at = world(e);
+          setCamera(c => {
+            const width = Math.max(1, Math.min(200000, c.width * factor));
+            return { x: at[0] + (c.x - at[0]) * width / c.width, y: at[1] + (c.y - at[1]) * width / c.width, width };
+          });
         }}
       >
         <defs>
@@ -299,16 +310,8 @@ export function StageCanvas({
             />
             <text
               className="stage-room-label"
-              x={
-                Number(space.outlineMeters[0]![0]) +
-                (gesture?.target?.id === space.id ? gesture.dx : 0) +
-                unit
-              }
-              y={
-                -Number(space.outlineMeters[0]![1]) -
-                (gesture?.target?.id === space.id ? gesture.dy : 0) -
-                unit
-              }
+              x={Math.min(...objectOutline(drawn({ kind: "space", value: space }))!.map(p => Number(p[0]))) + unit}
+              y={-Math.max(...objectOutline(drawn({ kind: "space", value: space }))!.map(p => Number(p[1]))) + unit * 2}
               fontSize={unit * 1.15}
             >
               {space.name}
@@ -357,9 +360,10 @@ export function StageCanvas({
             </g>
           );
         })}
+        {currentObject && <StageSelectionOverlay object={drawn(currentObject)} unit={unit} disabled={busy || pending} onResize={onMove} />}
       </svg>
       <footer>
-        <span>空白处拖动平移 · 滚动缩放 · Esc 取消</span>
+        <span>拖动对象移动 · 拖动手柄改尺寸 · Esc 取消</span>
         <span>网格 {step} 米</span>
       </footer>
     </section>
