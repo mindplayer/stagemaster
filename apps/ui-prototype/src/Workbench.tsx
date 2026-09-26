@@ -35,6 +35,7 @@ import {
   type SequenceHandle,
 } from "./components/workbench/SequenceWorkspace";
 import "./workbench.css";
+import { ResourcePool } from "./components/workbench/ResourcePool";
 
 const EMPTY: Snapshot = {
   generation: 0,
@@ -386,6 +387,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   }
   actions.current = {
     close: () => {
+      const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
+      if (dialog) {
+        dialog.querySelector<HTMLElement>("input,button")?.focus();
+        setError("请先保存或取消当前编辑，再关闭窗口");
+        return;
+      }
       void run(async () => {
         await request({ kind: "close" });
       });
@@ -762,6 +769,28 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     )}
                   </div>
                 ))}
+              <ResourcePool
+                key={project.id}
+                project={project}
+                scene={activeScene}
+                selected={selected}
+                busy={busy}
+                error={error}
+                visible={page === "scenes"}
+                beforeChange={() => run(async () => {})}
+                onEdit={async (command) => {
+                  const ok = await run(async () => {
+                    await edit({ op: "library", command });
+                    setNotice("资源已更新，可撤销恢复");
+                  });
+                  return ok ? current.current.project : null;
+                }}
+                onSelect={(ids) =>
+                  run(async () => {
+                    setSelectedIds(ids);
+                  })
+                }
+              />
               {page === "settings" && (
                 <dl className="wb-project-summary">
                   <dt>工程名称</dt>

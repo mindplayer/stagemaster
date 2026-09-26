@@ -1,17 +1,21 @@
 # 当前开发状态
 
-更新：2026-09-26。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
+更新：2026-09-27。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
-已完成本轮：[PLAYER-002A](tasks/PLAYER-002-esp32-probe.md)。基线 `6fce3db`；用户授权实板测试，补充 GATT 直连／连接层抽象及保活，并明确不保留原固件。共享播放内核已在 ESP32-S3 执行，电脑 BLE 读写／通知、心跳超时和三次重连通过；GPIO21 保持低电平，无 DMX 输出。父任务 PLAYER-002 继续。接口见[设备连接诊断](../module-api/device-link-probe.md)。
+已完成本轮：[DESKTOP-004](tasks/DESKTOP-004-groups-presets.md)。基线 `8513eee`；结果为本次 `feat(desktop): add ordered groups and reusable preset workflows` 提交。正式工作台已接有序灯组、预设池、引用／独立值、三种更新策略、依赖保护和属性复制；独立 Rust 资源模块复用原子历史／持久化／编译，见[接口](../module-api/editing-library.md)。86 项 Rust、28 项 UI、50 项格式、4 项 Sites、严格 Clippy／fmt／桌面构建与原生保存重开验收通过。逐灯预设增量完成，动态效果、完整现场编程器和通用共享预设仍待实施。
+
+已完成：[PLAYER-002A](tasks/PLAYER-002-esp32-probe.md)。基线 `6fce3db`；用户授权实板测试，补充 GATT 直连／连接层抽象及保活，并明确不保留原固件。共享播放内核已在 ESP32-S3 执行，电脑 BLE 读写／通知、心跳超时和三次重连通过；GPIO21 保持低电平，无 DMX 输出。父任务 PLAYER-002 继续。接口见[设备连接诊断](../module-api/device-link-probe.md)。
 
 已完成：[DESKTOP-003 / PLAYER-001A](tasks/DESKTOP-003-sequence-preview.md)。用户要求深入 goal 并再次强调模块化；本轮基线 `af3e83f`，结果为本次列表与离线预览提交。独立 Rust 执行器、工程列表编辑／编译和原生预览闭环已接通，接口见[运行模块契约](../module-api/sequence-preview.md)。
 
 已完成：[DESKTOP-002](tasks/DESKTOP-002-editor-workflow.md)，按 ADR-012 接通真实灯具／编排工作区、批量配适、多灯属性／RGB、搜索选择与场景复制；基线 `0cce099`，结果为本次工作台提交。
 
 ## 产品基线
+
+- DESKTOP-004：灯组有序成员、召回替换／追加／扣除、奇偶／反选、复制／编辑；预设按属性记录、引用或独立值应用、更新／合并／替换、引用场景与列表查看、解除引用和保留数值删除。选灯和查询归组件，真实语义归 Rust；不引入新语言或运行依赖。原生八灯、两场景联动、独立场景不随更新、撤销重做和重开引用完整通过。
 
 - DESKTOP-003 按 ADR-013 新增列表创建／复制、步骤插入／重排／复制／删除、精确时间和引用保护；纯 Rust 执行器支持延时、渐变、自动等待、暂停／继续、跳转、循环及默认值释放。预览与编辑版本／历史分离，复用 DMX 编码，支持灯值和分页 512 通道监看。70 项 Rust、25 项 UI、50 项格式、4 项 Sites、类型／构建／fmt／严格 Clippy 通过；原生操作与真实文件复核通过。没有真实输出、3D、时间线或设备包；PROJECT-001／PLAYER-001 父任务保持进行中。
 
@@ -50,6 +54,7 @@
 | [PROJECT-001A](tasks/PROJECT-001A-format-design.md) | done（格式设计） | 声光电与机构工程 `0.1.0-draft.1`、4 份 Schema、5 份样例、49 项开发期测试；未接入产品运行 |
 | [DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) | done | Tauri 工作台、最小灯光工程编辑／保存／重开、撤销及退出保护；无样例入口或模拟执行 |
 | [DESKTOP-002](tasks/DESKTOP-002-editor-workflow.md) | done | 组件式真实编排、多灯／RGB、批量配适、复制、搜索与恢复；原子事务、保存重开和原生验收通过 |
+| [DESKTOP-004](tasks/DESKTOP-004-groups-presets.md) | done（本轮增量） | 灯组与预设真实编辑、依赖／更新策略、属性复制、保存重开和预览核对；后续效果／编程器独立迭代 |
 | [DESKTOP-003 / PLAYER-001A](tasks/DESKTOP-003-sequence-preview.md) | done（本轮增量） | 真实场景列表、独立编译／时间执行、离线预览、DMX 数值监看、上下文与恢复；无设备接入 |
 | [UX-006](tasks/UX-006-effect-editor-design.md) | done（设计交付） | 总体工作区、效果编辑、共同指向可拖设计稿与 UE 边界；已验证理想指向交互，未实施产品业务／真实求解 |
 | [UX-007](tasks/UX-007-venue-layout-design.md) | done（研究／设计） | 舞台、观众区、过道创建及二维／三维联动；已核对成熟软件资料，尚无产品实现 |
@@ -68,6 +73,8 @@
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+DESKTOP-004：86 项 Rust（新增 8 项资源领域和 1 项 Session 原子历史／预览失效保护）、28 项 UI、50 项格式、4 项 Sites、类型、桌面打包、fmt 和严格 Clippy 通过。原生检验灯组反序／精确重排、空名定位、颜色掩码 24 项、两场景引用更新、取消不提交、解除后保持旧色、删除依赖错误／固化／撤销重做、来源灯亮度复制、搜索保留 7 台隐藏选择、窗口关闭编辑保护、复制后自动选中和保存重开。DMX 离线预览通道 1–4 为 204/16/160/224，对应 80% 亮度和 #10A0E0；无物理输出。约 1440×940 与 1100×800 窗口视觉检查通过。验收文件／日志保留项目内，退出验收工程后重新打开空白欢迎页。
 
 PLAYER-002A：基线 `6fce3db`，结果为本次设备探针提交。实读 ESP32-S3 v0.2、16 MB Flash，刷入诊断固件；按用户要求停止并删除旧固件读取文件。Xtensa Rust 1.97.0.0、esp-hal 1.2.2 与依赖锁定；同份 no_std 播放内核实板自检通过，512 属性／10000 次推进用时 4,089,015 微秒，过程中堆使用不增加。GATT 实际协商 MTU 247，短写／错误版本／错误会话／重复／乱序拒绝、16 次有效心跳、约 5.913 秒无有效心跳断开、三次重连和断线内核持续推进通过；128 KiB 配置堆的已用／剩余为 41020／90052 字节，连接前后相同。77 项 Rust、主工作区及固件 fmt／严格 Clippy、独立固件离线构建通过。保留裸机 ELF RWX 段告警，esp-radio 依赖为 beta；没有 DMX、PSRAM、节目文件上传、身份授权、独立供电／拔 USB、手机后台或 8 小时验收。详细限制见工单。
 

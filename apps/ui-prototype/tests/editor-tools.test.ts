@@ -37,6 +37,8 @@ const project: ProjectView = {
   domains: [],
   fixtures,
   scenes: [],
+  groups: [],
+  presets: [],
   sequences: [],
 };
 const scene: SceneView = {
@@ -49,6 +51,7 @@ const scene: SceneView = {
       mode: "literal",
       value: 12345,
       presetName: null,
+      presetId: null,
     },
     {
       fixtureId: "two",
@@ -56,6 +59,7 @@ const scene: SceneView = {
       mode: "preset",
       value: 12345,
       presetName: "红色",
+      presetId: "p",
     },
   ],
 };
@@ -78,6 +82,7 @@ test("mixed state distinguishes preset, literal, absent and release even at equa
         mode: "release",
         value: null,
         presetName: null,
+        presetId: null,
       },
     ],
   };
@@ -231,4 +236,51 @@ test("channel monitoring pages retain absolute addresses and reject invalid rang
   assert.equal(channelWindow(slots, "512", 99).rows[0].address, 512);
   for (const q of ["0", "3-2", "1-513", "abc"])
     assert.equal(channelWindow(slots, q, 0).valid, false);
+});
+
+test("group recall keeps stored order, appends uniquely and subtracts without reordering", async () => {
+  const { recallGroup, moveMember } = await import("../src/library-tools.ts");
+  assert.deepEqual(recallGroup(["c"], ["b", "a"], "replace"), ["b", "a"]);
+  assert.deepEqual(recallGroup(["c", "b"], ["b", "a"], "add"), ["c", "b", "a"]);
+  assert.deepEqual(recallGroup(["c", "b", "a"], ["b"], "subtract"), ["c", "a"]);
+  assert.deepEqual(moveMember(["a", "b", "c"], 2, -1), ["a", "c", "b"]);
+  assert.deepEqual(moveMember(["a", "b"], 0, -1), ["a", "b"]);
+});
+test("preset coverage excludes release and unrecorded values without treating zero as absent", async () => {
+  const { matchingValues, presetCoverage } = await import(
+    "../src/library-tools.ts"
+  );
+  const values = [
+    ...scene.values,
+    { ...scene.values[0], attribute: "green", value: 0 },
+  ];
+  assert.equal(matchingValues(values, ["one"], ["red", "green"]).length, 2);
+  assert.equal(
+    matchingValues(
+      [{ ...values[0], mode: "release", value: null }],
+      ["one"],
+      ["red"],
+    ).length,
+    0,
+  );
+  assert.deepEqual(
+    presetCoverage(
+      { id: "p", name: "p", values, usedByScenes: [], usedBySequences: [] },
+      ["one", "missing"],
+      ["red"],
+    ),
+    { fixtures: 1, attributes: 1 },
+  );
+});
+test("same-name presets with equal numbers remain distinct references", () => {
+  const values = scene.values.map((v, i) => ({
+    ...v,
+    mode: "preset",
+    presetName: "红色",
+    presetId: `preset-${i}`,
+  }));
+  assert.equal(
+    attributeState({ ...scene, values }, fixtures, "red").mixed,
+    true,
+  );
 });

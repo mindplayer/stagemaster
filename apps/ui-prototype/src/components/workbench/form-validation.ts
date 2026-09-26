@@ -9,7 +9,8 @@ export function validateEditorForm(form: HTMLFormElement | null): void {
     const label = field.getAttribute("aria-label") ?? "此项";
     const validity = field.validity;
     let error = "";
-    if (validity.valueMissing) error = `请填写${label}`;
+    if (validity.valueMissing || (field.required && !field.value.trim()))
+      error = `请填写${label}`;
     else if (validity.badInput) error = `${label}需要填写数字`;
     else if (validity.rangeUnderflow || validity.rangeOverflow)
       error = `${label}应在 ${field.getAttribute("min")}–${field.getAttribute("max")} 之间`;

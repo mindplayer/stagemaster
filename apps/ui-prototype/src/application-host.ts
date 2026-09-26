@@ -1,3 +1,4 @@
+import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
   SequenceEdit,
   SequenceView,
@@ -8,6 +9,7 @@ export type EditCommand =
   | EditOperation
   | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "library"; command: LibraryEdit }
   | { op: "sequence"; command: SequenceEdit }
   | { op: "setInfo"; name: string; description: string }
   | {
@@ -58,6 +60,7 @@ export interface SceneView {
     mode: string;
     value: number | null;
     presetName: string | null;
+    presetId: string | null;
   }[];
 }
 export interface ProjectView {
@@ -68,6 +71,8 @@ export interface ProjectView {
   domains: { id: string; name: string }[];
   fixtures: FixtureView[];
   scenes: SceneView[];
+  groups: GroupView[];
+  presets: PresetView[];
   sequences: SequenceView[];
 }
 export interface Snapshot {

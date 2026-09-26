@@ -396,3 +396,46 @@ mod preview_integration_tests {
         assert!(loaded(&mut session).is_null());
     }
 }
+
+#[cfg(test)]
+mod library_history_tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn library_transactions_restore_references_and_invalidate_preview_as_one_history_step() {
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = json!([]);
+        let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let sequence = doc.view().sequences[0].id.clone();
+        let preset = doc.view().presets[0].id.clone();
+        let before = serde_json::to_value(doc.view()).unwrap();
+        let mut s = Session::default();
+        s.replace(doc, None);
+        s.preview(crate::preview::Request::Load {
+            generation: s.generation,
+            sequence_id: sequence,
+        })
+        .unwrap();
+        let remove = |keep| {
+            serde_json::from_value(json!({"op":"library","command":{"kind":"remove","resource":"preset","id":preset,"keepValues":keep}})).unwrap()
+        };
+        assert!(s.edit(s.generation, remove(false)).is_err());
+        assert!(s.undo.is_empty());
+        s.edit(s.generation, remove(true)).unwrap();
+        assert_eq!(s.undo.len(), 1);
+        let preview =
+            serde_json::to_value(s.preview(crate::preview::Request::Snapshot).unwrap()).unwrap();
+        assert_eq!(preview["loaded"]["stale"], true);
+        assert!(s.document.as_ref().unwrap().view().presets.is_empty());
+        s.history(s.generation, false).unwrap();
+        assert_eq!(
+            serde_json::to_value(s.document.as_ref().unwrap().view()).unwrap(),
+            before
+        );
+        s.history(s.generation, true).unwrap();
+        assert!(s.document.as_ref().unwrap().view().presets.is_empty());
+    }
+}

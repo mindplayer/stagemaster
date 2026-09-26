@@ -10,6 +10,9 @@ use serde_json::{Value, json};
     deny_unknown_fields
 )]
 pub enum EditCommand {
+    Library {
+        command: crate::LibraryEdit,
+    },
     Sequence {
         command: crate::SequenceEdit,
     },
@@ -68,6 +71,7 @@ pub enum ValueMode {
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
+        EditCommand::Library { command } => crate::library::apply(root, command)?,
         EditCommand::Sequence { command } => crate::sequence::apply(root, command)?,
         EditCommand::Batch { commands } => {
             if commands.is_empty() || commands.len() > 256 {
@@ -167,7 +171,11 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
     }
     Ok(())
 }
-fn validate_target(root: &Value, fixture_id: &str, attribute: &str) -> Result<(), String> {
+pub(super) fn validate_target(
+    root: &Value,
+    fixture_id: &str,
+    attribute: &str,
+) -> Result<(), String> {
     let fixture = array(&root["lighting"], "fixtures")
         .iter()
         .find(|f| f["id"] == fixture_id)

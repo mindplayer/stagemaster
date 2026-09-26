@@ -1,6 +1,7 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
 mod compilation;
 mod editing;
+mod library;
 mod sequence;
 pub use compilation::{
     AttributeOutput, CompiledOutput, CompiledSequence, CompiledStep, FixtureOutput, PreviewOutput,
@@ -11,11 +12,12 @@ mod validation;
 mod view;
 
 pub use editing::{EditCommand, ValueMode};
+pub use library::{LibraryEdit, LibraryKind, PresetUpdate};
 use serde_json::{Value, json};
 use uuid::Uuid;
 pub use view::{
-    AttributeView, FixtureView, NamedView, ProfileView, ProjectView, SceneValue, SceneView,
-    SequenceView, StepView,
+    AttributeView, FixtureView, GroupView, NamedView, PresetView, ProfileView, ProjectView,
+    SceneValue, SceneView, SequenceView, StepView,
 };
 
 pub const MAX_BYTES: usize = 8 * 1024 * 1024;

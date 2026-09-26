@@ -183,7 +183,7 @@ export function FixtureBrowser({
                     {String(fixtures.indexOf(f) + 1).padStart(2, "0")}
                   </span>
                   <span className="wb-selection-dot">
-                    {selected.includes(f.id) ? "✓" : ""}
+                    {selected.includes(f.id) ? selected.indexOf(f.id) + 1 : ""}
                   </span>
                 </div>
                 <LightbulbIcon

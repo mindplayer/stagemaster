@@ -12,12 +12,30 @@ pub struct ProjectView {
     pub domains: Vec<NamedView>,
     pub fixtures: Vec<FixtureView>,
     pub scenes: Vec<SceneView>,
+    pub groups: Vec<GroupView>,
+    pub presets: Vec<PresetView>,
     pub sequences: Vec<SequenceView>,
 }
 #[derive(Serialize)]
 pub struct NamedView {
     pub id: String,
     pub name: String,
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupView {
+    pub id: String,
+    pub name: String,
+    pub fixture_ids: Vec<String>,
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PresetView {
+    pub id: String,
+    pub name: String,
+    pub values: Vec<SceneValue>,
+    pub used_by_scenes: Vec<NamedView>,
+    pub used_by_sequences: Vec<NamedView>,
 }
 #[derive(Serialize)]
 pub struct ProfileView {
@@ -59,6 +77,7 @@ pub struct SceneValue {
     pub mode: String,
     pub value: Option<u64>,
     pub preset_name: Option<String>,
+    pub preset_id: Option<String>,
 }
 #[derive(Serialize)]
 pub struct SequenceView {
@@ -85,6 +104,21 @@ pub(super) fn project(root: &Value) -> ProjectView {
         id: text(&root["project"], "id").into(),
         name: text(&root["project"], "name").into(),
         description: text(&root["project"], "description").into(),
+        groups: array(lighting, "groups")
+            .iter()
+            .map(|g| GroupView {
+                id: text(g, "id").into(),
+                name: text(g, "name").into(),
+                fixture_ids: array(g, "fixtureIds")
+                    .iter()
+                    .filter_map(|v| v.as_str().map(str::to_owned))
+                    .collect(),
+            })
+            .collect(),
+        presets: array(lighting, "presets")
+            .iter()
+            .map(|p| preset(lighting, p))
+            .collect(),
         sequences: array(lighting, "sequences")
             .iter()
             .map(|seq| SequenceView {
@@ -180,17 +214,7 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
     let preset = array(lighting, "presets")
         .iter()
         .find(|p| p["id"] == source["presetId"]);
-    let value = if source["kind"] == "preset" {
-        preset
-            .and_then(|p| {
-                array(p, "values")
-                    .iter()
-                    .find(|v| v["target"] == entry["target"])
-            })
-            .and_then(|v| v["value"]["value"].as_u64())
-    } else {
-        source["value"]["value"].as_u64()
-    };
+    let value = crate::library::resolved_value(lighting, entry).and_then(|v| v["value"].as_u64());
     SceneValue {
         fixture_id: text(&entry["target"], "fixtureId").into(),
         attribute: text(&entry["target"], "attribute").into(),
@@ -201,6 +225,7 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
         },
         value,
         preset_name: preset.map(|p| text(p, "name").into()),
+        preset_id: preset.map(|p| text(p, "id").into()),
     }
 }
 fn attribute_label(key: &str) -> &str {
@@ -212,5 +237,51 @@ fn attribute_label(key: &str) -> &str {
         "pan" => "水平",
         "tilt" => "垂直",
         _ => key,
+    }
+}
+
+fn preset(lighting: &Value, preset: &Value) -> PresetView {
+    let used_by_scenes: Vec<NamedView> = array(lighting, "scenes")
+        .iter()
+        .filter(|s| {
+            array(s, "assignments")
+                .iter()
+                .any(|a| a["source"]["presetId"] == preset["id"])
+        })
+        .map(|s| NamedView {
+            id: text(s, "id").into(),
+            name: text(s, "name").into(),
+        })
+        .collect();
+    let used_by_sequences = array(lighting, "sequences")
+        .iter()
+        .filter(|s| {
+            array(s, "steps").iter().any(|step| {
+                used_by_scenes
+                    .iter()
+                    .any(|scene| step["sceneId"] == scene.id)
+            })
+        })
+        .map(|s| NamedView {
+            id: text(s, "id").into(),
+            name: text(s, "name").into(),
+        })
+        .collect();
+    PresetView {
+        id: text(preset, "id").into(),
+        name: text(preset, "name").into(),
+        values: array(preset, "values")
+            .iter()
+            .map(|v| SceneValue {
+                fixture_id: text(&v["target"], "fixtureId").into(),
+                attribute: text(&v["target"], "attribute").into(),
+                mode: "literal".into(),
+                value: v["value"]["value"].as_u64(),
+                preset_id: None,
+                preset_name: None,
+            })
+            .collect(),
+        used_by_scenes,
+        used_by_sequences,
     }
 }

@@ -60,6 +60,7 @@ export function attributeState(
       value:
         entry?.value ?? f.attributes.find((a) => a.key === key)!.defaultValue,
       presetName: entry?.presetName ?? null,
+      presetId: entry?.presetId ?? null,
     };
   });
   const first = values[0];
@@ -67,7 +68,7 @@ export function attributeState(
     (v) =>
       v.value !== first.value ||
       v.mode !== first.mode ||
-      v.presetName !== first.presetName,
+      v.presetId !== first.presetId,
   );
   return { ...first, mixed };
 }
