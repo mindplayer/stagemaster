@@ -138,6 +138,9 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("舞台大师桌面应用启动失败")
         .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                tauri::async_runtime::block_on(app.state::<previs::Bridge>().close());
+            }
             if let tauri::RunEvent::ExitRequested {
                 api, code: None, ..
             } = event

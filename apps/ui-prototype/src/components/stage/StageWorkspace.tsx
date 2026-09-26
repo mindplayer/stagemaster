@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
   PlusIcon,
   HouseLineIcon,
@@ -33,6 +33,7 @@ export const StageWorkspace = forwardRef<
   StageHandle,
   {
     project: ProjectView;
+    previs: ReactNode;
     visible: boolean;
     busy: boolean;
     error: string;
@@ -41,9 +42,10 @@ export const StageWorkspace = forwardRef<
     onPending(value: boolean): void;
   }
 >(function StageWorkspace(
-  { project, visible, busy, error, beforeChange, onEdit, onPending },
+  { project, previs, visible, busy, error, beforeChange, onEdit, onPending },
   ref,
 ) {
+  const [view, setView] = useState<"plan" | "three">("plan");
   const [selection, setSelection] = useState<StageSelection | null>(null);
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
@@ -348,7 +350,12 @@ export const StageWorkspace = forwardRef<
           </button>
         </div>
       </aside>
-      <StageCanvas
+      <div className="stage-center">
+        <div className="stage-view-tabs" aria-label="舞台视图">
+          <button aria-pressed={view === "plan"} onClick={() => setView("plan")}>平面布置</button>
+          <button aria-pressed={view === "three"} onClick={() => setView("three")}>三维预演</button>
+        </div>
+        {view === "three" ? previs : <StageCanvas
         project={project}
         selection={selection}
         busy={busy}
@@ -361,7 +368,8 @@ export const StageWorkspace = forwardRef<
           moving.current = value;
           onPending(value || draftRef.current !== null);
         }}
-      />
+      />}
+      </div>
       <StageInspector
         object={object}
         project={project}

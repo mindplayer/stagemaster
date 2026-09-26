@@ -33,3 +33,32 @@
 环境判断补充：核对本机 UE 5.8.3 的 MetalRHI.cpp，Xcode／Metal 编译器检查位于 `PLATFORM_MAC && WITH_EDITOR`；当前只有命令行工具不足以启动 Mac 编辑器。Xcode 是本机开发构建依赖，成品应打包成独立预演组件，最终客户不必安装 Xcode、启动器或 UE 编辑器；也可由另一台已配置 Mac 构建本平台成品后分发，但目前没有该构建环境。参考 [Mac 要求](https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine)与[打包流程](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-your-project)。
 
 目标保持 active。待完成：布置操作完整原生验收；UE 消费端／实际项目、进程启动管理和灯光与构件、桌面来源选择与跨窗口草稿保护、同源播放实际画面同步、导航拾取和三维拖动、原生故障隔离与性能核验。完整摇头灯档案／动态路径／校准工作流及实灯验证另作后续增量。
+
+环境续记：用户已登录 Apple 并提供下载完成的 `Xcode_26.1.1_Apple_silicon.xip`（约 2.1 GB）。`pkgutil --check-signature` 显示 signed Apple Software，解压后 `codesign --verify --strict` 与 `spctl --assess` 通过；安装至 `/Applications/Xcode.app`，`DEVELOPER_DIR=... xcodebuild -version` 确认 26.1.1／17B100。`xcodebuild -license check` 返回 69，已打开许可对话框等待用户确认，未自动接受。UE 适配工程、只读协议解析与有限异步客户端正在 `apps/previs-unreal/` 实施；暂未编译，主产品基线仍为 `dd8a8ce`。
+
+UE 协议测试已补坐标反射／法线、十进制版本精度、灯位负数与安装关系保留、错误响应原子拒绝及亮度范围；消费端同时检查 generation 与内容版本，避免保存／重开后沿用旧编辑上下文。上述 C++ 测试仍未运行，等待 Xcode 首次许可与环境配置，不以源码编写完成代替验证通过。
+
+
+## 2026-09-27 续记：真实渲染、资源与内部视窗
+
+用户已完成 Xcode 许可；`xcodebuild -license check`、首次设置检查、`xcrun -sdk macosx metal -v` 通过，Metal 工具链 17B54。UE 5.8.3 工程首次编译通过；3 项项目测试（响应拒绝、官方库加载、坐标边界）通过。引擎启动阶段打印自身 UnifiedError／条件测试信息，与本项目测试结果分开记录。真实蓝色场景来自桌面保存工程，外部原生窗口房间与两灯光束可见；修复右手到左手转换多交换一次三角形顶点导致背面剔除的问题，并用 UE 自带 GenerateBoxMesh 验证绕序。未把尚未验收的镜头按钮／拖动算作通过。
+
+用户要求灯光效果库，已启用官方 DMXFixtures／Niagara，11 类蓝图、4 种光学材质和 3 个网格实际加载通过；固定灯模型／镜片和体积阴影调整代码已编译，最新画面待复核。见[资源清单](../../previsualization-library.md)。无实灯输出。
+
+用户明确要求应用内三维视窗，见 ADR-019。已取消外部窗口入口，桌面“舞台”工作区新增平面／三维切换，后台采用 `-RenderOffscreen`。官方 5.8 前端／信令库锁定；随机动态端口、分角色令牌、Origin 校验、来源限制与禁用控制台入口已实施。类型检查、桌面严格 Clippy／构建及 3 项信令单元／真实连接测试通过；首轮启动发现官方通用日志写入已关闭握手管道，已以正式 logger 替换接口处理。内部 WebRTC 画面／操作验收仍进行中。
+
+待完成：真实内嵌画面（非截图或独立窗口）、断线恢复、尺寸与输入、灯位草稿保护／一次撤销／保存重开、实际播放画面同步与故障隔离、性能及独立组件分发。目标 active，基线 dd8a8ce 后增量未提交。
+
+## 内部视窗增量审查
+
+本轮基线 `dd8a8ce`，结果为本次 `feat(previs): embed Unreal stage preview in desktop workspace` 提交。Epic Pixel Streaming 2、官方前端／信令库、宿主拥有的离屏 UE 进程已接通；工程桥与视频分开，未新增核心语言／播放器时钟。开发复现步骤见 [UE 适配器](../../../apps/previs-unreal/README.md)。
+
+已实际完成：
+
+- 原生 Tauri 内显示保存工程的真实房间、舞台、固定灯模型及蓝色场景光束；无外部 UE 窗口。
+- 中文原生工具栏控制俯视／透视、全场／所选聚焦、工作照明，点击画面拾取灯具并返回真实位置；操作不修改工程。
+- 平面与三维往返恢复相机和来源；重启桌面后从已保存文件恢复场地。视窗获得焦点才转发键盘，避免影响桌面输入。
+- 终止本程序拥有的离屏渲染进程后，桌面显示关闭／重开提示，工程保持已保存；正常关闭回收信令与渲染子进程。关闭状态清空视窗操作和陈旧查看状态。
+- 120 项 Rust、31 项 UI、3 项 UE、3 项信令测试，类型／fmt／严格 Clippy／桌面构建通过。UE 报告 succeeded=3、failed=0；日志未出现会话令牌。`ws` 8.22.0 锁定后信令依赖审计为 0 项已知漏洞。
+
+当前仍是开发环境组件，不能宣称可直接向客户分发。三维灯位编辑尚未授权给界面；拖动、统一选择／草稿保护、一次撤销／保存重开和列表执行画面联动继续。光斑色彩／曝光和帧率／延迟尚未按真实灯具定标，完整摇头灯／图案盘／矩阵语义没有因为资源库可加载而自动获得。整体任务保持进行中。

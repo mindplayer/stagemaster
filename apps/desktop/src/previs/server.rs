@@ -57,6 +57,15 @@ pub(super) struct Server {
     task: tauri::async_runtime::JoinHandle<()>,
 }
 impl Server {
+    pub(super) fn configure_renderer(&self, command: &mut std::process::Command) {
+        command
+            .env("STAGEMASTER_PREVIS_URL", format!("http://{}", self.address))
+            .env(
+                "STAGEMASTER_PREVIS_AUTHORIZATION",
+                &self.context.authorization,
+            )
+            .env("STAGEMASTER_PREVIS_SESSION", &self.context.bridge_id);
+    }
     pub(super) async fn start(shared: SharedSession, changed: Changed) -> Result<Self, String> {
         let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0))
             .await
@@ -117,6 +126,7 @@ impl Server {
                     now.saturating_duration_since(last) < Duration::from_secs(2)
                 }),
             port: Some(self.address.port()),
+            viewer_url: None,
             source,
             problem: activity.and_then(|a| a.problem.clone()),
         }

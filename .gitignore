@@ -13,3 +13,5 @@
 .env
 .env.*
 !.env.example
+
+/tools/previs/node_modules/

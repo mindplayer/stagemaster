@@ -1,4 +1,5 @@
 import type { StageEdit, StageView } from "./stage-types";
+import type { PrevisRequest, PrevisStatus } from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
   SequenceEdit,
@@ -96,5 +97,6 @@ export interface ApplicationHost {
   kind: "desktop" | "browser";
   request(request: ProjectRequest): Promise<Snapshot>;
   preview(request: PreviewRequest): Promise<PreviewSnapshot>;
+  previs(request: PrevisRequest): Promise<PrevisStatus>;
   onCloseRequested(handler: () => void): Promise<() => void>;
 }

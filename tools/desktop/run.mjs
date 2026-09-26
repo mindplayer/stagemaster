@@ -23,6 +23,7 @@ const child = spawn(
     cwd: resolve(root, "apps/desktop"),
     env: {
       ...process.env,
+      STAGEMASTER_NODE_BINARY: process.execPath,
       CARGO_HOME: resolve(root, "tmp/cargo-home"),
       TMPDIR: resolve(root, "tmp"),
       npm_config_cache: resolve(root, "tmp/npm-cache"),

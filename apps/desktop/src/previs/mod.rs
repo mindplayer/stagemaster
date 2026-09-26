@@ -1,5 +1,6 @@
 //! Desktop transport boundary. The renderer never owns a document, show clock or output lease.
 pub(crate) mod protocol;
+mod renderer;
 mod server;
 
 use crate::session::Session;
@@ -11,7 +12,35 @@ use tauri::{Emitter, Manager};
 
 pub(crate) type SharedSession = Arc<Mutex<Session>>;
 #[derive(Default)]
-pub(crate) struct Bridge(tokio::sync::Mutex<Option<server::Server>>);
+pub(crate) struct Bridge(tokio::sync::Mutex<Runtime>);
+
+#[derive(Default)]
+struct Runtime {
+    server: Option<server::Server>,
+    renderer: Option<renderer::Renderer>,
+    problem: Option<String>,
+}
+impl Runtime {
+    fn stop(&mut self) {
+        self.server.take();
+        self.renderer.take();
+    }
+    fn observe_exit(&mut self) {
+        if self
+            .renderer
+            .as_mut()
+            .is_some_and(renderer::Renderer::exited)
+        {
+            self.stop();
+            self.problem = Some("三维预演已关闭，可重新打开".into());
+        }
+    }
+}
+impl Bridge {
+    pub(crate) async fn close(&self) {
+        self.0.lock().await.stop();
+    }
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +48,7 @@ pub(crate) struct Status {
     enabled: bool,
     connected: bool,
     port: Option<u16>,
+    viewer_url: Option<String>,
     source: Source,
     problem: Option<String>,
 }
@@ -47,10 +77,12 @@ pub(crate) async fn previs_request(
         Request::Status | Request::Enable | Request::Disable => {}
     }
     let state = app.state::<Bridge>();
-    let mut bridge = state.0.lock().await;
+    let mut runtime = state.0.lock().await;
+    runtime.observe_exit();
     match request {
         Request::Enable
-            if bridge
+            if runtime
+                .server
                 .as_ref()
                 .is_none_or(|server| !server.status(Source::Defaults, Instant::now()).enabled) =>
         {
@@ -59,20 +91,23 @@ pub(crate) async fn previs_request(
                 let generation = session.previs_revision().generation;
                 session.set_previs_editing(generation, false)?;
             }
-            bridge.take();
+            runtime.stop();
             let notify_app = app.clone();
-            *bridge = Some(
-                server::Server::start(
-                    shared.clone(),
-                    Arc::new(move || {
-                        let _ = notify_app.emit("project-updated", ());
-                    }),
-                )
-                .await?,
-            );
+            let server = server::Server::start(
+                shared.clone(),
+                Arc::new(move || {
+                    let _ = notify_app.emit("project-updated", ());
+                }),
+            )
+            .await?;
+            let renderer = renderer::Renderer::start(&app, &server)?;
+            runtime.server = Some(server);
+            runtime.renderer = Some(renderer);
+            runtime.problem = None;
         }
         Request::Disable => {
-            bridge.take();
+            runtime.stop();
+            runtime.problem = None;
         }
         _ => {}
     }
@@ -80,14 +115,20 @@ pub(crate) async fn previs_request(
         .try_lock()
         .map_err(|_| "工程正在处理其他操作")?
         .previs_source();
-    Ok(bridge.as_ref().map_or(
+    let mut status = runtime.server.as_ref().map_or(
         Status {
             enabled: false,
             connected: false,
             port: None,
+            viewer_url: None,
             source: source.clone(),
-            problem: None,
+            problem: runtime.problem.clone(),
         },
         |server| server.status(source, Instant::now()),
-    ))
+    );
+    status.viewer_url = runtime
+        .renderer
+        .as_ref()
+        .map(|renderer| renderer.viewer_url().to_string());
+    Ok(status)
 }

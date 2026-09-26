@@ -5,6 +5,7 @@ export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
       preview: (request) => invoke("preview_request", { request }),
+      previs: (request) => invoke("previs_request", { request }),
       request: (request) => invoke("project_request", { request }),
       onCloseRequested: (handler) => listen("project-close-requested", handler),
     }
@@ -12,6 +13,9 @@ export const applicationHost: ApplicationHost = isTauri()
       kind: "browser",
       preview: async () => {
         throw new Error("请使用桌面应用预览");
+      },
+      previs: async () => {
+        throw new Error("请使用桌面应用打开三维预演");
       },
       request: async () => {
         throw new Error("请使用桌面应用打开本地工程");

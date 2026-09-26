@@ -1,0 +1,36 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Visualization",
+  "Description": "舞台大师独立三维预演组件",
+  "DisableEnginePluginsByDefault": true,
+  "Modules": [
+    {
+      "Name": "StageMasterPreview",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "ProceduralMeshComponent",
+      "Enabled": true
+    },
+    {
+      "Name": "DMXFixtures",
+      "Enabled": true
+    },
+    {
+      "Name": "Niagara",
+      "Enabled": true
+    },
+    {
+      "Name": "OpenXR",
+      "Enabled": false
+    },
+    {
+      "Name": "PixelStreaming2",
+      "Enabled": true
+    }
+  ]
+}

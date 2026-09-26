@@ -41,6 +41,7 @@ import {
   type StageHandle,
 } from "./components/stage/StageWorkspace";
 import { ResourcePool } from "./components/workbench/ResourcePool";
+import { PrevisPanel } from "./components/stage/PrevisPanel";
 
 const EMPTY: Snapshot = {
   generation: 0,
@@ -651,12 +652,14 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               onClick={() => switchPage("stage")}
             >
               <CubeIcon />
-              布置<span>{project.stage.spaces.length}</span>
+              舞台<span>{project.stage.spaces.length}</span>
             </button>
           </nav>
           <StageWorkspace
             key={`stage:${project.id}`}
             ref={stage}
+            previs={<PrevisPanel host={host} scenes={project.scenes} busy={busy}
+              generation={() => current.current.generation} run={(work) => run(work)} />}
             project={project}
             visible={page === "stage"}
             busy={busy}

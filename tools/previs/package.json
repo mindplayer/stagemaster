@@ -1,0 +1,10 @@
+{
+  "name": "stagemaster-previs-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@epicgames-ps/lib-pixelstreamingcommon-ue5.8": "0.1.0",
+    "@epicgames-ps/lib-pixelstreamingsignalling-ue5.8": "0.2.0",
+    "ws": "8.22.0"
+  }
+}
