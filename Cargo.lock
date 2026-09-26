@@ -3179,6 +3179,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "stagemaster-playback",
  "stagemaster-project",
  "stagemaster-project-store",
  "tauri",
@@ -3216,12 +3217,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-playback"
+version = "0.1.0"
+
+[[package]]
 name = "stagemaster-project"
 version = "0.1.0"
 dependencies = [
  "jsonschema",
  "serde",
  "serde_json",
+ "stagemaster-dmx",
+ "stagemaster-domain",
+ "stagemaster-engine",
+ "stagemaster-playback",
  "uuid",
 ]
 

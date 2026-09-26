@@ -6,6 +6,10 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stagemaster-playback = { path = "../stagemaster-playback" }
+stagemaster-dmx = { path = "../stagemaster-dmx" }
+stagemaster-domain = { path = "../stagemaster-domain" }
+stagemaster-engine = { path = "../stagemaster-engine" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 jsonschema = { version = "=0.57.0", default-features = false }

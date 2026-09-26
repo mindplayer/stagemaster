@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod preview;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
@@ -63,6 +64,19 @@ async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snap
     .await
     .map_err(|_| "工程操作未完成".to_string())?
 }
+#[tauri::command]
+async fn preview_request(
+    app: tauri::AppHandle,
+    request: preview::Request,
+) -> Result<preview::Snapshot, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<Mutex<Session>>();
+        let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
+        session.preview(request)
+    })
+    .await
+    .map_err(|_| "预览操作未完成".to_string())?
+}
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(Session::default()))
@@ -114,7 +128,7 @@ fn main() {
                 let _ = window.emit("project-close-requested", ());
             }
         })
-        .invoke_handler(tauri::generate_handler![project_request])
+        .invoke_handler(tauri::generate_handler![project_request, preview_request])
         .build(tauri::generate_context!())
         .expect("舞台大师桌面应用启动失败")
         .run(|app, event| {

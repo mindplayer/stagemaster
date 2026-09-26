@@ -1,7 +1,14 @@
+import type {
+  SequenceEdit,
+  SequenceView,
+  PreviewRequest,
+  PreviewSnapshot,
+} from "./sequence-types";
 export type EditCommand =
   | EditOperation
   | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "sequence"; command: SequenceEdit }
   | { op: "setInfo"; name: string; description: string }
   | {
       op: "addFixture";
@@ -61,6 +68,7 @@ export interface ProjectView {
   domains: { id: string; name: string }[];
   fixtures: FixtureView[];
   scenes: SceneView[];
+  sequences: SequenceView[];
 }
 export interface Snapshot {
   generation: number;
@@ -79,5 +87,6 @@ export type ProjectRequest =
 export interface ApplicationHost {
   kind: "desktop" | "browser";
   request(request: ProjectRequest): Promise<Snapshot>;
+  preview(request: PreviewRequest): Promise<PreviewSnapshot>;
   onCloseRequested(handler: () => void): Promise<() => void>;
 }

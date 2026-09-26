@@ -9,6 +9,7 @@ license.workspace = true
 tauri-build = { version = "=2.6.3", features = [] }
 
 [dependencies]
+stagemaster-playback = { path = "../../crates/stagemaster-playback" }
 stagemaster-project = { path = "../../crates/stagemaster-project" }
 stagemaster-project-store = { path = "../../crates/stagemaster-project-store" }
 serde = { version = "=1.0.229", features = ["derive"] }

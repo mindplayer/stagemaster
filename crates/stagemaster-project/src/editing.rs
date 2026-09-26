@@ -10,6 +10,9 @@ use serde_json::{Value, json};
     deny_unknown_fields
 )]
 pub enum EditCommand {
+    Sequence {
+        command: crate::SequenceEdit,
+    },
     Batch {
         commands: Vec<EditCommand>,
     },
@@ -65,6 +68,7 @@ pub enum ValueMode {
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
+        EditCommand::Sequence { command } => crate::sequence::apply(root, command)?,
         EditCommand::Batch { commands } => {
             if commands.is_empty() || commands.len() > 256 {
                 return Err("一次批量编辑需要 1–256 项操作".into());
@@ -181,18 +185,18 @@ fn validate_target(root: &Value, fixture_id: &str, attribute: &str) -> Result<()
     Ok(())
 }
 
-fn list<'a>(root: &'a mut Value, key: &str) -> Result<&'a mut Vec<Value>, String> {
+pub(super) fn list<'a>(root: &'a mut Value, key: &str) -> Result<&'a mut Vec<Value>, String> {
     root["lighting"][key]
         .as_array_mut()
         .ok_or_else(|| "工程没有灯光模块".into())
 }
-fn find<'a>(items: &'a mut [Value], id: &str) -> Result<&'a mut Value, String> {
+pub(super) fn find<'a>(items: &'a mut [Value], id: &str) -> Result<&'a mut Value, String> {
     items
         .iter_mut()
         .find(|item| item["id"] == id)
         .ok_or_else(|| "对象已不存在，请重新选择".into())
 }
-fn remove(items: &mut Vec<Value>, id: &str) -> Result<(), String> {
+pub(super) fn remove(items: &mut Vec<Value>, id: &str) -> Result<(), String> {
     let index = items
         .iter()
         .position(|item| item["id"] == id)

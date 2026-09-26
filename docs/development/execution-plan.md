@@ -10,11 +10,11 @@
 - [HW-001](tasks/HW-001-first-player-baseline.md) 已完成范围和资料评估：首版同时交付软件与独立播放盒，现有微雪 ESP32-S3-RS485-CAN、1 路 DMX。
 - [HW-002](tasks/HW-002-project-segments.md) 已比较工程内容、存储与传输：主机生成自包含播放包；整场或片段由实际预算决定；USB 首先验证，产品无线文件传输优先局域网，蓝牙保留配网／控制候选。依据 [PRODUCT-ADR-002](decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)。
 - [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；最小灯光子集已随 DESKTOP-001 接入 Rust 读写，执行尚未接入。
-- 可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开；[UX-006](tasks/UX-006-effect-editor-design.md) 已交付交互设计和三张桌面视觉参考，继续按 MacBook 收敛主界面、效果编辑与三维拖动。当前暂不扩展业务层；随后按[编排端迭代计划](desktop-iteration-plan.md)把已有能力接到新工作区，再推进 PROJECT-001 场景列表／时间线与 PLAYER-001 Rust 播放。UE 空间搭建和专业预演沿用独立后端方向；iPad 留作后续适配，不阻塞当前任务。正式入口不增加演示数据、教学展板或空壳功能。
+- 可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开；[UX-006](tasks/UX-006-effect-editor-design.md) 已交付交互设计和三张桌面视觉参考，继续按 MacBook 收敛主界面、效果编辑与三维拖动。用户后续已授权真实业务增量；继续按[编排端迭代计划](desktop-iteration-plan.md)把已有能力接到新工作区，再推进 PROJECT-001 场景列表／时间线与 PLAYER-001 Rust 播放。UE 空间搭建和专业预演沿用独立后端方向；iPad 留作后续适配，不阻塞当前任务。正式入口不增加演示数据、教学展板或空壳功能。
 
 ## 软件先行与硬件承接
 
-先建立独立于界面和板卡的软件规则，以可运行结果确定接口。这里的软件核心包括主机编译器和设备将要复用的受限播放内核，不能只完成电脑端，再由固件另写一套场景语义。当前 A0 是静态求值原型，尚无持续播放调度；现有依赖和数据结构也不能直接视为适合 MCU。
+先建立独立于界面和板卡的软件规则，以可运行结果确定接口。这里的软件核心包括主机编译器和设备将要复用的受限播放内核，不能只完成电脑端，再由固件另写一套场景语义。既有 A0 保持静态混合原型；DESKTOP-003 / PLAYER-001A 新增独立、有界的单列表时间执行与主机编译。现有代码仍不能未经测量即视为适合 MCU。
 
 | 边界 | 软件负责 | 硬件／宿主适配负责 |
 | --- | --- | --- |
@@ -29,7 +29,7 @@
 
 ## 首次交付顺序
 
-以下任务中 PROJECT-001 已完成格式设计与最小灯光编辑持久化增量，场景列表／编译仍待实现；PLAYER／AUTH 仍为计划任务。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
+以下任务中 PROJECT-001 已完成格式设计与最小灯光编辑持久化增量，场景列表／单路编译与离线预览已由 DESKTOP-003 / PLAYER-001A 实现；PLAYER-001 父任务继续，其他 PLAYER／AUTH 仍为计划任务。每项开工前形成精确契约、写入范围和独立验收工单；不把接口草案当作已冻结协议。
 
 | 顺序／任务 | 最小结果 | 出口证据 |
 | --- | --- | --- |

@@ -2,7 +2,7 @@
 
 新项目工作目录：`/Users/sunqi/projects/stagemaster`。
 
-本文件用于新会话交接，控台研究基线为 2026-09-11，产品能力规划与界面设计更新于 2026-09-24，工程格式草案更新于 2026-09-23。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型；编号校验与默认值合成缺陷已修复，其他领域／运行边界仍待落实，尚不能视为完整控台内核。已新增 Tauri 桌面工作台：React 接入独立 Rust 工程模块，完成最小灯光编辑、事务保存和重开；原舞台画布／时间线交互代码保留待正式接入。持续调度、真实输出和云端仍未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
+本文件用于新会话交接，控台研究基线为 2026-09-11，产品能力规划与界面设计更新于 2026-09-24，工程格式草案更新于 2026-09-23。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型；编号校验与默认值合成缺陷已修复，其他领域／运行边界仍待落实，尚不能视为完整控台内核。已新增 Tauri 桌面工作台：React 接入独立 Rust 工程模块，完成最小灯光编辑、事务保存和重开；原舞台画布／时间线交互代码保留待正式接入。已增加独立 Rust 场景列表执行器与桌面离线预览；真实设备输出和云端仍未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
 
 当前开发入口：
 
@@ -12,7 +12,7 @@
 - [灯具定义与个人灯库](docs/ui-design/fixture-definition-design.md)：可复用属性、硬件变体／模式、通道功能分段及建档工作流，借鉴 MA3／Titan／GDTF；已形成设计，尚未实现通用灯具编辑器或实灯测试台。
 - [当前 Mac 开发与未来 iPad 准备](docs/development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)：用户目前没有 iPad，现阶段按 MacBook 设计、开发和验收；保留未来主力平板所需的共享核心、输入／布局和渲染适配空间，不前置移动开发。
 - [效果编辑界面重新定义](docs/ui-design/effect-editor-design.md)：当前优先任务；舞台选灯、曲线／灯具顺序与时间编排，含[三张布局候选](docs/ui-design/effect-editor-visuals.md)和 UE 空间视图边界；属于设计交付，未替换正式界面。
-- [桌面工作台](docs/ui-design/desktop-workbench.md)：DESKTOP-002 已接通组件式灯具／编排工作区、批量配适、多灯共同属性／RGB、搜索与选择保持、场景复制、原子撤销和真实 JSON 保存／重开；[后续迭代顺序](docs/development/desktop-iteration-plan.md)。
+- [桌面工作台](docs/ui-design/desktop-workbench.md)：DESKTOP-003 已补列表编辑、精确渐变／延时、自动跟随、循环、暂停／停止与真实 512 通道预览，见[运行模块接口](docs/module-api/sequence-preview.md)。DESKTOP-002 已接通组件式灯具／编排工作区、批量配适、多灯共同属性／RGB、搜索与选择保持、场景复制、原子撤销和真实 JSON 保存／重开；[后续迭代顺序](docs/development/desktop-iteration-plan.md)。
 
 - [开发方法](docs/development/README.md)：当前 Astra 会话直接负责规划、实现、验证和集成。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前状态](docs/development/STATE.md)。
 - [当前执行计划](docs/development/execution-plan.md)：产品主线与任务流程；已取消 Sol／Qwen 委派，旧计划、工作器与试验副本已清理。

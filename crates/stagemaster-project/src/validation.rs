@@ -88,6 +88,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
             }
         }
     }
+    crate::sequence::validate(root)?;
     Ok(())
 }
 
@@ -110,9 +111,6 @@ fn supported(root: &Value) -> Result<(), String> {
         if root.get(key).is_some() {
             return Err(format!("当前版本尚不支持此工程中的 {key} 模块，工程未打开"));
         }
-    }
-    if !array(&root["lighting"], "sequences").is_empty() {
-        return Err("当前版本尚不支持场景列表工程，工程未打开".into());
     }
     let mut capabilities = BTreeSet::new();
     for capability in array(root, "requires") {

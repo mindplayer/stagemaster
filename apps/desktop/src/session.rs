@@ -12,6 +12,8 @@ pub(crate) struct Session {
     undo: Vec<Document>,
     redo: Vec<Document>,
     generation: u32,
+    content_version: u64,
+    preview: crate::preview::Preview,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +26,42 @@ pub(crate) struct Snapshot {
     can_redo: bool,
 }
 impl Session {
+    pub(crate) fn preview(
+        &mut self,
+        request: crate::preview::Request,
+    ) -> Result<crate::preview::Snapshot, String> {
+        use crate::preview::Request;
+        match request {
+            Request::Snapshot => {}
+            Request::Load {
+                generation,
+                sequence_id,
+            } => {
+                self.guard(generation)?;
+                self.preview.load(
+                    self.document.as_ref().ok_or("请先打开工程")?,
+                    self.content_version,
+                    &sequence_id,
+                )?;
+            }
+            Request::Control {
+                epoch,
+                serial,
+                command,
+            } => {
+                self.preview.control(
+                    self.content_version,
+                    epoch,
+                    serial,
+                    command,
+                    self.preview.now(),
+                )?;
+            }
+        }
+        self.preview
+            .snapshot(self.content_version, self.preview.now())
+    }
+
     pub(crate) fn snapshot(&self) -> Snapshot {
         Snapshot {
             generation: self.generation,
@@ -57,6 +95,8 @@ impl Session {
         self.file = file;
         self.undo.clear();
         self.redo.clear();
+        self.preview.clear();
+        self.content_version += 1;
         self.generation += 1;
     }
     pub(crate) fn create(&mut self, app: &tauri::AppHandle, generation: u32) -> Result<(), String> {
@@ -117,6 +157,7 @@ impl Session {
             }
             self.redo.clear();
             self.document = Some(next);
+            self.content_version += 1;
             self.generation += 1;
         }
         Ok(())
@@ -134,6 +175,7 @@ impl Session {
                 destination.push(current);
             }
             self.document = Some(next);
+            self.content_version += 1;
             self.generation += 1;
         }
         Ok(())
@@ -302,5 +344,55 @@ mod tests {
         assert!(!s.redo.is_empty());
         s.edit(s.generation, rename("二")).unwrap();
         assert!(s.redo.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod preview_integration_tests {
+    use super::*;
+    fn loaded(session: &mut Session) -> serde_json::Value {
+        serde_json::to_value(session.preview(crate::preview::Request::Snapshot).unwrap()).unwrap()["loaded"].clone()
+    }
+    #[test]
+    fn preview_is_not_history_and_only_content_changes_invalidate_it() {
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = serde_json::json!([]);
+        let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let id = doc.view().sequences[0].id.clone();
+        let mut session = Session::default();
+        session.replace(doc, None);
+        let generation = session.generation;
+        session
+            .preview(crate::preview::Request::Load {
+                generation,
+                sequence_id: id,
+            })
+            .unwrap();
+        assert!(session.undo.is_empty());
+        assert_eq!(session.generation, generation);
+        assert_eq!(loaded(&mut session)["stale"], false);
+        let name = session.document.as_ref().unwrap().view().name;
+        let description = session.document.as_ref().unwrap().view().description;
+        session
+            .edit(generation, EditCommand::SetInfo { name, description })
+            .unwrap();
+        assert_eq!(loaded(&mut session)["stale"], false);
+        session
+            .edit(
+                generation,
+                EditCommand::SetInfo {
+                    name: "新名".into(),
+                    description: String::new(),
+                },
+            )
+            .unwrap();
+        assert_eq!(loaded(&mut session)["stale"], true);
+        session.history(session.generation, false).unwrap();
+        assert_eq!(loaded(&mut session)["stale"], true);
+        session.replace(Document::new("新工程").unwrap(), None);
+        assert!(loaded(&mut session).is_null());
     }
 }

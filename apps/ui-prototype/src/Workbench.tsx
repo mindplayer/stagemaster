@@ -7,6 +7,7 @@ import {
   ArrowClockwiseIcon,
   LightbulbIcon,
   StackIcon,
+  ListNumbersIcon,
   GearSixIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -29,6 +30,10 @@ import type { ParameterHandle } from "./components/workbench/ParameterPanel";
 import { DeleteDialog } from "./components/workbench/DeleteDialog";
 import { availableAddress, fixtureMatches, uniqueName } from "./editor-tools";
 import { validateEditorForm } from "./components/workbench/form-validation";
+import {
+  SequenceWorkspace,
+  type SequenceHandle,
+} from "./components/workbench/SequenceWorkspace";
 import "./workbench.css";
 
 const EMPTY: Snapshot = {
@@ -39,7 +44,7 @@ const EMPTY: Snapshot = {
   canUndo: false,
   canRedo: false,
 };
-type Page = "fixtures" | "scenes" | "settings";
+type Page = "fixtures" | "scenes" | "sequences" | "settings";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -92,6 +97,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const pendingRef = useRef(false);
   const [parameterPending, setParameterPending] = useState(false);
   const parameters = useRef<ParameterHandle>(null);
+  const sequences = useRef<SequenceHandle>(null);
+  const [sequencePending, setSequencePending] = useState(false);
   const htmlProjectForm = useRef<HTMLFormElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const actions = useRef({
@@ -108,7 +115,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   );
   const activeScene = project?.scenes.find((s) => s.id === sceneId);
   const activeFixture = project?.fixtures.find((f) => f.id === patchId);
-  const dirty = snapshot.dirty || pending || parameterPending;
+  const dirty =
+    snapshot.dirty || pending || parameterPending || sequencePending;
 
   function setForm(next: ProjectForm | null, changed = false) {
     formRef.current = next;
@@ -190,11 +198,16 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       }
     }
     commands.push(...(parameters.current?.collect() ?? []));
-    if (!commands.length) return;
+    commands.push(...(sequences.current?.collect() ?? []));
+    if (!commands.length) {
+      sequences.current?.accept();
+      return;
+    }
     if (commands.length > 256)
       throw new Error("一次最多修改 256 项，请先应用部分修改");
     await edit({ op: "batch", commands });
     parameters.current?.accept();
+    sequences.current?.accept();
     setParameterPending(false);
     setNotice("修改已应用");
     if (draft && pendingRef.current) {
@@ -244,15 +257,17 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     const fixture = p.fixtures.find((f) => f.id === patchId);
     const scene = p.scenes.find((s) => s.id === sceneId);
     setForm(
-      nextPage === "settings"
-        ? infoForm(p)
-        : nextPage === "fixtures"
-          ? fixture
-            ? fixtureForm(fixture)
-            : null
-          : scene
-            ? sceneForm(scene)
-            : null,
+      nextPage === "sequences"
+        ? null
+        : nextPage === "settings"
+          ? infoForm(p)
+          : nextPage === "fixtures"
+            ? fixture
+              ? fixtureForm(fixture)
+              : null
+            : scene
+              ? sceneForm(scene)
+              : null,
     );
   }
   function fileAction(kind: "new" | "open") {
@@ -498,7 +513,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             aria-label="撤销"
             title="撤销（⌘Z / Ctrl+Z）"
             disabled={
-              busy || (!snapshot.canUndo && !pending && !parameterPending)
+              busy ||
+              (!snapshot.canUndo &&
+                !pending &&
+                !parameterPending &&
+                !sequencePending)
             }
             onClick={() => history(false)}
           >
@@ -507,7 +526,13 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <button
             aria-label="重做"
             title="重做（⇧⌘Z / Ctrl+Shift+Z）"
-            disabled={busy || !snapshot.canRedo || pending || parameterPending}
+            disabled={
+              busy ||
+              !snapshot.canRedo ||
+              pending ||
+              parameterPending ||
+              sequencePending
+            }
             onClick={() => history(true)}
           >
             <ArrowClockwiseIcon />
@@ -572,6 +597,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               编排<span>{project.scenes.length}</span>
             </button>
             <button
+              className={page === "sequences" ? "active" : ""}
+              aria-pressed={page === "sequences"}
+              disabled={busy}
+              onClick={() => switchPage("sequences")}
+            >
+              <ListNumbersIcon />
+              列表与预览<span>{project.sequences.length}</span>
+            </button>
+            <button
               className={page === "fixtures" ? "active" : ""}
               aria-pressed={page === "fixtures"}
               disabled={busy}
@@ -590,7 +624,29 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               工程
             </button>
           </nav>
+          <SequenceWorkspace
+            key={project.id}
+            ref={sequences}
+            project={project}
+            host={host}
+            generation={snapshot.generation}
+            busy={busy}
+            visible={page === "sequences"}
+            beforeChange={() => run(async () => {})}
+            onPending={(value) => {
+              setSequencePending(value);
+              if (!value) setError("");
+            }}
+            onEdit={async (command) => {
+              const ok = await run(async () => {
+                await edit(command);
+                setNotice("列表已更新，可撤销恢复");
+              });
+              return ok ? current.current.project : null;
+            }}
+          />
           <div
+            hidden={page === "sequences"}
             className={`wb-layout ${page === "scenes" ? "wb-arrangement" : ""}`}
           >
             {page === "scenes" && (
@@ -743,7 +799,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 htmlProjectForm={htmlProjectForm}
                 busy={busy}
                 pending={pending}
-                page={page}
+                page={page === "sequences" ? "scenes" : page}
                 project={project}
                 activeFixture={page === "fixtures" ? activeFixture : undefined}
                 onChange={(patch) => {
@@ -774,7 +830,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 ? "正在处理…"
                 : error
                   ? "修改未完成"
-                  : pending || parameterPending
+                  : pending || parameterPending || sequencePending
                     ? "有待应用的修改"
                     : notice || (dirty ? "有未保存的修改" : "已保存")}
             </span>

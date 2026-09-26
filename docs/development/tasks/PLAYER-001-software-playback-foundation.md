@@ -1,6 +1,6 @@
 # PLAYER-001：软件播放基础与模拟设备
 
-- 状态：planned（目标与验收边界已细化；精确契约及实现待开始）
+- 状态：in progress（PLAYER-001A 已实现独立时间执行、工程编译与桌面预览；父任务未结项）
 - 负责人：当前 Astra 会话直接负责设计、实现和验证
 - 依赖：CORE-001／002、HW-001／002；正式工程编译依赖 [PROJECT-001](PROJECT-001-project-contract.md) 的已校验快照；参考执行器可独立推进，不依赖真实板卡在线或界面接入
 - 依据：[执行计划](../execution-plan.md)、[首版范围](../decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)、[编译与传输分工](../decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)
@@ -51,3 +51,5 @@
 ## 当前记录
 
 本轮仅完成计划细化，基线 `e461112`；结果对应 `docs: sequence software playback before hardware integration` 提交。文档引用和差异检查结果记录在 STATE。没有新增参考执行器、编译器、固件或硬件实测结果。
+
+2026-09-26：[DESKTOP-003 / PLAYER-001A](DESKTOP-003-sequence-preview.md) 按 ADR-013 完成纯 Rust 受限计划、单调时间执行、单路主机编译和桌面离线预览。已覆盖渐变／延时／自动等待、暂停／跳转／循环、默认值释放、陈旧和重复控制、精确编译与保存等价。模拟适配器发送确认／故障、片段导出依赖闭合、设备资源实测及持久包仍未完成，父任务继续。

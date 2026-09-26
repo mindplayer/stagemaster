@@ -44,3 +44,5 @@ Rust 实施执行项目规定的格式化、离线工作区测试与严格 Clipp
 此前完成官方资料研究、方案与任务依赖调整。2026-09-23 完成 [PROJECT-001A](PROJECT-001A-format-design.md)：[格式草案](../../project-format/README.md)、4 份 Schema、5 份样例及 49 项开发期测试；依据补充 [PRODUCT-ADR-005](../decisions/PRODUCT-ADR-005-multidomain-project-format.md)。尚未实现 Rust 读取／保存／重开、迁移恢复或正式编译，本父任务不结项。
 
 2026-09-23：用户要求可见且真实的交付增量，最小灯光子集随 [DESKTOP-001](DESKTOP-001-visible-workbench.md) 实现，依据 [ADR-006](../decisions/PRODUCT-ADR-006-visible-desktop-increments.md)。新增独立工程／存储 crate，桌面新建、配适、场景编辑、保存重开与未保存保护已接通。场景列表、时间线、播放器编译、旧版本迁移及崩溃恢复仍待实施；完整领域契约与父任务出口不能据此视为完成。
+
+2026-09-26：[DESKTOP-003](DESKTOP-003-sequence-preview.md) 补齐已有 JSON 列表结构的 Rust 校验／编辑／保存重开，和单路离线编译。格式版本不变；可精确表示的毫秒时间、引用、编号与循环边界已验证。其他领域、时间线、迁移和恢复待办，父任务未结项。

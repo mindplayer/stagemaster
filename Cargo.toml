@@ -7,6 +7,7 @@ members = [
   "crates/stagemaster-engine",
   "crates/stagemaster-show",
   "crates/stagemaster-project",
+  "crates/stagemaster-playback",
   "crates/stagemaster-project-store",
 ]
 resolver = "3"

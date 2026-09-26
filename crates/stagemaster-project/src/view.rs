@@ -12,6 +12,7 @@ pub struct ProjectView {
     pub domains: Vec<NamedView>,
     pub fixtures: Vec<FixtureView>,
     pub scenes: Vec<SceneView>,
+    pub sequences: Vec<SequenceView>,
 }
 #[derive(Serialize)]
 pub struct NamedView {
@@ -59,12 +60,57 @@ pub struct SceneValue {
     pub value: Option<u64>,
     pub preset_name: Option<String>,
 }
+#[derive(Serialize)]
+pub struct SequenceView {
+    pub id: String,
+    pub name: String,
+    pub tracking: String,
+    pub repeat: String,
+    pub steps: Vec<StepView>,
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StepView {
+    pub id: String,
+    pub name: String,
+    pub number: String,
+    pub scene_id: String,
+    pub delay_ms: u64,
+    pub fade_ms: u64,
+    pub wait_ms: Option<u64>,
+}
 pub(super) fn project(root: &Value) -> ProjectView {
     let lighting = &root["lighting"];
     ProjectView {
         id: text(&root["project"], "id").into(),
         name: text(&root["project"], "name").into(),
         description: text(&root["project"], "description").into(),
+        sequences: array(lighting, "sequences")
+            .iter()
+            .map(|seq| SequenceView {
+                id: text(seq, "id").into(),
+                name: text(seq, "name").into(),
+                tracking: text(seq, "tracking").into(),
+                repeat: text(seq, "repeat").into(),
+                steps: array(seq, "steps")
+                    .iter()
+                    .map(|step| StepView {
+                        id: text(step, "id").into(),
+                        name: text(step, "name").into(),
+                        number: text(step, "number").into(),
+                        scene_id: text(step, "sceneId").into(),
+                        delay_ms: crate::sequence::duration_ms(&step["delay"])
+                            .expect("validated time"),
+                        fade_ms: crate::sequence::duration_ms(&step["fade"])
+                            .expect("validated time"),
+                        wait_ms: (step["advance"]["kind"] == "after").then(|| {
+                            crate::sequence::duration_ms(&step["advance"]["wait"])
+                                .expect("validated time")
+                        }),
+                    })
+                    .collect(),
+            })
+            .collect(),
         profiles: array(lighting, "profiles")
             .iter()
             .map(|p| ProfileView {
