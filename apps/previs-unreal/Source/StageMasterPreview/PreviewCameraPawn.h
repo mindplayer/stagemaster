@@ -24,6 +24,9 @@ public:
     void FocusSelected();
     void TopView();
     void SelectAt(const FVector2D& Screen);
+    void SelectFromHost(const FString& Id);
+    void PlacementResult(const FString& Id, bool Accepted);
+    bool IsMoveMode() const { return MoveMode; }
     void DragTo(const FVector2D& Screen);
     void FinishDrag();
     void CancelDrag();
@@ -38,6 +41,7 @@ protected:
 private:
     void UpdateCamera();
     bool PointOnDragPlane(const FVector2D& Screen, FVector& Point) const;
+    void ClearPendingPlacement();
     UPROPERTY() TObjectPtr<UCameraComponent> Camera;
     UPROPERTY() TObjectPtr<APreviewSceneActor> Scene;
     TSharedPtr<SWidget> Overlay;
@@ -57,4 +61,8 @@ private:
     bool MoveMode = false;
     bool Dragging = false;
     bool DragMoved = false;
+    FString PendingPlacement;
+    FString PendingFixture;
+    double PendingUntil = 0;
+    uint64 PendingSerial = 0;
 };

@@ -1,6 +1,6 @@
 use super::Session;
 use crate::previs::protocol::{InputFrame, PlacementRequest, Revision, Source};
-use stagemaster_project::{Document, EditCommand, StageEdit};
+use stagemaster_project::{Document, EditCommand, FixturePlacement, StageEdit};
 
 impl Session {
     #[cfg(test)]
@@ -62,12 +62,21 @@ impl Session {
         })
     }
     pub(crate) fn previs_place(&mut self, request: PlacementRequest) -> Result<Revision, String> {
-        self.guard(request.generation)?;
-        if request.version != self.content_version.to_string() {
-            return Err("场地版本已变化，请刷新三维预演".into());
-        }
         if !self.previs_edit_allowed {
             return Err("桌面有待应用修改，请先应用或取消后再移动三维灯位".into());
+        }
+        self.place_from_viewport(request.generation, &request.version, request.placement)
+    }
+    // Invoked only through the host's ordered project edit queue. No persistent HTTP grant.
+    pub(crate) fn place_from_viewport(
+        &mut self,
+        generation: u32,
+        version: &str,
+        placement: FixturePlacement,
+    ) -> Result<Revision, String> {
+        self.guard(generation)?;
+        if version != self.content_version.to_string() {
+            return Err("场地版本已变化，请刷新三维预演".into());
         }
         let doc = self.document.as_ref().ok_or("请先打开工程")?;
         let view = doc.view();
@@ -92,21 +101,108 @@ impl Session {
             .stage
             .placements
             .iter()
-            .find(|p| p.fixture_id == request.placement.fixture_id)
+            .find(|p| p.fixture_id == placement.fixture_id)
             .ok_or("此灯具尚未布置，请先在桌面添加灯位")?;
-        if previous.space_id != request.placement.space_id {
+        if previous.space_id != placement.space_id {
             return Err("请在桌面属性中修改灯位的空间归属".into());
         }
+        let before = &previous.rotation_degrees_xyz;
+        let after = &placement.rotation_degrees_xyz;
+        if [&before.x, &before.y, &before.z] != [&after.x, &after.y, &after.z] {
+            return Err("请在灯位属性中调整安装方向".into());
+        }
         self.edit(
-            request.generation,
+            generation,
             EditCommand::Stage {
-                command: StageEdit::PutPlacement {
-                    placement: request.placement,
-                },
+                command: StageEdit::PutPlacement { placement },
             },
         )?;
         // The desktop must acknowledge the new generation before another remote edit.
         self.previs_edit_allowed = false;
         Ok(self.previs_revision())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn session() -> Session {
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = json!([]);
+        let mut doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let id = doc.view().fixtures[0].id.clone();
+        doc.edit(serde_json::from_value(json!({"op":"stage","command":{"op":"putPlacement","placement":{"fixtureId":id,"spaceId":null,"positionMeters":{"x":"1","y":"2","z":"3"},"rotationDegreesXYZ":{"x":"25","y":"0","z":"0"}}}})).unwrap()).unwrap();
+        Session::from_previs_test_document(doc)
+    }
+    fn placement(s: &Session) -> FixturePlacement {
+        s.previs_document().unwrap().view().stage.placements[0].clone()
+    }
+    #[test]
+    fn viewport_move_is_one_history_step_without_opening_http_editing() {
+        let mut s = session();
+        let original = s.previs_document().unwrap();
+        let rev = s.previs_revision();
+        let mut p = placement(&s);
+        p.position_meters.x = "-0.125".into();
+        s.place_from_viewport(rev.generation, &rev.content.to_string(), p.clone())
+            .unwrap();
+        let moved = s.previs_document().unwrap();
+        assert!(!s.previs_frame().unwrap().can_edit);
+        assert_eq!(s.undo.len(), 1);
+        assert!(
+            s.place_from_viewport(rev.generation, &rev.content.to_string(), p)
+                .is_err()
+        );
+        assert_eq!(s.undo.len(), 1);
+        s.history(s.generation, false).unwrap();
+        assert_eq!(s.previs_document().unwrap(), original);
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.previs_document().unwrap(), moved);
+        assert_eq!(Document::decode(&moved.encode().unwrap()).unwrap(), moved);
+    }
+    #[test]
+    fn viewport_cannot_overwrite_newer_edits_or_change_installation_relationships() {
+        let mut s = session();
+        let rev = s.previs_revision();
+        let original = s.previs_document().unwrap();
+        for change in 0..4 {
+            let mut p = placement(&s);
+            match change {
+                0 => p.rotation_degrees_xyz.x = "40".into(),
+                1 => p.space_id = Some("another-space".into()),
+                2 => p.fixture_id = "missing-fixture".into(),
+                _ => p.position_meters.x = "NaN".into(),
+            }
+            assert!(
+                s.place_from_viewport(rev.generation, &rev.content.to_string(), p)
+                    .is_err()
+            );
+            assert_eq!(s.previs_document().unwrap(), original);
+            assert!(s.undo.is_empty());
+        }
+        let mut old = placement(&s);
+        old.position_meters.x = "9".into();
+        s.edit(
+            s.generation,
+            EditCommand::SetInfo {
+                name: "新名称".into(),
+                description: String::new(),
+            },
+        )
+        .unwrap();
+        assert!(
+            s.place_from_viewport(rev.generation, &rev.content.to_string(), old.clone())
+                .is_err()
+        );
+        assert!(
+            s.place_from_viewport(s.generation, &rev.content.to_string(), old)
+                .is_err()
+        );
+        assert_eq!(placement(&s).position_meters.x, "1");
     }
 }

@@ -90,6 +90,7 @@ void APreviewSceneActor::ClearVisuals()
 void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
 {
     CanEdit = false;
+    FrameValid = false;
     ++SceneSerial;
     if (Current.ProjectId != Scene.ProjectId)
     {
@@ -176,6 +177,7 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
 void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
 {
     CanEdit = Frame.CanEdit;
+    FrameValid = Frame.Status != TEXT("unloaded") && Frame.Status != TEXT("missingScene") && Frame.Status != TEXT("stalePlayback");
     Status = StageMaster::StatusLabel(Frame.Status);
     if (Frame.Lights.IsEmpty()) for (const auto& Entry : Fixtures)
     {
@@ -197,6 +199,7 @@ void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
 void APreviewSceneActor::Invalidate(const FString& Reason)
 {
     CanEdit = false;
+    FrameValid = false;
     Status = Reason;
     for (const auto& Entry : Fixtures)
     {
@@ -223,7 +226,7 @@ const StageMaster::FFixture* APreviewSceneActor::FindFixture(const FString& Id) 
 bool APreviewSceneActor::PreviewPosition(const FString& Id, const FVector& Location)
 {
     auto Visual = Fixtures.Find(Id);
-    if (!CanEdit || !Visual || Location.ContainsNaN() || Location.GetAbsMax() > 10000000) return false;
+    if (!FrameValid || !Visual || Location.ContainsNaN() || Location.GetAbsMax() > 10000000) return false;
     const auto Fixture = FindFixture(Id);
     if (!Fixture) return false;
     const FVector BodyOrigin = Location - Fixture->Direction * 14.747;

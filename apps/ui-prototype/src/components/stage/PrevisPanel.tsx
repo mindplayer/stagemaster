@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { PrevisViewport } from "./PrevisViewport";
 import { CubeIcon } from "@phosphor-icons/react";
 import type { ApplicationHost, SceneView } from "../../application-host";
-import type { PrevisSource, PrevisStatus } from "../../previs-types";
+import type { PrevisSource, PrevisStatus, PrevisInteractions } from "../../previs-types";
 
-export function PrevisPanel({ host, scenes, busy, generation, run }: {
+export function PrevisPanel({ host, scenes, busy, generation, run, ...interactions }: {
   host: ApplicationHost;
   scenes: SceneView[];
   busy: boolean;
   generation: () => number;
   run: (work: () => Promise<void>) => Promise<boolean>;
-}) {
+} & PrevisInteractions) {
   const [status, setStatus] = useState<PrevisStatus | null>(null);
   const [problem, setProblem] = useState("");
   useEffect(() => {
@@ -50,5 +50,5 @@ export function PrevisPanel({ host, scenes, busy, generation, run }: {
       </select>
     </label>
     <span role="status">{problem || status?.problem || (status?.connected ? "三维已连接" : status?.enabled ? "三维正在启动" : "三维已关闭")}</span>
-  </section><PrevisViewport url={status?.viewerUrl ?? null} /></div>;
+  </section><PrevisViewport url={status?.viewerUrl ?? null} busy={busy} {...interactions} /></div>;
 }

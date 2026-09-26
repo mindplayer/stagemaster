@@ -13,3 +13,15 @@ export interface PrevisStatus {
   source: PrevisSource;
   problem: string | null;
 }
+import type { FixturePlacement } from "./stage-types";
+export interface PrevisPlacement {
+  generation: number;
+  version: string;
+  placement: FixturePlacement;
+}
+export interface PrevisInteractions {
+  selectedId: string;
+  onSelect(id: string): Promise<boolean>;
+  onPrepareMove(): Promise<boolean>;
+  onPlacement(proposal: PrevisPlacement, isActive: () => boolean): Promise<boolean>;
+}

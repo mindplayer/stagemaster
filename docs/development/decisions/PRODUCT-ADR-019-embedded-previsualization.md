@@ -17,3 +17,12 @@
 依据：[Epic Pixel Streaming 参考](https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-pixel-streaming-reference)、[Pixel Streaming 2](https://dev.epicgames.com/documentation/unreal-engine/pixel-streaming-2-overview-in-unreal-engine)、[官方基础库](https://github.com/EpicGames/PixelStreamingInfrastructure)，并核对本机 UE 5.8.3 插件平台名单与公开头文件。前端锁定 `@epicgames-ps/lib-pixelstreamingfrontend-ue5.8@0.1.2`，信令库锁定 `@epicgames-ps/lib-pixelstreamingsignalling-ue5.8@0.2.0`。
 
 本轮审查：同一 Tauri 窗口显示实时 UE 视频，原生中文工具栏经受限数据通道控制透视／俯视／全场／聚焦和工作照明，点击画面可拾取真实灯具。正常退出与渲染故障回收、平面往返重新挂载通过。信令 `ws` 锁定 8.22.0，审计及实际握手测试通过；工程凭据不进入 WebView，日志抽查未含连接令牌。当前不开放三维工程修改入口，客户独立组件及性能验收继续。
+
+## 内嵌编辑补充决策（基线 e50cfbd）
+
+采用与既有 StageCanvas 相同的“交互草稿 → 统一编辑队列 → Rust 原子修改”机制。UE 松手只经观看数据通道提出带 generation／version 的位置提案；Tauri 前端先处理现有属性草稿，再通过 `project_request.previsPlacement` 提交。Rust 复用原预演安装校验、既有灯位／空间保护及统一历史，并返回新工程快照。提案不能更改安装旋转、空间关系或创建灯具；过期版本、非法输入、重复提案不得覆盖现有编辑。前端卸载后不继续提交尚未执行的提案。
+
+这是对 ADR-018 外部窗口编辑路径的内嵌适配：不向 UE 长期开启 HTTP 编辑资格，原受限 HTTP 路径保留并继续测试，产品使用当前窗口的队列。这样不再需要跨窗口监听后盲目覆盖 UI 草稿，也不引入第二套工程历史。UE 只保存拖动中的视觉位置，Esc／丢焦／版本变化取消，松手产生一次提案，拒绝或超时恢复权威位置。数据通道也传递选灯动作，左右列表／属性仍由舞台工作区保存选择上下文。全部通过后才记录为可用。
+
+
+补充决策验收：同一窗口已实际通过双向选择、快速拖动、一次撤销／重做、保存重开、无效草稿保留与定位、拖出取消和列表渐变／暂停／继续／停止画面同步。固定调光／RGB 的首个内嵌闭环成立；产品开启位置提案入口，HTTP 编辑资格仍默认关闭。官方松手端点及越界哨兵处理已通过协议回归和原生操作。客户独立组件、光学／性能量化及辅助功能恢复继续独立推进，详见 PREVIS-001 最新验收。

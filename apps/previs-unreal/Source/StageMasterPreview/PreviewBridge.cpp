@@ -143,7 +143,7 @@ void FPreviewBridge::Complete(ERequest Kind, FHttpRequestPtr Completed, FHttpRes
         FString Reason;
         if (!Object->TryGetStringField(TEXT("message"), Reason) || Reason.IsEmpty() || Reason.Len() > 4096) Reason = TEXT("预演暂不可用，请重试");
         if (Code == 409 || Kind == ERequest::Placement) NeedScene = true;
-        Fail(Reason);
+        Fail(Reason, Code == 409 ? 1.0 / 30.0 : 0.5);
         return;
     }
     if (Kind == ERequest::Scene) AcceptScene(Object);
@@ -184,7 +184,7 @@ bool FPreviewBridge::AcceptFrame(const TSharedPtr<FJsonObject>& Object)
     if (!ReadFrame(Object, Frame, Error) || Frame.Stamp.BridgeId != ExpectedBridgeId || Frame.Stamp.Version != Version || Frame.Stamp.Generation != Generation)
     {
         NeedScene = true;
-        Fail(Error.IsEmpty() ? TEXT("场地已变化，正在重新读取") : Error);
+        Fail(Error.IsEmpty() ? TEXT("场地已变化，正在重新读取") : Error, 1.0 / 30.0);
         return false;
     }
     const bool Ready = Frame.Status != TEXT("unloaded") && Frame.Status != TEXT("missingScene") && Frame.Status != TEXT("stalePlayback");

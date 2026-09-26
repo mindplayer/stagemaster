@@ -4,7 +4,7 @@ mod previs;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
-use stagemaster_project::EditCommand;
+use stagemaster_project::{EditCommand, FixturePlacement};
 use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager};
@@ -27,6 +27,11 @@ enum Request {
     Edit {
         generation: u32,
         command: EditCommand,
+    },
+    PrevisPlacement {
+        generation: u32,
+        version: String,
+        placement: FixturePlacement,
     },
     History {
         generation: u32,
@@ -53,6 +58,13 @@ async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snap
                 generation,
                 command,
             } => session.edit(generation, command)?,
+            Request::PrevisPlacement {
+                generation,
+                version,
+                placement,
+            } => {
+                session.place_from_viewport(generation, &version, placement)?;
+            }
             Request::History { generation, redo } => session.history(generation, redo)?,
             Request::Close => {
                 if session.allow_replace(&app)? {

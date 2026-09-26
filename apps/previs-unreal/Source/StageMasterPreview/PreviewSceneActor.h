@@ -35,7 +35,7 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     const StageMaster::FScene& GetScene() const { return Current; }
     const FString& GetStatus() const { return Status; }
-    bool CanMoveFixtures() const { return CanEdit; }
+    bool CanMoveFixtures() const { return FrameValid; }
     uint64 GetSceneSerial() const { return SceneSerial; }
     FBox GetBounds() const;
     FString FixtureAt(const FHitResult& Hit) const;
@@ -64,4 +64,5 @@ private:
     FString Status = TEXT("正在连接舞台大师");
     uint64 SceneSerial = 0;
     bool CanEdit = false;
+    bool FrameValid = false;
 };

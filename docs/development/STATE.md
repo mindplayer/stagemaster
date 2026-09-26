@@ -5,9 +5,13 @@
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
-当前进行中：[PREVIS-001](tasks/PREVIS-001-real-stage-preview.md)，原始基线 `9d49939`，本轮基线 `dd8a8ce`，结果为本次 `feat(previs): embed Unreal stage preview in desktop workspace` 提交。空间持久化／平面编辑及 Rust 本机预演桥已验收。用户已完成 Xcode 许可与首次设置，Metal 工具链 17B54 可用；UE 5.8.3 适配工程编译及 3 项自动测试通过。
+已完成首个可运行闭环：[PREVIS-001](tasks/PREVIS-001-real-stage-preview.md)。原始基线 `9d49939`，内部视窗提交 `e50cfbd`，本轮基线 `e50cfbd`，结果为本次 `feat(previs): integrate embedded placement editing and playback verification` 提交。Xcode 26.1.1／Metal 17B54／UE 5.8.3 已工作；首个真实固定调光／RGB 预演目标完成，不等同于完整专业预演或客户安装包交付。
 
-按用户要求及 [ADR-019](decisions/PRODUCT-ADR-019-embedded-previsualization.md)，真实三维画面已嵌入“舞台 → 三维预演”，后台 UE 离屏运行。Mac 原生实际验证保存工程的房间／舞台／两灯、蓝色场景、透视／俯视、选灯／聚焦、工作照明、平面往返及渲染器异常退出隔离；界面工具栏和状态均为中文。官方灯具库 11 类蓝图、4 种材质、3 个网格实际加载通过，固定灯模型／镜片接入，见[资源库](../previsualization-library.md)。120 项 Rust、31 项 UI、3 项 UE、3 项信令测试，类型、fmt／严格 Clippy 与桌面构建通过。新信令依赖审计为 0 项已知漏洞。**完整预演目标保持 active**：三维灯位修改的草稿保护／历史与保存同步、列表执行画面联动、光学／性能量化及客户独立打包仍待完成；未开放三维位置修改或真实 DMX 输出。
+“舞台 → 三维预演”在 Tauri 内显示真实 UE 画面，后台离屏运行。房间／舞台／灯位保存、双向选灯与属性、相机导航、工作照明、水平拖动、一次撤销／重做、重开和播放源同步已原生验证。按 [ADR-019](decisions/PRODUCT-ADR-019-embedded-previsualization.md)，UE 只提案，当前窗口队列先处理草稿，Rust 校验精确版本并写入统一历史；没有长期开放 HTTP 编辑资格。修复官方输入的松手端点丢失、越界哨兵误作有效坐标；快速拖动和拖出取消原生复测通过。无效 X 草稿时三维选灯保留原草稿并定位字段。
+
+122 项 Rust、33 项 UI、4 项 UE 自动测试、类型／fmt／严格 Clippy及桌面／UE 构建通过；信令层沿用已通过的 3 项连接测试，本轮未改变。原生 60 秒列表渐变在 14.445 秒暂停、两灯 24% 保持，继续后增亮，停止后归零；渲染器故障隔离沿用 `e50cfbd` 的实测。官方 11 类蓝图、4 种材质、3 个网格加载验证及固定灯模型接入保留。未输出真实 DMX。
+
+后续：光学／色彩定标、帧率／延迟与大规模场景测量、UE／信令运行时独立打包、完整摇头灯／图案盘能力。原生自动化在工作区反复切换时仍偶发读取不到列表子树（画面／鼠标正常）；显式 aria-hidden 只完成语义补充，未认定该问题彻底修复。按住拖动时 Esc 未由原生自动化复现，不能借拖出取消通过替代此项。
 
 已完成本轮：[DESKTOP-004](tasks/DESKTOP-004-groups-presets.md)。基线 `8513eee`；结果为本次 `feat(desktop): add ordered groups and reusable preset workflows` 提交。正式工作台已接有序灯组、预设池、引用／独立值、三种更新策略、依赖保护和属性复制；独立 Rust 资源模块复用原子历史／持久化／编译，见[接口](../module-api/editing-library.md)。86 项 Rust、28 项 UI、50 项格式、4 项 Sites、严格 Clippy／fmt／桌面构建与原生保存重开验收通过。逐灯预设增量完成，动态效果、完整现场编程器和通用共享预设仍待实施。
 
@@ -43,7 +47,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
-| [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) | in progress | 空间／本机桥已集成；UE 真实灯光初验通过，正在改为应用内离屏预演与补齐交互 |
+| [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) | done（首个闭环） | 应用内真实 UE、双向选择／拖动／历史／保存与列表播放联动已验收；专业光学、规模性能和客户独立打包后续推进 |
 | [DEV-001](tasks/DEV-001-delivery-foundation.md) | done | Git 与验证基线保留 |
 | [CORE-001](tasks/CORE-001-cue-uniqueness.md) | done | 实现与保护验收保留 |
 | [CORE-002](tasks/CORE-002-htp-fallback.md) | done | 实现与保护验收保留 |

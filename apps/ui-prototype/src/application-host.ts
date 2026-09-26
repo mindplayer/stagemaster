@@ -1,5 +1,5 @@
 import type { StageEdit, StageView } from "./stage-types";
-import type { PrevisRequest, PrevisStatus } from "./previs-types";
+import type { PrevisRequest, PrevisStatus, PrevisPlacement } from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
   SequenceEdit,
@@ -92,6 +92,7 @@ export type ProjectRequest =
   | { kind: "new" | "open"; generation: number }
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
+  | ({ kind: "previsPlacement" } & PrevisPlacement)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";

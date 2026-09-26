@@ -658,7 +658,13 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <StageWorkspace
             key={`stage:${project.id}`}
             ref={stage}
-            previs={<PrevisPanel host={host} scenes={project.scenes} busy={busy}
+            previs={(selection) => <PrevisPanel host={host} scenes={project.scenes} busy={busy}
+              {...selection} onPrepareMove={() => run(async () => {})}
+              onPlacement={(proposal, isActive) => run(async () => {
+                if (!isActive()) throw new Error("三维视窗已关闭，灯位未修改");
+                await request({ kind: "previsPlacement", ...proposal });
+                setNotice("灯位已更新，可撤销恢复");
+              })}
               generation={() => current.current.generation} run={(work) => run(work)} />}
             project={project}
             visible={page === "stage"}

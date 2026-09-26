@@ -33,7 +33,7 @@ export const StageWorkspace = forwardRef<
   StageHandle,
   {
     project: ProjectView;
-    previs: ReactNode;
+    previs: (selection: { selectedId: string; onSelect(id: string): Promise<boolean> }) => ReactNode;
     visible: boolean;
     busy: boolean;
     error: string;
@@ -355,7 +355,16 @@ export const StageWorkspace = forwardRef<
           <button aria-pressed={view === "plan"} onClick={() => setView("plan")}>平面布置</button>
           <button aria-pressed={view === "three"} onClick={() => setView("three")}>三维预演</button>
         </div>
-        {view === "three" ? previs : <StageCanvas
+        {view === "three" ? previs({
+          selectedId: selection?.kind === "placement" ? selection.id : "",
+          onSelect: async (id) => {
+            if (!(await beforeChange())) return false;
+            if (id && !project.stage.placements.some(p => p.fixtureId === id)) return false;
+            setSelection(id ? { kind: "placement", id } : null);
+            cancel();
+            return true;
+          },
+        }) : <StageCanvas
         project={project}
         selection={selection}
         busy={busy}
