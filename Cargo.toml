@@ -8,9 +8,11 @@ members = [
   "crates/stagemaster-show",
   "crates/stagemaster-project",
   "crates/stagemaster-playback",
+  "crates/stagemaster-device-link",
   "crates/stagemaster-project-store",
 ]
 resolver = "3"
+exclude = ["apps/esp32-player"]
 
 [workspace.package]
 version = "0.1.0"
@@ -24,4 +26,3 @@ unsafe_code = "forbid"
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
-

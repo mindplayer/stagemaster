@@ -1,5 +1,9 @@
 //! Deterministic, bounded single-list execution. The caller owns clocks and all I/O.
+#![no_std]
 #![forbid(unsafe_code)]
+
+extern crate alloc;
+use alloc::{string::String, vec::Vec};
 
 pub const MAX_STEPS: usize = 1024;
 pub const MAX_ATTRIBUTES: usize = 512;

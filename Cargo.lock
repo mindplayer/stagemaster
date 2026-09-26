@@ -3188,6 +3188,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-device-link"
+version = "0.1.0"
+
+[[package]]
 name = "stagemaster-dmx"
 version = "0.1.0"
 dependencies = [

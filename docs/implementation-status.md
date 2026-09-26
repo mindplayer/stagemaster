@@ -1,13 +1,13 @@
 # 实现状态
 
-既有代码缺陷核查：2026-09-10；架构与接口再评估及 G0 实施更新：2026-09-11；UI 原型更新：2026-09-21；工程格式草案更新：2026-09-23；真实工作台扩充：2026-09-24。技术框架为 Rust＋TypeScript、Tauri 2＋React；当前代码是 A0 静态语义验证原型，能完成一次内存求值和编码。已新增 Tauri／React 桌面工作台，接入独立 Rust 工程编辑与存储模块；DESKTOP-003 / PLAYER-001A 新增独立 Rust 有界列表执行与离线数值预览；没有连接真实控台或 DMX 设备。[架构审查](architecture-review.md)复现的问题中 R01、R02 已在 G0 修复并加入保护回归，R03–R09 仍待后续契约任务处理；[架构 v0.5](architecture.md)是设计补充，不是已实现能力。
+既有代码缺陷核查：2026-09-10；架构与接口再评估及 G0 实施更新：2026-09-11；UI 原型更新：2026-09-21；工程格式草案更新：2026-09-23；真实工作台扩充：2026-09-24。技术框架为 Rust＋TypeScript、Tauri 2＋React；当前代码是 A0 静态语义验证原型，能完成一次内存求值和编码。已新增 Tauri／React 桌面工作台，接入独立 Rust 工程编辑与存储模块；DESKTOP-003 / PLAYER-001A 新增独立 Rust 有界列表执行与离线数值预览；PLAYER-002A 已接入 ESP32 诊断固件与 BLE GATT，尚无真实 DMX 发送。[架构审查](architecture-review.md)复现的问题中 R01、R02 已在 G0 修复并加入保护回归，R03–R09 仍待后续契约任务处理；[架构 v0.5](architecture.md)是设计补充，不是已实现能力。
 
 | 能力 | 状态 | 当前证据 | 下一步 |
 | --- | --- | --- | --- |
 | 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
-| ESP32／ARM 独立场景播放盒 | 首版已定现有微雪 ESP32-S3-RS485-CAN、1 路 DMX；无固件／设备实测 | [HW-001](development/tasks/HW-001-first-player-baseline.md)核对原理图；[首版 ADR](development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)把软件＋离线播放盒列为当前交付 | 实现受限参考执行器并验证板级输出；补隔离侧公共地接口及本地操作面；随后 USB 安装与 UI 接入 |
-| 主机编译、设备包与无线传输 | 已比较工程内容与实现路线；无编译包／无线原型 | [HW-002](development/tasks/HW-002-project-segments.md)记录厂商依据、容量算例和乐鑫 USB 只读枚举；[传输取舍](development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)推荐局域网传包、蓝牙配网／控制候选 | 先有线闭环，再按真实节目测大小、执行预算与无线有效速度；不把系统枚举当作固件验收 |
+| ESP32／ARM 独立场景播放盒 | ESP32-S3 诊断固件与共享内核已实测；RS485 禁止发送 | [PLAYER-002A](development/tasks/PLAYER-002-esp32-probe.md)：no_std 自检、512 属性负载、资源与 GATT 实板测试 | UART DMX／电气与时序、执行包、安装、UI 和本地面板；ARM 未验证 |
+| 主机编译、设备包与无线传输 | 工程到内存计划编译已实现；GATT 诊断连接通过，无持久执行包／上传 | [ADR-014](development/decisions/PRODUCT-ADR-014-device-link-probe.md)：独立连接状态机，Mac 实测读写／通知、心跳与重连 | 传输无关的文件分块／校验／原子安装、身份与控制权；GATT 优先，USB 保留开发恢复 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
 | AI 辅助编辑 | 独立 draft-1 伪接口；无模型或服务实现 | [AI-001](development/tasks/AI-001-assisted-editing-api.md)复用工程命令，分开模型窄工具与可信宿主；包括受限上下文、提案、应用／撤销、冲突及幂等对账 | 先用已存在场景的参数编辑验证运行权限／事务，再接可替换模型适配；不进入播放或输出路径 |
 | 外部音视频／设备控制与监看 | 资料研究与接口草案；无协议接入 | [专项设计](audiovisual-stage-design.md)及 external-contracts／external-examples 区分控制、反馈和监看，已纳入 TS 检查 | 验证一个外部播放器、一个媒体返回源与灯光模拟的闭环 |

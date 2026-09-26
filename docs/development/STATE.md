@@ -5,6 +5,8 @@
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
+已完成本轮：[PLAYER-002A](tasks/PLAYER-002-esp32-probe.md)。基线 `6fce3db`；用户授权实板测试，补充 GATT 直连／连接层抽象及保活，并明确不保留原固件。共享播放内核已在 ESP32-S3 执行，电脑 BLE 读写／通知、心跳超时和三次重连通过；GPIO21 保持低电平，无 DMX 输出。父任务 PLAYER-002 继续。接口见[设备连接诊断](../module-api/device-link-probe.md)。
+
 已完成：[DESKTOP-003 / PLAYER-001A](tasks/DESKTOP-003-sequence-preview.md)。用户要求深入 goal 并再次强调模块化；本轮基线 `af3e83f`，结果为本次列表与离线预览提交。独立 Rust 执行器、工程列表编辑／编译和原生预览闭环已接通，接口见[运行模块契约](../module-api/sequence-preview.md)。
 
 已完成：[DESKTOP-002](tasks/DESKTOP-002-editor-workflow.md)，按 ADR-012 接通真实灯具／编排工作区、批量配适、多灯属性／RGB、搜索选择与场景复制；基线 `0cce099`，结果为本次工作台提交。
@@ -23,7 +25,7 @@
 - UX-011 按用户补充修订为[可组合空间](decisions/PRODUCT-ADR-010-composable-spaces.md)，UX-012 已在独立组件稿验证三空间选择、矩形／L 形尺寸、独立标高／净高、边界拖动与房间／全场查看。正式空间契约、房间建模、共享墙／门洞及工程保存仍未实施；设计稿不能代替真实空间编辑器。
 - FIXTURE-001 已整理[灯具定义与个人灯库](../ui-design/fixture-definition-design.md)：参考 MA3／Titan／GDTF／OFL，分开可复用能力、硬件变体／模式／档案修订与工程实例，设计功能分段、色盘／图案盘和受控测试。依据 [ADR-009](decisions/PRODUCT-ADR-009-fixture-definition.md)；当前线性映射不足以承载全部语义，具体契约与编辑器未实施。
 - 用户最新澄清当前没有 iPad，仍按 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。[ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 已撤回平板优先布局和前置移动验证，只保留共享核心、输入／布局／宿主与渲染适配边界；无待补设备型号问题。
-- 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)，尚无固件、设备通信或真实输出。
+- 用户确认首版交付软件＋独立播放盒：现有微雪 ESP32-S3-RS485-CAN，1 路 DMX；继续要求无电脑选场景／执行。范围见 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)；PLAYER-002A 已有 Rust 诊断固件及 GATT 实板通信，真实 DMX 输出和节目持久安装尚未实现。
 - 清理前主线：`121efa311855d977364f7ad8707ea729b5c0e367`；仅一个 `main` 工作区，无待合并分支、标签或远程。
 - CORE-001 已修复场景编号碰撞，集成 `df64f98603ca28462cf76a515b65fb39dda9b26d`。
 - CORE-002 已修复 HTP 默认值下限，集成 `81ed816fff5d8a358d5e1ecf933057a148d02e8f`。
@@ -61,10 +63,13 @@
 | [AI-001](tasks/AI-001-assisted-editing-api.md) | done（伪接口设计） | 受限编辑代理、宿主授权、提案／应用／撤销与冲突对账；11 个 TS 输入及 11 个新增错误调用反例检查通过，无模型或服务实现 |
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表及单路编译已由 DESKTOP-003 补齐；时间线、迁移恢复和其他领域待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | in progress | PLAYER-001A 已实现独立有界执行、正式工程编译和 512 通道预览；设备预算实测、片段包、模拟发送确认／故障与完整出口待办 |
-| PLAYER-002–005 | planned | 板卡风险验证尽早交错，再贯通输出、USB／持久包、UI／本地操作与整机验收；尚未开工 |
+| [PLAYER-002](tasks/PLAYER-002-esp32-probe.md) | in progress；002A done | 工具链／共享内核与 BLE GATT 实板验证通过；UART DMX、时序／电气仍待办 |
+| PLAYER-003–005 | planned | 持久包与传输无关安装／控制、GATT 优先接入、UI／本地操作及整机验收；未实施 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证
+
+PLAYER-002A：基线 `6fce3db`，结果为本次设备探针提交。实读 ESP32-S3 v0.2、16 MB Flash，刷入诊断固件；按用户要求停止并删除旧固件读取文件。Xtensa Rust 1.97.0.0、esp-hal 1.2.2 与依赖锁定；同份 no_std 播放内核实板自检通过，512 属性／10000 次推进用时 4,089,015 微秒，过程中堆使用不增加。GATT 实际协商 MTU 247，短写／错误版本／错误会话／重复／乱序拒绝、16 次有效心跳、约 5.913 秒无有效心跳断开、三次重连和断线内核持续推进通过；128 KiB 配置堆的已用／剩余为 41020／90052 字节，连接前后相同。77 项 Rust、主工作区及固件 fmt／严格 Clippy、独立固件离线构建通过。保留裸机 ELF RWX 段告警，esp-radio 依赖为 beta；没有 DMX、PSRAM、节目文件上传、身份授权、独立供电／拔 USB、手机后台或 8 小时验收。详细限制见工单。
 
 DESKTOP-003 / PLAYER-001A：基线 `af3e83f`；结果为本次 `feat(playback): deliver modular sequence editing and offline preview` 提交。ADR-013 先于公共接口实现。70 项 Rust、25 项 UI、50 项格式和 4 项 Sites 检查通过，fmt／严格 Clippy／UI 类型与桌面构建通过。原生验证两步自动衔接、渐变中暂停 0.872 秒冻结、继续、末步控制边界、停止恢复默认值；DMX 实测页面数值 204/57/121/255 与 80% 和 RGB 目标一致。非法精度／编号冲突聚焦字段、取消、精确重排选中保持、复制／撤销／重做、保存不使预览过期、内容修改禁用陈旧执行、保存重开通过。通道分页及 509–512 范围通过。应用已更新并恢复原空白工程；所有验收文件与日志留项目内。没有真实总线输出、触屏／其他系统或板卡预算实测。
 
@@ -132,7 +137,7 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 ## 下一步
 
-DESKTOP-003 已形成可运行的桌面编排增量，下一轮按真实使用反馈继续。PLAYER-001 后续优先补执行包／片段依赖闭合与模拟输出确认／故障，再与板卡工具链风险验证交错；当前不自动刷机或接灯。编排端仍需灯组／预设编辑、自定义灯具档案、场地／3D 和真正的时间线，各自依契约逐步实现；不要为“丰满”把这些领域塞进 UI 或同一个播放模块。
+DESKTOP-003 已形成可运行的桌面编排增量，PLAYER-002A 已完成第一轮实板与 GATT 测试。下一步补 UART DMX 发送适配／时序与完整隔离接口，交错推进版本化执行包、分块传输／原子安装及正式连接界面。GATT 先接业务，USB 用于开发恢复；各传输复用安装与控制契约。当前诊断固件不能播放用户工程或驱动灯具。编排端仍需灯组／预设编辑、自定义灯具档案、场地／3D 和真正的时间线，各自依契约逐步实现；不要为“丰满”把这些领域塞进 UI 或同一个播放模块。
 
 DESKTOP-002 已完成组件式真实工作台接入；继续依据 [UX-009](../ui-design/component-workspace-design.md) 收集操作反馈，并按成熟软件细节清单迭代；延续现代创作式布局与组件按需展开，不再以静态三图选型阻塞设计迭代。设计中的草稿、场地与片段是交互夹具，正式入口仍接真实工程与命令。UX-006／007／FIXTURE-001 的业务边界继续有效。
 
@@ -140,7 +145,7 @@ DESKTOP-002 已完成组件式真实工作台接入；继续依据 [UX-009](../u
 
 授权规则已明确，AUTH-001 列为相关商业交付的前置验收项；离线许可、断电计时和有限收尾还需实现及验证，不阻塞下述工程标准工作，也不把云端授权作为当前开发原型的运行前提。
 
-结合 [UX-006 总体框架](../ui-design/workspace-framework.md) 与 [UX-007 场地创建](../ui-design/venue-layout-design.md) 收集 MacBook 工作区、布置与目标点跟随的实际反馈，为真实界面接入制定小范围工单；先空间契约与基本搭建／摆位，再接校准与 Rust 指向求解，普通拖动不自动录制路径。[未来 iPad 准备](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 不改变当前推进顺序，不等待设备或前置移动宿主测试。既有配适、场景编辑和保存继续复用；场景列表与 Rust 离线预览已由 DESKTOP-003 实现；时间线契约及 UE 接入按相应依赖后续实施，不用假业务填满新布局。父任务 PROJECT-001 不结项；板卡风险与 AUTH 商业门槛仍保留，当前不自动推进硬件。详见[编排端迭代计划](desktop-iteration-plan.md)。
+结合 [UX-006 总体框架](../ui-design/workspace-framework.md) 与 [UX-007 场地创建](../ui-design/venue-layout-design.md) 收集 MacBook 工作区、布置与目标点跟随的实际反馈，为真实界面接入制定小范围工单；先空间契约与基本搭建／摆位，再接校准与 Rust 指向求解，普通拖动不自动录制路径。[未来 iPad 准备](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 不改变当前推进顺序，不等待设备或前置移动宿主测试。既有配适、场景编辑和保存继续复用；场景列表与 Rust 离线预览已由 DESKTOP-003 实现；时间线契约及 UE 接入按相应依赖后续实施，不用假业务填满新布局。父任务 PROJECT-001 不结项；板卡风险与 AUTH 商业门槛仍保留，硬件按 PLAYER-002 的当前授权和已验证边界推进。详见[编排端迭代计划](desktop-iteration-plan.md)。
 
 灯具能力按 FIXTURE-001 单独建立契约／编码与可见编辑实施工单，先自定义亮度／RGB 和档案保存复用，再接功能分段与常见摇头灯。真实复杂灯具、共同指向和输出接入以经过验证的档案为前提，不等待完整云端灯库或 UE；受控测试需先具备输出控制权和停止机制，当前不自动接灯。
 

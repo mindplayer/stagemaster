@@ -1,8 +1,8 @@
 # 微雪 ESP32-S3-RS485-CAN：首台 DMX 样机基线
 
-核对日期：2026-09-21。关联：[HW-001](../development/tasks/HW-001-first-player-baseline.md)、[首版架构决定](../development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)。用户确认持有此型号；没有确认实物 PCB 修订、接线和当前固件，也没有连接设备实测。
+资料核对：2026-09-21；实板更新：2026-09-26。关联：[HW-001](../development/tasks/HW-001-first-player-baseline.md)、[首版架构决定](../development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)。用户确认持有此型号；PCB 修订与 DMX 接线仍未现场核对。PLAYER-002A 已刷入禁用 RS485 的 Rust 诊断固件。
 
-连接更新：[HW-002](../development/tasks/HW-002-project-segments.md) 在系统设备树中只读识别到乐鑫 USB 调试接口 `303A:1001` 和 `/dev/cu.usbmodem2101`。未打开串口或复位；具体容量、分区、蓝牙和 DMX 输出仍未验证。
+连接更新：[PLAYER-002A](../development/tasks/PLAYER-002-esp32-probe.md) 通过 `/dev/cu.usbmodem2101` 实读 ESP32-S3 v0.2、40 MHz 晶振、16 MB Flash，安全启动／Flash 加密未启用（未改 eFuse）。共享内核及电脑 BLE GATT 连接已实测；PSRAM、物理 DMX 输出与电气接线仍未验证。
 
 ## 已核对与尚待验证
 
@@ -41,12 +41,12 @@ TI 应用说明是物理层参考，不能替代当前标准。ESTA 目录提供
 
 | 检查 | 所需证据 | 当前状态 |
 | --- | --- | --- |
-| 工具链与板级构建 | 锁定版本、可重复构建、Flash／RAM 报告、USB 与 UART 外设方案 | 未开始 |
+| 工具链与板级构建 | 锁定版本、可重复构建、Flash／RAM 报告、USB 与 UART 外设方案 | 002A 已完成诊断固件构建／烧录与内核／GATT，UART 待实现 |
 | 无灯具时序验证 | 受控测试负载；首帧及连续帧的 Break／MAB／8N2／513 槽、方向控制和极性记录 | 未开始 |
 | 实际 DMX 接口 | 接线／隔离公共地方案、端接、合适仪器的差分线路测量 | 待补适配方案 |
 | 灯具功能 | 指定型号／模式／地址的颜色、亮度、渐变、跳转与释放，和软件参考结果比较 | 灯具型号待实测阶段确认 |
-| 独立运行 | 独立供电、USB 拔除、电脑关闭、无网络；本地选场景／执行与输出保持正常 | 尚无面板／固件 |
-| 故障与压力 | 坏包、传输中断、重复命令、重启、写入阶段掉电、面板／USB 压力、帧间隔与内存记录 | 未开始 |
+| 独立运行 | 独立供电、USB 拔除、电脑关闭、无网络；本地选场景／执行与输出保持正常 | BLE 断开后测试内核持续；尚无独立供电／面板／用户工程播放验证 |
+| 故障与压力 | 坏包、传输中断、重复命令、重启、写入阶段掉电、面板／USB 压力、帧间隔与内存记录 | 002A 完成诊断消息拒绝／心跳超时／三次重连，物理输出与持久安装故障未覆盖 |
 
 首次连续运行以 8 小时作为工程验证门槛，再根据测试负载和故障结果扩展；这是拟定测试时长，不能等同于商业寿命认证。不得在 USB 唯一供电的情况下把拔线掉电误判为通信失联。测量设备接地也需要与隔离方案一致。
 
@@ -55,4 +55,4 @@ TI 应用说明是物理层参考，不能替代当前标准。ESTA 目录提供
 - 原理图来源：[微雪官方 PDF](https://files.waveshare.com/wiki/ESP32-S3-RS485-CAN/ESP32-S3-RS485-CAN-Schematic.pdf)。
 - 项目内缓存：`data/hardware/waveshare-esp32-s3-rs485-can/schematic.pdf`；渲染核对：`tmp/pdfs/waveshare-schematic.png`，均按项目规则忽略，不是固件产物。
 - PDF SHA-256：`c6620c0f318166c043733febd0c30835972c9cd09dcda4395fb39526fd5ea915`。厂商今后更新同一 URL 时需重新核对。
-- 本轮只做资料核对，未安装工具链、访问串口、刷机或发送信号。
+- HW-001 原轮次仅资料核对；后续实板证据与限制见 PLAYER-002A。当前代码固定 GPIO21 为低电平，没有发送 DMX。

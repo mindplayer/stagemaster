@@ -1,0 +1,51 @@
+# ESP32 第一轮验证工具
+
+PLAYER-002A 仅诊断：共享播放内核自检／负载、BLE GATT 直连及会话保活。GPIO21 固定低电平，RS485 发送关闭；没有节目上传、控制或正式 DMX 输出。
+
+## 项目内环境
+
+所有下载、缓存与环境均留项目 `tmp/`，不改用户全局 Rust 或 shell 配置。
+
+- espup **0.17.1**，Apple Silicon 官方发布二进制 SHA-256 `ab0e937d659396ed2b3b0c0f74d29bdf570217f096ea88fa58b8966cf4d32cba`。
+- espflash **4.6.0**，Apple Silicon ZIP SHA-256 `f39bff252a181a6e345991f603d7606cf9762550e557073c1282eada46d8c757`。
+- Xtensa Rust **1.97.0.0**，实际 rustc `1.97.0-nightly (8ea53bcd7 2026-07-08)`；GCC `esp-15.2.0_20250920`。
+- 固件顶层依赖精确锁定在 `apps/esp32-player/Cargo.toml`，完整依赖见独立 `Cargo.lock`。`esp-radio 1.0.0-beta.1` 与部分 HAL API 尚不稳定，当前结论限于锁定版本的诊断；不是生产认证。
+- 主机测试 Python 环境 `tmp/ble-probe`：`bleak==2.1.1`、`pyserial==3.5`；Python 仅用于测试，不是新增产品运行时。
+
+从 [espup 官方发布](https://github.com/esp-rs/espup/releases/tag/v0.17.1) 和 [espflash 官方发布](https://github.com/esp-rs/espflash/releases/tag/v4.6.0) 下载对应文件，核对摘要后将可执行文件放到 `tmp/esp-tools/`。首次工具链安装（项目根目录）：
+
+```sh
+CARGO_HOME="$PWD/tmp/cargo-home" RUSTUP_HOME="$PWD/tmp/esp-rustup" TMPDIR="$PWD/tmp" \
+  ./tmp/esp-tools/espup install --targets esp32s3 --toolchain-version 1.97.0.0 \
+  --crosstool-toolchain-version 15.2.0_20250920 --name esp \
+  --export-file "$PWD/tmp/esp-tools/export-esp.sh"
+```
+
+首次缺依赖时，在 `apps/esp32-player` 中用同样的项目绝对环境变量执行 `cargo +esp fetch --locked`，之后离线构建。不修改全局默认工具链。`espup` 的下载仍依赖官方发布可访问。
+
+## 复现
+
+```sh
+bash tools/hardware/firmware.sh build
+bash tools/hardware/firmware.sh check
+bash tools/hardware/firmware.sh size
+```
+
+刷写需要当前设备测试授权，显式指定串口；命令会写诊断固件及默认引导／分区，不备份旧固件，不支持用户节目持久安装，也不烧写 eFuse。本轮用户已授权且明确旧固件不保留。
+
+```sh
+bash tools/hardware/firmware.sh flash /dev/cu.usbmodem2101
+bash tools/hardware/firmware.sh monitor /dev/cu.usbmodem2101
+```
+
+GATT 验收脚本只识别唯一匹配的诊断服务；没有匹配或有多个即失败。系统蓝牙权限由 macOS 管理，不绕过权限。脚本需要板卡已启动并广播，串口监听不是蓝牙测试的前置条件。
+
+```sh
+UV_CACHE_DIR="$PWD/tmp/uv-cache" uv venv tmp/ble-probe
+UV_CACHE_DIR="$PWD/tmp/uv-cache" uv pip install --python tmp/ble-probe/bin/python 'bleak==2.1.1' 'pyserial==3.5'
+TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python -u tools/hardware/gatt_probe.py
+```
+
+测试服务读写／通知一致性、错误版本／会话、重复／乱序、长度拒绝、30 秒心跳、无有效心跳约 6 秒断开、三次重连和本地内核持续推进。`PASS` 不代表 DMX 电气、真实灯具或长期稳定性通过。
+
+固件 ELF 的 `.rotext_dummy` 与 `.text` 共段会触发工具链 RWX 段告警；保留告警和 `readelf` 记录，没有用编译开关掩盖。该裸机链接属性不等于运行时权限隔离；生产内存保护须单独审查。
