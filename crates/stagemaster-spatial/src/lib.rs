@@ -12,6 +12,16 @@ pub struct Installation {
 }
 
 impl Installation {
+    /// World-space beam of a fixed fixture whose local optical axis is -Z.
+    /// # Errors
+    /// Rejects invalid installation transforms.
+    pub fn fixed_ray(self) -> Result<positioning::Ray, positioning::Error> {
+        self.validate()?;
+        Ok(positioning::Ray {
+            origin_meters: self.position_meters,
+            direction: (self.rotation() * DVec3::NEG_Z).to_array(),
+        })
+    }
     /// # Errors
     /// Rejects non-finite or unbounded transforms before any matrix calculation.
     pub fn validate(self) -> Result<(), positioning::Error> {

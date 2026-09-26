@@ -9,6 +9,10 @@ license.workspace = true
 tauri-build = { version = "=2.6.3", features = [] }
 
 [dependencies]
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "=1.53.1", features = ["net", "sync", "time"] }
+uuid = { version = "=1.26.1", features = ["v4"] }
+stagemaster-previs = { path = "../../crates/stagemaster-previs" }
 stagemaster-playback = { path = "../../crates/stagemaster-playback" }
 stagemaster-project = { path = "../../crates/stagemaster-project" }
 stagemaster-project-store = { path = "../../crates/stagemaster-project-store" }
@@ -19,3 +23,6 @@ tauri-plugin-dialog = "=2.7.3"
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+reqwest = { version = "=0.13.5", default-features = false, features = ["json"] }

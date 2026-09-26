@@ -33,7 +33,7 @@
 - [架构设计 v0.5](docs/architecture.md)：状态所有权、领域模型、命令、编译激活、时间与输出、多端和云端契约；属于设计建议，尚未实现。
 - [多系统编排与监听／监看](docs/audiovisual-stage-design.md)：音频系统、媒体服务器、投影、激光和摄像机的控制、反馈与监看；正式音视频处理由外部系统负责。
 - [实体控台与双向硬件接口](docs/hardware-control-surfaces.md)：推子、编码器、按键、触摸、灯环、小屏和电动反馈；包含接管、翻页、控制权和重连规则。
-- [UE5 专业预演方向](docs/ue5-professional-previsualization.md)：专业预演优先原型候选；中立场景、渲染接口、灯具可信度、多端与云端资源边界，尚未接入。
+- [真实空间与 UE 预演开发](docs/development/tasks/PREVIS-001-real-stage-preview.md)：真实房间／构件／灯位的桌面编辑和保存已接通；独立 Rust 投影与[本机预演桥](docs/module-api/previsualization.md)已通过测试，UE 5.8.3 已安装。完整 Xcode、UE 消费端与实际三维交互验收仍待完成；[专业预演设计](docs/ue5-professional-previsualization.md)保留长期边界。
 - [真实场地采集与混合预演](docs/venue-capture-design.md)：高斯泼溅／网格采集、尺度校准、可受光区域和场地版本；属于设计建议，尚未重建或接入。
 - [Depence R4 对照与预演架构](docs/depence-r4-assessment.md)：12 项优势能力、独立预演模式、设备仿真层、场景／视频／图纸边界；公开资料研究与设计建议。
 - [StageMaster 产品蓝图](docs/product-blueprint.md)：定义取长补短后的产品原则、统一对象、现场数据流和落地阶段。

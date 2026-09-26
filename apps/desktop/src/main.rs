@@ -1,10 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod preview;
+mod previs;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
 use stagemaster_project::EditCommand;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager};
 
@@ -36,7 +37,7 @@ enum Request {
 #[tauri::command]
 async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snapshot, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<Mutex<Session>>();
+        let state = app.state::<previs::SharedSession>();
         let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
         match request {
             Request::Snapshot => {}
@@ -70,7 +71,7 @@ async fn preview_request(
     request: preview::Request,
 ) -> Result<preview::Snapshot, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<Mutex<Session>>();
+        let state = app.state::<previs::SharedSession>();
         let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
         session.preview(request)
     })
@@ -79,7 +80,8 @@ async fn preview_request(
 }
 fn main() {
     tauri::Builder::default()
-        .manage(Mutex::new(Session::default()))
+        .manage(Arc::new(Mutex::new(Session::default())))
+        .manage(previs::Bridge::default())
         .plugin(tauri_plugin_dialog::init())
         .menu(|app| {
             let app_menu = Submenu::with_items(
@@ -128,7 +130,11 @@ fn main() {
                 let _ = window.emit("project-close-requested", ());
             }
         })
-        .invoke_handler(tauri::generate_handler![project_request, preview_request])
+        .invoke_handler(tauri::generate_handler![
+            project_request,
+            preview_request,
+            previs::previs_request
+        ])
         .build(tauri::generate_context!())
         .expect("舞台大师桌面应用启动失败")
         .run(|app, event| {

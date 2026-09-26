@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-- [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 是当前 goal：真实空间／灯位、桌面布置、Rust 权威状态到独立 UE 预演闭环。ADR-016 锁定摇头灯安装／运动学／路径／编码／渲染边界，ADR-017 定义首个空间持久化增量。基础实现和桌面验证已推进，UE 5.8.3 已安装；完整 Xcode／实际三维运行和桥接验收继续，目标未完成。
+- [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 是当前 goal：真实空间／灯位、桌面布置、Rust 权威状态到独立 UE 预演闭环。ADR-016 锁定摇头灯边界，ADR-017 定义空间持久化，ADR-018 的中立投影及本机桥已实现并经 120 项 Rust 回归。UE 5.8.3 已安装，Mac 编辑器因缺少完整 Xcode 退出；真实 UE 消费端、桌面入口／草稿冲突和三维运行验收继续，目标未完成。
 
 - [PLAN-001](tasks/PLAN-001-capability-adoption.md) 将成熟能力汇总为[统一落地表](../product-capability-plan.md)：后续主动检查必要功能、模块归属与验收缺口。它是能力导航，不新增一套排期；相关边界随具体任务落实，当前可见编辑及首次软硬件交付顺序继续有效。
 - 用户最新澄清当前没有 iPad，仍以 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。按修订后的 [ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 保持共享命令、可适配布局、宿主与渲染边界，不前置移动宿主实施／真机验证，不等待设备型号。

@@ -11,6 +11,7 @@ members = [
   "crates/stagemaster-device-link",
   "crates/stagemaster-project-store",
   "crates/stagemaster-spatial",
+  "crates/stagemaster-previs",
 ]
 resolver = "3"
 exclude = ["apps/esp32-player"]

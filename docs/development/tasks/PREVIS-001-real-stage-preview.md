@@ -26,6 +26,10 @@
 
 当前验证：107 项 Rust、31 项 UI、59 项格式、workspace fmt／严格 Clippy 和桌面构建通过。日志位于项目 logs/previs-*。原生创建空间、标高 1.2／净高 4.5、拖动 X +1 米、一次撤销原位、围护和 4×2 米／0.6 米舞台、真实保存至 data/PREVIS-001/ 已验证。尺寸校验出现浏览器英文提示，已加入 noValidate 复用中文业务校验，原生复查已确认中文提示、焦点落在净高字段和取消恢复。再次重开实际文件通过；两台 RGB 调光灯保存 X=2／6、Z=5.2，第一台底座 X 旋转 25 度，第二台 0 度，文件独立复核通过。空间复制只新增范围／围护，删除原空间保留舞台／灯具，连续两次撤销回到已保存状态。布置↔灯具切换保持选择。工作区补显式 aria-hidden 后原生辅助功能可正确恢复子树；删除弹窗在原生辅助树中仍有读取缺失（画面与鼠标操作正常），需进一步核对。拖动中的 Esc 尚未通过原生自动化实测；代码支持但不能以已验收描述。
 
-用户已登录 Epic 并启动 UE 5.8.3 安装，安装路径为启动器默认 `/Users/Shared/Epic Games/UE_5.8`；这是用户操作的软件安装位置，项目源码／工程仍全部留在仓库。启动器已显示“启动”，实读 Build.version 为 5.8.3／58210709。首次启动尚在 macOS 动态库／签名加载，尚未进入编辑器；保留进程采样诊断。Apple Xcode 26.1.1 官方下载页仍等待用户登录；未代用户接受许可。未运行 UE、编译其 C++ 适配器或通过三维验收。
+用户已登录 Epic 并启动 UE 5.8.3 安装，安装路径为启动器默认 `/Users/Shared/Epic Games/UE_5.8`；这是用户操作的软件安装位置，项目源码／工程仍全部留在仓库。启动器已显示“启动”，实读 Build.version 为 5.8.3／58210709。首次启动经过 macOS 动态库／签名加载后退出；Unreal.log 明确报告缺少完整 Xcode，无法为 Metal 编译着色器。尚未进入编辑器，保留进程采样诊断。用户要求下载 Xcode，已核实 26.1.1 Apple silicon 官方文件链接要求 Apple 登录，未认证请求重定向 unauthorized；已打开并保留登录页。未代用户接受许可，尚未下载 Xcode、编译 C++ 适配器或通过三维验收。
 
-目标保持 active。待完成：布置操作完整原生验收；预演桥、UE 实际项目／灯光与构件、同源播放同步、导航拾取和三维拖动、故障隔离与性能核验。完整摇头灯档案／动态路径／校准工作流及实灯验证另作后续增量。
+继续增量（基线 `ba0cc2f`，结果为本次 `feat(previs): add neutral projection and guarded local bridge` 提交）：按 ADR-018 新增独立 Rust 预演投影，生成凹多边形构件、通用固定灯方向和真实场景／播放灯值，限制网格预算并拒绝未支持档案。新增本机 HTTP 桥、随机会话、有限接口、版本缓存、三维安装编辑接统一历史、来源／播放过期状态及故障隔离。默认不监听，不向前端返回凭据。源码及接口见 [预演 API](../../module-api/previsualization.md)。6 项投影、6 项真实回环／并发测试和 1 项独立播放时钟保护测试新增通过；工作区共 120 项 Rust、fmt、严格 Clippy、桌面构建通过，日志 `logs/previs-bridge-*`。原生重开 `data/PREVIS-001/空间与灯位.project.json` 及房间／舞台／两灯参数恢复通过。没有把未接 UE 的端口当作产品三维入口。
+
+环境判断补充：核对本机 UE 5.8.3 的 MetalRHI.cpp，Xcode／Metal 编译器检查位于 `PLATFORM_MAC && WITH_EDITOR`；当前只有命令行工具不足以启动 Mac 编辑器。Xcode 是本机开发构建依赖，成品应打包成独立预演组件，最终客户不必安装 Xcode、启动器或 UE 编辑器；也可由另一台已配置 Mac 构建本平台成品后分发，但目前没有该构建环境。参考 [Mac 要求](https://dev.epicgames.com/documentation/en-us/unreal-engine/macos-development-requirements-for-unreal-engine)与[打包流程](https://dev.epicgames.com/documentation/en-us/unreal-engine/packaging-your-project)。
+
+目标保持 active。待完成：布置操作完整原生验收；UE 消费端／实际项目、进程启动管理和灯光与构件、桌面来源选择与跨窗口草稿保护、同源播放实际画面同步、导航拾取和三维拖动、原生故障隔离与性能核验。完整摇头灯档案／动态路径／校准工作流及实灯验证另作后续增量。

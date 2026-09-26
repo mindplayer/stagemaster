@@ -76,6 +76,10 @@ pub(crate) struct Preview {
     epoch: u32,
     last_serial: u32,
 }
+pub(crate) struct RenderOutput {
+    pub status: &'static str,
+    pub output: Option<stagemaster_project::PreviewOutput>,
+}
 impl Default for Preview {
     fn default() -> Self {
         Self {
@@ -87,6 +91,25 @@ impl Default for Preview {
     }
 }
 impl Preview {
+    pub(crate) fn render_output(&mut self, version: u64, now: u64) -> Result<RenderOutput, String> {
+        let Some(loaded) = &mut self.loaded else {
+            return Ok(RenderOutput {
+                status: "unloaded",
+                output: None,
+            });
+        };
+        if loaded.content_version != version {
+            return Ok(RenderOutput {
+                status: "stalePlayback",
+                output: None,
+            });
+        }
+        loaded.player.advance(now)?;
+        Ok(RenderOutput {
+            status: status_name(loaded.player.status()),
+            output: Some(loaded.output.render(loaded.player.values())?),
+        })
+    }
     pub(crate) fn now(&self) -> u64 {
         u64::try_from(self.origin.elapsed().as_millis()).unwrap_or(u64::MAX)
     }
@@ -168,12 +191,7 @@ impl Preview {
                 sequence_id: l.sequence_id.clone(),
                 name: l.name.clone(),
                 source_revision: l.source_revision.clone(),
-                status: match l.player.status() {
-                    Status::Idle => "idle",
-                    Status::Running => "running",
-                    Status::Paused => "paused",
-                    Status::Finished => "finished",
-                },
+                status: status_name(l.player.status()),
                 step_id: index.map(|i| l.steps[i].id.clone()),
                 elapsed_ms: l.player.elapsed_ms(),
                 delay_ms: step.map_or(0, |s| s.delay_ms),
@@ -194,6 +212,14 @@ impl Preview {
         })
     }
 }
+fn status_name(status: Status) -> &'static str {
+    match status {
+        Status::Idle => "idle",
+        Status::Running => "running",
+        Status::Paused => "paused",
+        Status::Finished => "finished",
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -205,6 +231,39 @@ mod tests {
         .unwrap();
         input["entryPoints"] = serde_json::json!([]);
         Document::decode(&serde_json::to_vec(&input).unwrap()).unwrap()
+    }
+    #[test]
+    fn renderer_polling_or_disconnect_cannot_own_the_show_clock() {
+        let doc = document();
+        let id = doc.view().sequences[0].id.clone();
+        let mut observed = Preview::default();
+        let mut disconnected = Preview::default();
+        observed.load(&doc, 1, &id).unwrap();
+        disconnected.load(&doc, 1, &id).unwrap();
+        let now = observed.now().max(disconnected.now());
+        observed
+            .control(1, observed.epoch, 1, Command::Next, now)
+            .unwrap();
+        disconnected
+            .control(1, disconnected.epoch, 1, Command::Next, now)
+            .unwrap();
+        for tick in [10, 100, 500, 1100] {
+            observed.render_output(1, now + tick).unwrap();
+        }
+        let a = serde_json::to_value(observed.snapshot(1, now + 1500).unwrap()).unwrap();
+        let b = serde_json::to_value(disconnected.snapshot(1, now + 1500).unwrap()).unwrap();
+        assert_eq!(a, b);
+        // A render-version failure also cannot reset, stop or advance the player independently.
+        assert!(
+            observed
+                .render_output(2, now + 2000)
+                .unwrap()
+                .output
+                .is_none()
+        );
+        let a = serde_json::to_value(observed.snapshot(1, now + 2500).unwrap()).unwrap();
+        let b = serde_json::to_value(disconnected.snapshot(1, now + 2500).unwrap()).unwrap();
+        assert_eq!(a, b);
     }
     #[test]
     fn stale_plans_reject_new_execution_but_allow_pause_and_release() {

@@ -3,6 +3,7 @@ use stagemaster_project::{Document, EditCommand, ProjectView};
 use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogResult};
+mod previs;
 
 #[derive(Default)]
 pub(crate) struct Session {
@@ -14,6 +15,8 @@ pub(crate) struct Session {
     generation: u32,
     content_version: u64,
     preview: crate::preview::Preview,
+    previs_source: crate::previs::protocol::Source,
+    previs_edit_allowed: bool,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -96,6 +99,8 @@ impl Session {
         self.undo.clear();
         self.redo.clear();
         self.preview.clear();
+        self.previs_source = crate::previs::protocol::Source::default();
+        self.previs_edit_allowed = false;
         self.content_version += 1;
         self.generation += 1;
     }
@@ -157,6 +162,7 @@ impl Session {
             }
             self.redo.clear();
             self.document = Some(next);
+            self.previs_edit_allowed = false;
             self.content_version += 1;
             self.generation += 1;
         }
@@ -175,6 +181,7 @@ impl Session {
                 destination.push(current);
             }
             self.document = Some(next);
+            self.previs_edit_allowed = false;
             self.content_version += 1;
             self.generation += 1;
         }
@@ -221,6 +228,7 @@ impl Session {
         if let Some(file) = new_file {
             self.file = Some(file);
         }
+        self.previs_edit_allowed = false;
         self.generation += 1;
         if let Some(warning) = receipt.warning {
             app.dialog()

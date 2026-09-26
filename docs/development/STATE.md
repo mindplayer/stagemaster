@@ -7,6 +7,8 @@
 
 当前进行中：[PREVIS-001](tasks/PREVIS-001-real-stage-preview.md)，基线 `9d49939`。用户要求真实 UE 预演及摇头灯长期架构，已按 ADR-016／017 实施独立空间／静态双轴几何基础、真实房间／构件／灯位持久化和桌面平面布置组件。107 项 Rust、31 项 UI、59 项格式及严格 Clippy 通过，桌面构建通过；原生保存重开、精确尺寸、单次拖动撤销、两台独立灯位、复制／删除依赖、撤销恢复、中文错误和跨工作区上下文已验证；删除弹窗辅助树与拖动中 Esc 实测仍需继续。Epic 库已打开，UE 5.8.3 已安装；兼容的完整 Xcode 仍需 Apple 登录后下载。**目标保持 active，UE 桥／实际三维运行尚未完成。** 不将基础空间模块标为整体预演交付。
 
+PREVIS-001 继续：空间编辑增量已提交 `ba0cc2f`；本次增量为 `feat(previs): add neutral projection and guarded local bridge`。ADR-018、独立预演投影、缓存灯值和回环 HTTP 桥已实现，见[预演接口](../module-api/previsualization.md)。完整 120 项 Rust、fmt、workspace 严格 Clippy 与桌面构建通过；原生重新打开真实空间文件，房间／舞台／两灯安装参数恢复通过。HTTP 测试覆盖权限、并发版本、统一撤销、播放同源、删除来源、背压和取消后容量保留。尚未接 UE 消费端／启动管理、桌面来源选择及跨窗口草稿保护；没有新增虚假三维入口。UE 首次启动因完整 Xcode 缺失退出，26.1.1 Apple 芯片官方安装包仍待 Apple 登录下载；目标保持 active。
+
 已完成本轮：[DESKTOP-004](tasks/DESKTOP-004-groups-presets.md)。基线 `8513eee`；结果为本次 `feat(desktop): add ordered groups and reusable preset workflows` 提交。正式工作台已接有序灯组、预设池、引用／独立值、三种更新策略、依赖保护和属性复制；独立 Rust 资源模块复用原子历史／持久化／编译，见[接口](../module-api/editing-library.md)。86 项 Rust、28 项 UI、50 项格式、4 项 Sites、严格 Clippy／fmt／桌面构建与原生保存重开验收通过。逐灯预设增量完成，动态效果、完整现场编程器和通用共享预设仍待实施。
 
 已完成：[PLAYER-002A](tasks/PLAYER-002-esp32-probe.md)。基线 `6fce3db`；用户授权实板测试，补充 GATT 直连／连接层抽象及保活，并明确不保留原固件。共享播放内核已在 ESP32-S3 执行，电脑 BLE 读写／通知、心跳超时和三次重连通过；GPIO21 保持低电平，无 DMX 输出。父任务 PLAYER-002 继续。接口见[设备连接诊断](../module-api/device-link-probe.md)。
