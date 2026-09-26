@@ -5,6 +5,8 @@
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
+当前进行中：[PREVIS-001](tasks/PREVIS-001-real-stage-preview.md)，基线 `9d49939`。用户要求真实 UE 预演及摇头灯长期架构，已按 ADR-016／017 实施独立空间／静态双轴几何基础、真实房间／构件／灯位持久化和桌面平面布置组件。107 项 Rust、31 项 UI、59 项格式及严格 Clippy 通过，桌面构建通过；原生保存重开、精确尺寸、单次拖动撤销、两台独立灯位、复制／删除依赖、撤销恢复、中文错误和跨工作区上下文已验证；删除弹窗辅助树与拖动中 Esc 实测仍需继续。Epic 库已打开，UE 5.8.3 已安装；兼容的完整 Xcode 仍需 Apple 登录后下载。**目标保持 active，UE 桥／实际三维运行尚未完成。** 不将基础空间模块标为整体预演交付。
+
 已完成本轮：[DESKTOP-004](tasks/DESKTOP-004-groups-presets.md)。基线 `8513eee`；结果为本次 `feat(desktop): add ordered groups and reusable preset workflows` 提交。正式工作台已接有序灯组、预设池、引用／独立值、三种更新策略、依赖保护和属性复制；独立 Rust 资源模块复用原子历史／持久化／编译，见[接口](../module-api/editing-library.md)。86 项 Rust、28 项 UI、50 项格式、4 项 Sites、严格 Clippy／fmt／桌面构建与原生保存重开验收通过。逐灯预设增量完成，动态效果、完整现场编程器和通用共享预设仍待实施。
 
 已完成：[PLAYER-002A](tasks/PLAYER-002-esp32-probe.md)。基线 `6fce3db`；用户授权实板测试，补充 GATT 直连／连接层抽象及保活，并明确不保留原固件。共享播放内核已在 ESP32-S3 执行，电脑 BLE 读写／通知、心跳超时和三次重连通过；GPIO21 保持低电平，无 DMX 输出。父任务 PLAYER-002 继续。接口见[设备连接诊断](../module-api/device-link-probe.md)。
@@ -39,6 +41,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) | in progress | 真实空间与布置、静态双轴基础已实现并在验收；UE 安装／Xcode、进程桥与真实三维联动待完成 |
 | [DEV-001](tasks/DEV-001-delivery-foundation.md) | done | Git 与验证基线保留 |
 | [CORE-001](tasks/CORE-001-cue-uniqueness.md) | done | 实现与保护验收保留 |
 | [CORE-002](tasks/CORE-002-htp-fallback.md) | done | 实现与保护验收保留 |

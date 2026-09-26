@@ -121,7 +121,7 @@ export function auditProject(p) {
     return entry.value;
   };
   add('project', [p.project]); add('resource', p.resources); add('domain', p.domains);
-  const kinds = { profiles:'profile',fixtures:'fixture',groups:'group',presets:'preset',scenes:'scene',sequences:'sequence',systems:'media-system',objects:'media-object',controllers:'controller',axes:'axis',devices:'io-device',signals:'signal',outputs:'output',sources:'monitor-source',views:'monitor-view',pages:'page',nodes:'stage-node' };
+  const kinds = { profiles:'profile',fixtures:'fixture',groups:'group',presets:'preset',scenes:'scene',sequences:'sequence',systems:'media-system',objects:'media-object',controllers:'controller',axes:'axis',devices:'io-device',signals:'signal',outputs:'output',sources:'monitor-source',views:'monitor-view',pages:'page',nodes:'stage-node',spaces:'stage-space',constructions:'stage-construction' };
   for (const module of ['lighting','media','motion','io','monitoring','surfaces','stage']) for (const [key, values] of Object.entries(p[module] ?? {})) if (kinds[key]) add(kinds[key], values);
   for (const [key, kind] of Object.entries({ syncGroups:'sync-group',actions:'action',conditions:'condition',rules:'rule',timelines:'timeline',entryPoints:'entry-point' })) add(kind, p[key]);
   for (const seq of p.lighting?.sequences ?? []) add('step', seq.steps);
@@ -130,6 +130,7 @@ export function auditProject(p) {
   unique(p.requires.map(x => x.key), '能力键');
   const declared = new Set(p.requires.map(x => `${x.key}@${x.version}`));
   for (const [module, capability] of Object.entries({ lighting:'lighting.basic',media:'media.external',motion:'motion.external',io:'io.logic',stage:'stage.layout',monitoring:'monitoring',surfaces:'surface.mapping' })) if (p[module]) assert(declared.has(`${capability}@1`), `缺少模块能力声明：${capability}`);
+  if (p.stage && ['spaces','constructions','placements'].some(key => key in p.stage)) assert(declared.has('stage.spaces@1'), '缺少模块能力声明：stage.spaces');
   if (p.timelines.length) assert(declared.has('timeline.basic@1'), '缺少时间线能力声明');
   if (p.rules.length) assert(declared.has('automation.rules@1'), '缺少联动能力声明');
   const attr = target => {
@@ -255,6 +256,35 @@ export function auditProject(p) {
     assert(Object.values(node.transform.scale).every(x => decimalCompare(x, '0') > 0n), '场景缩放必须为正');
   }
   acyclic(p.stage?.nodes ?? [], n => n.parentId ? [n.parentId] : [], '场景父节点');
+  // Geometric validity/triangulation belongs to Rust + geo; this offline tool checks structure,
+  // bounds and references only and must not be used as the product's geometric acceptance gate.
+  const bounded = (value, min, max) => assert(decimalCompare(value, String(min)) >= 0n && decimalCompare(value, String(max)) <= 0n, '空间数值越界');
+  const outlineBounds = points => points.flat().forEach(v => bounded(v, -100000, 100000));
+  for (const space of p.stage?.spaces ?? []) {
+    outlineBounds(space.outlineMeters); bounded(space.floorElevationMeters, -10000, 10000);
+    if (space.clearHeightMeters !== null) bounded(space.clearHeightMeters, 0.1, 1000);
+  }
+  const enclosures = [];
+  for (const construction of p.stage?.constructions ?? []) {
+    const s = construction.shape;
+    const space = s.spaceId === null ? null : get(s.spaceId, 'stage-space');
+    if (s.kind === 'enclosure') {
+      enclosures.push(s.spaceId); assert(space.clearHeightMeters !== null, '围护需要空间净高');
+      bounded(s.wallThicknessMeters, 0.001, 10); bounded(s.floorThicknessMeters, 0.001, 10);
+      if (s.ceilingThicknessMeters !== null) bounded(s.ceilingThicknessMeters, 0.001, 10);
+    } else {
+      outlineBounds(s.outlineMeters); bounded(s.baseElevationMeters, -10000, 10000); bounded(s.heightMeters, 0.001, 1000);
+    }
+  }
+  unique(enclosures, '空间围护');
+  unique((p.stage?.placements ?? []).map(p => p.fixtureId), '灯具布置');
+  for (const placement of p.stage?.placements ?? []) {
+    get(placement.fixtureId, 'fixture');
+    if (placement.spaceId !== null) get(placement.spaceId, 'stage-space');
+    Object.values(placement.positionMeters).forEach(v => bounded(v, -100000, 100000));
+    Object.values(placement.rotationDegreesXYZ).forEach(v => bounded(v, -3600, 3600));
+  }
+
   for (const source of p.monitoring?.sources ?? []) { get(source.systemId, 'media-system'); if (source.referenceResourceId) get(source.referenceResourceId, 'resource'); }
   for (const view of p.monitoring?.views ?? []) get(view.sourceId, 'monitor-source');
   for (const page of p.surfaces?.pages ?? []) for (const control of page.controls) {

@@ -10,6 +10,9 @@ use serde_json::{Value, json};
     deny_unknown_fields
 )]
 pub enum EditCommand {
+    Stage {
+        command: crate::StageEdit,
+    },
     Library {
         command: crate::LibraryEdit,
     },
@@ -71,6 +74,7 @@ pub enum ValueMode {
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
+        EditCommand::Stage { command } => crate::stage::apply(root, command)?,
         EditCommand::Library { command } => crate::library::apply(root, command)?,
         EditCommand::Sequence { command } => crate::sequence::apply(root, command)?,
         EditCommand::Batch { commands } => {

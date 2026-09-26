@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 stagemaster-playback = { path = "../stagemaster-playback" }
+stagemaster-spatial = { path = "../stagemaster-spatial" }
 stagemaster-dmx = { path = "../stagemaster-dmx" }
 stagemaster-domain = { path = "../stagemaster-domain" }
 stagemaster-engine = { path = "../stagemaster-engine" }

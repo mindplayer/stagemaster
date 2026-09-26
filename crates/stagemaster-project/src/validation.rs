@@ -36,6 +36,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     }
     supported(root)?;
     unique_objects(root, &mut BTreeSet::new())?;
+    crate::stage::validate(root)?;
     let Some(lighting) = root.get("lighting") else {
         return Ok(());
     };
@@ -107,14 +108,16 @@ fn supported(root: &Value) -> Result<(), String> {
             return Err(format!("当前版本尚不支持此工程中的 {key} 内容，工程未打开"));
         }
     }
-    for key in ["media", "motion", "io", "stage", "monitoring", "surfaces"] {
+    for key in ["media", "motion", "io", "monitoring", "surfaces"] {
         if root.get(key).is_some() {
             return Err(format!("当前版本尚不支持此工程中的 {key} 模块，工程未打开"));
         }
     }
     let mut capabilities = BTreeSet::new();
     for capability in array(root, "requires") {
-        if capability["key"] != "lighting.basic" || capability["version"] != 1 {
+        if !["lighting.basic", "stage.layout", "stage.spaces"].contains(&text(capability, "key"))
+            || capability["version"] != 1
+        {
             return Err(format!(
                 "当前版本不支持工程能力：{}",
                 text(capability, "key")
@@ -126,6 +129,11 @@ fn supported(root: &Value) -> Result<(), String> {
     }
     if root.get("lighting").is_some() && !capabilities.contains("lighting.basic") {
         return Err("灯光工程缺少灯光能力声明".into());
+    }
+    if root.get("stage").is_some()
+        && (!capabilities.contains("stage.layout") || !capabilities.contains("stage.spaces"))
+    {
+        return Err("场地工程缺少空间能力声明".into());
     }
     if array(root, "domains")
         .iter()

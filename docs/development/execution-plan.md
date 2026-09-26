@@ -1,8 +1,10 @@
 # 当前执行计划
 
-更新：2026-09-26。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
+更新：2026-09-27。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
 
 ## 当前任务
+
+- [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 是当前 goal：真实空间／灯位、桌面布置、Rust 权威状态到独立 UE 预演闭环。ADR-016 锁定摇头灯安装／运动学／路径／编码／渲染边界，ADR-017 定义首个空间持久化增量。基础实现和桌面验证已推进，UE 5.8.3 已安装；完整 Xcode／实际三维运行和桥接验收继续，目标未完成。
 
 - [PLAN-001](tasks/PLAN-001-capability-adoption.md) 将成熟能力汇总为[统一落地表](../product-capability-plan.md)：后续主动检查必要功能、模块归属与验收缺口。它是能力导航，不新增一套排期；相关边界随具体任务落实，当前可见编辑及首次软硬件交付顺序继续有效。
 - 用户最新澄清当前没有 iPad，仍以 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。按修订后的 [ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 保持共享命令、可适配布局、宿主与渲染边界，不前置移动宿主实施／真机验证，不等待设备型号。

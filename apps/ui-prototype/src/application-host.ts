@@ -1,3 +1,4 @@
+import type { StageEdit, StageView } from "./stage-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
   SequenceEdit,
@@ -9,6 +10,7 @@ export type EditCommand =
   | EditOperation
   | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "stage"; command: StageEdit }
   | { op: "library"; command: LibraryEdit }
   | { op: "sequence"; command: SequenceEdit }
   | { op: "setInfo"; name: string; description: string }
@@ -74,6 +76,7 @@ export interface ProjectView {
   groups: GroupView[];
   presets: PresetView[];
   sequences: SequenceView[];
+  stage: StageView;
 }
 export interface Snapshot {
   generation: number;

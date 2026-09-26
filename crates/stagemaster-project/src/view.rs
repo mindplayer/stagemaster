@@ -15,6 +15,7 @@ pub struct ProjectView {
     pub groups: Vec<GroupView>,
     pub presets: Vec<PresetView>,
     pub sequences: Vec<SequenceView>,
+    pub stage: crate::StageView,
 }
 #[derive(Serialize)]
 pub struct NamedView {
@@ -101,6 +102,7 @@ pub struct StepView {
 pub(super) fn project(root: &Value) -> ProjectView {
     let lighting = &root["lighting"];
     ProjectView {
+        stage: crate::stage::view(root),
         id: text(&root["project"], "id").into(),
         name: text(&root["project"], "name").into(),
         description: text(&root["project"], "description").into(),

@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react";
 export function DeleteDialog({
   name,
+  description,
   error,
   busy,
   onCancel,
   onDelete,
 }: {
   name: string;
+  description?: string;
   error?: string;
   busy: boolean;
   onCancel: () => void;
@@ -24,6 +26,7 @@ export function DeleteDialog({
       onCancel={onCancel}
     >
       <h2 id="delete-title">删除“{name}”？</h2>
+      {description && <p>{description}</p>}
       {error && <p role="alert">{error}</p>}
       <div className="wb-dialog-actions">
         <button autoFocus onClick={onCancel}>

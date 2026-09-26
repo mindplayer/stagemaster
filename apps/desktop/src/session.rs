@@ -439,3 +439,35 @@ mod library_history_tests {
         assert!(s.document.as_ref().unwrap().view().presets.is_empty());
     }
 }
+
+#[cfg(test)]
+mod stage_history_tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn space_edit_undo_redo_and_invalid_geometry_keep_one_authoritative_document() {
+        let mut s = Session::default();
+        s.replace(Document::new("布置").unwrap(), None);
+        let empty = s.document.clone();
+        let room=serde_json::from_value(json!({"op":"stage","command":{"op":"putSpace","id":null,"name":"厅","outlineMeters":[["0","0"],["8","0"],["8","6"],["0","6"]],"floorElevationMeters":"0","clearHeightMeters":"5"}})).unwrap();
+        s.edit(s.generation, room).unwrap();
+        let created = s.document.clone();
+        assert_eq!(s.undo.len(), 1);
+        let id = s.document.as_ref().unwrap().view().stage.spaces[0]
+            .id
+            .clone();
+        let invalid=serde_json::from_value(json!({"op":"stage","command":{"op":"putSpace","id":id,"name":"坏轮廓","outlineMeters":[["0","0"],["4","4"],["0","4"],["4","0"]],"floorElevationMeters":"0","clearHeightMeters":"5"}})).unwrap();
+        assert!(s.edit(s.generation, invalid).is_err());
+        assert_eq!(s.document, created);
+        assert_eq!(s.undo.len(), 1);
+        s.history(s.generation, false).unwrap();
+        assert_eq!(s.document, empty);
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.document, created);
+        let document = s.document.as_ref().unwrap();
+        assert_eq!(
+            document,
+            &Document::decode(&document.encode().unwrap()).unwrap()
+        );
+    }
+}

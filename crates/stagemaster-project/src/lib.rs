@@ -3,10 +3,15 @@ mod compilation;
 mod editing;
 mod library;
 mod sequence;
+mod stage;
 pub use compilation::{
     AttributeOutput, CompiledOutput, CompiledSequence, CompiledStep, FixtureOutput, PreviewOutput,
 };
 pub use sequence::{Repeat, SequenceEdit, Tracking};
+pub use stage::{
+    ConstructionShape, FixturePlacement, SpatialVector3, StageConstruction, StageEdit, StageSpace,
+    StageView,
+};
 mod strict_json;
 mod validation;
 mod view;

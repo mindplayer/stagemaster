@@ -314,6 +314,27 @@
           },
           "minItems": 0,
           "maxItems": 10000
+        },
+        "spaces": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/StageSpace"
+          }
+        },
+        "constructions": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/StageConstruction"
+          }
+        },
+        "placements": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/FixturePlacement"
+          }
         }
       },
       "required": [
@@ -2537,6 +2558,206 @@
         "name",
         "parentId",
         "transform"
+      ],
+      "additionalProperties": false
+    },
+    "SpatialVector3": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "y": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "z": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "additionalProperties": false
+    },
+    "SpatialOutline": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 128,
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+          },
+          {
+            "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2,
+        "items": false
+      }
+    },
+    "StageSpace": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "outlineMeters": {
+          "$ref": "#/$defs/SpatialOutline"
+        },
+        "floorElevationMeters": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "clearHeightMeters": {
+          "oneOf": [
+            {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "outlineMeters",
+        "floorElevationMeters",
+        "clearHeightMeters"
+      ],
+      "additionalProperties": false
+    },
+    "StageConstruction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "shape": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "enclosure"
+                },
+                "spaceId": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                },
+                "wallThicknessMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "floorThicknessMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "ceilingThicknessMeters": {
+                  "oneOf": [
+                    {
+                      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "kind",
+                "spaceId",
+                "wallThicknessMeters",
+                "floorThicknessMeters",
+                "ceilingThicknessMeters"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "platform"
+                },
+                "spaceId": {
+                  "oneOf": [
+                    {
+                      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "outlineMeters": {
+                  "$ref": "#/$defs/SpatialOutline"
+                },
+                "baseElevationMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "heightMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                }
+              },
+              "required": [
+                "kind",
+                "spaceId",
+                "outlineMeters",
+                "baseElevationMeters",
+                "heightMeters"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "shape"
+      ],
+      "additionalProperties": false
+    },
+    "FixturePlacement": {
+      "type": "object",
+      "properties": {
+        "fixtureId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "spaceId": {
+          "oneOf": [
+            {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "positionMeters": {
+          "$ref": "#/$defs/SpatialVector3"
+        },
+        "rotationDegreesXYZ": {
+          "$ref": "#/$defs/SpatialVector3"
+        }
+      },
+      "required": [
+        "fixtureId",
+        "spaceId",
+        "positionMeters",
+        "rotationDegreesXYZ"
       ],
       "additionalProperties": false
     }

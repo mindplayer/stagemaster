@@ -1,0 +1,334 @@
+.stage-workspace {
+  display: grid;
+  grid-template-columns: 218px minmax(320px, 1fr) 286px;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: #0b1118;
+}
+.stage-workspace[hidden] {
+  display: none;
+}
+.stage-browser,
+.stage-inspector {
+  background: #111923;
+  min-height: 0;
+  overflow: auto;
+}
+.stage-browser {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #26313e;
+  padding: 16px 12px;
+  gap: 14px;
+}
+.stage-browser header,
+.stage-inspector header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.stage-browser h2,
+.stage-inspector h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.stage-browser header > span {
+  font-size: 11px;
+  color: #8c9eac;
+}
+.stage-create {
+  display: grid;
+  gap: 7px;
+}
+.stage-search {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #8c9eac;
+}
+.stage-search input {
+  min-width: 0 !important;
+  font-size: 11px !important;
+  padding: 8px !important;
+}
+.stage-objects {
+  min-height: 100px;
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.workbench .stage-objects > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 9px 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+.workbench .stage-objects > button.active {
+  background: #193932;
+  border-color: #34705f;
+}
+.stage-objects button span {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+.stage-objects strong {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stage-objects small {
+  font-size: 10px;
+  color: #8eaaa6;
+}
+.stage-place {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #273340;
+  padding-top: 14px;
+}
+.stage-place label {
+  display: grid;
+  gap: 8px;
+  font-size: 11px;
+  color: #93a5b4;
+}
+.stage-place select {
+  width: 100%;
+  min-width: 0 !important;
+}
+.stage-inspector {
+  border-left: 1px solid #26313e;
+  padding: 16px;
+}
+.stage-inspector form {
+  display: grid;
+  gap: 18px;
+}
+.stage-inspector fieldset {
+  display: grid;
+  gap: 14px;
+}
+.stage-inspector label {
+  display: grid;
+  gap: 7px;
+  font-size: 11px;
+  color: #a8b9c7;
+}
+.stage-inspector input,
+.stage-inspector select {
+  width: 100%;
+  min-width: 0 !important;
+}
+.stage-inspector h3 {
+  font-size: 12px;
+  margin: 7px 0;
+  font-weight: 500;
+}
+.stage-inspector footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: #111923;
+  padding: 12px 0;
+}
+.stage-actions {
+  display: flex;
+  gap: 4px;
+}
+.workbench .stage-actions button {
+  padding: 7px;
+}
+.stage-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.stage-fields label {
+  font-size: 10px;
+}
+.stage-fields input {
+  padding: 7px !important;
+  font-variant-numeric: tabular-nums;
+}
+.stage-check {
+  display: flex !important;
+  align-items: center;
+  gap: 7px !important;
+  font-size: 11px;
+  color: #9caeba;
+}
+.stage-check input {
+  width: auto !important;
+}
+.stage-point,
+.stage-point-head {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0;
+  font-size: 11px;
+  color: #9faebb;
+}
+.stage-point input {
+  padding: 6px !important;
+}
+.workbench .stage-point button {
+  padding: 5px;
+}
+.stage-outline h3 {
+  display: flex;
+  justify-content: space-between;
+}
+.stage-outline h3 span {
+  color: #7d909f;
+  font-size: 11px;
+}
+.stage-outline > button {
+  margin-top: 6px;
+  width: 100%;
+}
+.stage-error {
+  font-size: 12px;
+  color: #f8a3a3;
+  line-height: 1.5;
+}
+.stage-canvas-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0b1118;
+}
+.stage-canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #202c38;
+}
+.stage-canvas-toolbar > span {
+  flex: 1;
+}
+.stage-canvas-toolbar strong {
+  font-size: 12px;
+  margin-right: 8px;
+}
+.workbench .stage-canvas-toolbar button {
+  padding: 7px;
+  background: transparent;
+  border-color: transparent;
+}
+.stage-canvas {
+  display: block;
+  min-height: 150px;
+  width: 100%;
+  flex: 1;
+  touch-action: none;
+  outline: none;
+  cursor: grab;
+}
+.stage-canvas:focus-visible {
+  box-shadow: inset 0 0 0 1px #448b73;
+}
+.stage-canvas g[data-id] {
+  cursor: move;
+}
+.stage-room {
+  fill: #1b2937;
+  fill-opacity: 0.75;
+  stroke: #668398;
+}
+.stage-platform {
+  fill: #546c79;
+  fill-opacity: 0.75;
+  stroke: #9eb3bd;
+}
+.is-selected > .stage-room,
+.is-selected > .stage-platform {
+  stroke: #70dcc0;
+  fill: #255647;
+  fill-opacity: 0.6;
+}
+.stage-room-label {
+  fill: #b2c4d0;
+  user-select: none;
+  pointer-events: none;
+}
+.stage-light circle {
+  fill: #111c25;
+  stroke: #d5b979;
+}
+.stage-light path {
+  stroke: #e0ca94;
+}
+.stage-light.is-selected circle {
+  fill: #275948;
+  stroke: #71e7c7;
+}
+.stage-light text {
+  fill: #c4ced5;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+.stage-canvas-panel footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 14px;
+  color: #718797;
+  font-size: 10px;
+  border-top: 1px solid #202c38;
+}
+@media (max-width: 1180px) {
+  .stage-workspace {
+    grid-template-columns: 180px minmax(240px, 1fr) 260px;
+  }
+  .stage-canvas-toolbar strong {
+    display: none;
+  }
+}
+@media (max-width: 880px) {
+  .stage-workspace {
+    grid-template-columns: 155px minmax(220px, 1fr);
+    overflow: auto;
+  }
+  .stage-inspector {
+    grid-column: 1/-1;
+    border-top: 1px solid #26313e;
+    max-height: 340px;
+  }
+  .stage-canvas-panel {
+    min-height: 380px;
+  }
+  .stage-browser {
+    max-height: 440px;
+  }
+  .stage-inspector fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stage-outline {
+    grid-column: 1/-1;
+  }
+}
+.workbench .stage-check {
+  flex-direction: row;
+}
+
+.workbench .stage-search { flex-direction: row; }

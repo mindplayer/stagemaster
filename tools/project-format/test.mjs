@@ -64,3 +64,24 @@ test('空白编辑工程可以保存，但不生成虚假的执行入口', () =>
   p.entryPoints = [];
   assert.doesNotThrow(() => auditProject(p));
 });
+
+const spaces = () => {
+  const p = basic(), id = '30000000-0000-4000-8000-000000000001';
+  p.requires.push({key:'stage.layout',version:1},{key:'stage.spaces',version:1});
+  p.stage = {
+    nodes:[],
+    spaces:[{id,name:'主厅',outlineMeters:[['0','0'],['8','0'],['8','4'],['0','4']],floorElevationMeters:'0',clearHeightMeters:'5'}],
+    constructions:[{id:'30000000-0000-4000-8000-000000000002',name:'围护',shape:{kind:'enclosure',spaceId:id,wallThicknessMeters:'0.2',floorThicknessMeters:'0.1',ceilingThicknessMeters:null}}],
+    placements:[{fixtureId:p.lighting.fixtures[0].id,spaceId:id,positionMeters:{x:'1',y:'2',z:'4.5'},rotationDegreesXYZ:{x:'0',y:'15',z:'0'}}],
+  };
+  return p;
+};
+test('空间扩展的结构与跨领域引用可核对', () => assert.doesNotThrow(() => auditProject(spaces())));
+invalid('空间扩展不可省略新能力声明',spaces,p => {p.requires=p.requires.filter(c=>c.key!=='stage.spaces');},/能力声明/);
+invalid('灯位不可引用场景当作灯具',spaces,p => {p.stage.placements[0].fixtureId=p.lighting.scenes[0].id;},/种类错误/);
+invalid('拒绝一灯重复布置',spaces,p => {p.stage.placements.push(structuredClone(p.stage.placements[0]));},/灯具布置/);
+invalid('空间不能与灯具重复身份',spaces,p => {p.stage.spaces[0].id=p.lighting.fixtures[0].id;},/重复对象身份/);
+invalid('灯位归属不可引用已删除空间',spaces,p => {p.stage.spaces=[];},/引用不存在/);
+invalid('围护需要有界空间净高',spaces,p => {p.stage.spaces[0].clearHeightMeters=null;},/净高/);
+invalid('安装旋转与位置都有上限',spaces,p => {p.stage.placements[0].rotationDegreesXYZ.x='3601';},/越界/);
+invalid('空间坐标保留十进制字符串规范',spaces,p => {p.stage.placements[0].positionMeters.z='4.50';},/结构/);

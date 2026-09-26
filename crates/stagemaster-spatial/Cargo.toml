@@ -1,0 +1,13 @@
+[package]
+name = "stagemaster-spatial"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+glam = { version = "=0.33.10", default-features = false, features = ["std", "f64"] }
+geo = { version = "=0.33.1", default-features = false, features = ["earcut"] }
+
+[lints]
+workspace = true

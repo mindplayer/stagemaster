@@ -10,6 +10,7 @@ import {
   ListNumbersIcon,
   GearSixIcon,
   XIcon,
+  CubeIcon,
 } from "@phosphor-icons/react";
 import type {
   ApplicationHost,
@@ -35,6 +36,10 @@ import {
   type SequenceHandle,
 } from "./components/workbench/SequenceWorkspace";
 import "./workbench.css";
+import {
+  StageWorkspace,
+  type StageHandle,
+} from "./components/stage/StageWorkspace";
 import { ResourcePool } from "./components/workbench/ResourcePool";
 
 const EMPTY: Snapshot = {
@@ -45,7 +50,7 @@ const EMPTY: Snapshot = {
   canUndo: false,
   canRedo: false,
 };
-type Page = "fixtures" | "scenes" | "sequences" | "settings";
+type Page = "stage" | "fixtures" | "scenes" | "sequences" | "settings";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -99,6 +104,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [parameterPending, setParameterPending] = useState(false);
   const parameters = useRef<ParameterHandle>(null);
   const sequences = useRef<SequenceHandle>(null);
+  const stage = useRef<StageHandle>(null);
+  const [stagePending, setStagePending] = useState(false);
   const [sequencePending, setSequencePending] = useState(false);
   const htmlProjectForm = useRef<HTMLFormElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -117,7 +124,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const activeScene = project?.scenes.find((s) => s.id === sceneId);
   const activeFixture = project?.fixtures.find((f) => f.id === patchId);
   const dirty =
-    snapshot.dirty || pending || parameterPending || sequencePending;
+    snapshot.dirty ||
+    pending ||
+    parameterPending ||
+    sequencePending ||
+    stagePending;
 
   function setForm(next: ProjectForm | null, changed = false) {
     formRef.current = next;
@@ -200,8 +211,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     }
     commands.push(...(parameters.current?.collect() ?? []));
     commands.push(...(sequences.current?.collect() ?? []));
+    commands.push(...(stage.current?.collect() ?? []));
     if (!commands.length) {
       sequences.current?.accept();
+      stage.current?.accept();
       return;
     }
     if (commands.length > 256)
@@ -209,6 +222,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     await edit({ op: "batch", commands });
     parameters.current?.accept();
     sequences.current?.accept();
+    stage.current?.accept();
     setParameterPending(false);
     setNotice("修改已应用");
     if (draft && pendingRef.current) {
@@ -258,7 +272,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     const fixture = p.fixtures.find((f) => f.id === patchId);
     const scene = p.scenes.find((s) => s.id === sceneId);
     setForm(
-      nextPage === "sequences"
+      nextPage === "sequences" || nextPage === "stage"
         ? null
         : nextPage === "settings"
           ? infoForm(p)
@@ -630,7 +644,36 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               <GearSixIcon />
               工程
             </button>
+            <button
+              className={page === "stage" ? "active" : ""}
+              aria-pressed={page === "stage"}
+              disabled={busy}
+              onClick={() => switchPage("stage")}
+            >
+              <CubeIcon />
+              布置<span>{project.stage.spaces.length}</span>
+            </button>
           </nav>
+          <StageWorkspace
+            key={`stage:${project.id}`}
+            ref={stage}
+            project={project}
+            visible={page === "stage"}
+            busy={busy}
+            error={error}
+            beforeChange={() => run(async () => {})}
+            onPending={(value) => {
+              setStagePending(value);
+              if (!value) setError("");
+            }}
+            onEdit={async (command) => {
+              const ok = await run(async () => {
+                await edit(command);
+                setNotice("场地已更新，可撤销恢复");
+              });
+              return ok ? current.current.project : null;
+            }}
+          />
           <SequenceWorkspace
             key={project.id}
             ref={sequences}
@@ -653,7 +696,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             }}
           />
           <div
-            hidden={page === "sequences"}
+            hidden={page === "sequences" || page === "stage"}
+            aria-hidden={page === "sequences" || page === "stage"}
             className={`wb-layout ${page === "scenes" ? "wb-arrangement" : ""}`}
           >
             {page === "scenes" && (
@@ -828,7 +872,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 htmlProjectForm={htmlProjectForm}
                 busy={busy}
                 pending={pending}
-                page={page === "sequences" ? "scenes" : page}
+                page={
+                  page === "sequences" || page === "stage" ? "scenes" : page
+                }
                 project={project}
                 activeFixture={page === "fixtures" ? activeFixture : undefined}
                 onChange={(patch) => {
