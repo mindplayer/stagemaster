@@ -198,3 +198,38 @@ fn mesh_budget_rejects_oversize_preview_without_mutating_editable_project() {
     assert!(scene(&doc).is_err());
     assert_eq!(doc.encode().unwrap(), before);
 }
+
+#[test]
+fn rig_mesh_is_finite_transformed_and_read_only() {
+    let (mut doc, _, _) = setup();
+    for kind in ["truss", "pipe"] {
+        edit(
+            &mut doc,
+            json!({"op":"stage","command":{"op":"putConstruction","id":null,"name":kind,"shape":{"kind":"rig","rigKind":kind,"spaceId":null,"positionMeters":{"x":"10","y":"20","z":"8"},"yawDegrees":"90","lengthMeters":"6","widthMeters":"0.3","heightMeters":"0.4"}}}),
+        );
+    }
+    let before = doc.encode().unwrap();
+    let s = scene(&doc).unwrap();
+    assert_eq!(s.meshes.len(), 2);
+    for mesh in s.meshes {
+        assert_eq!(mesh.view_role, "solid");
+        assert!(volume(&mesh.triangles) > 0.0);
+        let points = mesh.triangles.iter().flatten().collect::<Vec<_>>();
+        assert!(points.iter().all(|p| p.iter().all(|v| v.is_finite())));
+        assert!(points.iter().all(|p| (p[0] - 10.0).abs() <= 0.15 + 1e-8
+            && (p[1] - 20.0).abs() <= 3.0 + 1e-8
+            && (p[2] - 8.0).abs() <= 0.2 + 1e-8));
+        assert!(points.iter().any(|p| p[1] < 17.01));
+        assert!(points.iter().any(|p| p[1] > 22.99));
+    }
+    assert_eq!(before, doc.encode().unwrap());
+}
+#[test]
+fn many_long_rigs_fail_geometry_budget_without_changing_document() {
+    let mut doc = Document::new("预算").unwrap();
+    let commands=(0..16).map(|i|json!({"op":"stage","command":{"op":"putConstruction","id":null,"name":format!("桁架{i}"),"shape":{"kind":"rig","rigKind":"truss","spaceId":null,"positionMeters":{"x":"0","y":"0","z":"8"},"yawDegrees":"0","lengthMeters":"1000","widthMeters":"0.3","heightMeters":"0.4"}}})).collect::<Vec<_>>();
+    edit(&mut doc, json!({"op":"batch","commands":commands}));
+    let before = doc.encode().unwrap();
+    assert!(scene(&doc).err().unwrap().contains("三角面"));
+    assert_eq!(before, doc.encode().unwrap());
+}

@@ -46,13 +46,18 @@ export function StageOutliner({
       target: { kind: "construction" as const, id: c.id },
       name: c.name,
       space: c.shape.spaceId,
-      detail: c.shape.kind === "enclosure" ? "墙体与地板" : "舞台",
+      detail:
+        c.shape.kind === "enclosure"
+          ? "墙体与地板"
+          : c.shape.kind === "rig"
+            ? `${c.shape.rigKind === "truss" ? "桁架" : "灯杆"} · ${c.shape.lengthMeters} 米 · ${project.stage.attachments.filter((a) => a.constructionId === c.id).length} 台灯`
+            : "舞台",
     })),
     ...project.stage.placements.map((p) => ({
       target: { kind: "placement" as const, id: p.fixtureId },
       name: project.fixtures.find((f) => f.id === p.fixtureId)?.name ?? "灯具",
       space: p.spaceId,
-      detail: `高度 ${p.positionMeters.z} 米`,
+      detail: `${project.stage.constructions.find((c) => c.id === project.stage.attachments.find((a) => a.fixtureId === p.fixtureId)?.constructionId)?.name ?? "独立灯位"} · 高度 ${p.positionMeters.z} 米`,
     })),
   ];
   const matches = (name: string) => name.toLocaleLowerCase().includes(search);
@@ -89,14 +94,18 @@ export function StageOutliner({
   const rooms = project.stage.spaces.filter(
     (s) =>
       matches(s.name) ||
-      members.some((m) => m.space === s.id && matches(m.name)),
+      members.some((m) => m.space === s.id && matches(`${m.name} ${m.detail}`)),
   );
-  const loose = members.filter((m) => m.space === null && matches(m.name));
+  const loose = members.filter(
+    (m) => m.space === null && matches(`${m.name} ${m.detail}`),
+  );
   return (
     <div className="stage-objects" aria-label="场地对象">
       {rooms.map((s) => {
         const children = members.filter(
-          (m) => m.space === s.id && (matches(s.name) || matches(m.name)),
+          (m) =>
+            m.space === s.id &&
+            (matches(s.name) || matches(`${m.name} ${m.detail}`)),
         );
         const expanded = !!search || !collapsed.has(s.id);
         return (

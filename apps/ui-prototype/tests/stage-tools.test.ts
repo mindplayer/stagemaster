@@ -62,6 +62,7 @@ test("平面拖动只改变选中对象的世界 XY，不改安装旋转与高�
 });
 test("无效选择不降级选中其他对象，安装点按灯具身份恢复", () => {
   const stage: StageView = {
+    attachments: [],
     spaces: room.kind === "space" ? [room.value] : [],
     constructions: [],
     placements: lamp.kind === "placement" ? [lamp.value] : [],
@@ -359,4 +360,68 @@ test("框选四向一致且只选灯位，增减选择保序而非按文件重�
   assert.deepEqual(togglePlacement(["c", "a"], "b", true), ["c", "a", "b"]);
   assert.deepEqual(togglePlacement(["c", "a"], "c", true), ["a"]);
   assert.deepEqual(togglePlacement(["c", "a"], "b", false), ["b"]);
+});
+
+import {
+  rigOutline,
+  previewRigPlacement,
+  planeDistance,
+} from "../src/rigging-tools.ts";
+import type { RigShape } from "../src/stage-types.ts";
+test("支撑体轮廓与挂灯草稿旋转保持世界坐标，命令使用独立 rig 形状", () => {
+  const rig: RigShape = {
+    kind: "rig",
+    rigKind: "truss",
+    spaceId: null,
+    positionMeters: { x: "4", y: "3", z: "5" },
+    yawDegrees: "0",
+    lengthMeters: "6",
+    widthMeters: "0.3",
+    heightMeters: "0.4",
+  };
+  const footprint = rigOutline(rig);
+  assert.deepEqual(footprint, [
+    [1, 2.85],
+    [7, 2.85],
+    [7, 3.15],
+    [1, 3.15],
+  ]);
+  const next = {
+    ...rig,
+    yawDegrees: "90",
+    positionMeters: { x: "8", y: "7", z: "6" },
+  };
+  const p = {
+    fixtureId: "light",
+    spaceId: null,
+    positionMeters: { x: "2", y: "3", z: "4.6" },
+    rotationDegreesXYZ: { x: "20", y: "0", z: "0" },
+  };
+  assert.deepEqual(previewRigPlacement(p, rig, next).positionMeters, {
+    x: "8",
+    y: "5",
+    z: "5.6",
+  });
+  assert.equal(p.positionMeters.x, "2");
+  const object: StageObject = {
+    kind: "construction",
+    value: { id: "rig", name: "前桁架", shape: rig },
+  };
+  const moved = translated(object, 1, -2);
+  assert.equal(moved.kind, "construction");
+  assert.equal(stageCommand(moved).op, "putConstruction");
+  assert.equal(object.value.shape.kind, "rig");
+});
+test("平面测距使用米制世界坐标，双向等长且不取三维高度", () => {
+  assert.deepEqual(planeDistance([1, 2], [4, 6]), {
+    distance: 5,
+    dx: 3,
+    dy: 4,
+  });
+  assert.deepEqual(planeDistance([4, 6], [1, 2]), {
+    distance: 5,
+    dx: -3,
+    dy: -4,
+  });
+  assert.equal(planeDistance([0, 0], [0, 0]).distance, 0);
 });

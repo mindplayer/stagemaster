@@ -40,7 +40,7 @@ const project: ProjectView = {
   groups: [],
   presets: [],
   sequences: [],
-  stage: {spaces:[],constructions:[],placements:[]},
+  stage: {attachments:[],spaces:[],constructions:[],placements:[]},
 };
 const scene: SceneView = {
   effects: [],

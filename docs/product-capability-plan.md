@@ -18,7 +18,7 @@
 
 | 编号／能力 | 应纳入的实际功能 | 成熟依据 | 模块与界面位置 | 当前证据／实施层次 |
 | --- | --- | --- | --- | --- |
-| CAP-01 空间与布置 | 多房间／异形轮廓、标高／净高、舞台／观众区／过道、构件复用、对齐／吸附／阵列、测量、图层与隔离查看 | [Vectorworks／SketchUp／Depence 研究](ui-design/venue-layout-design.md)；[多空间决定](development/decisions/PRODUCT-ADR-010-composable-spaces.md) | 工程空间领域、场地资源与预演；布置工作区 | PREVIS-001／UX-013 已落实正式空间、尺寸建模和保存；[UX-014](development/tasks/UX-014-fixture-arrangement.md) 已补灯位阵列、对齐分布、框选／组拖动、精确变换与一次历史；桁架挂接、门洞／共享墙、观众区域和图层仍待专业迭代 |
+| CAP-01 空间与布置 | 多房间／异形轮廓、标高／净高、舞台／观众区／过道、构件复用、对齐／吸附／阵列、测量、图层与隔离查看 | [Vectorworks／SketchUp／Depence 研究](ui-design/venue-layout-design.md)；[多空间决定](development/decisions/PRODUCT-ADR-010-composable-spaces.md) | 工程空间领域、场地资源与预演；布置工作区 | PREVIS-001／UX-013 已落实正式空间、尺寸建模和保存；[UX-014](development/tasks/UX-014-fixture-arrangement.md) 已补灯位阵列、对齐分布、框选／组拖动、精确变换与一次历史；[STAGE-001](development/tasks/STAGE-001-rigging-workflow.md) 已补直线支撑体／挂接、整体关联变换、保护删除和测距，与场地一同进入内嵌 UE；复杂吊点、门洞／共享墙、观众区域和图层仍待专业迭代 |
 | CAP-02 灯具定义 | 自定义亮度／颜色等能力，模式／年代变体、多单元、功能分段、色盘／图案盘、档案版本、测试记录与个人灯库 | [MA3／Titan／GDTF／OFL 建档研究](ui-design/fixture-definition-design.md) | FixtureLibrary＋工程领域＋DmxEncoder；灯具编辑器／灯库 | 正式产品仅简单线性档案；基础建档先行，复杂档位及受控实灯测试分步实现 |
 | CAP-03 配适与选择 | 地址占用、冲突定位、批量编号／配适、有序灯组、选择过滤、二维选择布局、换灯／扩灯／克隆和功能映射 | [M04](console-research/M04-fixtures-patch.md)、[M05](console-research/M05-selection-groups-layout.md)、下方 S1 | ProjectService／BindingService／SessionService；灯具表、舞台与选择组件 | DESKTOP-002／004 已接批量配适、有序灯组、召回与选择变换；替换和二维布局待专业迭代 |
 | CAP-04 预设与复用 | 颜色／位置／图案预设，引用／硬值选择、依赖定位、更新影响范围、配方组合、模板与局部工程导入 | [M07](console-research/M07-presets-palettes.md)、[M11](console-research/M11-recipes-reuse.md) | 工程事务＋编程器＋编译器；资源区、属性区、影响预览 | DESKTOP-004 已接逐灯预设池、引用／独立值、依赖范围、更新／合并／替换与解除；配方／通用共享／导入待迭代 |

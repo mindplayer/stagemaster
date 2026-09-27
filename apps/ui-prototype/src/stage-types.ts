@@ -10,7 +10,27 @@ export interface StageSpace {
   floorElevationMeters: string;
   clearHeightMeters: string | null;
 }
+export interface RigShape {
+  kind: "rig";
+  rigKind: "truss" | "pipe";
+  spaceId: string | null;
+  positionMeters: SpatialVector3;
+  yawDegrees: string;
+  lengthMeters: string;
+  widthMeters: string;
+  heightMeters: string;
+}
+export interface RigAttachment {
+  fixtureId: string;
+  constructionId: string;
+}
+export interface RigLayout {
+  startMarginMeters: string;
+  endMarginMeters: string;
+  dropMeters: string;
+}
 export type ConstructionShape =
+  | RigShape
   | {
       kind: "enclosure";
       spaceId: string;
@@ -37,6 +57,7 @@ export interface FixturePlacement {
   rotationDegreesXYZ: SpatialVector3;
 }
 export interface StageView {
+  attachments: RigAttachment[];
   spaces: StageSpace[];
   constructions: StageConstruction[];
   placements: FixturePlacement[];
@@ -52,7 +73,13 @@ export type StageEdit =
       shape: ConstructionShape;
     }
   | { op: "duplicateConstruction"; id: string; name: string }
-  | { op: "removeConstruction"; id: string }
+  | { op: "removeConstruction"; id: string; detachFixtures?: boolean }
+  | {
+      op: "attachFixtures";
+      constructionId: string | null;
+      fixtureIds: string[];
+      layout: RigLayout | null;
+    }
   | { op: "putPlacement"; placement: FixturePlacement }
   | { op: "removePlacement"; fixtureId: string };
 export type StageObject =

@@ -296,9 +296,20 @@ export function auditProject(p) {
       enclosures.push(s.spaceId); assert(space.clearHeightMeters !== null, '围护需要空间净高');
       bounded(s.wallThicknessMeters, 0.001, 10); bounded(s.floorThicknessMeters, 0.001, 10);
       if (s.ceilingThicknessMeters !== null) bounded(s.ceilingThicknessMeters, 0.001, 10);
+    } else if (s.kind === 'rig') {
+      Object.values(s.positionMeters).forEach(v => bounded(v, -100000, 100000));
+      bounded(s.yawDegrees, -3600, 3600); bounded(s.lengthMeters, 0.1, 1000); bounded(s.widthMeters, 0.02, 10); bounded(s.heightMeters, 0.02, 10);
     } else {
       outlineBounds(s.outlineMeters); bounded(s.baseElevationMeters, -10000, 10000); bounded(s.heightMeters, 0.001, 1000);
     }
+  }
+  if ((p.stage?.attachments?.length ?? 0) || p.stage?.constructions?.some(c => c.shape.kind === 'rig')) assert(declared.has('stage.rigging@1'), '缺少模块能力声明：stage.rigging');
+  unique((p.stage?.attachments ?? []).map(a => a.fixtureId), '灯具挂接');
+  for (const a of p.stage?.attachments ?? []) {
+    const c = get(a.constructionId, 'stage-construction');
+    const placement = p.stage?.placements?.find(p => p.fixtureId === a.fixtureId);
+    assert(c.shape.kind === 'rig' && placement, '挂接需要支撑体和灯位');
+    assert(c.shape.spaceId === placement.spaceId, '挂接空间必须一致');
   }
   unique(enclosures, '空间围护');
   unique((p.stage?.placements ?? []).map(p => p.fixtureId), '灯具布置');

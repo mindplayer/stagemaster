@@ -1,5 +1,6 @@
 //! Read-only projections for interchangeable renderers. No engine, sockets or device output.
 mod geometry;
+mod rigging;
 use serde::Serialize;
 use stagemaster_project::{
     ConstructionShape, Document, FixturePlacement, PreviewOutput, ProjectView,
@@ -58,6 +59,10 @@ pub fn scene(document: &Document) -> Result<Scene, String> {
         let mut triangles = Vec::new();
         let mut floor_triangles = None;
         let color = match &construction.shape {
+            ConstructionShape::Rig(rig) => {
+                triangles = rigging::mesh(rig)?;
+                [0.58, 0.62, 0.68]
+            }
             ConstructionShape::Platform {
                 outline_meters,
                 base_elevation_meters,

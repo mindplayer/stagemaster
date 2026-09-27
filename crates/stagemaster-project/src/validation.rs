@@ -122,6 +122,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "lighting.effects.keyframes",
             "stage.layout",
             "stage.spaces",
+            "stage.rigging",
         ]
         .contains(&text(capability, "key"))
             || capability["version"] != 1
@@ -142,6 +143,14 @@ fn supported(root: &Value) -> Result<(), String> {
         && (!capabilities.contains("stage.layout") || !capabilities.contains("stage.spaces"))
     {
         return Err("场地工程缺少空间能力声明".into());
+    }
+    if (!array(&root["stage"], "attachments").is_empty()
+        || array(&root["stage"], "constructions")
+            .iter()
+            .any(|c| c["shape"]["kind"] == "rig"))
+        && !capabilities.contains("stage.rigging")
+    {
+        return Err("支撑体工程缺少挂接能力声明".into());
     }
     if array(root, "domains")
         .iter()

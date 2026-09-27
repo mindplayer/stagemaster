@@ -4,11 +4,13 @@ mod editing;
 mod effects;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
 mod library;
+mod rigging;
 mod sequence;
 mod stage;
 pub use compilation::{
     AttributeOutput, CompiledOutput, CompiledSequence, CompiledStep, FixtureOutput, PreviewOutput,
 };
+pub use rigging::{RigAttachment, RigKind, RigLayout, RigShape};
 pub use sequence::{Repeat, SequenceEdit, Tracking};
 pub use stage::{
     ConstructionShape, FixturePlacement, SpatialVector3, StageConstruction, StageEdit, StageSpace,

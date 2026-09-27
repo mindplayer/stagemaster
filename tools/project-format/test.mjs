@@ -106,3 +106,15 @@ invalid('关键帧不能缺少专用能力声明',withKeyframes,p=>{p.requires=p
 invalid('关键帧位置必须严格递增',withKeyframes,p=>{p.lighting.scenes[0].effects[0].channels[0].keyframes[1].position=0},/递增/);
 invalid('关键帧不接受被忽略的两端值',withKeyframes,p=>{p.lighting.scenes[0].effects[0].channels[0].low=0},/结构/);
 invalid('关键帧与基本变化方式不能混用',withKeyframes,p=>{p.lighting.scenes[0].effects[0].waveform='smooth'},/变化方式/);
+
+const rigging = () => {
+  const p = spaces();
+  p.requires.push({key:'stage.rigging',version:1});
+  const c={id:'30000000-0000-4000-8000-000000000090',name:'前桁架',shape:{kind:'rig',rigKind:'truss',spaceId:p.stage.spaces[0].id,positionMeters:{x:'4',y:'3',z:'5'},yawDegrees:'0',lengthMeters:'6',widthMeters:'0.3',heightMeters:'0.4'}};
+  p.stage.constructions.push(c);p.stage.attachments=[{fixtureId:p.stage.placements[0].fixtureId,constructionId:c.id}];return p;
+};
+test('支撑体挂接格式有效',()=>auditDocuments([rigging()]));
+invalid('挂接不可省略能力声明',rigging,p=>{p.requires=p.requires.filter(c=>c.key!=='stage.rigging');},/能力声明/);
+invalid('一台灯不可重复挂接',rigging,p=>{p.stage.attachments.push({...p.stage.attachments[0]});},/重复/);
+invalid('挂接不可悬空',rigging,p=>{p.stage.placements=[];},/灯位/);
+invalid('挂接空间不可分离',rigging,p=>{p.stage.placements[0].spaceId=null;},/空间必须一致/);

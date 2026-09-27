@@ -335,6 +335,13 @@
           "items": {
             "$ref": "#/$defs/FixturePlacement"
           }
+        },
+        "attachments": {
+          "type": "array",
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/RigAttachment"
+          }
         }
       },
       "required": [
@@ -2726,6 +2733,56 @@
                 "heightMeters"
               ],
               "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "rig"
+                },
+                "rigKind": {
+                  "enum": [
+                    "truss",
+                    "pipe"
+                  ]
+                },
+                "spaceId": {
+                  "oneOf": [
+                    {
+                      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "positionMeters": {
+                  "$ref": "#/$defs/SpatialVector3"
+                },
+                "yawDegrees": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "lengthMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "widthMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "heightMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                }
+              },
+              "required": [
+                "kind",
+                "rigKind",
+                "spaceId",
+                "positionMeters",
+                "yawDegrees",
+                "lengthMeters",
+                "widthMeters",
+                "heightMeters"
+              ],
+              "additionalProperties": false
             }
           ]
         }
@@ -2924,6 +2981,22 @@
         "waveform",
         "dutyPercent",
         "channels"
+      ],
+      "additionalProperties": false
+    },
+    "RigAttachment": {
+      "type": "object",
+      "properties": {
+        "fixtureId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "constructionId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        }
+      },
+      "required": [
+        "fixtureId",
+        "constructionId"
       ],
       "additionalProperties": false
     }

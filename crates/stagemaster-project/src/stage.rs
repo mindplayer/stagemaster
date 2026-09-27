@@ -41,6 +41,7 @@ pub struct StageSpace {
     deny_unknown_fields
 )]
 pub enum ConstructionShape {
+    Rig(crate::rigging::RigShape),
     Enclosure {
         space_id: String,
         wall_thickness_meters: String,
@@ -73,6 +74,8 @@ pub struct FixturePlacement {
 #[derive(Default, Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct StageView {
+    #[serde(default)]
+    pub attachments: Vec<crate::rigging::RigAttachment>,
     pub spaces: Vec<StageSpace>,
     pub constructions: Vec<StageConstruction>,
     pub placements: Vec<FixturePlacement>,
@@ -111,6 +114,13 @@ pub enum StageEdit {
     },
     RemoveConstruction {
         id: String,
+        #[serde(default)]
+        detach_fixtures: bool,
+    },
+    AttachFixtures {
+        construction_id: Option<String>,
+        fixture_ids: Vec<String>,
+        layout: Option<crate::rigging::RigLayout>,
     },
     PutPlacement {
         placement: FixturePlacement,
@@ -124,7 +134,8 @@ fn read(root: &Value) -> Result<StageView, String> {
     serde_json::from_value(json!({
         "spaces": array(&root["stage"], "spaces"),
         "constructions": array(&root["stage"], "constructions"),
-        "placements": array(&root["stage"], "placements")
+        "placements": array(&root["stage"], "placements"),
+        "attachments": array(&root["stage"], "attachments")
     }))
     .map_err(|_| "场地数据无效".into())
 }
@@ -151,6 +162,10 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     let mut enclosed = BTreeSet::new();
     for construction in &stage.constructions {
         match &construction.shape {
+            ConstructionShape::Rig(rig) => {
+                member(rig.space_id.as_deref(), &spaces)?;
+                rig.validate()?;
+            }
             ConstructionShape::Enclosure {
                 space_id,
                 wall_thickness_meters,
@@ -204,9 +219,9 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         placement.position_meters.numbers(100_000.0)?;
         placement.rotation_degrees_xyz.numbers(3_600.0)?;
     }
-    Ok(())
+    crate::rigging::validate(&stage)
 }
-fn decimal(value: &str, min: f64, max: f64) -> Result<f64, String> {
+pub(super) fn decimal(value: &str, min: f64, max: f64) -> Result<f64, String> {
     let number = value.parse::<f64>().map_err(|_| "空间尺寸需要有效数字")?;
     if !number.is_finite() || number < min || number > max {
         return Err(format!("空间数值必须在 {min}–{max} 之间"));
@@ -234,20 +249,7 @@ fn member(id: Option<&str>, spaces: &BTreeSet<&str>) -> Result<(), String> {
 }
 
 pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> {
-    if root.get("stage").is_none() {
-        root["stage"] = json!({"nodes":[], "spaces":[], "constructions":[], "placements":[]});
-    }
-    for key in ["spaces", "constructions", "placements"] {
-        if root["stage"].get(key).is_none() {
-            root["stage"][key] = json!([]);
-        }
-    }
-    let capabilities = root["requires"].as_array_mut().ok_or("工程能力声明缺失")?;
-    for key in ["stage.layout", "stage.spaces"] {
-        if !capabilities.iter().any(|c| c["key"] == key) {
-            capabilities.push(json!({"key":key,"version":1}));
-        }
-    }
+    initialize(root, &command)?;
     match command {
         StageEdit::PutSpace {
             id,
@@ -264,6 +266,9 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             )?;
         }
         StageEdit::PutConstruction { id, name, shape } => {
+            if let Some(id) = &id {
+                crate::rigging::move_members(root, id, &shape)?;
+            }
             put(
                 root,
                 "constructions",
@@ -294,7 +299,21 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             duplicate(root, "constructions", &id, &name)?;
         }
         StageEdit::RemoveSpace { id, detach_members } => remove_space(root, &id, detach_members)?,
-        StageEdit::RemoveConstruction { id } => {
+        StageEdit::AttachFixtures {
+            construction_id,
+            fixture_ids,
+            layout,
+        } => crate::rigging::attach(
+            root,
+            construction_id.as_deref(),
+            &fixture_ids,
+            layout.as_ref(),
+        )?,
+        StageEdit::RemoveConstruction {
+            id,
+            detach_fixtures,
+        } => {
+            crate::rigging::remove_rig(root, &id, detach_fixtures)?;
             crate::editing::remove(list(root, "constructions")?, &id)?;
         }
         StageEdit::PutPlacement { placement } => {
@@ -310,6 +329,7 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             }
         }
         StageEdit::RemovePlacement { fixture_id } => {
+            crate::rigging::detach(root, std::slice::from_ref(&fixture_id))?;
             let values = list(root, "placements")?;
             let index = values
                 .iter()
@@ -320,7 +340,7 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
     }
     Ok(())
 }
-fn list<'a>(root: &'a mut Value, key: &str) -> Result<&'a mut Vec<Value>, String> {
+pub(super) fn list<'a>(root: &'a mut Value, key: &str) -> Result<&'a mut Vec<Value>, String> {
     root["stage"][key]
         .as_array_mut()
         .ok_or_else(|| "场地数据缺失".into())
@@ -373,6 +393,34 @@ fn remove_space(root: &mut Value, id: &str, detach: bool) -> Result<(), String> 
         if construction["shape"]["spaceId"] == id {
             construction["shape"]["spaceId"] = Value::Null;
         }
+    }
+    Ok(())
+}
+
+fn initialize(root: &mut Value, command: &StageEdit) -> Result<(), String> {
+    if root.get("stage").is_none() {
+        root["stage"] = json!({"nodes":[], "spaces":[], "constructions":[], "placements":[]});
+    }
+    for key in ["spaces", "constructions", "placements"] {
+        if root["stage"].get(key).is_none() {
+            root["stage"][key] = json!([]);
+        }
+    }
+    let capabilities = root["requires"].as_array_mut().ok_or("工程能力声明缺失")?;
+    for key in ["stage.layout", "stage.spaces"] {
+        if !capabilities.iter().any(|c| c["key"] == key) {
+            capabilities.push(json!({"key":key,"version":1}));
+        }
+    }
+    if matches!(
+        command,
+        StageEdit::PutConstruction {
+            shape: ConstructionShape::Rig(_),
+            ..
+        } | StageEdit::AttachFixtures { .. }
+    ) && !capabilities.iter().any(|c| c["key"] == "stage.rigging")
+    {
+        capabilities.push(json!({"key":"stage.rigging","version":1}));
     }
     Ok(())
 }

@@ -1,3 +1,9 @@
+import {
+  rigOutline,
+  previewRigPlacement,
+  planeDistance,
+} from "../../rigging-tools";
+import { StageMeasureOverlay } from "./StageMeasureOverlay";
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
@@ -32,7 +38,7 @@ type Gesture = {
   dx: number;
   dy: number;
   handle: string | null;
-  mode: "pan" | "object" | "box" | "click";
+  mode: "pan" | "object" | "box" | "click" | "measure";
   fixtures: FixturePlacement[];
   additive: boolean;
 };
@@ -75,7 +81,13 @@ export function StageCanvas({
   const [gesture, setGesture] = useState<Gesture | null>(null),
     active = useRef<Gesture | null>(null);
   const [snap, setSnap] = useState(true);
-  const [tool, setTool] = useState<"select" | "move" | "pan">("select");
+  const [tool, setTool] = useState<"select" | "move" | "pan" | "measure">(
+    "select",
+  );
+  const [measurement, setMeasurement] = useState<{
+    from: [number, number];
+    to: [number, number];
+  } | null>(null);
   const [labels, setLabels] = useState(true);
   const height = camera.width / ratio;
   useEffect(() => {
@@ -99,7 +111,9 @@ export function StageCanvas({
         ? c.shape.outlineMeters.map(
             (p) => [Number(p[0]), Number(p[1])] as [number, number],
           )
-        : [],
+        : c.shape.kind === "rig"
+          ? rigOutline(c.shape)
+          : [],
     ),
     ...project.stage.placements.map(
       (p) =>
@@ -134,7 +148,10 @@ export function StageCanvas({
                     Number(currentObject.value.positionMeters.y),
                   ] as [number, number],
                 ]
-              : []))
+              : currentObject.kind === "construction" &&
+                  currentObject.value.shape.kind === "rig"
+                ? rigOutline(currentObject.value.shape)
+                : []))
           : allPoints;
     if (!points.length) {
       setCamera({ x: 4, y: 3, width: 20 });
@@ -179,20 +196,22 @@ export function StageCanvas({
     const object = target ? selectedStage(project.stage, target) : null;
     const additive = e.shiftKey || e.metaKey || e.ctrlKey;
     const mode =
-      tool === "pan"
-        ? "pan"
-        : tool === "select"
-          ? target?.kind === "placement"
-            ? "click"
-            : "box"
-          : additive && target?.kind === "placement"
-            ? "click"
-            : object &&
-                (object.kind !== "construction" ||
-                  object.value.shape.kind !== "enclosure")
-              ? "object"
-              : "pan";
-    if (target && mode !== "pan" && mode !== "box")
+      tool === "measure"
+        ? "measure"
+        : tool === "pan"
+          ? "pan"
+          : tool === "select"
+            ? target?.kind === "placement"
+              ? "click"
+              : "box"
+            : additive && target?.kind === "placement"
+              ? "click"
+              : object &&
+                  (object.kind !== "construction" ||
+                    object.value.shape.kind !== "enclosure")
+                ? "object"
+                : "pan";
+    if (target && (mode === "click" || mode === "object"))
       onSelect(target, additive, mode === "object" && !additive);
     const fixtures =
       mode === "object" && target?.kind === "placement"
@@ -202,11 +221,16 @@ export function StageCanvas({
               : p.fixtureId === target.id,
           )
         : [];
+    const origin = world(e);
+    if (mode === "measure" && snap && !e.altKey) {
+      origin[0] = Math.round(origin[0] * 10) / 10;
+      origin[1] = Math.round(origin[1] * 10) / 10;
+    }
     const g: Gesture = {
       pointer: e.pointerId,
       clientX: e.clientX,
       clientY: e.clientY,
-      origin: world(e),
+      origin,
       camera: { ...camera },
       object: mode === "object" ? object : null,
       target,
@@ -238,18 +262,18 @@ export function StageCanvas({
       g.dy === 0
     )
       return;
-    if (g.mode === "object" && e.shiftKey) {
+    if ((g.mode === "object" || g.mode === "measure") && e.shiftKey) {
       if (Math.abs(dx) > Math.abs(dy)) dy = 0;
       else dx = 0;
     }
-    if (g.mode === "object" && snap && !e.altKey) {
+    if ((g.mode === "object" || g.mode === "measure") && snap && !e.altKey) {
       dx = Math.round(dx * 10) / 10;
       dy = Math.round(dy * 10) / 10;
     }
     const next = { ...g, dx, dy };
     active.current = next;
     setGesture(next);
-    onGesture(true);
+    if (g.mode !== "measure") onGesture(true);
   }
   function end(commit: boolean) {
     const g = active.current;
@@ -263,6 +287,11 @@ export function StageCanvas({
       if (g.mode === "pan") setCamera(g.camera);
       return;
     }
+    if (g.mode === "measure")
+      setMeasurement({
+        from: g.origin,
+        to: [g.origin[0] + g.dx, g.origin[1] + g.dy],
+      });
     if (g.mode === "box") {
       if (g.dx !== 0 || g.dy !== 0)
         onSelectPlacements(
@@ -314,6 +343,34 @@ export function StageCanvas({
       return gesture.handle
         ? resizedByHandle(object, gesture.handle, gesture.dx, gesture.dy)
         : translated(object, gesture.dx, gesture.dy);
+    if (object.kind === "placement") {
+      const attachment = project.stage.attachments.find(
+        (a) => a.fixtureId === object.value.fixtureId,
+      );
+      const rig = project.stage.constructions.find(
+        (c) => c.id === attachment?.constructionId,
+      );
+      const candidate =
+        gesture?.object?.kind === "construction" &&
+        gesture.object.value.id === rig?.id
+          ? translated(gesture.object, gesture.dx, gesture.dy)
+          : preview?.kind === "construction" && preview.value.id === rig?.id
+            ? preview
+            : null;
+      if (
+        rig?.shape.kind === "rig" &&
+        candidate?.kind === "construction" &&
+        candidate.value.shape.kind === "rig"
+      )
+        return {
+          kind: "placement",
+          value: previewRigPlacement(
+            object.value,
+            rig.shape,
+            candidate.value.shape,
+          ),
+        };
+    }
     return preview &&
       preview.kind === object.kind &&
       identity(preview) === identity(object)
@@ -340,6 +397,7 @@ export function StageCanvas({
               ["select", "选择"],
               ["move", "移动"],
               ["pan", "平移视图"],
+              ["measure", "测距"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -381,6 +439,9 @@ export function StageCanvas({
         >
           排列所选 · {selectedIds.length}
         </button>
+        {measurement && (
+          <button onClick={() => setMeasurement(null)}>清除测距</button>
+        )}
         <span />
         <button
           aria-label="缩小场地"
@@ -432,6 +493,7 @@ export function StageCanvas({
           if (e.key === "Escape") {
             e.preventDefault();
             end(false);
+            if (tool === "measure") setMeasurement(null);
           }
           if (e.key.toLowerCase() === "f") fit(!e.shiftKey);
           if (
@@ -451,6 +513,7 @@ export function StageCanvas({
             !busy &&
             !pending &&
             !active.current &&
+            tool !== "measure" &&
             selectedIds.length &&
             ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)
           ) {
@@ -570,6 +633,47 @@ export function StageCanvas({
               <title>{c.name}</title>
             </g>
           ))}
+        {project.stage.constructions
+          .filter((c) => c.shape.kind === "rig")
+          .map((c) => {
+            const item = drawn({ kind: "construction", value: c });
+            if (item.kind !== "construction" || item.value.shape.kind !== "rig")
+              return null;
+            const rig = item.value.shape;
+            return (
+              <g
+                key={c.id}
+                data-kind="construction"
+                data-id={c.id}
+                className={`stage-rig ${isSelected("construction", c.id) ? "is-selected" : ""}`}
+              >
+                <polygon
+                  points={rigOutline(rig)
+                    .map((p) => `${p[0]},${-p[1]}`)
+                    .join(" ")}
+                  strokeWidth={unit * 0.18}
+                />
+                {labels && (
+                  <text
+                    x={Number(rig.positionMeters.x)}
+                    y={
+                      -Number(rig.positionMeters.y) -
+                      Number(rig.widthMeters) / 2 -
+                      unit * 1.4
+                    }
+                    fontSize={unit}
+                    textAnchor="middle"
+                  >
+                    {c.name}
+                  </text>
+                )}
+                <title>
+                  {c.name} · {rig.lengthMeters} 米 · 标高 {rig.positionMeters.z}{" "}
+                  米
+                </title>
+              </g>
+            );
+          })}
         {project.stage.placements.map((p) => {
           const moved = drawn({ kind: "placement", value: p });
           if (moved.kind !== "placement") return null;
@@ -617,6 +721,20 @@ export function StageCanvas({
             strokeWidth={unit * 0.1}
           />
         )}
+        <StageMeasureOverlay
+          measurement={
+            gesture?.mode === "measure"
+              ? {
+                  from: gesture.origin,
+                  to: [
+                    gesture.origin[0] + gesture.dx,
+                    gesture.origin[1] + gesture.dy,
+                  ],
+                }
+              : measurement
+          }
+          unit={unit}
+        />
         {tool === "move" && currentObject && selectedIds.length < 2 && (
           <StageSelectionOverlay
             object={drawn(currentObject)}
@@ -632,10 +750,17 @@ export function StageCanvas({
             ? "拖框选择灯具 · ⇧ 点击增减选择"
             : tool === "move"
               ? "拖动所选灯具整组移动 · ⇧ 锁定方向 · Esc 取消"
-              : "拖动平移视图"}{" "}
-          · 方向键微调
+              : tool === "measure"
+                ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
+                : "拖动平移视图"}{" "}
+          {tool !== "measure" && " · 方向键微调"}
         </span>
-        <span>网格 {step} 米</span>
+        <span>
+          {measurement
+            ? `平面距离 ${planeDistance(measurement.from, measurement.to).distance.toFixed(3)} 米 · `
+            : ""}
+          网格 {step} 米
+        </span>
       </footer>
     </section>
   );

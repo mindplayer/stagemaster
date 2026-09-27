@@ -57,6 +57,16 @@ export function stageCommand(object: StageObject): StageEdit {
     if (s.kind === "platform") {
       s.baseElevationMeters = canonical(s.baseElevationMeters);
       s.heightMeters = canonical(s.heightMeters);
+    } else if (s.kind === "rig") {
+      for (const axis of ["x", "y", "z"] as const)
+        s.positionMeters[axis] = canonical(s.positionMeters[axis]);
+      for (const key of [
+        "yawDegrees",
+        "lengthMeters",
+        "widthMeters",
+        "heightMeters",
+      ] as const)
+        s[key] = canonical(s[key]);
     } else {
       s.wallThicknessMeters = canonical(s.wallThicknessMeters);
       s.floorThicknessMeters = canonical(s.floorThicknessMeters);
@@ -85,7 +95,14 @@ export function translated(
       p[0] = decimal(Number(p[0]) + dx);
       p[1] = decimal(Number(p[1]) + dy);
     }
-  else if (copy.kind === "placement") {
+  else if (copy.kind === "construction" && copy.value.shape.kind === "rig") {
+    copy.value.shape.positionMeters.x = decimal(
+      Number(copy.value.shape.positionMeters.x) + dx,
+    );
+    copy.value.shape.positionMeters.y = decimal(
+      Number(copy.value.shape.positionMeters.y) + dy,
+    );
+  } else if (copy.kind === "placement") {
     copy.value.positionMeters.x = decimal(
       Number(copy.value.positionMeters.x) + dx,
     );

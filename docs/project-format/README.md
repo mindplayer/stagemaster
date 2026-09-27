@@ -49,14 +49,14 @@
 | conditions／rules | 反馈判断与显式使能的联动规则 |
 | timelines | 灯光片段、音视频参考片段、动作事件和标记 |
 | entryPoints | 用户可启动的节目入口、输出域、允许的互动规则和收尾策略 |
-| stage | 设备／资源的空间布置和层级，用于画布与未来预演 |
+| stage | 设备／资源的空间布置和层级，用于画布与内嵌预演 |
 | monitoring | 参考或现场回传来源、信号观察位置和监看视图 |
 | surfaces | 逻辑按钮／推子／编码器，与动作／入口／属性的绑定 |
 | extensions | 带命名空间、版本、必需性和显式引用的扩展 |
 
 七个模块对象 lighting/media/motion/io/stage/monitoring/surfaces 可省略。其他顶层数组必须显式出现，没有内容用 []；编辑中的工程允许 entryPoints=[]，发布／执行必须另外选择有效入口（见 [ADR-006](../development/decisions/PRODUCT-ADR-006-visible-desktop-increments.md) 的草案修正）。已出现的模块须完整携带其规定的数组；不要把“缺失”“空值”和“删除对象”混成同一含义。
 
-requires 的本草案能力键为 lighting.basic、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic`／`lighting.effects.keyframes` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；不含摇头运动或自由关键帧。
+requires 的本草案能力键为 lighting.basic、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、stage.rigging、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic`／`lighting.effects.keyframes` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；已支持最多 32 个循环关键帧，不含摇头运动。
 
 ## 3. 身份、资源、精确时间与单位
 
@@ -136,6 +136,8 @@ entryPoints.completion 声明有限节目、完成当前循环或由操作员结
 onControlLeaseLoss 指现场控制权丢失，区别于仍处有效收尾许可内的商业授权到期。任何许可证状态都不能撤销急停、停止、逃生或保护功能。ESP32 断电后可信计时和生产密钥保护仍是 AUTH-001 的真实硬件验证项。
 
 ## 8. 空间、面板与扩展
+
+STAGE-001 按 [ADR-023](../development/decisions/PRODUCT-ADR-023-rigging-assembly.md) 实施水平直桁架／灯杆：`constructions[].shape.kind:rig`、外尺寸、世界中心／水平角和空间归属；`stage.attachments` 保存灯具与支撑体的唯一关联，旧工程省略时为空。有支撑体或非空挂接时必须声明 `stage.rigging@1`。世界灯位是唯一坐标源，关联变换／解除／删除保护由 Rust 原子命令负责，见[场地 API](../module-api/stage-spaces.md)。网格可由工程重建并送入内嵌 UE，不保存第二套三维场地数据。
 
 空间布局使用右手坐标：X 向右、Y 向前、Z 向上，位置为米、角度为度。节点变换按局部缩放、绕固定 X/Y/Z 轴顺序旋转、再平移后组合到父节点；列向量表示为 T × Rz × Ry × Rx × S。父级不能成环，缩放为正。UE、MVR 或未来扫描重建场景通过适配器转换坐标系；高斯场景和模型放资源，不内嵌到每个灯具对象。
 

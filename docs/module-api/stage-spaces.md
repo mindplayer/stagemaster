@@ -12,7 +12,7 @@ host.request({kind: "edit", generation, command: {
 }});
 ```
 
-`putSpace`／`putConstruction` 中 `id: null` 创建新身份，指定身份只更新已存在对象，不隐式补建。`duplicateSpace` 复制范围与围护并生成新身份，不复制灯具或舞台；`duplicateConstruction` 仅复制独立平台。`removeSpace` 的 `detachMembers` 明确选择是否解除归属并删除围护；有成员时 `false` 拒绝，无成员时可直接移除。空间归属不是坐标父级，解除归属后世界位置保持。
+`putSpace`／`putConstruction` 中 `id: null` 创建新身份，指定身份只更新已存在对象，不隐式补建。`duplicateSpace` 复制范围与围护并生成新身份，不复制灯具或舞台；`duplicateConstruction` 复制独立平台或支撑体，不复制挂灯。`removeSpace` 的 `detachMembers` 明确选择是否解除归属并删除围护；有成员时 `false` 拒绝，无成员时可直接移除。空间归属不是坐标父级，解除归属后世界位置保持。
 
 `putPlacement` 按 `fixtureId` 创建／替换唯一灯位；`removePlacement` 只移除灯位，不删除灯具。删除已布置灯具必须先移除灯位，可以通过一个原子批次组合，不能留下悬空引用。批次 1–256 项，所有命令通过后一次提交。
 
@@ -22,7 +22,7 @@ host.request({kind: "edit", generation, command: {
 
 桌面 `StageWorkspace` 持有选择／搜索／未提交草稿；`StageInspector` 精确编辑；`StageCanvas` 只处理镜头与平面手势。手势中不写核心，结束提交一次；取消不提交。字段草稿与原生保存／切换／关闭共享 collect／accept 流程，验证失败保留输入。渲染器不得直接改写 JSON。
 
-开发期 JS 格式审计覆盖 Schema、引用与数值边界，几何有效性由 Rust／geo 权威校验；JS 工具不能代替产品加载器。三维预演桥、UE 构件生成和现场联动仍在父任务中实施；本文不把平面编辑或静态指向求解视为已完成 UE 预演。
+开发期 JS 格式审计覆盖 Schema、引用与数值边界，几何有效性由 Rust／geo 权威校验；JS 工具不能代替产品加载器。PREVIS-001 已接内嵌 UE；Rust 把围护／平台／支撑体生成可重建三角网格，与同份已应用灯位一起送入 UE，修改后同步。二维与三维不各存一套场地。真实现场输出仍未接通，参考预演不表示完成专业光学验证。
 
 ## UX-013 前端尺寸适配
 
@@ -46,3 +46,31 @@ host.request({kind: "edit", generation, command: {
 平面画布分为选择／移动／平移视图三种工具。选择模式在场地上拖框只选灯位，Shift／Command 点击可增减；移动模式拖动所选灯具时整组移动，结束一次提交，取消不提交；方向键按 0.1 米、Shift 按 1 米微调。聚焦选中组、灯具名称显隐、灯序编号、相机与选择均为 UI 状态，不写进工程。空间／舞台轮廓仍单对象编辑，不能把灯位框选扩称为任意场景层级组变换。
 
 三维接收整批已应用灯位，但三维直接拖动仍只作用于当前灯具；多选属性面板明确显示该灯具名称。完整三维组变换后续单独扩展渲染交互契约。
+
+## STAGE-001 支撑体与挂接
+
+依据 [ADR-023](../development/decisions/PRODUCT-ADR-023-rigging-assembly.md)。`stage.rigging@1` 是新增必需能力；旧工程省略 `attachments` 时读取为空，含支撑体或挂接数据时必须声明能力。
+
+```ts
+// 包在上述 op: "stage" 的 command 中；十进制数均为字符串。
+{ op: "putConstruction", id: null, name: "前桁架", shape: {
+  kind: "rig", rigKind: "truss", spaceId: null,
+  positionMeters: { x: "4", y: "3", z: "5" }, yawDegrees: "0",
+  lengthMeters: "6", widthMeters: "0.3", heightMeters: "0.3"
+}}
+{ op: "attachFixtures", constructionId: "支撑体身份", fixtureIds: ["灯具身份"],
+  layout: { startMarginMeters: "0.3", endMarginMeters: "0.3", dropMeters: "0.1" }
+}
+{ op: "attachFixtures", constructionId: null, fixtureIds: ["灯具身份"], layout: null }
+{ op: "removeConstruction", id: "支撑体身份", detachFixtures: true }
+```
+
+`rigKind` 为 `truss|pipe`，当前均为水平直线实体，尺寸为外包络。支撑体中心是世界坐标，空间只是归属。一次挂接 1–256 个有序唯一灯具；沿长度均布，首末端余量从两端计算，下挂距离从底面计算。单灯置于可用跨度中心；已有灯具保留底座角度，新灯位零度。`layout:null` 保持既有位置，未布置灯具拒绝；指定另一支撑体即明确换挂。
+
+`stage.attachments` 保存 `{fixtureId, constructionId}`，一灯最多一个支撑体，必须存在灯位且空间归属一致。独立 Rust `rigging` 模块维护关联，世界灯位是唯一坐标来源。支撑体更新时旋转／平移／升降与挂灯变换在同一事务提交；底座 X/Y 不变，Z 随水平角变化并归一化。独立微调灯位后仍可随支撑体移动；修改支撑体长度不自动重排。单独改变挂灯的空间归属须先解除。
+
+删除默认拒绝有挂灯的支撑体；`detachFixtures:true` 保留全部灯具和世界灯位。移除灯位同时解除对应挂接；删除空间时的 `detachMembers:true` 清除空间归属，保留支撑体关联及世界位置。复制支撑体只复制实体，不复制灯具／地址。失败回滚和撤销恢复覆盖全部依赖更新。
+
+`OrderedFixturePicker` 由排列与挂灯共用搜索、灯组、顺序和隐藏选择逻辑；`RigFields` 由新建和属性面板共用。TS 中跟随位置仅是未提交的二维视觉草稿，Rust 计算正式变换。UE 继续读取原网格协议，桁架／灯杆没有专属播放规则或直接写工程权限；本轮在应用内验证房间、平台、两种支撑体、灯具与光束，以及旋转后的同步。
+
+新增测距工具只报告世界 XY 距离和 ΔX／ΔY，不能解释为三维净距；测量、清除、Esc 和测距时方向键均不改变工程。相机、测距、按支撑体选灯不写入历史。

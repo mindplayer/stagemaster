@@ -926,3 +926,56 @@
 .workbench .stage-canvas-toolbar .stage-check {
   flex-direction: row;
 }
+
+.rig-fields {
+  display: grid;
+  gap: 12px;
+}
+.rig-member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.rig-member-actions > span {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 12px;
+}
+.rig-summary {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #344753;
+  border-radius: 10px;
+}
+.rig-summary span {
+  color: #96a8b3;
+  font-size: 12px;
+}
+.stage-rig polygon {
+  fill: #526573;
+  fill-opacity: 0.5;
+  stroke: #a1bac9;
+  cursor: pointer;
+}
+.stage-rig.is-selected polygon {
+  fill: #25665f;
+  stroke: #66d9c8;
+}
+.stage-rig text {
+  fill: #beced7;
+  paint-order: stroke;
+  stroke: #101c25;
+  stroke-width: 0.04;
+}
+.stage-ruler {
+  stroke: #ffcf78;
+  fill: #101c25;
+}
+.stage-ruler text {
+  fill: #ffcf78;
+  stroke: #101c25;
+  stroke-width: 0.04;
+  paint-order: stroke;
+}

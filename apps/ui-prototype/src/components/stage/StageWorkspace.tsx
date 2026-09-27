@@ -1,3 +1,6 @@
+import { RigCreateDialog } from "./RigCreateDialog";
+import { RigAttachmentDialog } from "./RigAttachmentDialog";
+import type { RigShape } from "../../stage-types";
 import {
   type ReactNode,
   forwardRef,
@@ -86,6 +89,13 @@ export const StageWorkspace = forwardRef<
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
   const moving = useRef(false);
+  const [rigCreation, setRigCreation] = useState<{
+    shape: RigShape;
+    name: string;
+  } | null>(null);
+  const [hanging, setHanging] = useState<{ ids: string[]; rig: string } | null>(
+    null,
+  );
   const [creation, setCreation] = useState<Creation | null>(null);
   const [focusRequest, setFocusRequest] = useState(0);
   const [query, setQuery] = useState("");
@@ -203,6 +213,65 @@ export const StageWorkspace = forwardRef<
   }
   function edit(command: StageEdit) {
     return onEdit({ op: "stage", command });
+  }
+  async function createRig() {
+    if (!(await beforeChange())) return;
+    const b = selectedSpace
+      ? bounds(
+          selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
+        )
+      : null;
+    setRigCreation({
+      name: uniqueName(
+        "桁架",
+        project.stage.constructions.map((c) => c.name),
+      ),
+      shape: {
+        kind: "rig",
+        rigKind: "truss",
+        spaceId: selectedSpace?.id ?? null,
+        positionMeters: {
+          x: decimal(b ? (b.minX + b.maxX) / 2 : 0),
+          y: decimal(b ? (b.minY + b.maxY) / 2 : 0),
+          z: decimal(
+            Number(selectedSpace?.floorElevationMeters ?? 0) +
+              Number(selectedSpace?.clearHeightMeters ?? 5) -
+              0.3,
+          ),
+        },
+        yawDegrees: "0",
+        lengthMeters: "6",
+        widthMeters: "0.3",
+        heightMeters: "0.3",
+      },
+    });
+  }
+  async function hang() {
+    if (!(await beforeChange())) return;
+    const rig =
+      object?.kind === "construction" && object.value.shape.kind === "rig"
+        ? object.value.id
+        : (project.stage.attachments.find((a) => liveIds.includes(a.fixtureId))
+            ?.constructionId ??
+          project.stage.constructions.find((c) => c.shape.kind === "rig")?.id ??
+          "");
+    setHanging({
+      rig,
+      ids: liveIds.length
+        ? liveIds
+        : project.stage.attachments
+            .filter((a) => a.constructionId === rig)
+            .map((a) => a.fixtureId),
+    });
+  }
+  async function detach(ids: string[]) {
+    if (!(await beforeChange())) return;
+    await edit({
+      op: "attachFixtures",
+      constructionId: null,
+      fixtureIds: ids,
+      layout: null,
+    });
   }
   async function create(kind: "space" | "platform") {
     if (!(await beforeChange())) return;
@@ -331,7 +400,11 @@ export const StageWorkspace = forwardRef<
       target.kind === "space"
         ? { op: "removeSpace", id: target.value.id, detachMembers: true }
         : target.kind === "construction"
-          ? { op: "removeConstruction", id: target.value.id }
+          ? {
+              op: "removeConstruction",
+              id: target.value.id,
+              detachFixtures: target.value.shape.kind === "rig",
+            }
           : { op: "removePlacement", fixtureId: target.value.fixtureId },
     );
     if (next) {
@@ -367,6 +440,9 @@ export const StageWorkspace = forwardRef<
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
+        <button disabled={busy} onClick={() => void createRig()}>
+          新建桁架／灯杆
+        </button>
         <StageOutliner
           project={project}
           selection={selection}
@@ -496,6 +572,28 @@ export const StageWorkspace = forwardRef<
           >
             排列与精确调整
           </button>
+          <div className="rig-member-actions">
+            <button
+              disabled={
+                busy ||
+                !project.stage.constructions.some((c) => c.shape.kind === "rig")
+              }
+              onClick={() => void hang()}
+            >
+              挂接到支撑体
+            </button>
+            <button
+              disabled={
+                busy ||
+                !project.stage.attachments.some((a) =>
+                  liveIds.includes(a.fixtureId),
+                )
+              }
+              onClick={() => void detach(liveIds)}
+            >
+              解除挂接
+            </button>
+          </div>
           <dl>
             <dt>高度范围</dt>
             <dd>
@@ -562,6 +660,64 @@ export const StageWorkspace = forwardRef<
             });
           }}
           onEnclose={() => void enclose()}
+          onHang={() => void hang()}
+          onSelectMounted={(id) =>
+            void choosePlacements(
+              project.stage.attachments
+                .filter((a) => a.constructionId === id)
+                .map((a) => a.fixtureId),
+            )
+          }
+          onDetach={(ids) => void detach(ids)}
+        />
+      )}
+      {rigCreation && (
+        <RigCreateDialog
+          project={project}
+          initial={rigCreation.shape}
+          name={rigCreation.name}
+          busy={busy}
+          error={error}
+          onCancel={() => setRigCreation(null)}
+          onApply={async (command) => {
+            const next = await edit(command);
+            if (!next) return false;
+            setSelection({
+              kind: "construction",
+              id: next.stage.constructions.at(-1)!.id,
+            });
+            setSelectedIds([]);
+            setQuery("");
+            setView("plan");
+            setFocusRequest((v) => v + 1);
+            cancel();
+            return true;
+          }}
+        />
+      )}
+      {hanging && (
+        <RigAttachmentDialog
+          project={project}
+          initialIds={hanging.ids}
+          initialRig={hanging.rig}
+          busy={busy}
+          error={error}
+          onCancel={() => setHanging(null)}
+          onApply={async (command) => {
+            const next = await edit(command);
+            if (!next) return false;
+            if (command.op === "attachFixtures") {
+              setSelectedIds(command.fixtureIds);
+              setSelection({
+                kind: "placement",
+                id: command.fixtureIds.at(-1)!,
+              });
+            }
+            setQuery("");
+            setFocusRequest((v) => v + 1);
+            cancel();
+            return true;
+          }}
         />
       )}
       {arrangement && (
@@ -598,7 +754,10 @@ export const StageWorkspace = forwardRef<
               ? "同时移除该空间的围护。灯具和舞台保留原位置并解除空间归属，灯光编排保留。"
               : deleteTarget.kind === "placement"
                 ? "灯具配适与编排保留，只移除安装位置。"
-                : "此操作可撤销恢复。"
+                : deleteTarget.kind === "construction" &&
+                    deleteTarget.value.shape.kind === "rig"
+                  ? "保留全部灯具和灯位，解除挂接后删除支撑体；一次撤销可恢复。"
+                  : "此操作可撤销恢复。"
           }
           onCancel={() => setDeleteTarget(null)}
           onDelete={() => void remove()}
