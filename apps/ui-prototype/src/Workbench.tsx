@@ -2,6 +2,7 @@ import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
 import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
+import { PackagePanel } from "./components/workbench/PackagePanel";
 import { ProjectCheckPanel } from "./components/workbench/ProjectCheckPanel";
 import {
   PositionPanel,
@@ -70,12 +71,7 @@ const EMPTY: Snapshot = {
   recovery: { state: "clean", capturedAtMs: null, problem: null },
 };
 type Page =
-  | "profiles"
-  | "stage"
-  | "fixtures"
-  | "scenes"
-  | "sequences"
-  | "settings";
+  "profiles" | "stage" | "fixtures" | "scenes" | "sequences" | "settings";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -442,7 +438,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   function locateCheck(location: CheckLocation, generation: number) {
     return run(async () => {
       if (current.current.generation !== generation)
-        throw new Error("检查报告已过期，请重新检查后定位");
+        throw new Error("结果已过期，请刷新结果后定位");
       const p = current.current.project!;
       switch (location.kind) {
         case "fixtures":
@@ -482,7 +478,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           stage.current?.revealFixture(location.id);
           break;
       }
-      setNotice("已定位检查对象；修复后回到工程重新检查");
+      setNotice("已定位对象；修复后回到工程刷新结果");
     });
   }
   function openSceneMonitor(playback = false) {
@@ -1256,6 +1252,24 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     </dl>
                   </details>
                 )}
+                <PackagePanel
+                  key={`package:${project.id}`}
+                  host={host}
+                  project={project}
+                  generation={snapshot.generation}
+                  hasDrafts={
+                    pending ||
+                    parameterPending ||
+                    positionPending ||
+                    sequencePending ||
+                    stagePending ||
+                    profilePending
+                  }
+                  visible={page === "settings"}
+                  busy={busy}
+                  capture={captureCheck}
+                  onLocate={locateCheck}
+                />
                 <ProjectCheckPanel
                   key={`check:${project.id}`}
                   host={host}
@@ -1282,8 +1296,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={positions}
                   project={project}
-                  fixtures={selected.map(
-                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
                   )}
                   scene={activeScene}
                   busy={busy}
@@ -1302,8 +1316,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
                   scene={activeScene}
-                  fixtures={selected.map(
-                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
                   )}
                   busy={busy}
                   onApply={() => {

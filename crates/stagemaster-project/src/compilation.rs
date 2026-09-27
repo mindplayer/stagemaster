@@ -53,6 +53,39 @@ pub struct AttributeOutput {
     pub value: u16,
 }
 impl CompiledOutput {
+    /// Lower the validated patch in the exact playback attribute order.
+    /// # Errors
+    /// Rejects an internally inconsistent compilation result.
+    pub fn portable_output(&self) -> Result<stagemaster_package::Output, String> {
+        let mappings = self
+            .addresses
+            .iter()
+            .map(|address| {
+                let fixture = self
+                    .patch
+                    .fixtures()
+                    .iter()
+                    .find(|f| f.id == address.fixture)
+                    .ok_or("输出缺少灯具映射")?;
+                let channel = fixture
+                    .profile
+                    .channels
+                    .iter()
+                    .find(|c| c.attribute == address.attribute)
+                    .ok_or("输出缺少属性映射")?;
+                Ok(stagemaster_package::Mapping {
+                    coarse: fixture.address.number() + channel.coarse_offset,
+                    fine: channel
+                        .fine_offset
+                        .map(|offset| fixture.address.number() + offset),
+                })
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        Ok(stagemaster_package::Output {
+            universe: self.universe,
+            mappings,
+        })
+    }
     /// Encode complete DMX slots outside the time-critical execution module.
     /// # Errors
     /// Rejects a value buffer from a different plan shape.

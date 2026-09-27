@@ -12,6 +12,8 @@
 
 ## 直接从哪里看
 
+已实现的[独立播放包](playback-package.md)：工程编译适配、no_std 有界 CBOR 容器、逐节目装载、资源报告和桌面原子导出。软件参考包与设备安装／授权分开。
+
 当前已实现的本机接口另见[列表预览](sequence-preview.md)、[场景动态效果](lighting-effects.md)、[灯组与预设](editing-library.md)、[灯具建档与配适](fixture-authoring.md)。以下跨端服务声明仍为设计稿。
 
 | 文件 | 内容 |

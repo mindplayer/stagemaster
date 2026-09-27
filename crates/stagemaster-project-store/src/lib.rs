@@ -1,5 +1,7 @@
 //! Local file persistence, separate from project semantics and desktop dialogs.
+mod package;
 mod recovery;
+pub use package::PackageFile;
 pub use recovery::{
     MAX_RECOVERY_RECORDS, RecoveryCandidate, RecoveryCatalog, RecoveryEntry, RecoverySession,
     RecoveryState, RecoveryStore,
@@ -52,6 +54,14 @@ impl DiskFile {
     /// # Errors
     /// Rejects concurrent changes, competing writers and all pre-commit I/O failures.
     pub fn save(&mut self, draft: &Document) -> Result<SaveReceipt, String> {
+        let next = draft.next_revision();
+        let warning = self.write_bytes(next.encode()?)?;
+        Ok(SaveReceipt {
+            document: next,
+            warning,
+        })
+    }
+    fn write_bytes(&mut self, bytes: Vec<u8>) -> Result<Option<String>, String> {
         let parent = self.path.parent().ok_or("保存目录无效")?;
         let mut lock_name = self.path.file_name().ok_or("文件名无效")?.to_os_string();
         lock_name.push(".stagemaster-lock");
@@ -67,14 +77,12 @@ impl DiskFile {
             .open(lock_path)
             .map_err(|_| "无法创建保存锁，请检查目录权限")?;
         lock.try_lock()
-            .map_err(|_| "此工程正在被另一个舞台大师进程保存，请稍后重试")?;
-        let next = draft.next_revision();
-        let bytes = next.encode()?;
+            .map_err(|_| "此文件正在被另一个舞台大师进程保存，请稍后重试")?;
         let mut temporary = tempfile::Builder::new()
             .prefix(".stagemaster-")
             .suffix(".tmp")
             .tempfile_in(parent)
-            .map_err(|_| "无法创建临时工程文件，请检查目录权限")?;
+            .map_err(|_| "无法创建临时文件，请检查目录权限")?;
         if read_current(&self.path)? != self.baseline {
             return Err("磁盘文件已被其他程序修改或删除。请另存为新文件，或重新打开后编辑".into());
         }
@@ -82,15 +90,15 @@ impl DiskFile {
             temporary
                 .as_file()
                 .set_permissions(metadata.permissions())
-                .map_err(|_| "无法保留工程文件权限")?;
+                .map_err(|_| "无法保留文件权限")?;
         }
         temporary
             .write_all(&bytes)
-            .map_err(|_| "工程写入失败，请检查剩余磁盘空间")?;
+            .map_err(|_| "文件写入失败，请检查剩余磁盘空间")?;
         temporary
             .as_file()
             .sync_all()
-            .map_err(|_| "工程尚未完成磁盘同步")?;
+            .map_err(|_| "文件尚未完成磁盘同步")?;
         // Repeat the comparison after writing. Cooperative writers hold the same stable lock.
         if read_current(&self.path)? != self.baseline {
             return Err("保存期间磁盘文件发生变化，已取消覆盖，请另存为".into());
@@ -98,7 +106,7 @@ impl DiskFile {
         if self.baseline.is_some() {
             temporary
                 .persist(&self.path)
-                .map_err(|_| "无法替换工程文件，原文件未被本次保存改写")?;
+                .map_err(|_| "无法替换文件，原文件未被本次保存改写")?;
         } else {
             temporary
                 .persist_noclobber(&self.path)
@@ -109,11 +117,8 @@ impl DiskFile {
         // falsely report that the old file is still present or keep a stale baseline.
         let warning = sync_directory(parent)
             .err()
-            .map(|()| "工程已写入，但目录同步失败；请检查存储设备后再次保存".into());
-        Ok(SaveReceipt {
-            document: next,
-            warning,
-        })
+            .map(|()| "文件已写入，但目录同步失败；请检查存储设备后再次保存".into());
+        Ok(warning)
     }
 }
 fn read_current(path: &Path) -> Result<Option<Vec<u8>>, String> {

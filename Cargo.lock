@@ -2144,6 +2144,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
+name = "minicbor"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c12b4033ffaa92fbf9df03df38d19324f52bad130dd223f811734a8006dd2d69"
+
+[[package]]
 name = "miniz_oxide"
 version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3486,6 +3492,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-package"
+version = "0.1.0"
+dependencies = [
+ "minicbor",
+ "sha2",
+ "stagemaster-playback",
+]
+
+[[package]]
 name = "stagemaster-playback"
 version = "0.1.0"
 
@@ -3507,9 +3522,11 @@ dependencies = [
  "jsonschema",
  "serde",
  "serde_json",
+ "sha2",
  "stagemaster-dmx",
  "stagemaster-domain",
  "stagemaster-engine",
+ "stagemaster-package",
  "stagemaster-playback",
  "stagemaster-spatial",
  "uuid",
@@ -3522,6 +3539,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "stagemaster-package",
  "stagemaster-project",
  "tempfile",
  "uuid",

@@ -5,6 +5,10 @@ export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
       recovery: (request) => invoke("recovery_request", { request }),
+      buildPackage: (generation, selection) =>
+        invoke("package_build", { generation, selection }),
+      exportPackage: (generation, token) =>
+        invoke("package_export", { generation, token }),
       check: (generation) => invoke("check_request", { generation }),
       preview: (request) => invoke("preview_request", { request }),
       previs: (request) => invoke("previs_request", { request }),
@@ -15,6 +19,12 @@ export const applicationHost: ApplicationHost = isTauri()
       kind: "browser",
       recovery: async () => {
         throw new Error("请使用桌面应用恢复工程");
+      },
+      buildPackage: async () => {
+        throw new Error("请使用桌面应用生成播放包");
+      },
+      exportPackage: async () => {
+        throw new Error("请使用桌面应用导出播放包");
       },
       check: async () => {
         throw new Error("请使用桌面应用检查工程");

@@ -125,6 +125,14 @@ impl Plan {
         &self.defaults
     }
     #[must_use]
+    pub const fn repeat(&self) -> bool {
+        self.repeat
+    }
+    #[must_use]
+    pub fn effects(&self) -> &[Vec<EffectChannel>] {
+        &self.effects
+    }
+    #[must_use]
     pub fn effect_channel_count(&self) -> usize {
         self.effects.iter().map(Vec::len).sum()
     }

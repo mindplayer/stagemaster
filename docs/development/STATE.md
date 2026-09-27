@@ -3,6 +3,8 @@
 更新：2026-09-28。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
+已完成 [PLAYER-003A](tasks/PLAYER-003A-host-package.md)：基线 `bdbf3f1`，结果为本次 `feat(package): add bounded playback archives and desktop export` 提交。按 [ADR-028](decisions/PRODUCT-ADR-028-playback-package.md) 接入独立 no_std 有界 CBOR 多节目包、全包严格校验／单节目装载、同内核重放、资源报告及真实桌面选择／导出／错误定位；格式与调用见[接口](../module-api/playback-package.md)。全量 204 Rust＋后续 5 项摘要定向（新增 1）、70 UI、类型／fmt／严格 Clippy／桌面构建与 Xtensa 编译通过；原生取消／重复字节／未保存快照／修复再生成／2502 场景和窄窗、独立文件重放已验收。未刷机／输出 DMX，原用户 14610／14928 保留。下一项 PROJECT-002 修复紧凑工程可打开却可能无法保存的容量矛盾，再推进 PLAYER-003B 安装事务；主机参考包不等于设备发布完成。
+
 已完成 [RECOVERY-001](tasks/RECOVERY-001-project-recovery.md)：基线 `cd7e0e9`，结果为本次 `feat(recovery): add leased project checkpoints and desktop recovery center` 提交。按 [ADR-027](decisions/PRODUCT-ADR-027-project-recovery.md) 增加独立 Rust 检查点、OS 会话租约、中文恢复中心、失败重试、明确丢弃和恢复为副本；不改工程格式。186 Rust／68 UI、最终定向回归、类型／fmt／严格 Clippy、桌面构建与双实例真实 SIGKILL 恢复、原文件摘要、取消／清理、损坏／较早记录、写入失败及窄窗口／Escape 通过。只保护已应用编辑，不含输入草稿／播放状态；原用户 14610／14928 保留。见[接口](../module-api/project-recovery.md)和[首版交付审查](tasks/RECOVERY-001-delivery-audit.md)；下一软件增量为 PLAYER-003A 主机有界执行包，板级 DMX／安装／授权仍须独立验证。
 
 已完成 [CHECK-001](tasks/CHECK-001-project-check.md)：基线 `3c322e6`，结果为本次 `feat(check): add read-only project diagnostics and repair navigation` 提交。按 [ADR-026](decisions/PRODUCT-ADR-026-project-check.md) 接入独立 Rust 检查、真实配适／编译／计划统计、桌面问题定位、旧报告保护、搜索／分页／取消；电脑预览与未开放的设备发布分开。172 Rust／68 UI、后续定向回归、类型／fmt／严格 Clippy／桌面构建与原生修复、1025→1024 步、保存重开、并发编辑／取消、窄窗口通过；2,000 场景检查从 7.779 秒降至 0.428 秒。见[接口](../module-api/project-check.md)。原未保存窗口仍保留。下一项工程恢复，再推进设备执行包／安装。
@@ -43,7 +45,7 @@
 
 ## 产品基线
 
-- EFFECT-001／002：[场景动态效果](../module-api/lighting-effects.md) 属于独立工程模块，UI 只生成参数；播放器用无逐帧分配的整数曲线，场景／列表和三维一致。效果灯序冻结，启用效果不得争用同一属性；旧静态工程兼容，新效果需 capability。已支持亮度／RGB 绝对曲线、最多 32 个循环关键帧及独立复用，尚无现场速度主控、设备效果包或实灯输出。
+- EFFECT-001／002：[场景动态效果](../module-api/lighting-effects.md) 属于独立工程模块，UI 只生成参数；播放器用无逐帧分配的整数曲线，场景／列表和三维一致。效果灯序冻结，启用效果不得争用同一属性；旧静态工程兼容，新效果需 capability。已支持亮度／RGB 绝对曲线、最多 32 个循环关键帧及独立复用，尚无现场速度主控或实灯输出；PLAYER-003A 已将受支持效果纳入主机参考播放包，实板安装未完成。
 
 - DESKTOP-004：灯组有序成员、召回替换／追加／扣除、奇偶／反选、复制／编辑；预设按属性记录、引用或独立值应用、更新／合并／替换、引用场景与列表查看、解除引用和保留数值删除。选灯和查询归组件，真实语义归 Rust；不引入新语言或运行依赖。原生八灯、两场景联动、独立场景不随更新、撤销重做和重开引用完整通过。
 
@@ -69,6 +71,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [PLAYER-003A](tasks/PLAYER-003A-host-package.md) | done（主机执行包） | 自包含／版本化／独立解码／逐节目装载、容量与损坏拒绝、桌面真实导出；设备安装、授权和 DMX 后续 |
 | [CHECK-001](tasks/CHECK-001-project-check.md) | done（工程检查闭环） | 只读编译与容量报告、错误定位／修复／重查、版本与取消保护、保存重开；设备包及安装尚未实现 |
 | [POSITION-001](tasks/POSITION-001-moving-head-workflow.md) | done（两轴位置闭环） | 档案／零偏、静态共同对焦、原子历史、量化编码、UE 独立关节、保存重开与播放暂停恢复通过；空间轨迹／复杂关节／实灯后续 |
 | [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md) | done（灯库／配适） | 三种线性属性组合、粗细映射、模式保护／换灯、批量改址与占用、原子历史／保存重开、内嵌动态预演通过；复杂档案与实灯后续 |
@@ -108,7 +111,7 @@
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表及单路编译已由 DESKTOP-003 补齐；时间线、迁移恢复和其他领域待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | in progress | PLAYER-001A 已实现独立有界执行、正式工程编译和 512 通道预览；设备预算实测、片段包、模拟发送确认／故障与完整出口待办 |
 | [PLAYER-002](tasks/PLAYER-002-esp32-probe.md) | in progress；002A done | 工具链／共享内核与 BLE GATT 实板验证通过；UART DMX、时序／电气仍待办 |
-| PLAYER-003–005 | planned | 持久包与传输无关安装／控制、GATT 优先接入、UI／本地操作及整机验收；未实施 |
+| PLAYER-003–005 | in progress | PLAYER-003A 主机执行包已完成；传输无关安装／控制、GATT 接入、设备 UI／本地操作及整机验收待实施 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证

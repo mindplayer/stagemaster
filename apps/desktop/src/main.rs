@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod check;
+mod package;
 mod preview;
 mod previs;
 mod recovery;
@@ -133,6 +134,7 @@ fn main() {
         .manage(Arc::new(Mutex::new(Session::default())))
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
+        .manage(package::Service::default())
         .setup(|app| {
             app.manage(recovery::Service::new(recovery::directory(app)?));
             Ok(())
@@ -189,6 +191,8 @@ fn main() {
             project_request,
             preview_request,
             check::check_request,
+            package::package_build,
+            package::package_export,
             recovery::recovery_request,
             previs::previs_request
         ])

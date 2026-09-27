@@ -220,3 +220,32 @@ fn capability_model_calibration_and_exchange_protect_existing_programming() {
     let old = Document::new("固定灯").unwrap();
     assert!(Document::decode(&old.encode().unwrap()).is_ok());
 }
+
+#[test]
+fn portable_package_preserves_calibrated_common_target_and_nonadjacent_fine_slots() {
+    let mut d = setup();
+    let id = d.view().fixtures[0].id.clone();
+    edit(&mut d,json!({"op":"position","command":{"op":"calibrate","fixtureId":id,"correction":{"panDegrees":"3","tiltDegrees":"-2"}}})).unwrap();
+    position(
+        &mut d,
+        json!({"op":"aim","targetMeters":{"x":"4","y":"3","z":"1"},"branch":null}),
+    )
+    .unwrap();
+    let id = d.view().scenes[0].id.clone();
+    let compiled = d.compile_scene(&id).unwrap();
+    let built = d
+        .build_package(&[stagemaster_project::PackageSelection::Scene { id }])
+        .unwrap();
+    let archive = stagemaster_package::Archive::open(built.bytes.as_slice()).unwrap();
+    let program = archive.load(built.bytes.as_slice(), 0).unwrap();
+    assert_eq!(compiled.plan, program.plan);
+    let mut player = Player::new(program.plan, 0);
+    player.execute(0, 0).unwrap();
+    let mut slots = [0; 512];
+    program.output.render(player.values(), &mut slots).unwrap();
+    assert_eq!(
+        compiled.output.render(player.values()).unwrap().slots,
+        slots
+    );
+    assert_eq!(archive.entries()[0].usage.attributes, 6);
+}

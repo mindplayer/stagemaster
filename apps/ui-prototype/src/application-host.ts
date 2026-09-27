@@ -19,8 +19,7 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  | EditOperation
-  | { op: "batch"; commands: EditOperation[] };
+  EditOperation | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
   | { op: "position"; command: PositionEdit }
   | { op: "fixture"; command: FixtureEdit }
@@ -119,6 +118,14 @@ export interface ApplicationHost {
   recovery(
     request: import("./recovery-types").RecoveryRequest,
   ): Promise<import("./recovery-types").RecoveryCatalog>;
+  buildPackage(
+    generation: number,
+    selection: import("./package-types").PackageSelection[],
+  ): Promise<import("./package-types").PackageResult>;
+  exportPackage(
+    generation: number,
+    token: string,
+  ): Promise<import("./package-types").PackageExport>;
   check(generation: number): Promise<import("./check-types").ProjectCheck>;
   request(request: ProjectRequest): Promise<Snapshot>;
   preview(request: PreviewRequest): Promise<PreviewSnapshot>;

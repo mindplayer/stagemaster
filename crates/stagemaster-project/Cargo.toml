@@ -7,6 +7,8 @@ license.workspace = true
 
 [dependencies]
 stagemaster-playback = { path = "../stagemaster-playback" }
+stagemaster-package = { path = "../stagemaster-package" }
+sha2 = { version = "=0.10.9", default-features = false }
 stagemaster-spatial = { path = "../stagemaster-spatial" }
 stagemaster-dmx = { path = "../stagemaster-dmx" }
 stagemaster-domain = { path = "../stagemaster-domain" }

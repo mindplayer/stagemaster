@@ -21,6 +21,8 @@
   "include": [
     "src",
     "tests/demo-session.test.ts",
-    "tests/editor-tools.test.ts"
+    "tests/editor-tools.test.ts",
+    "tests/package-tools.test.ts",
+    "tests/package-panel-harness.tsx"
   ]
 }

@@ -176,7 +176,7 @@ fn issue(code: &'static str, message: impl Into<String>, location: CheckLocation
     }
 }
 
-fn output_issues(view: &ProjectView) -> Vec<CheckIssue> {
+pub(super) fn output_issues(view: &ProjectView) -> Vec<CheckIssue> {
     let mut issues = Vec::new();
     if view.fixtures.is_empty() {
         issues.push(issue(
@@ -212,7 +212,7 @@ fn output_issues(view: &ProjectView) -> Vec<CheckIssue> {
                 issues.push(issue(
                     "patch.multipleLines",
                     format!(
-                        "“{}”位于 {} / 线路 {}；当前电脑预览要求所有灯具位于同一输出域、同一线路",
+                        "“{}”位于 {} / 线路 {}；当前播放内核要求所有灯具位于同一输出域、同一线路",
                         fixture.name, fixture.domain_name, universe
                     ),
                     location(),

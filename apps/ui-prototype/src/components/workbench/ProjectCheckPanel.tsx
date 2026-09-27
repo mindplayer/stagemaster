@@ -180,7 +180,7 @@ export function ProjectCheckPanel({
         <div>
           <strong>设备发布</strong>
           <b>尚未开放</b>
-          <span>设备执行包与离线安装尚未接入</span>
+          <span>可生成播放包；设备安装与授权尚未接入</span>
         </div>
       </div>
       {check && report && (

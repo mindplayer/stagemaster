@@ -69,6 +69,16 @@ impl Session {
             .clone()
             .ok_or_else(|| "请先新建或打开工程".into())
     }
+    pub(crate) fn export_source(
+        &self,
+        generation: u32,
+    ) -> Result<Option<std::path::PathBuf>, String> {
+        self.guard(generation)?;
+        if self.document.is_none() {
+            return Err("请先打开工程".into());
+        }
+        Ok(self.file.as_ref().map(|f| f.path().to_path_buf()))
+    }
 
     pub(crate) fn preview(
         &mut self,
