@@ -9,6 +9,8 @@ members = [
   "crates/stagemaster-project",
   "crates/stagemaster-playback",
   "crates/stagemaster-package",
+  "crates/stagemaster-install",
+  "crates/stagemaster-install-store",
   "crates/stagemaster-device-link",
   "crates/stagemaster-project-store",
   "crates/stagemaster-spatial",

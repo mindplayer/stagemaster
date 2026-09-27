@@ -3492,6 +3492,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-install"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+ "stagemaster-package",
+ "stagemaster-playback",
+]
+
+[[package]]
+name = "stagemaster-install-store"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sha2",
+ "stagemaster-install",
+ "stagemaster-package",
+ "stagemaster-playback",
+ "stagemaster-project",
+ "tempfile",
+ "uuid",
+]
+
+[[package]]
 name = "stagemaster-package"
 version = "0.1.0"
 dependencies = [
