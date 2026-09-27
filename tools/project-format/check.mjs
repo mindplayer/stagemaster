@@ -163,6 +163,19 @@ export function auditProject(p) {
     if (effects.length) assert(declared.has('lighting.effects.basic@1'), '缺少动态效果能力声明');
     for (const effect of effects) {
       unique(effect.channels.map(c => c.attribute), '效果属性');
+      const keyed = effect.waveform === 'keyframes';
+      if (keyed) assert(declared.has('lighting.effects.keyframes@1'), '缺少关键帧效果能力声明');
+      let timing;
+      for (const channel of effect.channels) {
+        assert(keyed === Array.isArray(channel.keyframes), '变化方式与关键帧不一致');
+        if (keyed) {
+          const frames = channel.keyframes;
+          assert(frames[0].position === 0 && frames.every((f,i) => i === 0 || f.position > frames[i-1].position), '关键帧须从零开始递增');
+          const current = JSON.stringify(frames.map(f => [f.position, f.transition]));
+          assert(timing === undefined || timing === current, '关键帧位置与过渡方式须一致');
+          timing = current;
+        }
+      }
       for (const fixtureId of effect.fixtureIds) for (const channel of effect.channels) {
         assert(attr({fixtureId, attribute:channel.attribute}).valueType.kind === 'normalized', '效果仅支持归一化属性');
         if (effect.enabled) activeTargets.push(`${fixtureId}/${channel.attribute}`);

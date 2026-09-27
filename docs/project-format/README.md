@@ -56,7 +56,7 @@
 
 七个模块对象 lighting/media/motion/io/stage/monitoring/surfaces 可省略。其他顶层数组必须显式出现，没有内容用 []；编辑中的工程允许 entryPoints=[]，发布／执行必须另外选择有效入口（见 [ADR-006](../development/decisions/PRODUCT-ADR-006-visible-desktop-increments.md) 的草案修正）。已出现的模块须完整携带其规定的数组；不要把“缺失”“空值”和“删除对象”混成同一含义。
 
-requires 的本草案能力键为 lighting.basic、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；不含摇头运动或自由关键帧。
+requires 的本草案能力键为 lighting.basic、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic`／`lighting.effects.keyframes` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；不含摇头运动或自由关键帧。
 
 ## 3. 身份、资源、精确时间与单位
 

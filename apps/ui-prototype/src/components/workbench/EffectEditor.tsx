@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { EditOperation, FixtureView } from "../../application-host";
 import type { SceneEffect } from "../../effect-types";
 import { effectCommands, reorderEffect } from "../../effect-tools";
 import { seconds, secondsToMs } from "../../sequence-tools";
 import { LibraryDialog } from "./LibraryDialog";
+import { KeyframeEditor, type KeyframeHandle } from "./KeyframeEditor";
+import { toKeyframes, valuePercent } from "../../keyframe-tools";
 
 const labels = { dimmer: "亮度", red: "红", green: "绿", blue: "蓝" };
 export function EffectEditor({
@@ -28,6 +30,8 @@ export function EffectEditor({
   onApply(commands: EditOperation[]): Promise<boolean>;
 }) {
   const [draft, setDraft] = useState(effect);
+  const keyframes = useRef<KeyframeHandle>(null);
+  const [speedError, setSpeedError] = useState("");
   const [period, setPeriod] = useState(seconds(effect.periodMs));
   const [timing, setTiming] = useState({
     spread: String(effect.spreadDegrees),
@@ -43,8 +47,8 @@ export function EffectEditor({
   );
   const [ends, setEnds] = useState(() =>
     effect.channels.map((c) => ({
-      low: String((c.low / 65535) * 100),
-      high: String((c.high / 65535) * 100),
+      low: valuePercent(c.low ?? 0),
+      high: valuePercent(c.high ?? 65535),
     })),
   );
   const change = (patch: Partial<SceneEffect>) =>
@@ -77,6 +81,36 @@ export function EffectEditor({
       }),
     );
   }
+  function readRanges() {
+    return draft.channels.map((c, i) => ({
+      attribute: c.attribute,
+      ...Object.fromEntries(
+        ["low", "high"].map((key) => {
+          const raw = ends[i][key as "low" | "high"];
+          const value = Number(raw);
+          if (
+            !raw.trim() ||
+            !Number.isFinite(value) ||
+            value < 0 ||
+            value > 100
+          )
+            throw new Error("效果两端值应在 0–100% 之间");
+          return [key, Math.round((value * 65535) / 100)];
+        }),
+      ),
+    })) as SceneEffect["channels"];
+  }
+  function scaleSpeed(factor: number) {
+    try {
+      const value = Math.round(secondsToMs(period, "循环周期") * factor);
+      if (value < 100 || value > 3_600_000)
+        throw new Error("调整后的周期须在 0.1–3600 秒之间");
+      setPeriod(seconds(value));
+      setSpeedError("");
+    } catch (e) {
+      setSpeedError((e as Error).message);
+    }
+  }
   return (
     <LibraryDialog
       title={isNew ? "添加灯光效果" : "编辑灯光效果"}
@@ -88,23 +122,10 @@ export function EffectEditor({
         const periodMs = secondsToMs(period, "循环周期");
         if (periodMs < 100 || periodMs > 3_600_000)
           throw new Error("循环周期应在 0.1–3600 秒之间");
-        const channels = draft.channels.map((c, i) => ({
-          ...c,
-          ...Object.fromEntries(
-            ["low", "high"].map((key) => {
-              const raw = ends[i][key as "low" | "high"];
-              const value = Number(raw);
-              if (
-                !raw.trim() ||
-                !Number.isFinite(value) ||
-                value < 0 ||
-                value > 100
-              )
-                throw new Error("效果两端值应在 0–100% 之间");
-              return [key, Math.round((value * 65535) / 100)];
-            }),
-          ),
-        }));
+        const channels =
+          draft.waveform === "keyframes"
+            ? keyframes.current!.collect()
+            : readRanges();
         return onApply(
           effectCommands(
             sceneId,
@@ -151,19 +172,60 @@ export function EffectEditor({
         <label>
           变化方式
           <select
+            disabled={draft.waveform === "keyframes"}
             aria-label="变化方式"
             value={draft.waveform}
             onChange={(e) =>
               change({ waveform: e.target.value as SceneEffect["waveform"] })
             }
           >
+            {draft.waveform === "keyframes" && (
+              <option value="keyframes">逐帧编辑</option>
+            )}
             <option value="smooth">平滑往返</option>
             <option value="triangle">线性往返</option>
             <option value="pulse">脉冲切换</option>
           </select>
         </label>
       </div>
-      {isColor && (
+      <div className="effect-speed-actions">
+        <button type="button" onClick={() => scaleSpeed(2)}>
+          半速
+        </button>
+        <button type="button" onClick={() => scaleSpeed(0.5)}>
+          倍速
+        </button>
+        {draft.waveform !== "keyframes" && (
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                change(
+                  toKeyframes({
+                    ...draft,
+                    dutyPercent: Number(timing.duty),
+                    channels: readRanges(),
+                  }),
+                );
+                setSpeedError("");
+              } catch (e) {
+                setSpeedError((e as Error).message);
+              }
+            }}
+          >
+            转换为关键帧
+          </button>
+        )}
+      </div>
+      {speedError && (
+        <p role="alert" className="wb-library-error">
+          {speedError}
+        </p>
+      )}
+      {draft.waveform === "keyframes" && (
+        <KeyframeEditor ref={keyframes} channels={draft.channels} />
+      )}
+      {isColor && draft.waveform !== "keyframes" && (
         <div className="effect-fields effect-colors">
           <label>
             颜色一
@@ -185,34 +247,36 @@ export function EffectEditor({
           </label>
         </div>
       )}
-      <details open={!isColor}>
-        <summary>{isColor ? "精确颜色通道" : "亮度范围"}</summary>
-        {draft.channels.map((c, i) => (
-          <div className="effect-fields" key={c.attribute}>
-            {(["low", "high"] as const).map((end, j) => (
-              <label key={end}>
-                {labels[c.attribute]} · 数值{j ? "二" : "一"} %
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  max={100}
-                  step="any"
-                  aria-label={`${labels[c.attribute]}数值${j ? "二" : "一"}`}
-                  value={ends[i][end]}
-                  onChange={(e) =>
-                    setEnds((prev) =>
-                      prev.map((v, n) =>
-                        n === i ? { ...v, [end]: e.target.value } : v,
-                      ),
-                    )
-                  }
-                />
-              </label>
-            ))}
-          </div>
-        ))}
-      </details>
+      {draft.waveform !== "keyframes" && (
+        <details open={!isColor}>
+          <summary>{isColor ? "精确颜色通道" : "亮度范围"}</summary>
+          {draft.channels.map((c, i) => (
+            <div className="effect-fields" key={c.attribute}>
+              {(["low", "high"] as const).map((end, j) => (
+                <label key={end}>
+                  {labels[c.attribute]} · 数值{j ? "二" : "一"} %
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    max={100}
+                    step="any"
+                    aria-label={`${labels[c.attribute]}数值${j ? "二" : "一"}`}
+                    value={ends[i][end]}
+                    onChange={(e) =>
+                      setEnds((prev) =>
+                        prev.map((v, n) =>
+                          n === i ? { ...v, [end]: e.target.value } : v,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          ))}
+        </details>
+      )}
       <div className="effect-fields">
         <label>
           灯间展开 · 度

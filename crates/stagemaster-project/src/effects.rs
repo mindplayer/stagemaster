@@ -25,13 +25,47 @@ pub enum Waveform {
     Smooth,
     Triangle,
     Pulse,
+    Keyframes,
+}
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(untagged, deny_unknown_fields)]
+pub enum EffectValues {
+    Range {
+        attribute: String,
+        low: u16,
+        high: u16,
+    },
+    Keyframes {
+        attribute: String,
+        keyframes: Vec<EffectKeyframe>,
+    },
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct EffectValues {
-    pub attribute: String,
-    pub low: u16,
-    pub high: u16,
+pub struct EffectKeyframe {
+    pub position: u16,
+    pub value: u16,
+    pub transition: Transition,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Transition {
+    Hold,
+    Linear,
+    Smooth,
+}
+impl EffectValues {
+    fn attribute(&self) -> &str {
+        match self {
+            Self::Range { attribute, .. } | Self::Keyframes { attribute, .. } => attribute,
+        }
+    }
+    fn frames(&self) -> Option<&[EffectKeyframe]> {
+        match self {
+            Self::Keyframes { keyframes, .. } => Some(keyframes),
+            Self::Range { .. } => None,
+        }
+    }
 }
 #[derive(Deserialize)]
 #[serde(
@@ -62,6 +96,7 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
     let effects = scene["effects"].as_array_mut().ok_or("场景效果字段无效")?;
     match command {
         EffectEdit::Put { effect, .. } => {
+            let is_keyframes = matches!(effect.waveform, Waveform::Keyframes);
             let encoded = serde_json::to_value(&effect).map_err(|_| "效果编码失败")?;
             if let Some(existing) = effects.iter_mut().find(|e| e["id"] == effect.id) {
                 *existing = encoded;
@@ -69,11 +104,16 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
                 effects.push(encoded);
             }
             let requires = root["requires"].as_array_mut().ok_or("缺少工程能力声明")?;
-            if !requires
-                .iter()
-                .any(|r| r["key"] == "lighting.effects.basic")
+            for key in [
+                Some("lighting.effects.basic"),
+                is_keyframes.then_some("lighting.effects.keyframes"),
+            ]
+            .into_iter()
+            .flatten()
             {
-                requires.push(json!({"key":"lighting.effects.basic","version":1}));
+                if !requires.iter().any(|r| r["key"] == key) {
+                    requires.push(json!({"key":key,"version":1}));
+                }
             }
         }
         EffectEdit::Remove { id, .. } => editing::remove(effects, &id)?,
@@ -107,12 +147,13 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         }
         let mut occupied = BTreeSet::new();
         for effect in read(scene) {
+            validate_keyframes(root, &effect)?;
             for fixture in &effect.fixture_ids {
                 for channel in &effect.channels {
-                    editing::validate_target(root, fixture, &channel.attribute)
+                    editing::validate_target(root, fixture, channel.attribute())
                         .map_err(|reason| format!("效果“{}”：{reason}", effect.name))?;
                     if effect.enabled
-                        && !occupied.insert((fixture.clone(), channel.attribute.clone()))
+                        && !occupied.insert((fixture.clone(), channel.attribute().to_owned()))
                     {
                         return Err(format!(
                             "场景“{}”的效果“{}”与其他已启用效果控制了同一灯具属性，请先停用或调整灯具范围",
@@ -122,7 +163,11 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
                     }
                 }
             }
-            let unique: BTreeSet<_> = effect.channels.iter().map(|c| &c.attribute).collect();
+            let unique: BTreeSet<_> = effect
+                .channels
+                .iter()
+                .map(EffectValues::attribute)
+                .collect();
             if unique.len() != effect.channels.len() {
                 return Err(format!("效果“{}”的属性重复", effect.name));
             }
@@ -152,16 +197,45 @@ pub(super) fn compile(
                 compiled.push(stagemaster_playback::EffectChannel {
                     index: targets
                         .iter()
-                        .position(|(id, key)| id == fixture && key == &channel.attribute)
+                        .position(|(id, key)| id == fixture && key == channel.attribute())
                         .ok_or("效果属性未纳入计划")?,
-                    low: channel.low,
-                    high: channel.high,
+                    low: match channel {
+                        EffectValues::Range { low, .. } => *low,
+                        EffectValues::Keyframes { .. } => 0,
+                    },
+                    high: match channel {
+                        EffectValues::Range { high, .. } => *high,
+                        EffectValues::Keyframes { .. } => 0,
+                    },
                     period_ms: effect.period_ms,
                     phase: u16::try_from(phase).expect("phase is within one turn"),
                     curve: match effect.waveform {
                         Waveform::Smooth => stagemaster_playback::Curve::Smooth,
                         Waveform::Triangle => stagemaster_playback::Curve::Triangle,
                         Waveform::Pulse => stagemaster_playback::Curve::Pulse,
+                        Waveform::Keyframes => stagemaster_playback::Curve::Keyframes(
+                            channel
+                                .frames()
+                                .ok_or("关键帧缺失")?
+                                .iter()
+                                .map(|frame| stagemaster_playback::Keyframe {
+                                    phase: u16::try_from(
+                                        (u32::from(frame.position) * 65_536).div_ceil(10_000),
+                                    )
+                                    .expect("validated position"),
+                                    value: frame.value,
+                                    transition: match frame.transition {
+                                        Transition::Hold => stagemaster_playback::Transition::Hold,
+                                        Transition::Linear => {
+                                            stagemaster_playback::Transition::Linear
+                                        }
+                                        Transition::Smooth => {
+                                            stagemaster_playback::Transition::Smooth
+                                        }
+                                    },
+                                })
+                                .collect(),
+                        ),
                     },
                     duty_percent: effect.duty_percent,
                 });
@@ -169,4 +243,56 @@ pub(super) fn compile(
         }
     }
     Ok(compiled)
+}
+
+pub(super) fn keyframe_count(effects: &[SceneEffect]) -> usize {
+    effects
+        .iter()
+        .filter(|effect| effect.enabled)
+        .map(|effect| {
+            effect.fixture_ids.len()
+                * effect
+                    .channels
+                    .iter()
+                    .filter_map(EffectValues::frames)
+                    .map(<[EffectKeyframe]>::len)
+                    .sum::<usize>()
+        })
+        .sum()
+}
+
+fn validate_keyframes(root: &Value, effect: &SceneEffect) -> Result<(), String> {
+    let enabled = matches!(effect.waveform, Waveform::Keyframes);
+    if enabled
+        && !array(root, "requires")
+            .iter()
+            .any(|r| r["key"] == "lighting.effects.keyframes")
+    {
+        return Err("关键帧效果缺少工程能力声明".into());
+    }
+    let reference = effect.channels.first().and_then(EffectValues::frames);
+    for channel in &effect.channels {
+        if enabled != channel.frames().is_some() {
+            return Err("效果变化方式与属性关键帧不一致".into());
+        }
+        if let Some(frames) = channel.frames() {
+            if frames[0].position != 0 || frames.windows(2).any(|p| p[0].position >= p[1].position)
+            {
+                return Err(format!(
+                    "效果“{}”的关键帧须从 0% 开始并按时间递增",
+                    effect.name
+                ));
+            }
+            let reference = reference.ok_or("效果关键帧缺失")?;
+            if reference.len() != frames.len()
+                || reference
+                    .iter()
+                    .zip(frames)
+                    .any(|(a, b)| a.position != b.position || a.transition != b.transition)
+            {
+                return Err("同一效果各属性的关键帧位置与过渡方式须一致".into());
+            }
+        }
+    }
+    Ok(())
 }

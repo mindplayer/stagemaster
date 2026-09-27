@@ -825,7 +825,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   </div>
                 ))}
               {page === "scenes" && activeScene && <>
-                <EffectRack key={activeScene.id} scene={activeScene} fixtures={project.fixtures} selected={selected}
+                <EffectRack key={activeScene.id} scene={activeScene} fixtures={project.fixtures} scenes={project.scenes} selected={selected}
                   busy={busy} error={error} beforeChange={() => run(async () => {})}
                   onEdit={commands => run(async () => {
                     await edit({ op: "batch", commands });

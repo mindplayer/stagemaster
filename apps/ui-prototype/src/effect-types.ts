@@ -7,14 +7,20 @@ export interface SceneEffect {
   spreadDegrees: number;
   phaseDegrees: number;
   reverse: boolean;
-  waveform: "smooth" | "triangle" | "pulse";
+  waveform: "smooth" | "triangle" | "pulse" | "keyframes";
   dutyPercent: number;
-  channels: {
-    attribute: "dimmer" | "red" | "green" | "blue";
-    low: number;
-    high: number;
-  }[];
+  channels: EffectChannel[];
 }
+export type EffectAttribute = "dimmer" | "red" | "green" | "blue";
+export interface EffectKeyframe {
+  position: number;
+  value: number;
+  transition: "hold" | "linear" | "smooth";
+}
+export type EffectChannel = { attribute: EffectAttribute } & (
+  | { low: number; high: number; keyframes?: never }
+  | { keyframes: EffectKeyframe[]; low?: never; high?: never }
+);
 export type EffectEdit =
   | { kind: "put"; sceneId: string; effect: SceneEffect }
   | { kind: "remove"; sceneId: string; id: string };

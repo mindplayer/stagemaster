@@ -2813,7 +2813,8 @@
           "enum": [
             "smooth",
             "triangle",
-            "pulse"
+            "pulse",
+            "keyframes"
           ]
         },
         "dutyPercent": {
@@ -2826,33 +2827,88 @@
           "minItems": 1,
           "maxItems": 4,
           "items": {
-            "type": "object",
-            "properties": {
-              "attribute": {
-                "enum": [
-                  "dimmer",
-                  "red",
-                  "green",
-                  "blue"
-                ]
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "attribute": {
+                    "enum": [
+                      "dimmer",
+                      "red",
+                      "green",
+                      "blue"
+                    ]
+                  },
+                  "low": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535
+                  },
+                  "high": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535
+                  }
+                },
+                "required": [
+                  "attribute",
+                  "low",
+                  "high"
+                ],
+                "additionalProperties": false
               },
-              "low": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 65535
-              },
-              "high": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 65535
+              {
+                "type": "object",
+                "properties": {
+                  "attribute": {
+                    "enum": [
+                      "dimmer",
+                      "red",
+                      "green",
+                      "blue"
+                    ]
+                  },
+                  "keyframes": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 32,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "position": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9999
+                        },
+                        "value": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 65535
+                        },
+                        "transition": {
+                          "enum": [
+                            "hold",
+                            "linear",
+                            "smooth"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "position",
+                        "value",
+                        "transition"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "attribute",
+                  "keyframes"
+                ],
+                "additionalProperties": false
               }
-            },
-            "required": [
-              "attribute",
-              "low",
-              "high"
-            ],
-            "additionalProperties": false
+            ]
           }
         }
       },

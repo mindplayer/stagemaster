@@ -1,6 +1,6 @@
 # 已实现：场景动态灯光效果
 
-EFFECT-001 / [ADR-021](../development/decisions/PRODUCT-ADR-021-lighting-effects.md)，2026-09-27。本文是当前产品契约，区别于主目录中的远程服务伪接口。
+EFFECT-001／002 / [ADR-021](../development/decisions/PRODUCT-ADR-021-lighting-effects.md)、[ADR-022](../development/decisions/PRODUCT-ADR-022-effect-keyframes.md)，2026-09-27。本文是当前产品契约，区别于主目录中的远程服务伪接口。
 
 ## 调用与状态归属
 
@@ -24,15 +24,25 @@ TS 编辑契约在 `apps/ui-prototype/src/effect-types.ts`，Rust 对应 `crates
 | --- | --- |
 | id、name、enabled | UUID、非空名称、启用状态；停用仍保留引用和参数 |
 | fixtureIds | 1–512 个互不重复的灯具 UUID，数组顺序就是效果灯序 |
-| channels | 1–4 个互不重复的属性，两端值 low／high 均为 0–65535；仅 dimmer／red／green／blue |
+| channels | 1–4 个互不重复的属性；基本曲线用 low／high，关键帧用 keyframes，互斥；仅 dimmer／red／green／blue |
 | periodMs | 一个完整往返／脉冲周期，整数 100–3600000 毫秒 |
-| waveform | smooth：平滑往返；triangle：线性往返；pulse：亮段与低段切换 |
+| waveform | smooth：平滑往返；triangle：线性往返；pulse：亮段与低段切换；keyframes：逐帧循环 |
 | spreadDegrees | 0–360 整数；按 i/N 展开，360 度时首尾不重合 |
 | phaseDegrees | 0–359 整数，整体起始滞后 |
 | reverse | 反转灯序的相位分布，安装位置不变 |
 | dutyPercent | 脉冲高值段占周期的 1–99%；其余曲线保留此值但不使用 |
 
 平滑／线性在相位 0 取 low、半周期取 high、整周期回到 low。脉冲在相位 0 取 high，到亮段边界切到 low。定点 Q16 求值，平滑为 smoothstep 而非正弦。RGB 按通道插值；颜色数值范围可反向。单个场景最多 32 个效果，启用效果只能在不同灯具属性上组合。
+
+### 关键帧扩展
+
+`waveform: "keyframes"` 额外声明 `lighting.effects.keyframes@1`；基本能力声明继续保留。每个 channel 的 `keyframes` 有 2–32 个 `{position, value, transition}`：position 是 0–9999 的周期万分比，首帧必须为 0，严格递增；value 为 u16；transition 为 hold／linear／smooth，决定本帧到下一帧如何变化。末帧连接下一轮首帧；同一效果的各属性位置和过渡方式必须一致。未知字段、混入 low／high、方式错配、点序错误全部拒绝。
+
+编译将位置向上量化到 Q16，不早于指定相位，量化误差小于一相位单位。该规则让原脉冲转换为保持帧时保留比较边界；2018 个毫秒采样、33% 亮段及四灯相位对照通过。旧静态／三种两端曲线不重写或隐式迁移。
+
+`KeyframeEditor` 独立维护帧草稿，上方选帧，下方编辑当前帧；切帧不丢草稿。支持位置／颜色／亮度、增删、重排与均分时间；重排交换帧内容，时间槽不变；删首帧时剩余首帧移到 0%。错误定位到对应帧及字段，整组修改在应用时形成一次历史。半速／倍速只调整周期草稿；新结果需重载预览，不是现场连续变速主控。
+
+复用入口在效果组件中搜索当前工程所有场景，复制独立曲线和新 UUID，默认停用，可替换为当前所选灯具顺序；兼容检查与手工创建共用。它不增加新持久资源种类或隐式引用，修改副本不影响来源。
 
 ## 运行与预览
 
@@ -42,6 +52,6 @@ TS 编辑契约在 `apps/ui-prototype/src/effect-types.ts`，Rust 对应 `crates
 
 三维选择“跟随播放预览”消费同一 Rust 输出，编排页“三维监看”可直接切入；直接选择有动态效果的场景时，入口明确标为“静态值”。渲染器不保存效果、拥有时钟或输出硬件命令。
 
-`Plan` 全部效果属性累计最多 16384，单步骤最多 512；额外提供 `effect_buffer_bytes()` / 桌面 `effectBufferBytes`，表示编译效果数据的有效字节，不含 Vec 元数据／分配器。逐帧求值不分配。当前没有设备持久包协议，不可以直接把 Rust 内存布局写进 ESP32 文件。
+`Plan` 全部效果属性累计最多 16384，单步骤最多 512；关键帧累计最多 131072 点，编译时逐步核算并提前拒绝。`effect_buffer_bytes()` / 桌面 `effectBufferBytes` 统计效果结构（含内联曲线信息）与关键帧数组，不包含外层 Vec 头及分配器额外容量。逐帧求值不分配。当前没有设备持久包协议，不可以直接把 Rust 内存布局写进 ESP32 文件。
 
-验收与限制见[工单](../development/tasks/EFFECT-001-basic-effects.md)。相对效果、多关键帧、效果跟踪、节拍主控、随机、运动及像素不是本能力的隐含支持项。
+验收与限制见[基础效果](../development/tasks/EFFECT-001-basic-effects.md)和[关键帧与复用](../development/tasks/EFFECT-002-keyframes-reuse.md)工单。相对效果、效果跟踪、节拍主控、随机、运动及像素不是本能力的隐含支持项。

@@ -75,3 +75,82 @@ test("color illumination is explicit and shares one transaction with the effect"
     /重复/,
   );
 });
+
+import { reuseEffect } from "../src/effect-tools.ts";
+import {
+  appendFrame,
+  evenFrames,
+  frameDrafts,
+  readFrames,
+  reorderFrames,
+  toKeyframes,
+  valuePercent,
+} from "../src/keyframe-tools.ts";
+test("keyframe authoring round-trips all u16 values through precise percent inputs", () => {
+  for (let i = 0; i <= 65535; i++)
+    assert.equal(Math.round((Number(valuePercent(i)) * 65535) / 100), i);
+  const e = createEffect("multicolor", "id", ["rgb"]);
+  assert.deepEqual(
+    readFrames(frameDrafts(e.channels), ["red", "green", "blue"]),
+    e.channels,
+  );
+});
+test("converting basic shapes retains endpoints and transition intent", () => {
+  for (const kind of ["breathe", "chase", "color"] as const) {
+    const before = createEffect(kind, "id", ["rgb"]),
+      next = toKeyframes(before);
+    assert.equal(next.waveform, "keyframes");
+    assert.equal(before.channels[0].keyframes, undefined);
+    assert.equal(next.channels[0].keyframes![0].position, 0);
+    assert.equal(
+      next.channels[0].keyframes![0].value,
+      kind === "chase" ? 65535 : 0,
+    );
+    assert.equal(
+      next.channels[0].keyframes![1].position,
+      kind === "chase" ? 2500 : 5000,
+    );
+  }
+});
+test("reordering keyframes moves values while preserving time slots, even spacing is explicit", () => {
+  const frames = frameDrafts(
+    createEffect("multicolor", "id", ["rgb"]).channels,
+  );
+  const moved = reorderFrames(frames, 0, 1);
+  assert.deepEqual(
+    moved.map((f) => f.position),
+    frames.map((f) => f.position),
+  );
+  assert.deepEqual(moved[0].values, frames[1].values);
+  const added = appendFrame(moved);
+  assert.equal(added.length, 4);
+  assert.deepEqual(
+    evenFrames(added).map((f) => f.position),
+    ["0", "25", "50", "75"],
+  );
+  assert.equal(frames.length, 3);
+});
+test("bad keyframe timing and values identify the failing field without sorting away intent", () => {
+  const frames = frameDrafts(
+    createEffect("multicolor", "id", ["rgb"]).channels,
+  );
+  frames[1].position = "90";
+  assert.throws(
+    () => readFrames(frames, ["red", "green", "blue"]),
+    /第 3 帧时间/,
+  );
+  frames[1].position = "33.333";
+  assert.throws(() => readFrames(frames, ["red"]), /第 2 帧时间/);
+  frames[1].position = "33.33";
+  frames[1].values.red = "";
+  assert.throws(() => readFrames(frames, ["red"]), /第 2 帧红/);
+});
+test("effect reuse deep copies curves, keeps source intact and checks replacement fixture capability", () => {
+  const source = createEffect("multicolor", "source", ["rgb"]),
+    copy = reuseEffect(source, "copy", ["dim"]);
+  assert.equal(copy.enabled, false);
+  assert.deepEqual(copy.fixtureIds, ["dim"]);
+  copy.channels[0].keyframes![0].value = 12345;
+  assert.equal(source.channels[0].keyframes![0].value, 0);
+  assert.throws(() => effectCommands("s", copy, fixtures, false), /dim/);
+});

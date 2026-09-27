@@ -22,7 +22,7 @@
 }
 .effect-templates {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 .effect-templates button {
@@ -150,4 +150,113 @@ details + .effect-fields {
   .effect-list article > div {
     flex-basis: 100%;
   }
+}
+
+.effect-speed-actions,
+.effect-frame-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.effect-frame-toolbar strong {
+  flex: 1;
+}
+.effect-frame-toolbar small {
+  color: #9aa6b4;
+  font-weight: 400;
+}
+.effect-frame-strip {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0;
+}
+.effect-frame-strip button {
+  flex: 1;
+  min-width: 38px;
+  max-width: 72px;
+  height: 34px;
+  padding: 0;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 28px;
+  color: white;
+  text-shadow: 0 1px 3px black;
+  font-size: 11px;
+  overflow: hidden;
+}
+.effect-frame {
+  padding: 12px;
+  border: 1px solid #303944;
+  border-radius: 8px;
+  margin: 10px 0;
+  background: #171e26;
+}
+.effect-frame header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.effect-frame header button {
+  padding: 4px 8px;
+  margin-left: 5px;
+  font-size: 12px;
+}
+.effect-frame-color {
+  margin-top: 10px;
+}
+.effect-frame-color input {
+  height: 36px;
+  padding: 3px;
+}
+.effect-frame-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.effect-frame details {
+  margin-top: 10px;
+}
+.effect-reuse-list {
+  display: grid;
+  gap: 6px;
+  max-height: 280px;
+  overflow: auto;
+  margin: 10px 0;
+}
+.effect-reuse-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 12px;
+  gap: 6px;
+}
+.effect-reuse-list small {
+  color: #9aa6b4;
+}
+.effect-reuse-list [aria-pressed="true"] {
+  border-color: #6cd5cd;
+  background: #203d3f;
+}
+.effect-reuse-target {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+}
+.effect-reuse-target input {
+  width: 16px !important;
+  min-height: 16px !important;
+}
+
+.effect-frame-strip {
+  flex-wrap: wrap;
+}
+.effect-frame-strip button[aria-pressed="true"] {
+  outline: 2px solid #8ee1d9;
+  outline-offset: 2px;
 }

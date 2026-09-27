@@ -217,3 +217,132 @@ fn invalid_effect_plans_are_rejected_before_execution() {
         .collect::<Vec<_>>();
     assert!(Plan::with_effects(vec![0; 512], steps, false, vec![channels; 33]).is_err());
 }
+
+fn keyed(frames: &[(u16, u16, stagemaster_playback::Transition)]) -> EffectChannel {
+    let mut c = channel(0, Curve::Triangle, 0);
+    c.curve = Curve::Keyframes(
+        frames
+            .iter()
+            .map(
+                |&(phase, value, transition)| stagemaster_playback::Keyframe {
+                    phase,
+                    value,
+                    transition,
+                },
+            )
+            .collect(),
+    );
+    c
+}
+#[test]
+fn keyframes_respect_hold_linear_smooth_and_wrap_without_missing_endpoints() {
+    use stagemaster_playback::Transition::{Hold, Linear, Smooth};
+    let c = keyed(&[(0, 0, Hold), (16384, 10000, Linear), (32768, 50000, Smooth)]);
+    let plan =
+        Plan::with_effects(vec![0], vec![step(0, 0, 0, None)], false, vec![vec![c]]).unwrap();
+    let mut p = Player::new(plan, 0);
+    p.execute(0, 0).unwrap();
+    for (time, value) in [
+        (0, 0),
+        (249, 0),
+        (250, 10000),
+        (375, 30000),
+        (500, 50000),
+        (625, 42188),
+        (750, 25000),
+        (1000, 0),
+    ] {
+        p.advance(time).unwrap();
+        assert_eq!(p.values(), [value], "at {time}");
+    }
+}
+#[test]
+fn keyframe_phase_pause_and_late_frames_share_existing_time_rules() {
+    use stagemaster_playback::Transition::{Hold, Linear};
+    let mut c = keyed(&[(0, 0, Linear), (32768, 65535, Hold)]);
+    c.phase = 16384;
+    let plan = Plan::with_effects(
+        vec![0],
+        vec![
+            step(0, 100, 200, Some(1500)),
+            step(12000, 20, 80, Some(400)),
+        ],
+        true,
+        vec![vec![c], vec![]],
+    )
+    .unwrap();
+    let mut late = Player::new(plan.clone(), 0);
+    let mut regular = Player::new(plan, 0);
+    late.execute(0, 0).unwrap();
+    regular.execute(0, 0).unwrap();
+    for now in 1..=10037 {
+        regular.advance(now).unwrap();
+    }
+    late.advance(10037).unwrap();
+    assert_eq!(late.values(), regular.values());
+    assert_eq!(late.index(), regular.index());
+    late.pause(10037).unwrap();
+    let held = late.values().to_vec();
+    late.advance(50000).unwrap();
+    assert_eq!(late.values(), held);
+    late.resume(50000).unwrap();
+    assert_eq!(late.values(), held);
+}
+#[test]
+fn invalid_keyframes_and_plan_point_budget_are_rejected_and_memory_is_reported() {
+    use stagemaster_playback::{Keyframe, Transition::Linear};
+    for points in [
+        vec![],
+        vec![(0, 0, Linear)],
+        vec![(1, 0, Linear), (10, 100, Linear)],
+        vec![(0, 0, Linear), (0, 1, Linear)],
+        vec![(0, 0, Linear), (20, 1, Linear), (10, 2, Linear)],
+    ] {
+        assert!(
+            Plan::with_effects(
+                vec![0],
+                vec![step(0, 0, 0, None)],
+                false,
+                vec![vec![keyed(&points)]]
+            )
+            .is_err()
+        );
+    }
+    let points: Vec<_> = (0..32u16).map(|i| (i * 2048, i, Linear)).collect();
+    let c = keyed(&points);
+    let one = Plan::with_effects(
+        vec![0],
+        vec![step(0, 0, 0, None)],
+        false,
+        vec![vec![c.clone()]],
+    )
+    .unwrap();
+    assert_eq!(
+        one.effect_buffer_bytes(),
+        core::mem::size_of::<EffectChannel>() + 32 * core::mem::size_of::<Keyframe>()
+    );
+    let channels: Vec<_> = (0..512)
+        .map(|i| {
+            let mut value = c.clone();
+            value.index = i;
+            value
+        })
+        .collect();
+    assert!(
+        Plan::with_effects(
+            vec![0; 512],
+            vec![
+                Step {
+                    target: vec![0; 512],
+                    delay_ms: 0,
+                    fade_ms: 0,
+                    wait_ms: None
+                };
+                9
+            ],
+            false,
+            vec![channels; 9]
+        )
+        .is_err()
+    );
+}

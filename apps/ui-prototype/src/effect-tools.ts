@@ -1,6 +1,6 @@
 import type { FixtureView, EditOperation } from "./application-host";
 import type { SceneEffect } from "./effect-types";
-export type EffectTemplate = "breathe" | "chase" | "color";
+export type EffectTemplate = "breathe" | "chase" | "color" | "multicolor";
 export const effectTemplates: {
   key: EffectTemplate;
   name: string;
@@ -9,9 +9,13 @@ export const effectTemplates: {
   { key: "breathe", name: "亮度呼吸", detail: "平滑明暗 · 同步起伏" },
   { key: "chase", name: "亮度追逐", detail: "依次点亮 · 按选灯顺序" },
   { key: "color", name: "双色循环", detail: "两色渐变 · 可展开灯序" },
+  { key: "multicolor", name: "多色关键帧", detail: "逐帧调色 · 自由过渡" },
 ];
 export function supportsEffect(fixtures: FixtureView[], kind: EffectTemplate) {
-  const keys = kind === "color" ? ["red", "green", "blue"] : ["dimmer"];
+  const keys =
+    kind === "color" || kind === "multicolor"
+      ? ["red", "green", "blue"]
+      : ["dimmer"];
   return (
     fixtures.length > 0 &&
     fixtures.every((f) =>
@@ -25,6 +29,23 @@ export function createEffect(
   id: string,
   fixtureIds: string[],
 ): SceneEffect {
+  if (kind === "multicolor") {
+    const base = createEffect("color", id, fixtureIds);
+    return {
+      ...base,
+      name: "多色关键帧",
+      waveform: "keyframes",
+      periodMs: 6000,
+      channels: (["red", "green", "blue"] as const).map((attribute, i) => ({
+        attribute,
+        keyframes: [
+          { position: 0, value: [0, 34952, 65535][i], transition: "smooth" },
+          { position: 3333, value: [50000, 0, 65535][i], transition: "smooth" },
+          { position: 6667, value: 65535, transition: "smooth" },
+        ],
+      })),
+    };
+  }
   return {
     id,
     name: effectTemplates.find((t) => t.key === kind)!.name,
@@ -102,4 +123,18 @@ export function effectCommands(
   if (commands.length > 256)
     throw new Error("本次修改超过容量，请减少灯具数量");
   return commands;
+}
+
+/** Independent authoring copy: new identity, explicit fixture scope, no live reference. */
+export function reuseEffect(
+  effect: SceneEffect,
+  id: string,
+  fixtureIds?: string[],
+): SceneEffect {
+  return {
+    ...structuredClone(effect),
+    id,
+    enabled: false,
+    fixtureIds: [...(fixtureIds ?? effect.fixtureIds)],
+  };
 }

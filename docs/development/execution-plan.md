@@ -4,7 +4,8 @@
 
 ## 当前任务
 
-- [EFFECT-001](tasks/EFFECT-001-basic-effects.md) 已完成首批真实动态效果：亮度呼吸／追逐、双色循环、灯序／相位、保存历史、单场景及列表共享播放、应用内三维监看。按 [ADR-021](decisions/PRODUCT-ADR-021-lighting-effects.md) 保持 Rust 唯一求值；137 项 Rust、41 项 UI、63 项格式检查和原生编辑／保存／三维验证通过。下一增量优先细化关键帧、速度控制与效果资源复用；摇头效果先完成档案、运动求解和校准依赖。
+- [EFFECT-002](tasks/EFFECT-002-keyframes-reuse.md) 已完成绝对关键帧、逐段过渡／帧顺序、半速／倍速编辑、跨场景换灯复用与原生保存／三维验证；145 Rust／46 UI／68 格式通过。下一步现场速度主控、节拍同步与相对层另立契约，运动继续以档案和校准为先。
+- [EFFECT-001](tasks/EFFECT-001-basic-effects.md) 已完成首批真实动态效果：亮度呼吸／追逐、双色循环、灯序／相位、保存历史、单场景及列表共享播放、应用内三维监看。按 [ADR-021](decisions/PRODUCT-ADR-021-lighting-effects.md) 保持 Rust 唯一求值；137 项 Rust、41 项 UI、63 项格式检查和原生编辑／保存／三维验证通过。EFFECT-002 已补关键帧、周期快捷调整与场景间复用；摇头效果先完成档案、运动求解和校准依赖。
 - [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 首个真实闭环已完成：Xcode 26.1.1／UE 5.8.3 工作，独立 UE 在程序内部呈现，空间／灯位编辑与播放联动已验收。[UX-013](tasks/UX-013-modeling-workflow.md) 已补尺寸建模、对象层级、画布缩放和三维剖视。后续光学、规模性能与客户独立打包仍需实测。
 
 - [PLAN-001](tasks/PLAN-001-capability-adoption.md) 将成熟能力汇总为[统一落地表](../product-capability-plan.md)：后续主动检查必要功能、模块归属与验收缺口。它是能力导航，不新增一套排期；相关边界随具体任务落实，当前可见编辑及首次软硬件交付顺序继续有效。

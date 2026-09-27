@@ -163,3 +163,166 @@ fn dimmer_and_rgb_can_combine_and_scene_and_list_compile_identically() {
         assert_eq!(a.values(), b.values());
     }
 }
+
+fn keyed_effect(ids: &[String]) -> Value {
+    let mut e = effect(ids);
+    e["waveform"] = json!("keyframes");
+    e["spreadDegrees"] = json!(0);
+    e["channels"] = json!([{"attribute":"red","keyframes":[{"position":0,"value":0,"transition":"linear"},{"position":2500,"value":65535,"transition":"hold"},{"position":7500,"value":10000,"transition":"smooth"}]}]);
+    e
+}
+#[test]
+fn keyframes_save_copy_and_compile_as_independent_curve_data() {
+    let (mut doc, scene, ids) = setup();
+    let e = keyed_effect(&ids);
+    put(&mut doc, &scene, &e).unwrap();
+    let reopened = Document::decode(&doc.encode().unwrap()).unwrap();
+    let raw: Value = serde_json::from_slice(&reopened.encode().unwrap()).unwrap();
+    assert!(
+        raw["requires"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["key"] == "lighting.effects.keyframes")
+    );
+    let compiled = reopened.compile_scene(&scene).unwrap();
+    let mut player = Player::new(compiled.plan, 0);
+    player.execute(0, 0).unwrap();
+    for (now, value) in [(0, 0), (250, 255), (500, 255), (750, 39), (1000, 0)] {
+        player.advance(now).unwrap();
+        assert_eq!(
+            compiled.output.render(player.values()).unwrap().slots[1],
+            value
+        );
+    }
+    edit(
+        &mut doc,
+        json!({"op":"duplicateScene","id":scene,"name":"独立副本"}),
+    )
+    .unwrap();
+    let other = doc.view().scenes[1].id.clone();
+    let mut changed = e.clone();
+    changed["channels"][0]["keyframes"][1]["value"] = json!(0);
+    put(&mut doc, &scene, &changed).unwrap();
+    let copied = doc.compile_scene(&other).unwrap();
+    let mut player = Player::new(copied.plan, 0);
+    player.execute(0, 0).unwrap();
+    player.advance(250).unwrap();
+    assert_eq!(copied.output.render(player.values()).unwrap().slots[1], 255);
+}
+#[test]
+fn malformed_timing_mode_and_missing_keyframe_capability_fail_without_mutating_document() {
+    let (mut doc, scene, ids) = setup();
+    let original = keyed_effect(&ids);
+    put(&mut doc, &scene, &original).unwrap();
+    let before = doc.clone();
+    for positions in [[1, 2500, 7500], [0, 7500, 2500], [0, 2500, 2500]] {
+        let mut e = original.clone();
+        for (frame, pos) in e["channels"][0]["keyframes"]
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .zip(positions)
+        {
+            frame["position"] = json!(pos);
+        }
+        assert!(put(&mut doc, &scene, &e).is_err());
+        assert_eq!(doc, before);
+    }
+    let mut e = original.clone();
+    e["waveform"] = json!("smooth");
+    assert!(put(&mut doc, &scene, &e).is_err());
+    assert_eq!(doc, before);
+    let mut e = original.clone();
+    let mut second = e["channels"][0].clone();
+    second["attribute"] = json!("blue");
+    second["keyframes"][1]["transition"] = json!("smooth");
+    e["channels"].as_array_mut().unwrap().push(second);
+    assert!(put(&mut doc, &scene, &e).unwrap_err().contains("一致"));
+    assert_eq!(doc, before);
+    let mut raw: Value = serde_json::from_slice(&doc.encode().unwrap()).unwrap();
+    raw["requires"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|r| r["key"] != "lighting.effects.keyframes");
+    assert!(
+        Document::decode(&serde_json::to_vec(&raw).unwrap())
+            .unwrap_err()
+            .contains("能力声明")
+    );
+}
+#[test]
+fn keyframe_wire_format_rejects_unknown_or_ambiguous_values_before_deserializing() {
+    let (mut doc, scene, ids) = setup();
+    put(&mut doc, &scene, &keyed_effect(&ids)).unwrap();
+    let raw: Value = serde_json::from_slice(&doc.encode().unwrap()).unwrap();
+    for broken in [
+        json!([]),
+        json!([{"position":0,"value":0,"transition":"sine"},{"position":5000,"value":1,"transition":"hold"}]),
+        json!([{"position":0,"value":0,"transition":"hold"},{"position":10000,"value":1,"transition":"hold"}]),
+    ] {
+        let mut invalid = raw.clone();
+        invalid["lighting"]["scenes"][0]["effects"][0]["channels"][0]["keyframes"] = broken;
+        assert!(Document::decode(&serde_json::to_vec(&invalid).unwrap()).is_err());
+    }
+    let mut invalid = raw;
+    invalid["lighting"]["scenes"][0]["effects"][0]["channels"][0]["low"] = json!(0);
+    assert!(Document::decode(&serde_json::to_vec(&invalid).unwrap()).is_err());
+}
+
+#[test]
+fn converting_pulse_to_keyframes_preserves_quantized_phase_and_order() {
+    let (mut doc, scene, ids) = setup();
+    let mut original = effect(&ids);
+    original["dutyPercent"] = json!(33);
+    put(&mut doc, &scene, &original).unwrap();
+    let mut before = Player::new(doc.compile_scene(&scene).unwrap().plan, 0);
+    original["waveform"] = json!("keyframes");
+    original["channels"] = json!([{"attribute":"dimmer","keyframes":[{"position":0,"value":65535,"transition":"hold"},{"position":3300,"value":0,"transition":"hold"}]}]);
+    put(&mut doc, &scene, &original).unwrap();
+    let mut after = Player::new(doc.compile_scene(&scene).unwrap().plan, 0);
+    before.execute(0, 0).unwrap();
+    after.execute(0, 0).unwrap();
+    for now in 0..=2017 {
+        before.advance(now).unwrap();
+        after.advance(now).unwrap();
+        assert_eq!(before.values(), after.values(), "at {now}");
+    }
+}
+#[test]
+fn compiler_rejects_oversized_keyframe_lists_before_building_the_full_plan() {
+    let (mut doc, scene, ids) = setup();
+    let mut e = keyed_effect(&ids);
+    let frames: Vec<_> = (0..32)
+        .map(|i| json!({"position":i*300,"value":i*2000,"transition":"linear"}))
+        .collect();
+    e["channels"] =
+        json!([{"attribute":"red","keyframes":frames},{"attribute":"blue","keyframes":frames}]);
+    put(&mut doc, &scene, &e).unwrap();
+    edit(
+        &mut doc,
+        json!({"op":"sequence","command":{"kind":"add","name":"容量测试","sceneId":scene}}),
+    )
+    .unwrap();
+    let mut raw: Value = serde_json::from_slice(&doc.encode().unwrap()).unwrap();
+    let sequence = &mut raw["lighting"]["sequences"][0];
+    let id = sequence["id"].as_str().unwrap().to_owned();
+    let step = sequence["steps"][0].clone();
+    sequence["steps"] = Value::Array(
+        (0..513)
+            .map(|i| {
+                let mut s = step.clone();
+                s["id"] = json!(format!("28888888-0000-4000-8000-{i:012}"));
+                s["number"] = json!((i + 1).to_string());
+                s
+            })
+            .collect(),
+    );
+    let doc = Document::decode(&serde_json::to_vec(&raw).unwrap()).unwrap();
+    assert!(
+        doc.compile_sequence(&id)
+            .err()
+            .unwrap()
+            .contains("关键帧超出")
+    );
+}

@@ -5,13 +5,14 @@
 extern crate alloc;
 use alloc::{string::String, vec::Vec};
 mod effect;
-pub use effect::{Curve, EffectChannel};
+pub use effect::{Curve, EffectChannel, Keyframe, Transition};
 
 pub const MAX_STEPS: usize = 1024;
 pub const MAX_ATTRIBUTES: usize = 512;
 pub const MAX_TARGET_VALUES: usize = 262_144;
 pub const MAX_TIME_MS: u64 = 86_400_000;
 pub const MAX_EFFECT_CHANNELS: usize = 16_384;
+pub const MAX_KEYFRAMES: usize = 131_072;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Step {
@@ -77,6 +78,7 @@ impl Plan {
         {
             return Err("效果计划超出容量或与步骤不一致".into());
         }
+        let mut frame_count = 0;
         for channels in &effects {
             let mut occupied = [false; MAX_ATTRIBUTES];
             for channel in channels {
@@ -90,6 +92,16 @@ impl Plan {
                     return Err("同一步骤的效果属性不能重叠".into());
                 }
                 occupied[channel.index] = true;
+                if let Curve::Keyframes(frames) = &channel.curve {
+                    frame_count += frames.len();
+                    if !(2..=32).contains(&frames.len())
+                        || frames[0].phase != 0
+                        || frames.windows(2).any(|pair| pair[0].phase >= pair[1].phase)
+                        || frame_count > MAX_KEYFRAMES
+                    {
+                        return Err("关键帧须从零开始递增，每条 2–32 帧且不得超过计划容量".into());
+                    }
+                }
             }
         }
         let cycle_ms = steps.iter().map(Step::duration).sum::<Option<u64>>();
@@ -117,10 +129,20 @@ impl Plan {
     pub fn value_buffer_bytes(&self) -> usize {
         (self.steps.len() + 3) * self.defaults.len() * 2
     }
-    /// Effect payload bytes, excluding Vec metadata and allocator overhead.
+    /// Effect payload and inline curve metadata, excluding outer Vec headers and allocator overhead.
     #[must_use]
     pub fn effect_buffer_bytes(&self) -> usize {
-        self.effects.iter().map(Vec::len).sum::<usize>() * core::mem::size_of::<EffectChannel>()
+        self.effects
+            .iter()
+            .flatten()
+            .map(|channel| {
+                core::mem::size_of::<EffectChannel>()
+                    + match &channel.curve {
+                        Curve::Keyframes(frames) => frames.len() * core::mem::size_of::<Keyframe>(),
+                        _ => 0,
+                    }
+            })
+            .sum()
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

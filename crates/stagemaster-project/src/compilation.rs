@@ -141,6 +141,7 @@ impl Document {
         let mut steps = Vec::new();
         let mut effects = Vec::new();
         let mut effect_count = 0;
+        let mut keyframe_count = 0;
         for step in array(sequence, "steps") {
             let mut target = if sequence["tracking"] == "isolated" {
                 defaults.clone()
@@ -167,6 +168,10 @@ impl Document {
                 };
             }
             previous.clone_from(&target);
+            keyframe_count += crate::effects::keyframe_count(&scene.effects);
+            if keyframe_count > stagemaster_playback::MAX_KEYFRAMES {
+                return Err("列表关键帧超出计划容量，请缩小列表或减少关键帧".into());
+            }
             let channels = crate::effects::compile(&scene.effects, &targets)?;
             effect_count += channels.len();
             if effect_count > stagemaster_playback::MAX_EFFECT_CHANNELS {

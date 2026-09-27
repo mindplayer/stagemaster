@@ -119,6 +119,7 @@ fn supported(root: &Value) -> Result<(), String> {
         if ![
             "lighting.basic",
             "lighting.effects.basic",
+            "lighting.effects.keyframes",
             "stage.layout",
             "stage.spaces",
         ]

@@ -95,3 +95,14 @@ invalid('灯位归属不可引用已删除空间',spaces,p => {p.stage.spaces=[]
 invalid('围护需要有界空间净高',spaces,p => {p.stage.spaces[0].clearHeightMeters=null;},/净高/);
 invalid('安装旋转与位置都有上限',spaces,p => {p.stage.placements[0].rotationDegreesXYZ.x='3601';},/越界/);
 invalid('空间坐标保留十进制字符串规范',spaces,p => {p.stage.placements[0].positionMeters.z='4.50';},/结构/);
+
+const withKeyframes=()=>{
+  const p=withEffect();p.requires.push({key:'lighting.effects.keyframes',version:1});
+  const e=p.lighting.scenes[0].effects[0];e.waveform='keyframes';
+  e.channels=[{attribute:'dimmer',keyframes:[{position:0,value:0,transition:'linear'},{position:5000,value:65535,transition:'hold'}]}];return p;
+};
+test('关键帧结构和能力声明通过独立校验',()=>assert.doesNotThrow(()=>auditProject(withKeyframes())));
+invalid('关键帧不能缺少专用能力声明',withKeyframes,p=>{p.requires=p.requires.filter(c=>c.key!=='lighting.effects.keyframes')},/能力声明/);
+invalid('关键帧位置必须严格递增',withKeyframes,p=>{p.lighting.scenes[0].effects[0].channels[0].keyframes[1].position=0},/递增/);
+invalid('关键帧不接受被忽略的两端值',withKeyframes,p=>{p.lighting.scenes[0].effects[0].channels[0].low=0},/结构/);
+invalid('关键帧与基本变化方式不能混用',withKeyframes,p=>{p.lighting.scenes[0].effects[0].waveform='smooth'},/变化方式/);

@@ -9,14 +9,17 @@ import {
   createEffect,
   effectTemplates,
   supportsEffect,
+  reuseEffect,
 } from "../../effect-tools";
 import { uniqueName } from "../../editor-tools";
 import { EffectEditor } from "./EffectEditor";
+import { EffectReuseDialog } from "./EffectReuseDialog";
 import "./effects.css";
 
 export function EffectRack({
   scene,
   fixtures,
+  scenes,
   selected,
   busy,
   error,
@@ -25,12 +28,14 @@ export function EffectRack({
 }: {
   scene: SceneView;
   fixtures: FixtureView[];
+  scenes: SceneView[];
   selected: string[];
   busy: boolean;
   error: string;
   beforeChange(): Promise<boolean>;
   onEdit(commands: EditOperation[]): Promise<boolean>;
 }) {
+  const [importing, setImporting] = useState(false);
   const [dialog, setDialog] = useState<{
     effect: SceneEffect;
     isNew: boolean;
@@ -47,6 +52,16 @@ export function EffectRack({
         <h2>
           灯光效果 <small>{scene.effects.length}</small>
         </h2>
+        <button
+          disabled={busy || !scenes.some((s) => s.effects.length)}
+          onClick={() => {
+            void beforeChange().then((ok) => {
+              if (ok) setImporting(true);
+            });
+          }}
+        >
+          复用已有
+        </button>
         <span>
           {selected.length
             ? `已选 ${selected.length} 台`
@@ -61,7 +76,7 @@ export function EffectRack({
             title={
               supportsEffect(selectedFixtures, t.key)
                 ? t.detail
-                : `请选择全部支持${t.key === "color" ? "RGB" : "亮度"}的灯具`
+                : `请选择全部支持${t.key === "color" || t.key === "multicolor" ? "RGB" : "亮度"}的灯具`
             }
             onClick={() => {
               const effect = createEffect(t.key, crypto.randomUUID(), selected);
@@ -89,6 +104,9 @@ export function EffectRack({
                   ? "同步"
                   : `展开 ${effect.spreadDegrees}°`}
                 {effect.reverse ? " · 反向" : ""}
+                {effect.waveform === "keyframes"
+                  ? ` · ${effect.channels[0].keyframes?.length} 帧`
+                  : ""}
               </small>
             </div>
             <button
@@ -151,6 +169,21 @@ export function EffectRack({
           </article>
         ))}
       </div>
+      {importing && (
+        <EffectReuseDialog
+          scenes={scenes}
+          selected={selected}
+          onCancel={() => setImporting(false)}
+          onChoose={(effect, fixtures) => {
+            const copy = reuseEffect(effect, crypto.randomUUID(), fixtures);
+            copy.name = uniqueName(
+              `${effect.name} 副本`,
+              scene.effects.map((e) => e.name),
+            );
+            setDialog({ effect: copy, isNew: true });
+          }}
+        />
+      )}
       {dialog && (
         <EffectEditor
           effect={dialog.effect}

@@ -2,7 +2,7 @@
 mod compilation;
 mod editing;
 mod effects;
-pub use effects::{EffectEdit, EffectValues, SceneEffect, Waveform};
+pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
 mod library;
 mod sequence;
 mod stage;
