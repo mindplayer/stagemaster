@@ -1,3 +1,9 @@
+import {
+  ProfileWorkspace,
+  type ProfileHandle,
+} from "./components/fixtures/ProfileWorkspace";
+import { PatchDialog } from "./components/fixtures/PatchDialog";
+import { PatchMap } from "./components/fixtures/PatchMap";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PlusIcon,
@@ -53,7 +59,8 @@ const EMPTY: Snapshot = {
   canUndo: false,
   canRedo: false,
 };
-type Page = "stage" | "fixtures" | "scenes" | "sequences" | "settings";
+type Page =
+  "profiles" | "stage" | "fixtures" | "scenes" | "sequences" | "settings";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -94,9 +101,16 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
   const [patchId, setPatchId] = useState("");
+  const [patchSelection, setPatchSelection] = useState<string[]>([]);
+  const [patchDialog, setPatchDialog] = useState<"repatch" | "exchange" | null>(
+    null,
+  );
+  const profiles = useRef<ProfileHandle>(null);
+  const [profilePending, setProfilePending] = useState(false);
   const [sceneId, setSceneId] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [patchQuery, setPatchQuery] = useState("");
+  const [patchOnlySelected, setPatchOnlySelected] = useState(false);
   const [fixtureQuery, setFixtureQuery] = useState("");
   const [sceneQuery, setSceneQuery] = useState("");
   const [onlySelected, setOnlySelected] = useState(false);
@@ -131,7 +145,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     pending ||
     parameterPending ||
     sequencePending ||
-    stagePending;
+    stagePending ||
+    profilePending;
 
   function setForm(next: ProjectForm | null, changed = false) {
     formRef.current = next;
@@ -215,9 +230,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     commands.push(...(parameters.current?.collect() ?? []));
     commands.push(...(sequences.current?.collect() ?? []));
     commands.push(...(stage.current?.collect() ?? []));
+    commands.push(...(profiles.current?.collect() ?? []));
     if (!commands.length) {
       sequences.current?.accept();
       stage.current?.accept();
+      profiles.current?.accept();
       return;
     }
     if (commands.length > 256)
@@ -226,12 +243,14 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     parameters.current?.accept();
     sequences.current?.accept();
     stage.current?.accept();
+    profiles.current?.accept();
     setParameterPending(false);
     setNotice("修改已应用");
     if (draft && pendingRef.current) {
       if (draft.kind === "addFixture") {
         const added = current.current.project!.fixtures.at(-1)!;
         setPatchId(added.id);
+        setPatchSelection([added.id]);
         setForm(fixtureForm(added));
         setNotice(`已添加 ${draft.count} 台灯具`);
       } else setForm({ ...draft, name: draft.name.trim() });
@@ -275,7 +294,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     const fixture = p.fixtures.find((f) => f.id === patchId);
     const scene = p.scenes.find((s) => s.id === sceneId);
     setForm(
-      nextPage === "sequences" || nextPage === "stage"
+      nextPage === "profiles" ||
+        nextPage === "sequences" ||
+        nextPage === "stage"
         ? null
         : nextPage === "settings"
           ? infoForm(p)
@@ -298,9 +319,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       if (next.project && next.generation !== previousGeneration) {
         setPage(next.project.fixtures.length ? "scenes" : "fixtures");
         setPatchId("");
+        setPatchSelection([]);
+        setProfilePending(false);
         setSceneId(next.project.scenes[0]?.id ?? "");
         setSelectedIds([]);
         setPatchQuery("");
+        setPatchOnlySelected(false);
         setFixtureQuery("");
         setSceneQuery("");
         setOnlySelected(false);
@@ -630,8 +654,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               列表与预览<span>{project.sequences.length}</span>
             </button>
             <button
-              className={page === "fixtures" ? "active" : ""}
-              aria-pressed={page === "fixtures"}
+              className={
+                page === "fixtures" || page === "profiles" ? "active" : ""
+              }
+              aria-pressed={page === "fixtures" || page === "profiles"}
               disabled={busy}
               onClick={() => switchPage("fixtures")}
             >
@@ -657,17 +683,49 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               舞台<span>{project.stage.spaces.length}</span>
             </button>
           </nav>
+          <ProfileWorkspace
+            key={`profiles:${project.id}`}
+            ref={profiles}
+            project={project}
+            visible={page === "profiles"}
+            busy={busy}
+            error={error}
+            onPending={(value) => {
+              setProfilePending(value);
+              if (!value) setError("");
+            }}
+            beforeChange={() => run(async () => {})}
+            onBack={() => switchPage("fixtures")}
+            onEdit={async (command) => {
+              const ok = await run(async () => {
+                await edit(command);
+                setNotice("灯具模式已更新，可撤销恢复");
+              });
+              return ok ? current.current.project : null;
+            }}
+          />
           <StageWorkspace
             key={`stage:${project.id}`}
             ref={stage}
-            previs={(selection) => <PrevisPanel host={host} scenes={project.scenes} busy={busy}
-              {...selection} onPrepareMove={() => run(async () => {})}
-              onPlacement={(proposal, isActive) => run(async () => {
-                if (!isActive()) throw new Error("三维视窗已关闭，灯位未修改");
-                await request({ kind: "previsPlacement", ...proposal });
-                setNotice("灯位已更新，可撤销恢复");
-              })}
-              generation={() => current.current.generation} run={(work) => run(work)} />}
+            previs={(selection) => (
+              <PrevisPanel
+                host={host}
+                scenes={project.scenes}
+                busy={busy}
+                {...selection}
+                onPrepareMove={() => run(async () => {})}
+                onPlacement={(proposal, isActive) =>
+                  run(async () => {
+                    if (!isActive())
+                      throw new Error("三维视窗已关闭，灯位未修改");
+                    await request({ kind: "previsPlacement", ...proposal });
+                    setNotice("灯位已更新，可撤销恢复");
+                  })
+                }
+                generation={() => current.current.generation}
+                run={(work) => run(work)}
+              />
+            )}
             project={project}
             visible={page === "stage"}
             busy={busy}
@@ -707,8 +765,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             }}
           />
           <div
-            hidden={page === "sequences" || page === "stage"}
-            aria-hidden={page === "sequences" || page === "stage"}
+            hidden={
+              page === "profiles" || page === "sequences" || page === "stage"
+            }
+            aria-hidden={
+              page === "profiles" || page === "sequences" || page === "stage"
+            }
             className={`wb-layout ${page === "scenes" ? "wb-arrangement" : ""}`}
           >
             {page === "scenes" && (
@@ -745,7 +807,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 {page === "fixtures" && (
                   <button
                     className="wb-primary"
-                    disabled={busy}
+                    disabled={busy || !project.profiles.length}
                     onClick={addFixture}
                   >
                     <PlusIcon />
@@ -759,27 +821,84 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 )}
               </div>
               {page === "fixtures" && (
-                <FixtureBrowser
-                  fixtures={project.fixtures}
-                  selected={activeFixture ? [activeFixture.id] : []}
-                  query={patchQuery}
-                  onlySelected={false}
-                  busy={busy}
-                  onQuery={setPatchQuery}
-                  onFilter={() => {}}
-                  onSelect={(ids) => {
-                    void run(async () => {
-                      const fixture = current.current.project!.fixtures.find(
-                        (f) => f.id === ids[0],
-                      );
-                      if (fixture) {
-                        setPatchId(fixture.id);
-                        setForm(fixtureForm(fixture));
+                <>
+                  <div className="patch-actions">
+                    <button
+                      disabled={busy}
+                      onClick={() => switchPage("profiles")}
+                    >
+                      灯具模式库
+                    </button>
+                    <button
+                      disabled={busy || !project.fixtures.length}
+                      onClick={() =>
+                        void run(async () => {
+                          setPatchDialog("repatch");
+                        })
                       }
-                    });
-                  }}
-                  table
-                />
+                    >
+                      批量配适
+                    </button>
+                    <button
+                      disabled={busy || !project.fixtures.length}
+                      onClick={() =>
+                        void run(async () => {
+                          setPatchDialog("exchange");
+                        })
+                      }
+                    >
+                      替换模式
+                    </button>
+                    <span>按住 ⌘ 或 Shift 多选灯具</span>
+                  </div>
+                  <PatchMap
+                    project={project}
+                    selected={patchSelection}
+                    busy={busy}
+                    onSelect={(id) =>
+                      void run(async () => {
+                        const f = current.current.project!.fixtures.find(
+                          (f) => f.id === id,
+                        );
+                        if (f) {
+                          setPatchSelection([id]);
+                          setPatchQuery("");
+                          setPatchOnlySelected(false);
+                          setPatchId(id);
+                          setForm(fixtureForm(f));
+                        }
+                      })
+                    }
+                  />
+                  <FixtureBrowser
+                    fixtures={project.fixtures}
+                    selected={patchSelection.filter((id) =>
+                      project.fixtures.some((f) => f.id === id),
+                    )}
+                    query={patchQuery}
+                    onlySelected={patchOnlySelected}
+                    busy={busy}
+                    onQuery={setPatchQuery}
+                    onFilter={setPatchOnlySelected}
+                    onSelect={(ids) => {
+                      void run(async () => {
+                        const fixture = current.current.project!.fixtures.find(
+                          (f) => f.id === ids[0],
+                        );
+                        setPatchSelection(ids);
+                        if (!fixture) {
+                          setPatchId("");
+                          setForm(null);
+                        }
+                        if (fixture) {
+                          setPatchId(fixture.id);
+                          setForm(fixtureForm(fixture));
+                        }
+                      });
+                    }}
+                    table
+                  />
+                </>
               )}
               {page === "scenes" &&
                 (activeScene ? (
@@ -824,23 +943,51 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     )}
                   </div>
                 ))}
-              {page === "scenes" && activeScene && <>
-                <EffectRack key={activeScene.id} scene={activeScene} fixtures={project.fixtures} scenes={project.scenes} selected={selected}
-                  busy={busy} error={error} beforeChange={() => run(async () => {})}
-                  onEdit={commands => run(async () => {
-                    await edit({ op: "batch", commands });
-                    setNotice("效果已更新，可撤销恢复；重新载入预览可查看变化");
-                  })} />
-                <PreviewPanel host={host} scene={activeScene} stepId={activeScene.id} generation={snapshot.generation}
-                  busy={busy} beforeAction={() => run(async () => {})} visible={page === "scenes"}
-                  onView3d={() => { void run(async () => {
-                    await host.previs({ kind: "source", generation: current.current.generation, source: { kind: "playback" } });
-                    const status = await host.previs({ kind: "status" });
-                    if (!status.enabled) await host.previs({ kind: "enable" });
-                    stage.current?.showPrevis();
-                    setPage("stage");
-                  }); }} />
-              </>}
+              {page === "scenes" && activeScene && (
+                <>
+                  <EffectRack
+                    key={activeScene.id}
+                    scene={activeScene}
+                    fixtures={project.fixtures}
+                    scenes={project.scenes}
+                    selected={selected}
+                    busy={busy}
+                    error={error}
+                    beforeChange={() => run(async () => {})}
+                    onEdit={(commands) =>
+                      run(async () => {
+                        await edit({ op: "batch", commands });
+                        setNotice(
+                          "效果已更新，可撤销恢复；重新载入预览可查看变化",
+                        );
+                      })
+                    }
+                  />
+                  <PreviewPanel
+                    host={host}
+                    scene={activeScene}
+                    stepId={activeScene.id}
+                    generation={snapshot.generation}
+                    busy={busy}
+                    beforeAction={() => run(async () => {})}
+                    visible={page === "scenes"}
+                    onView3d={() => {
+                      void run(async () => {
+                        await host.previs({
+                          kind: "source",
+                          generation: current.current.generation,
+                          source: { kind: "playback" },
+                        });
+                        const status = await host.previs({ kind: "status" });
+                        if (!status.enabled)
+                          await host.previs({ kind: "enable" });
+                        stage.current?.showPrevis();
+                        setPage("stage");
+                      });
+                    }}
+                  />
+                </>
+              )}
               <ResourcePool
                 key={project.id}
                 project={project}
@@ -882,8 +1029,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
                   scene={activeScene}
-                  fixtures={selected.map(
-                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
                   )}
                   busy={busy}
                   onApply={() => {
@@ -901,7 +1048,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 busy={busy}
                 pending={pending}
                 page={
-                  page === "sequences" || page === "stage" ? "scenes" : page
+                  page === "profiles" ||
+                  page === "sequences" ||
+                  page === "stage"
+                    ? "scenes"
+                    : page
                 }
                 project={project}
                 activeFixture={page === "fixtures" ? activeFixture : undefined}
@@ -933,7 +1084,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 ? "正在处理…"
                 : error
                   ? "修改未完成"
-                  : pending || parameterPending || sequencePending
+                  : pending ||
+                      parameterPending ||
+                      sequencePending ||
+                      profilePending
                     ? "有待应用的修改"
                     : notice || (dirty ? "有未保存的修改" : "已保存")}
             </span>
@@ -944,6 +1098,28 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             </span>
           </footer>
         </>
+      )}
+      {patchDialog && project && (
+        <PatchDialog
+          project={project}
+          initialIds={patchSelection.filter((id) =>
+            project.fixtures.some((f) => f.id === id),
+          )}
+          exchange={patchDialog === "exchange"}
+          busy={busy}
+          error={error}
+          onCancel={() => {
+            setPatchDialog(null);
+            setError("");
+          }}
+          onEdit={(command) =>
+            run(async () => {
+              await edit(command);
+              restoreForm();
+              setNotice("灯具配适已更新，可撤销恢复");
+            })
+          }
+        />
       )}
       {confirmDelete && (
         <DeleteDialog

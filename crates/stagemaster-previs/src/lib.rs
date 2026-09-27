@@ -168,7 +168,10 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 .map(|a| a.key.as_str())
                 .collect::<Vec<_>>();
             attributes.sort_unstable();
-            if attributes != ["dimmer"] && attributes != ["blue", "dimmer", "green", "red"] {
+            if attributes != ["dimmer"]
+                && attributes != ["blue", "dimmer", "green", "red"]
+                && attributes != ["blue", "green", "red"]
+            {
                 return Err(format!("灯具“{}”的档案尚未支持三维预演", fixture.name));
             }
             let installation = Installation {

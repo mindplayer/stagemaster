@@ -1,0 +1,333 @@
+.fixture-library {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #10151b;
+}
+.fixture-library[hidden] {
+  display: none;
+}
+.fixture-library > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 28px;
+  border-bottom: 1px solid #29323c;
+}
+.fixture-library > header > div {
+  flex: 1;
+}
+.fixture-library h1 {
+  font-size: 22px;
+  margin: 5px 0;
+}
+.fixture-library h2 {
+  font-size: 19px;
+  margin: 0 0 6px;
+}
+.fixture-library h3 {
+  font-size: 13px;
+  margin: 24px 0 12px;
+}
+.fixture-library-body {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 0;
+  flex: 1;
+}
+.fixture-library-body > aside {
+  padding: 20px 14px;
+  border-right: 1px solid #29323c;
+  overflow: auto;
+}
+.fixture-library-body > main {
+  padding: 26px 30px;
+  overflow: auto;
+  min-width: 0;
+}
+.fixture-library label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+  color: #a9b9ca;
+}
+.fixture-library input,
+.fixture-library select {
+  width: 100%;
+  min-width: 0;
+  background: #0d1218;
+  border: 1px solid #344251;
+  border-radius: 6px;
+  padding: 9px;
+  color: #e5edf5;
+}
+.fixture-library input:focus,
+.fixture-library select:focus {
+  outline: 2px solid #548cff;
+  outline-offset: 1px;
+}
+.fixture-library fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.fixture-library fieldset:disabled input,
+.fixture-library fieldset:disabled select {
+  opacity: 0.8;
+  color: #c9d4df;
+}
+.profile-list {
+  display: grid;
+  gap: 8px;
+}
+.profile-list > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 7px;
+  padding: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.profile-list > button.selected {
+  background: #1b324c;
+  border-color: #6393dd;
+}
+.profile-list span,
+.profile-list small {
+  font-size: 11px;
+  color: #9dacc0;
+}
+.profile-title {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+  align-items: start;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.profile-title p {
+  margin: 8px 0 0;
+}
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.profile-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.profile-channel {
+  display: grid;
+  grid-template-columns: 65px 90px 1fr 1fr 1.3fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #26313b;
+}
+.profile-channel strong {
+  font-size: 13px;
+}
+.profile-channel label {
+  font-size: 11px;
+}
+.profile-footer {
+  position: sticky;
+  bottom: -26px;
+  justify-content: flex-end;
+  padding: 18px 0;
+  background: #10151b;
+  border-top: 1px solid #29323c;
+  margin-top: 22px;
+}
+.profile-strip > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 5px;
+  max-height: 205px;
+  overflow: auto;
+}
+.profile-strip span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px;
+  border: 1px solid #2b3742;
+  border-radius: 5px;
+  color: #77899c;
+}
+.profile-strip small {
+  font-size: 10px;
+}
+.profile-strip .mapped {
+  background: #183149;
+  border-color: #2a5376;
+  color: #bad2e5;
+}
+.profile-strip .conflict {
+  background: #4d2328;
+  border-color: #d26872;
+  color: #ffbdc4;
+}
+.profile-usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.profile-usage h3 {
+  flex-basis: 100%;
+}
+.profile-usage span {
+  font-size: 12px;
+  padding: 6px 9px;
+  background: #1e2832;
+  border-radius: 4px;
+}
+.patch-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+.patch-actions span {
+  font-size: 12px;
+  color: #94a4b7;
+}
+.patch-map {
+  margin-bottom: 16px;
+  border: 1px solid #2a3643;
+  border-radius: 7px;
+  padding: 12px;
+}
+.patch-map summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #bdccdf;
+}
+.patch-map-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  padding: 12px 0;
+  font-size: 11px;
+  color: #94a4b7;
+}
+.patch-map-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.patch-map-toolbar input {
+  width: 90px;
+}
+.patch-map-toolbar input,
+.patch-map-toolbar select {
+  background: #131c25;
+  border: 1px solid #3d4a5a;
+  border-radius: 4px;
+  padding: 6px;
+  color: #cad6e4;
+}
+.patch-slots {
+  display: grid;
+  grid-template-columns: repeat(32, minmax(0, 1fr));
+  gap: 2px;
+}
+.patch-slots button,
+.patch-slots > span {
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 2px;
+  font-size: 8px;
+  text-align: center;
+  background: #1a212b;
+  color: #54667b;
+}
+.patch-slots .occupied {
+  color: #c1d7e9;
+  background: #244762;
+}
+.patch-slots .selected {
+  color: white;
+  background: #327ec4;
+}
+.patch-preview {
+  white-space: pre-wrap;
+  max-height: 140px;
+  overflow: auto;
+  font:
+    11px/1.8 ui-monospace,
+    monospace;
+  background: #101820;
+  padding: 12px;
+  border-radius: 6px;
+}
+.patch-dialog-fields {
+  display: grid;
+  gap: 12px;
+}
+.patch-dialog-fields .patch-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.patch-check input {
+  width: auto;
+}
+@media (max-width: 1100px) {
+  .fixture-library-body {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .fixture-library-body > main {
+    padding: 20px;
+  }
+  .profile-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .profile-channel {
+    grid-template-columns: 40px 75px 1fr 1fr 1.2fr;
+    gap: 8px;
+  }
+  .profile-actions button {
+    font-size: 11px;
+  }
+}
+.wb-dialog:has(.patch-dialog-fields) {
+  width: min(880px, calc(100vw - 64px));
+}
+.patch-dialog-fields {
+  grid-template-columns: minmax(220px, 0.9fr) minmax(240px, 1.1fr);
+  gap: 24px;
+  align-items: start;
+}
+.patch-settings {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.patch-dialog-fields .placement-fixtures {
+  max-height: 300px;
+}
+.fixture-library form h3 {
+  margin: 22px 0 12px;
+  font-size: 13px;
+}
+@media (max-width: 800px) {
+  .patch-dialog-fields {
+    grid-template-columns: 1fr;
+  }
+  .patch-dialog-fields .placement-fixtures {
+    max-height: 180px;
+  }
+}
+.patch-slots[hidden] {
+  display: none;
+}

@@ -9,7 +9,7 @@
 | 1：DESKTOP-001 | 新建工程、添加／配适灯具、创建场景并修改属性、撤销重做、保存／重开 | 已实施灯光编辑子集；真实 .app 与文件验收；错误不破坏已保存内容 |
 | 2：UX-006 | 确定舞台选灯、效果塑形与时间编排的主工作流 | 按 MacBook 收敛[总体框架与共同指向](../ui-design/workspace-framework.md)，验证整组光束持续跟随目标的操作关系；设计稿不扩展产品业务层 |
 | 2a：UX-007 | 定义舞台和观众区如何创建 | [平面布置／三维同步设计](../ui-design/venue-layout-design.md)已形成：尺寸化舞台、区域生成观众、过道联动；未实施产品建模 |
-| 2b：FIXTURE-001 | 定义可复用灯具功能、个人灯库与建档交互 | [灯具定义设计](../ui-design/fixture-definition-design.md)已形成，参考 MA3／Titan／GDTF；具体格式扩展和编辑器尚未实施 |
+| 2b：FIXTURE-001 | 定义可复用灯具功能、个人灯库与建档交互 | [灯具定义设计](../ui-design/fixture-definition-design.md)已形成，参考 MA3／Titan／GDTF；[FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md) 已接工程内线性模式编辑器、明确换灯、配适占用与批量改址；复杂属性和跨工程个人库后续 |
 | 2c：UX-008／009 | 检查完整功能的归属、空间及组件交互 | 三张结构图保留参考；[组件工作台](../ui-design/component-workspace-design.md)已验证按需展开、建档往返和上下文保持，收集操作反馈后逐步接入真实能力 |
 | 3：[DESKTOP-002](tasks/DESKTOP-002-editor-workflow.md) | 组件式灯具／编排工作区、批量配适、多灯参数／RGB、搜索选择、场景复制 | 已接真实 Rust 原子命令与文件；继续按细节清单迭代，不引入假空间或时间线 |
 | 4：[DESKTOP-003](tasks/DESKTOP-003-sequence-preview.md) / PLAYER-001A 已实现 | 场景列表、渐变／延时、自动跟随与独立 Rust 离线预览；时间线／效果另行推进 | ADR-013；真实原子编辑／保存重开、数值监看与预览隔离，细节见工单 |

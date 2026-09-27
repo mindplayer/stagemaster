@@ -525,3 +525,42 @@ mod stage_history_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod fixture_history_tests {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn exchange_keeps_programming_and_repatches_as_one_history_event() {
+        let mut doc = Document::new("换灯历史").unwrap();
+        let base = doc.view();
+        doc.edit(serde_json::from_value(json!({"op":"addFixture","name":"灯","profileId":base.profiles[0].id,"domainId":base.domains[0].id,"universe":1,"address":1})).unwrap()).unwrap();
+        doc.edit(serde_json::from_value(json!({"op":"addScene","name":"场景"})).unwrap())
+            .unwrap();
+        doc.edit(serde_json::from_value(json!({"op":"fixture","command":{"op":"saveProfile","definition":{"name":"16 位","manufacturer":"测试","model":"P","mode":"双通道","footprint":2,"channels":[{"attribute":"dimmer","coarse":2,"fine":1,"defaultValue":0}]}}})).unwrap()).unwrap();
+        let view = doc.view();
+        let before = doc.clone();
+        let mut s = Session::default();
+        s.replace(doc, None);
+        s.preview(crate::preview::Request::LoadScene {
+            generation: s.generation,
+            scene_id: view.scenes[0].id.clone(),
+        })
+        .unwrap();
+        let exchange=serde_json::from_value(json!({"op":"fixture","command":{"op":"exchange","fixtureIds":[view.fixtures[0].id],"profileId":view.profiles.last().unwrap().id,"layout":{"universe":1,"address":511,"gap":0}}})).unwrap();
+        s.edit(s.generation, exchange).unwrap();
+        assert_eq!(s.undo.len(), 1);
+        let after = s.document.clone();
+        assert_eq!(
+            after.as_ref().unwrap().view().fixtures[0].address,
+            Some(511)
+        );
+        let preview =
+            serde_json::to_value(s.preview(crate::preview::Request::Snapshot).unwrap()).unwrap();
+        assert_eq!(preview["loaded"]["stale"], true);
+        s.history(s.generation, false).unwrap();
+        assert_eq!(s.document, Some(before));
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.document, after);
+    }
+}

@@ -278,8 +278,9 @@ fn validate_patches(
     fixtures: &BTreeMap<&str, &Value>,
     profiles: &BTreeMap<&str, &Value>,
 ) -> Result<(), String> {
+    type OccupiedRanges<'a> = Vec<(u64, u64, &'a str)>;
     let mut patched = BTreeSet::new();
-    let mut ranges: BTreeMap<(&str, u64), Vec<(u64, u64)>> = BTreeMap::new();
+    let mut ranges: BTreeMap<(&str, u64), OccupiedRanges<'_>> = BTreeMap::new();
     for patch in array(lighting, "patches") {
         let fixture = lookup(fixtures, text(patch, "fixtureId"), "配适灯具")?;
         if !patched.insert(text(patch, "fixtureId")) || patch["domainId"] != fixture["domainId"] {
@@ -297,13 +298,14 @@ fn validate_patches(
                 patch["universe"].as_u64().unwrap_or_default(),
             ))
             .or_default();
-        if group.iter().any(|&(a, b)| start <= b && end >= a) {
+        if let Some(&(a, b, other)) = group.iter().find(|&&(a, b, _)| start <= b && end >= a) {
             return Err(format!(
-                "灯具“{}”的配适地址与其他灯具重叠",
-                text(fixture, "name")
+                "灯具“{}”的地址 {start}–{end} 与“{other}”的 {a}–{b} 重叠（线路 {}）",
+                text(fixture, "name"),
+                patch["universe"]
             ));
         }
-        group.push((start, end));
+        group.push((start, end, text(fixture, "name")));
     }
     Ok(())
 }

@@ -2,7 +2,9 @@
 mod compilation;
 mod editing;
 mod effects;
+mod fixture;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
+pub use fixture::{FixtureEdit, ProfileChannel, ProfileDefinition, Repatch};
 mod library;
 mod rigging;
 mod sequence;

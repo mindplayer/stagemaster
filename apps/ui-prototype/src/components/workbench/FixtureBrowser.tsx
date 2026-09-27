@@ -60,7 +60,7 @@ export function FixtureBrowser({
             </button>
           )}
         </div>
-        {!table && (
+        {
           <button
             aria-pressed={onlySelected}
             className={onlySelected ? "active" : ""}
@@ -68,27 +68,26 @@ export function FixtureBrowser({
           >
             仅已选
           </button>
-        )}
-        {!table && (
+        }
+        {
           <button
             disabled={busy || !visible.length}
             onClick={() => onSelect(ids)}
           >
             全选结果
           </button>
-        )}
-        {!table && (
+        }
+        {
           <button
             disabled={busy || !selected.length}
             onClick={() => onSelect([])}
           >
             清空
           </button>
-        )}
+        }
         <span className="wb-selection-count">
           {visible.length} 台
-          {!table &&
-            ` · 已选 ${selected.length}${selected.some((id) => !ids.includes(id)) ? `（${selected.filter((id) => !ids.includes(id)).length} 台隐藏）` : ""}`}
+          {` · 已选 ${selected.length}${selected.some((id) => !ids.includes(id)) ? `（${selected.filter((id) => !ids.includes(id)).length} 台隐藏）` : ""}`}
         </span>
       </div>
       {!visible.length ? (
@@ -120,7 +119,7 @@ export function FixtureBrowser({
               key={f.id}
               aria-pressed={selected.includes(f.id)}
               disabled={busy}
-              onClick={() => onSelect([f.id])}
+              onClick={(e) => choose(f.id, e.shiftKey, e.metaKey || e.ctrlKey)}
             >
               <strong>
                 <LightbulbIcon />

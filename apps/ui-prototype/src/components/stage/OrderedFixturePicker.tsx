@@ -4,7 +4,9 @@ export function OrderedFixturePicker({
   project,
   ids,
   setIds,
+  purpose = "布置",
 }: {
+  purpose?: "布置" | "配适";
   project: ProjectView;
   ids: string[];
   setIds: Dispatch<SetStateAction<string[]>>;
@@ -42,13 +44,13 @@ export function OrderedFixturePicker({
       </header>
       <input
         type="search"
-        aria-label="搜索布置灯具"
+        aria-label={`搜索${purpose}灯具`}
         placeholder="搜索灯具名称或地址"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       <select
-        aria-label="布灯范围"
+        aria-label={`${purpose}范围`}
         value={scope}
         onChange={(e) => setScope(e.target.value)}
       >
@@ -84,7 +86,11 @@ export function OrderedFixturePicker({
           反转灯序
         </button>
       </div>
-      <div className="placement-fixtures" role="group" aria-label="布灯选择">
+      <div
+        className="placement-fixtures"
+        role="group"
+        aria-label={`${purpose}选择`}
+      >
         {rows.map((f) => {
           const rank = ids.indexOf(f.id);
           return (
@@ -92,7 +98,7 @@ export function OrderedFixturePicker({
               <label>
                 <input
                   type="checkbox"
-                  aria-label={`布置 ${f.name}`}
+                  aria-label={`${purpose} ${f.name}`}
                   checked={rank >= 0}
                   onChange={(e) =>
                     setIds((old) =>

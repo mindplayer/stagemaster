@@ -17,6 +17,7 @@ const fixture = (id: string, address: number, domainId = "a"): FixtureView => ({
   id,
   name: id,
   profileName: "RGB",
+  profileId: "rgb",
   domainName: domainId,
   domainId,
   footprint: 4,

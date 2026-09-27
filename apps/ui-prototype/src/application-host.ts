@@ -1,6 +1,11 @@
+import type { FixtureEdit, ProfileView } from "./fixture-types";
 import type { StageEdit, StageView } from "./stage-types";
 import type { EffectEdit, SceneEffect } from "./effect-types";
-import type { PrevisRequest, PrevisStatus, PrevisPlacement } from "./previs-types";
+import type {
+  PrevisRequest,
+  PrevisStatus,
+  PrevisPlacement,
+} from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
   SequenceEdit,
@@ -9,9 +14,9 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  | EditOperation
-  | { op: "batch"; commands: EditOperation[] };
+  EditOperation | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "fixture"; command: FixtureEdit }
   | { op: "effect"; command: EffectEdit }
   | { op: "stage"; command: StageEdit }
   | { op: "library"; command: LibraryEdit }
@@ -46,6 +51,7 @@ export type EditOperation =
       value: number;
     };
 export interface FixtureView {
+  profileId: string;
   id: string;
   name: string;
   profileName: string;
@@ -73,7 +79,7 @@ export interface ProjectView {
   id: string;
   name: string;
   description: string;
-  profiles: { id: string; name: string; footprint: number }[];
+  profiles: ProfileView[];
   domains: { id: string; name: string }[];
   fixtures: FixtureView[];
   scenes: SceneView[];

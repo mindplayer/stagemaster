@@ -1,6 +1,6 @@
 # FIXTURE-001：灯具定义与个人灯库设计
 
-2026-09-24；基线 `9c76803`。依据 [ADR-009](../development/decisions/PRODUCT-ADR-009-fixture-definition.md)。用户要求可复用功能、自定义通道、辨别同型号不同版本，并吸收成熟控台经验。本文是设计与后续验收依据，编辑器和实灯测试尚未实现。
+2026-09-24；基线 `9c76803`。依据 [ADR-009](../development/decisions/PRODUCT-ADR-009-fixture-definition.md)。用户要求可复用功能、自定义通道、辨别同型号不同版本，并吸收成熟控台经验。本文是完整设计与后续验收依据。2026-09-27：[FIXTURE-002](../development/tasks/FIXTURE-002-profiles-patch.md) 已实现工程内调光／RGB 线性建档、使用中保护、显式换灯和批量配适；以下完整个人库、复杂灯具、虚拟调光和实灯测试不因此视为完成。
 
 ## 1. 成熟经验与取舍
 

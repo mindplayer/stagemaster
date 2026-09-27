@@ -40,6 +40,12 @@ pub struct PresetView {
 }
 #[derive(Serialize)]
 pub struct ProfileView {
+    pub revision: String,
+    pub manufacturer: String,
+    pub model: String,
+    pub mode: String,
+    pub channels: Vec<crate::ProfileChannel>,
+    pub authorable: bool,
     pub id: String,
     pub name: String,
     pub footprint: u64,
@@ -47,6 +53,7 @@ pub struct ProfileView {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FixtureView {
+    pub profile_id: String,
     pub id: String,
     pub name: String,
     pub profile_name: String,
@@ -148,14 +155,7 @@ pub(super) fn project(root: &Value) -> ProjectView {
                     .collect(),
             })
             .collect(),
-        profiles: array(lighting, "profiles")
-            .iter()
-            .map(|p| ProfileView {
-                id: text(p, "id").into(),
-                name: text(p, "name").into(),
-                footprint: p["footprint"].as_u64().unwrap_or_default(),
-            })
-            .collect(),
+        profiles: array(lighting, "profiles").iter().map(profile).collect(),
         domains: array(root, "domains")
             .iter()
             .map(|d| NamedView {
@@ -195,6 +195,7 @@ fn fixture(root: &Value, fixture: &Value) -> FixtureView {
         .iter()
         .find(|p| p["fixtureId"] == fixture["id"]);
     FixtureView {
+        profile_id: text(fixture, "profileId").into(),
         id: text(fixture, "id").into(),
         name: text(fixture, "name").into(),
         profile_name: text(profile, "name").into(),
@@ -232,7 +233,7 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
         preset_id: preset.map(|p| text(p, "id").into()),
     }
 }
-fn attribute_label(key: &str) -> &str {
+pub(super) fn attribute_label(key: &str) -> &str {
     match key {
         "dimmer" => "亮度",
         "red" => "红色",
@@ -287,5 +288,40 @@ fn preset(lighting: &Value, preset: &Value) -> PresetView {
             .collect(),
         used_by_scenes,
         used_by_sequences,
+    }
+}
+
+fn profile(p: &Value) -> ProfileView {
+    ProfileView {
+        revision: text(p, "revision").into(),
+        manufacturer: text(p, "manufacturer").into(),
+        model: text(p, "model").into(),
+        mode: text(p, "mode").into(),
+        authorable: crate::fixture::supported_keys(
+            array(p, "attributes").iter().map(|a| text(a, "key")),
+        ) && array(p, "attributes")
+            .iter()
+            .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),
+        channels: array(p, "channels")
+            .iter()
+            .map(|c| crate::ProfileChannel {
+                attribute: text(c, "attribute").into(),
+                coarse: u16::try_from(c["offsets"][0].as_u64().unwrap_or_default())
+                    .expect("validated offset")
+                    + 1,
+                fine: c["offsets"][1]
+                    .as_u64()
+                    .map(|n| u16::try_from(n).expect("validated offset") + 1),
+                default_value: array(p, "attributes")
+                    .iter()
+                    .find(|a| a["key"] == c["attribute"])
+                    .and_then(|a| a["default"]["value"].as_u64())
+                    .and_then(|n| u16::try_from(n).ok())
+                    .expect("validated default"),
+            })
+            .collect(),
+        id: text(p, "id").into(),
+        name: text(p, "name").into(),
+        footprint: p["footprint"].as_u64().unwrap_or_default(),
     }
 }

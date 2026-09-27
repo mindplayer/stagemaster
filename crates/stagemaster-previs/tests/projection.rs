@@ -233,3 +233,54 @@ fn many_long_rigs_fail_geometry_budget_without_changing_document() {
     assert!(scene(&doc).err().unwrap().contains("三角面"));
     assert_eq!(before, doc.encode().unwrap());
 }
+
+#[test]
+fn physical_rgb_without_dimmer_projects_same_values_as_offline_output() {
+    let mut doc = Document::new("RGB 三通道").unwrap();
+    edit(
+        &mut doc,
+        json!({"op":"fixture","command":{"op":"saveProfile","definition":{"name":"纯 RGB","manufacturer":"测试","model":"P","mode":"3","footprint":3,"channels":[{"attribute":"red","coarse":3,"fine":null,"defaultValue":65535},{"attribute":"green","coarse":2,"fine":null,"defaultValue":0},{"attribute":"blue","coarse":1,"fine":null,"defaultValue":0}]}}}),
+    );
+    let view = doc.view();
+    edit(
+        &mut doc,
+        json!({"op":"addFixture","name":"RGB","profileId":view.profiles.last().unwrap().id,"domainId":view.domains[0].id,"universe":1,"address":1}),
+    );
+    let fixture = doc.view().fixtures[0].id.clone();
+    edit(
+        &mut doc,
+        json!({"op":"stage","command":{"op":"putPlacement","placement":{"fixtureId":fixture,"spaceId":null,"positionMeters":{"x":"0","y":"0","z":"4"},"rotationDegreesXYZ":{"x":"0","y":"0","z":"0"}}}}),
+    );
+    edit(&mut doc, json!({"op":"addScene","name":"红"}));
+    let id = doc.view().scenes[0].id.clone();
+    assert_eq!(scene(&doc).unwrap().fixtures.len(), 1);
+    let projected = editing_lights(&doc, Some(&id)).unwrap();
+    assert!((projected[0].intensity - 1.0).abs() < f64::EPSILON);
+    assert!(
+        projected[0]
+            .color
+            .iter()
+            .zip([1.0, 0.0, 0.0])
+            .all(|(a, b)| (*a - b).abs() < f64::EPSILON)
+    );
+    let compiled = doc.compile_scene(&id).unwrap();
+    let output = compiled.output.render(&[65535, 0, 0]).unwrap();
+    assert_eq!(&output.slots[..3], &[0, 0, 255]);
+    assert!(
+        playback_lights(&doc, &output)[0]
+            .color
+            .iter()
+            .zip(projected[0].color)
+            .all(|(a, b)| (*a - b).abs() < f64::EPSILON)
+    );
+    edit(
+        &mut doc,
+        json!({"op":"setSceneValue","sceneId":id,"fixtureId":fixture,"attribute":"red","mode":"literal","value":0}),
+    );
+    assert!(
+        editing_lights(&doc, Some(&id)).unwrap()[0]
+            .color
+            .iter()
+            .all(|n| n.abs() < f64::EPSILON)
+    );
+}

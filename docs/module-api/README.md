@@ -12,7 +12,7 @@
 
 ## 直接从哪里看
 
-当前已实现的本机接口另见[列表预览](sequence-preview.md)、[场景动态效果](lighting-effects.md)、[灯组与预设](editing-library.md)。以下跨端服务声明仍为设计稿。
+当前已实现的本机接口另见[列表预览](sequence-preview.md)、[场景动态效果](lighting-effects.md)、[灯组与预设](editing-library.md)、[灯具建档与配适](fixture-authoring.md)。以下跨端服务声明仍为设计稿。
 
 | 文件 | 内容 |
 | --- | --- |
