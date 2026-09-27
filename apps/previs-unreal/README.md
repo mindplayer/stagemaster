@@ -1,6 +1,6 @@
 # 舞台大师三维适配器
 
-此模块消费 Rust 生成的空间和灯光状态，在舞台大师“舞台 → 三维预演”内部显示。工程、播放时钟和真实输出均不归 UE 管理。接口见 [预演契约](../../docs/module-api/previsualization.md)，接入决策见 [ADR-019](../../docs/development/decisions/PRODUCT-ADR-019-embedded-previsualization.md)。
+此模块消费 Rust 生成的空间和灯光状态，在舞台大师“舞台 → 三维预演”或“编排 → 显示三维”内部显示。工程、播放时钟和真实输出均不归 UE 管理。接口见 [预演契约](../../docs/module-api/previsualization.md)，接入决策见 [ADR-019](../../docs/development/decisions/PRODUCT-ADR-019-embedded-previsualization.md)。
 
 协议 2 接入 Rust 量化后的两轴姿态，独立显示底座／水平支架／垂直灯头。支持场景静态指向和列表轴角渐变；通用网格不代表真实灯具尺寸，未实现图案盘、物理光度或自动校准。详见 [POSITION-001](../../docs/development/tasks/POSITION-001-moving-head-workflow.md)。
 

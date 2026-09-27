@@ -1,3 +1,4 @@
+import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { RigCreateDialog } from "./RigCreateDialog";
 import { RigAttachmentDialog } from "./RigAttachmentDialog";
 import type { RigShape } from "../../stage-types";
@@ -49,7 +50,6 @@ import "./stage.css";
 export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
-  showPrevis(): void;
 }
 export const StageWorkspace = forwardRef<
   StageHandle,
@@ -140,7 +140,6 @@ export const StageWorkspace = forwardRef<
   useImperativeHandle(ref, () => ({
     collect,
     accept: cancel,
-    showPrevis: () => setView("three"),
   }));
   async function choose(
     target: StageSelection,
@@ -415,7 +414,11 @@ export const StageWorkspace = forwardRef<
     }
   }
   return (
-    <div className="stage-workspace" hidden={!visible} aria-hidden={!visible}>
+    <WorkspaceSurface
+      className="stage-workspace"
+      visible={visible}
+      label="舞台工作区"
+    >
       <aside className="stage-browser">
         <header>
           <h2>场地</h2>
@@ -505,7 +508,8 @@ export const StageWorkspace = forwardRef<
             三维预演
           </button>
         </div>
-        {view === "three" &&
+        {visible &&
+          view === "three" &&
           previs({
             selectedId: selection?.kind === "placement" ? selection.id : "",
             onSelect: async (id) => {
@@ -763,6 +767,6 @@ export const StageWorkspace = forwardRef<
           onDelete={() => void remove()}
         />
       )}
-    </div>
+    </WorkspaceSurface>
   );
 });

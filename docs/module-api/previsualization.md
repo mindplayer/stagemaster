@@ -2,6 +2,14 @@
 
 依据 [ADR-018](../development/decisions/PRODUCT-ADR-018-local-preview-bridge.md) 与 [ADR-019](../development/decisions/PRODUCT-ADR-019-embedded-previsualization.md)。Rust 投影／桌面 HTTP 桥、UE 消费端、进程管理及应用内视窗已接通。Mac 已实测三维选灯／拖动、草稿保护、历史／保存重开及列表执行画面联动；已覆盖固定调光／RGB 与相交正交两轴的静态指向和动态姿态，客户独立打包及专业光学／性能验收另行推进。
 
+## 编排同屏监看（UX-015）
+
+编排页的“显示三维”与舞台三维共用同一宿主管理的 UE 进程。任意时刻只挂载当前可见的 PrevisViewport，切页重连视频流，相机／剖视保留在 UE；隐藏视窗不结束播放器。编排视窗只选灯／查看，不提供灯位移动，返回舞台才可编辑安装位置。
+
+“当前场景 · 静态值”随所选场景变更来源，使用 Rust 的静态投影；“跟随播放预览”读取共享执行器。监看不会隐式载入或执行场景。播放面板的“三维监看”留在编排页，明确切到播放来源。换来源／选灯／导航都先走草稿队列，无效草稿保留并聚焦；监看状态不写入工程历史或格式。
+
+工作区显示由独立 WorkspaceSurface 管理：固定 React portal 容器保留组件状态，非当前工作区从 document 中移出，防止其参加辅助树或键盘导航；切回挂回同一个容器。原生 20 次跨工作区切换、三维重连及错误恢复通过，完整 VoiceOver／跨平台读屏仍需专项验收。详见 [UX-015](../development/tasks/UX-015-editing-monitor.md)。
+
 ## 模块归属
 
 - `stagemaster-spatial`：安装变换、固定射线、静态双轴指向与轮廓三角化，无 UI／网络依赖。

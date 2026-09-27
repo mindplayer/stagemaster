@@ -1,3 +1,4 @@
+import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
 import {
   PositionPanel,
   type PositionHandle,
@@ -104,6 +105,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
+  const [showMonitor, setShowMonitor] = useState(false);
+  const [followScene, setFollowScene] = useState(true);
   const [patchId, setPatchId] = useState("");
   const [patchSelection, setPatchSelection] = useState<string[]>([]);
   const [patchDialog, setPatchDialog] = useState<"repatch" | "exchange" | null>(
@@ -327,6 +330,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       });
       if (next.project && next.generation !== previousGeneration) {
         setPage(next.project.fixtures.length ? "scenes" : "fixtures");
+        setShowMonitor(false);
+        setFollowScene(true);
         setPatchId("");
         setPatchSelection([]);
         setProfilePending(false);
@@ -373,6 +378,25 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     void run(async () => {
       setPage(next);
       restoreForm(next);
+    });
+  }
+  function openSceneMonitor(playback = false) {
+    void run(async () => {
+      const scene = current.current.project?.scenes.find(
+        (s) => s.id === sceneId,
+      );
+      if (!scene) return;
+      await host.previs({
+        kind: "source",
+        generation: current.current.generation,
+        source: playback
+          ? { kind: "playback" }
+          : { kind: "scene", sceneId: scene.id },
+      });
+      const status = await host.previs({ kind: "status" });
+      if (!status.enabled) await host.previs({ kind: "enable" });
+      setFollowScene(!playback);
+      setShowMonitor(true);
     });
   }
   function addFixture() {
@@ -776,12 +800,16 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               return ok ? current.current.project : null;
             }}
           />
-          <div
-            hidden={
-              page === "profiles" || page === "sequences" || page === "stage"
+          <WorkspaceSurface
+            visible={
+              page === "scenes" || page === "fixtures" || page === "settings"
             }
-            aria-hidden={
-              page === "profiles" || page === "sequences" || page === "stage"
+            label={
+              page === "scenes"
+                ? "编排工作区"
+                : page === "fixtures"
+                  ? "灯具工作区"
+                  : "工程工作区"
             }
             className={`wb-layout ${page === "scenes" ? "wb-arrangement" : ""}`}
           >
@@ -798,7 +826,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 onDuplicate={duplicateScene}
               />
             )}
-            <section className="wb-content">
+            <section
+              className={`wb-content ${page === "scenes" && showMonitor ? "wb-content-monitored" : ""}`}
+            >
               <div className="wb-content-heading">
                 <div>
                   <span className="wb-eyebrow">
@@ -827,213 +857,247 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   </button>
                 )}
                 {page === "scenes" && activeScene && (
-                  <span className="wb-dim">
-                    {activeScene.values.length} 项记录
-                  </span>
-                )}
-              </div>
-              {page === "fixtures" && (
-                <>
-                  <div className="patch-actions">
+                  <div className="wb-scene-actions">
+                    <span className="wb-dim">
+                      {activeScene.values.length} 项记录
+                    </span>
                     <button
                       disabled={busy}
-                      onClick={() => switchPage("profiles")}
+                      aria-expanded={showMonitor}
+                      onClick={() => {
+                        if (showMonitor)
+                          void run(async () => setShowMonitor(false));
+                        else openSceneMonitor();
+                      }}
                     >
-                      灯具模式库
+                      <CubeIcon />
+                      {showMonitor ? "收起三维" : "显示三维"}
                     </button>
-                    <button
-                      disabled={busy || !project.fixtures.length}
-                      onClick={() =>
-                        void run(async () => {
-                          setPatchDialog("repatch");
-                        })
-                      }
-                    >
-                      批量配适
-                    </button>
-                    <button
-                      disabled={busy || !project.fixtures.length}
-                      onClick={() =>
-                        void run(async () => {
-                          setPatchDialog("exchange");
-                        })
-                      }
-                    >
-                      替换模式
-                    </button>
-                    <span>按住 ⌘ 或 Shift 多选灯具</span>
                   </div>
-                  <PatchMap
-                    project={project}
-                    selected={patchSelection}
-                    busy={busy}
-                    onSelect={(id) =>
-                      void run(async () => {
-                        const f = current.current.project!.fixtures.find(
-                          (f) => f.id === id,
-                        );
-                        if (f) {
-                          setPatchSelection([id]);
-                          setPatchQuery("");
-                          setPatchOnlySelected(false);
-                          setPatchId(id);
-                          setForm(fixtureForm(f));
-                        }
-                      })
-                    }
-                  />
-                  <FixtureBrowser
-                    fixtures={project.fixtures}
-                    selected={patchSelection.filter((id) =>
-                      project.fixtures.some((f) => f.id === id),
-                    )}
-                    query={patchQuery}
-                    onlySelected={patchOnlySelected}
-                    busy={busy}
-                    onQuery={setPatchQuery}
-                    onFilter={setPatchOnlySelected}
-                    onSelect={(ids) => {
-                      void run(async () => {
-                        const fixture = current.current.project!.fixtures.find(
-                          (f) => f.id === ids[0],
-                        );
-                        setPatchSelection(ids);
-                        if (!fixture) {
-                          setPatchId("");
-                          setForm(null);
-                        }
-                        if (fixture) {
-                          setPatchId(fixture.id);
-                          setForm(fixtureForm(fixture));
-                        }
-                      });
-                    }}
-                    table
-                  />
-                </>
-              )}
-              {page === "scenes" &&
-                (activeScene ? (
-                  <FixtureBrowser
-                    fixtures={project.fixtures}
-                    selected={selected}
-                    scene={activeScene}
-                    query={fixtureQuery}
-                    onlySelected={onlySelected}
-                    busy={busy}
-                    onQuery={setFixtureQuery}
-                    onFilter={setOnlySelected}
-                    onSelect={(ids) => {
-                      void run(async () => {
-                        setSelectedIds(ids);
-                      });
-                    }}
-                  />
-                ) : (
-                  <div className="wb-empty">
-                    <StackIcon size={40} />
-                    <h2>
-                      {project.scenes.length
-                        ? "选择一个场景"
-                        : "创建第一个场景"}
-                    </h2>
-                    {project.fixtures.length ? (
-                      <button
-                        className="wb-primary"
-                        disabled={busy}
-                        onClick={addScene}
-                      >
-                        新建场景
-                      </button>
-                    ) : (
-                      <button
-                        disabled={busy}
-                        onClick={() => switchPage("fixtures")}
-                      >
-                        添加灯具
-                      </button>
-                    )}
-                  </div>
-                ))}
-              {page === "scenes" && activeScene && (
-                <>
-                  <EffectRack
-                    key={activeScene.id}
-                    scene={activeScene}
-                    fixtures={project.fixtures}
-                    scenes={project.scenes}
-                    selected={selected}
-                    busy={busy}
-                    error={error}
-                    beforeChange={() => run(async () => {})}
-                    onEdit={(commands) =>
-                      run(async () => {
-                        await edit({ op: "batch", commands });
-                        setNotice(
-                          "效果已更新，可撤销恢复；重新载入预览可查看变化",
-                        );
-                      })
-                    }
-                  />
-                  <PreviewPanel
+                )}
+              </div>
+              {page === "scenes" && activeScene && showMonitor && (
+                <div className="wb-scene-monitor">
+                  <PrevisPanel
                     host={host}
-                    scene={activeScene}
-                    stepId={activeScene.id}
-                    generation={snapshot.generation}
+                    scenes={project.scenes}
                     busy={busy}
-                    beforeAction={() => run(async () => {})}
-                    visible={page === "scenes"}
-                    onView3d={() => {
-                      void run(async () => {
-                        await host.previs({
-                          kind: "source",
-                          generation: current.current.generation,
-                          source: { kind: "playback" },
-                        });
-                        const status = await host.previs({ kind: "status" });
-                        if (!status.enabled)
-                          await host.previs({ kind: "enable" });
-                        stage.current?.showPrevis();
-                        setPage("stage");
-                      });
-                    }}
+                    currentScene={activeScene}
+                    followCurrent={followScene}
+                    onFollowCurrent={setFollowScene}
+                    generation={() => current.current.generation}
+                    run={(work) => run(work)}
+                    selectedId={selected.at(-1) ?? ""}
+                    onSelect={(id) =>
+                      run(async () => {
+                        if (
+                          id &&
+                          !current.current.project?.fixtures.some(
+                            (f) => f.id === id,
+                          )
+                        )
+                          throw new Error("所选灯具已不存在");
+                        setSelectedIds(id ? [id] : []);
+                      })
+                    }
+                    allowPlacement={false}
+                    onPrepareMove={async () => false}
+                    onPlacement={async () => false}
                   />
-                </>
+                </div>
               )}
-              <ResourcePool
-                key={project.id}
-                project={project}
-                scene={activeScene}
-                selected={selected}
-                busy={busy}
-                error={error}
-                visible={page === "scenes"}
-                beforeChange={() => run(async () => {})}
-                onEdit={async (command) => {
-                  const ok = await run(async () => {
-                    await edit({ op: "library", command });
-                    setNotice("资源已更新，可撤销恢复");
-                  });
-                  return ok ? current.current.project : null;
-                }}
-                onSelect={(ids) =>
-                  run(async () => {
-                    setSelectedIds(ids);
-                  })
-                }
-              />
-              {page === "settings" && (
-                <dl className="wb-project-summary">
-                  <dt>工程名称</dt>
-                  <dd>{project.name}</dd>
-                  <dt>文件位置</dt>
-                  <dd>{snapshot.fileName ?? "尚未保存"}</dd>
-                  <dt>灯具</dt>
-                  <dd>{project.fixtures.length} 台</dd>
-                  <dt>场景</dt>
-                  <dd>{project.scenes.length} 个</dd>
-                </dl>
-              )}
+              <div className="wb-editing-content">
+                {page === "fixtures" && (
+                  <>
+                    <div className="patch-actions">
+                      <button
+                        disabled={busy}
+                        onClick={() => switchPage("profiles")}
+                      >
+                        灯具模式库
+                      </button>
+                      <button
+                        disabled={busy || !project.fixtures.length}
+                        onClick={() =>
+                          void run(async () => {
+                            setPatchDialog("repatch");
+                          })
+                        }
+                      >
+                        批量配适
+                      </button>
+                      <button
+                        disabled={busy || !project.fixtures.length}
+                        onClick={() =>
+                          void run(async () => {
+                            setPatchDialog("exchange");
+                          })
+                        }
+                      >
+                        替换模式
+                      </button>
+                      <span>按住 ⌘ 或 Shift 多选灯具</span>
+                    </div>
+                    <PatchMap
+                      project={project}
+                      selected={patchSelection}
+                      busy={busy}
+                      onSelect={(id) =>
+                        void run(async () => {
+                          const f = current.current.project!.fixtures.find(
+                            (f) => f.id === id,
+                          );
+                          if (f) {
+                            setPatchSelection([id]);
+                            setPatchQuery("");
+                            setPatchOnlySelected(false);
+                            setPatchId(id);
+                            setForm(fixtureForm(f));
+                          }
+                        })
+                      }
+                    />
+                    <FixtureBrowser
+                      fixtures={project.fixtures}
+                      selected={patchSelection.filter((id) =>
+                        project.fixtures.some((f) => f.id === id),
+                      )}
+                      query={patchQuery}
+                      onlySelected={patchOnlySelected}
+                      busy={busy}
+                      onQuery={setPatchQuery}
+                      onFilter={setPatchOnlySelected}
+                      onSelect={(ids) => {
+                        void run(async () => {
+                          const fixture =
+                            current.current.project!.fixtures.find(
+                              (f) => f.id === ids[0],
+                            );
+                          setPatchSelection(ids);
+                          if (!fixture) {
+                            setPatchId("");
+                            setForm(null);
+                          }
+                          if (fixture) {
+                            setPatchId(fixture.id);
+                            setForm(fixtureForm(fixture));
+                          }
+                        });
+                      }}
+                      table
+                    />
+                  </>
+                )}
+                {page === "scenes" &&
+                  (activeScene ? (
+                    <FixtureBrowser
+                      fixtures={project.fixtures}
+                      selected={selected}
+                      scene={activeScene}
+                      query={fixtureQuery}
+                      onlySelected={onlySelected}
+                      busy={busy}
+                      onQuery={setFixtureQuery}
+                      onFilter={setOnlySelected}
+                      onSelect={(ids) => {
+                        void run(async () => {
+                          setSelectedIds(ids);
+                        });
+                      }}
+                    />
+                  ) : (
+                    <div className="wb-empty">
+                      <StackIcon size={40} />
+                      <h2>
+                        {project.scenes.length
+                          ? "选择一个场景"
+                          : "创建第一个场景"}
+                      </h2>
+                      {project.fixtures.length ? (
+                        <button
+                          className="wb-primary"
+                          disabled={busy}
+                          onClick={addScene}
+                        >
+                          新建场景
+                        </button>
+                      ) : (
+                        <button
+                          disabled={busy}
+                          onClick={() => switchPage("fixtures")}
+                        >
+                          添加灯具
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                {page === "scenes" && activeScene && (
+                  <>
+                    <EffectRack
+                      key={activeScene.id}
+                      scene={activeScene}
+                      fixtures={project.fixtures}
+                      scenes={project.scenes}
+                      selected={selected}
+                      busy={busy}
+                      error={error}
+                      beforeChange={() => run(async () => {})}
+                      onEdit={(commands) =>
+                        run(async () => {
+                          await edit({ op: "batch", commands });
+                          setNotice(
+                            "效果已更新，可撤销恢复；重新载入预览可查看变化",
+                          );
+                        })
+                      }
+                    />
+                    <PreviewPanel
+                      host={host}
+                      scene={activeScene}
+                      stepId={activeScene.id}
+                      generation={snapshot.generation}
+                      busy={busy}
+                      beforeAction={() => run(async () => {})}
+                      visible={page === "scenes"}
+                      onView3d={() => openSceneMonitor(true)}
+                    />
+                  </>
+                )}
+                <ResourcePool
+                  key={project.id}
+                  project={project}
+                  scene={activeScene}
+                  selected={selected}
+                  busy={busy}
+                  error={error}
+                  visible={page === "scenes"}
+                  beforeChange={() => run(async () => {})}
+                  onEdit={async (command) => {
+                    const ok = await run(async () => {
+                      await edit({ op: "library", command });
+                      setNotice("资源已更新，可撤销恢复");
+                    });
+                    return ok ? current.current.project : null;
+                  }}
+                  onSelect={(ids) =>
+                    run(async () => {
+                      setSelectedIds(ids);
+                    })
+                  }
+                />
+                {page === "settings" && (
+                  <dl className="wb-project-summary">
+                    <dt>工程名称</dt>
+                    <dd>{project.name}</dd>
+                    <dt>文件位置</dt>
+                    <dd>{snapshot.fileName ?? "尚未保存"}</dd>
+                    <dt>灯具</dt>
+                    <dd>{project.fixtures.length} 台</dd>
+                    <dt>场景</dt>
+                    <dd>{project.scenes.length} 个</dd>
+                  </dl>
+                )}
+              </div>
             </section>
             <div className="wb-properties">
               {page === "scenes" && activeScene && (
@@ -1109,7 +1173,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 }}
               />
             </div>
-          </div>
+          </WorkspaceSurface>
           <footer className="wb-status">
             <span role="status">
               {busy

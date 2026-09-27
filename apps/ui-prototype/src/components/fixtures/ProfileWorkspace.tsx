@@ -1,3 +1,4 @@
+import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type {
   EditCommand,
@@ -121,11 +122,10 @@ export const ProfileWorkspace = forwardRef<
     </label>
   );
   return (
-    <section
-      hidden={!visible}
-      aria-hidden={!visible}
+    <WorkspaceSurface
+      visible={visible}
       className="fixture-library"
-      aria-label="工程灯库"
+      label="工程灯库"
     >
       <header>
         <div>
@@ -538,7 +538,7 @@ export const ProfileWorkspace = forwardRef<
           }}
         />
       )}
-    </section>
+    </WorkspaceSurface>
   );
 });
 function ChannelStrip({ draft }: { draft: ProfileDraft }) {

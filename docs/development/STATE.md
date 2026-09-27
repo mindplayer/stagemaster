@@ -5,6 +5,8 @@
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
+已完成 [UX-015](tasks/UX-015-editing-monitor.md)：基线 `62ba6f1`，结果为本次 `feat(ui): integrate scene monitoring and persistent workspace surfaces` 提交。编排加入三维同屏、当前场景跟随与显式动态播放监看；选灯、草稿和历史仍共用原核心。WorkspaceSurface 保留 React 状态并移出不可见 DOM，原生 20 次切页均恢复完整辅助树；源切换、错误保护、三维选灯、保存重开、窄窗口与同一 UE 进程复用通过。66 UI、类型、桌面构建和真实文件检查通过；不等同于完整 VoiceOver 或跨平台验收。原用户未保存窗口仍保留。
+
 已完成 [POSITION-001](tasks/POSITION-001-moving-head-workflow.md)：基线 `0d2b47d`，结果为本次 `feat(position): integrate moving-head aiming and articulated preview` 提交。按 [ADR-025](decisions/PRODUCT-ADR-025-moving-head-workflow.md) 接入两轴档案范围／反向、手工单灯零偏、场景角度／默认位置／共同世界点静态对焦、释放／清除和运动定义换灯保护。Rust 求解与 DMX 量化共用，UE 协议 2 显示独立底座／支架／灯头；修复实测旋转浮点分量越 1 的误拒绝。165 Rust／66 UI／78 格式／4 UE、类型／fmt／严格 Clippy／双端构建通过；原生批量原子历史、错误恢复、保存重开、建档与内嵌姿态／暂停恢复已验收。见[运行接口](../module-api/positioning.md)。仍无持续目标跟随、真实光学／非相交轴／轮盘或现场 DMX；原用户未保存窗口保留，辅助树反复切换问题仍需专项修复。
 
 已完成 [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md)：基线 `a92e5cb`，结果为本次 `feat(fixtures): add profile authoring and safe batch patch workflows` 提交。主动审查后优先补真实灯具接入：工程灯库、8/16 位粗细通道／默认值、使用中模式保护、保留编排与灯位的显式换灯、有序批量配适、占用图与可用地址建议。独立 Rust fixture 模块复用格式／编码／原子历史，见[接口](../module-api/fixture-authoring.md)。160 Rust／62 UI／73 格式、类型／fmt／严格 Clippy／桌面构建与原生错误恢复、撤销、保存重开、内嵌 UE 动态预演通过。当前仅调光／完整 RGB 线性建档；复杂摇头灯、播放盒 DMX、恢复与开演检查按[主动审查](tasks/FIXTURE-002-workflow-audit.md)推进，未将规划当实现。原用户未保存窗口保持运行。
@@ -25,7 +27,7 @@
 
 122 项 Rust、33 项 UI、4 项 UE 自动测试、类型／fmt／严格 Clippy及桌面／UE 构建通过；信令层沿用已通过的 3 项连接测试，本轮未改变。原生 60 秒列表渐变在 14.445 秒暂停、两灯 24% 保持，继续后增亮，停止后归零；渲染器故障隔离沿用 `e50cfbd` 的实测。官方 11 类蓝图、4 种材质、3 个网格加载验证及固定灯模型接入保留。未输出真实 DMX。
 
-后续：光学／色彩定标、帧率／延迟与大规模场景测量、UE／信令运行时独立打包、完整摇头灯／图案盘能力。原生自动化在工作区反复切换时仍偶发读取不到列表子树（画面／鼠标正常）；显式 aria-hidden 只完成语义补充，未认定该问题彻底修复。按住拖动时 Esc 未由原生自动化复现，不能借拖出取消通过替代此项。
+后续：光学／色彩定标、帧率／延迟与大规模场景测量、UE／信令运行时独立打包、完整摇头灯／图案盘能力。历史原生自动化切页后子树缺失已在 UX-015 通过显示容器调整及 20 次切页复测；完整读屏与跨平台仍后续。按住拖动时 Esc 未由原生自动化复现，不能借拖出取消通过替代此项。
 
 已完成本轮：[DESKTOP-004](tasks/DESKTOP-004-groups-presets.md)。基线 `8513eee`；结果为本次 `feat(desktop): add ordered groups and reusable preset workflows` 提交。正式工作台已接有序灯组、预设池、引用／独立值、三种更新策略、依赖保护和属性复制；独立 Rust 资源模块复用原子历史／持久化／编译，见[接口](../module-api/editing-library.md)。86 项 Rust、28 项 UI、50 项格式、4 项 Sites、严格 Clippy／fmt／桌面构建与原生保存重开验收通过。逐灯预设增量完成，动态效果、完整现场编程器和通用共享预设仍待实施。
 

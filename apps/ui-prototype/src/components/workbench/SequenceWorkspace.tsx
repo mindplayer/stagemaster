@@ -1,3 +1,4 @@
+import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
   PlusIcon,
@@ -216,7 +217,11 @@ export const SequenceWorkspace = forwardRef<
     ) ?? [];
   const index = sequence?.steps.findIndex((s) => s.id === step?.id) ?? -1;
   return (
-    <div className="wb-sequence-workspace" hidden={!visible} aria-hidden={!visible}>
+    <WorkspaceSurface
+      className="wb-sequence-workspace"
+      visible={visible}
+      label="列表工作区"
+    >
       <aside className="wb-library">
         <div className="wb-section-title">
           <h2>
@@ -486,6 +491,6 @@ export const SequenceWorkspace = forwardRef<
           }}
         />
       )}
-    </div>
+    </WorkspaceSurface>
   );
 });
