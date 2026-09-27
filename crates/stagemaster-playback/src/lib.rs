@@ -124,6 +124,21 @@ impl Plan {
     pub fn defaults(&self) -> &[u16] {
         &self.defaults
     }
+    #[must_use]
+    pub fn effect_channel_count(&self) -> usize {
+        self.effects.iter().map(Vec::len).sum()
+    }
+    #[must_use]
+    pub fn keyframe_count(&self) -> usize {
+        self.effects
+            .iter()
+            .flatten()
+            .map(|channel| match &channel.curve {
+                Curve::Keyframes(frames) => frames.len(),
+                _ => 0,
+            })
+            .sum()
+    }
     /// Exact bytes of u16 target/default/current/start buffers, excluding metadata/allocator overhead.
     #[must_use]
     pub fn value_buffer_bytes(&self) -> usize {

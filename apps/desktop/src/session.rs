@@ -29,6 +29,13 @@ pub(crate) struct Snapshot {
     can_redo: bool,
 }
 impl Session {
+    pub(crate) fn check_snapshot(&self, generation: u32) -> Result<Document, String> {
+        self.guard(generation)?;
+        self.document
+            .clone()
+            .ok_or_else(|| "请先新建或打开工程".into())
+    }
+
     pub(crate) fn preview(
         &mut self,
         request: crate::preview::Request,
@@ -369,6 +376,44 @@ mod tests {
 #[cfg(test)]
 mod preview_integration_tests {
     use super::*;
+    #[test]
+    fn check_captures_a_read_only_generation_without_replacing_preview_or_history() {
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = serde_json::json!([]);
+        let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let mut s = Session::default();
+        let id = doc.view().sequences[0].id.clone();
+        s.replace(doc, None);
+        s.preview(crate::preview::Request::Load {
+            generation: s.generation,
+            sequence_id: id,
+        })
+        .unwrap();
+        let before = serde_json::to_value(s.snapshot()).unwrap();
+        let preview = loaded(&mut s);
+        assert!(s.check_snapshot(s.generation - 1).is_err());
+        let captured = s.check_snapshot(s.generation).unwrap();
+        assert!(captured.check().desktop_ready);
+        assert_eq!(before, serde_json::to_value(s.snapshot()).unwrap());
+        assert_eq!(preview, loaded(&mut s));
+        s.edit(
+            s.generation,
+            EditCommand::SetInfo {
+                name: "后续编辑".into(),
+                description: String::new(),
+            },
+        )
+        .unwrap();
+        assert_ne!(
+            s.document.as_ref().unwrap().view().name,
+            captured.view().name
+        );
+        assert!(captured.check().desktop_ready);
+        assert_eq!(s.undo.len(), 1);
+    }
     #[test]
     fn effect_and_color_base_edit_undo_as_one_atomic_scene_change() {
         use serde_json::json;

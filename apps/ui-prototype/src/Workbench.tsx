@@ -1,4 +1,6 @@
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
+import type { CheckLocation } from "./check-types";
+import { ProjectCheckPanel } from "./components/workbench/ProjectCheckPanel";
 import {
   PositionPanel,
   type PositionHandle,
@@ -378,6 +380,59 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     void run(async () => {
       setPage(next);
       restoreForm(next);
+    });
+  }
+  async function captureCheck(): Promise<number | null> {
+    let generation: number | null = null;
+    const ok = await run(async () => {
+      generation = current.current.generation;
+    });
+    return ok ? generation : null;
+  }
+  function locateCheck(location: CheckLocation, generation: number) {
+    return run(async () => {
+      if (current.current.generation !== generation)
+        throw new Error("检查报告已过期，请重新检查后定位");
+      const p = current.current.project!;
+      switch (location.kind) {
+        case "fixtures":
+        case "fixture": {
+          const fixture =
+            location.kind === "fixture"
+              ? p.fixtures.find((f) => f.id === location.id)
+              : undefined;
+          setPage("fixtures");
+          setPatchQuery("");
+          setPatchOnlySelected(false);
+          setPatchId(fixture?.id ?? "");
+          setPatchSelection(fixture ? [fixture.id] : []);
+          setForm(fixture ? fixtureForm(fixture) : null);
+          break;
+        }
+        case "scenes":
+        case "scene": {
+          const scene =
+            location.kind === "scene"
+              ? p.scenes.find((s) => s.id === location.id)
+              : p.scenes[0];
+          setPage("scenes");
+          setSceneQuery("");
+          setSceneId(scene?.id ?? "");
+          setForm(scene ? sceneForm(scene) : null);
+          break;
+        }
+        case "sequence":
+          setPage("sequences");
+          setForm(null);
+          sequences.current?.reveal(location.id);
+          break;
+        case "placement":
+          setPage("stage");
+          setForm(null);
+          stage.current?.revealFixture(location.id);
+          break;
+      }
+      setNotice("已定位检查对象；修复后回到工程重新检查");
     });
   }
   function openSceneMonitor(playback = false) {
@@ -843,7 +898,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                       ? (activeScene?.name ?? "场景编排")
                       : page === "fixtures"
                         ? "灯具配适"
-                        : "工程信息"}
+                        : "工程概览"}
                   </h1>
                 </div>
                 {page === "fixtures" && (
@@ -1086,17 +1141,41 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   }
                 />
                 {page === "settings" && (
-                  <dl className="wb-project-summary">
-                    <dt>工程名称</dt>
-                    <dd>{project.name}</dd>
-                    <dt>文件位置</dt>
-                    <dd>{snapshot.fileName ?? "尚未保存"}</dd>
-                    <dt>灯具</dt>
-                    <dd>{project.fixtures.length} 台</dd>
-                    <dt>场景</dt>
-                    <dd>{project.scenes.length} 个</dd>
-                  </dl>
+                  <details className="wb-file-details">
+                    <summary>
+                      文件信息 ·{" "}
+                      {snapshot.fileName?.split(/[\\/]/).at(-1) ?? "尚未保存"}
+                    </summary>
+                    <dl className="wb-project-summary">
+                      <dt>工程名称</dt>
+                      <dd>{project.name}</dd>
+                      <dt>文件位置</dt>
+                      <dd>{snapshot.fileName ?? "尚未保存"}</dd>
+                      <dt>灯具</dt>
+                      <dd>{project.fixtures.length} 台</dd>
+                      <dt>场景</dt>
+                      <dd>{project.scenes.length} 个</dd>
+                    </dl>
+                  </details>
                 )}
+                <ProjectCheckPanel
+                  key={`check:${project.id}`}
+                  host={host}
+                  projectId={project.id}
+                  generation={snapshot.generation}
+                  hasDrafts={
+                    pending ||
+                    parameterPending ||
+                    positionPending ||
+                    sequencePending ||
+                    stagePending ||
+                    profilePending
+                  }
+                  visible={page === "settings"}
+                  busy={busy}
+                  capture={captureCheck}
+                  onLocate={locateCheck}
+                />
               </div>
             </section>
             <div className="wb-properties">

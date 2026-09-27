@@ -113,6 +113,7 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  check(generation: number): Promise<import("./check-types").ProjectCheck>;
   request(request: ProjectRequest): Promise<Snapshot>;
   preview(request: PreviewRequest): Promise<PreviewSnapshot>;
   previs(request: PrevisRequest): Promise<PrevisStatus>;

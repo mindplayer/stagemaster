@@ -3,6 +3,8 @@
 更新：2026-09-28。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
+已完成 [CHECK-001](tasks/CHECK-001-project-check.md)：基线 `3c322e6`，结果为本次 `feat(check): add read-only project diagnostics and repair navigation` 提交。按 [ADR-026](decisions/PRODUCT-ADR-026-project-check.md) 接入独立 Rust 检查、真实配适／编译／计划统计、桌面问题定位、旧报告保护、搜索／分页／取消；电脑预览与未开放的设备发布分开。172 Rust／68 UI、后续定向回归、类型／fmt／严格 Clippy／桌面构建与原生修复、1025→1024 步、保存重开、并发编辑／取消、窄窗口通过；2,000 场景检查从 7.779 秒降至 0.428 秒。见[接口](../module-api/project-check.md)。原未保存窗口仍保留。下一项工程恢复，再推进设备执行包／安装。
+
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
 
 已完成 [UX-015](tasks/UX-015-editing-monitor.md)：基线 `62ba6f1`，结果为本次 `feat(ui): integrate scene monitoring and persistent workspace surfaces` 提交。编排加入三维同屏、当前场景跟随与显式动态播放监看；选灯、草稿和历史仍共用原核心。WorkspaceSurface 保留 React 状态并移出不可见 DOM，原生 20 次切页均恢复完整辅助树；源切换、错误保护、三维选灯、保存重开、窄窗口与同一 UE 进程复用通过。66 UI、类型、桌面构建和真实文件检查通过；不等同于完整 VoiceOver 或跨平台验收。原用户未保存窗口仍保留。
@@ -65,6 +67,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [CHECK-001](tasks/CHECK-001-project-check.md) | done（工程检查闭环） | 只读编译与容量报告、错误定位／修复／重查、版本与取消保护、保存重开；设备包及安装尚未实现 |
 | [POSITION-001](tasks/POSITION-001-moving-head-workflow.md) | done（两轴位置闭环） | 档案／零偏、静态共同对焦、原子历史、量化编码、UE 独立关节、保存重开与播放暂停恢复通过；空间轨迹／复杂关节／实灯后续 |
 | [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md) | done（灯库／配适） | 三种线性属性组合、粗细映射、模式保护／换灯、批量改址与占用、原子历史／保存重开、内嵌动态预演通过；复杂档案与实灯后续 |
 | [STAGE-001](tasks/STAGE-001-rigging-workflow.md) | done（场地装配） | 六项工作流、统一历史／保存、内嵌 UE 场地与光束同步通过；复杂吊点、承载计算与三维直接组操作后续 |

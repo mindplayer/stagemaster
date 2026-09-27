@@ -6,6 +6,8 @@
 
 当前开发入口：
 
+- [工程检查与定位修复](docs/module-api/project-check.md)：CHECK-001 已接真实 Rust 编译／计划容量与桌面问题导航，支持过期报告保护、搜索／分页和修复后重查；电脑预览通过不代表设备可发布。每日实现进度以 [当前状态](docs/development/STATE.md) 为准。
+
 - [产品能力总表与成熟经验吸收规则](docs/product-capability-plan.md)：2026-09-24 整合 21 个能力方向，主动补齐换灯复用、资源归档、排练隔离、诊断与现场交付等闭环，并新增 AI 编辑入口；列出模块、界面位置、真实状态及实施层次，不扩大首版门槛。
 - [AI 辅助灯光编辑接口](docs/module-api/assisted-editing.md)：共用工程命令，预留能力查询、修改提案、差异／隔离预演、范围内连续编辑与撤销；含可类型检查的调用例子，尚未接模型或实现服务。
 - [最新可交互组件工作台](docs/ui-design/component-workspace-design.md)：采用现代创作式界面，舞台与时间线为主，颜色／指向等组件按需展开，支持布置与灯具建档往返；交互已验证，尚未接入正式界面。[此前三张结构提案](docs/ui-design/modular-workspace-design.md)保留参考。

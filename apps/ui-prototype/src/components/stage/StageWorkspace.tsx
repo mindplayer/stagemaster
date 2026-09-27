@@ -50,6 +50,7 @@ import "./stage.css";
 export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
+  revealFixture(id: string): void;
 }
 export const StageWorkspace = forwardRef<
   StageHandle,
@@ -140,6 +141,21 @@ export const StageWorkspace = forwardRef<
   useImperativeHandle(ref, () => ({
     collect,
     accept: cancel,
+    revealFixture(id) {
+      const placed = project.stage.placements.some((p) => p.fixtureId === id);
+      setFixtureId(id);
+      setQuery("");
+      setView("plan");
+      setSelection(placed ? { kind: "placement", id } : null);
+      setSelectedIds(placed ? [id] : []);
+      setFocusRequest((n) => n + 1);
+      cancel();
+      requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLSelectElement>('select[aria-label="待布置灯具"]')
+          ?.focus(),
+      );
+    },
   }));
   async function choose(
     target: StageSelection,

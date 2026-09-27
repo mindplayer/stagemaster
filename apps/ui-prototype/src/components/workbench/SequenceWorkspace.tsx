@@ -30,6 +30,7 @@ import { DeleteDialog } from "./DeleteDialog";
 export interface SequenceHandle {
   collect(): EditOperation[];
   accept(): void;
+  reveal(id: string): void;
 }
 export const SequenceWorkspace = forwardRef<
   SequenceHandle,
@@ -107,7 +108,23 @@ export const SequenceWorkspace = forwardRef<
       throw reason;
     }
   }
-  useImperativeHandle(ref, () => ({ collect, accept: cancel }));
+  useImperativeHandle(ref, () => ({
+    collect,
+    accept: cancel,
+    reveal(id) {
+      const target = project.sequences.find((s) => s.id === id);
+      if (!target) return;
+      setSequenceId(id);
+      setStepId(
+        target.steps.find((s) => s.id === rememberedSteps.current[id])?.id ??
+          target.steps[0]?.id ??
+          "",
+      );
+      setQuery("");
+      setStepQuery("");
+      cancel();
+    },
+  }));
   const edit = (command: SequenceEdit) => {
     pinSelection();
     return onEdit({ op: "sequence", command });

@@ -1,5 +1,10 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
+mod check;
 mod compilation;
+pub use check::{
+    CheckIssue, CheckLocation, CheckReport, PlanLimits, PlanUsage, ProgramCheck, ProgramStatus,
+    Severity,
+};
 mod editing;
 mod effects;
 mod fixture;

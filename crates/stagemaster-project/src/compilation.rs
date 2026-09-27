@@ -1,5 +1,5 @@
 //! Converts a validated editing snapshot to a bounded plan and a separate output encoder.
-use crate::{Document, array, text};
+use crate::{Document, ProjectView, array, text};
 use serde::Serialize;
 use stagemaster_dmx::{
     ChannelMapping, DmxAddress, FixtureProfile, Patch, PatchedFixture, Universe,
@@ -109,18 +109,33 @@ impl Document {
     /// # Errors
     /// Refuses unsupported output layouts, unpatched fixtures and plan budget violations.
     pub fn compile_sequence(&self, sequence_id: &str) -> Result<CompiledSequence, String> {
+        self.compile_sequence_view(sequence_id, &self.view())
+    }
+    // The check service supplies this document's own view once for the whole report.
+    pub(super) fn compile_sequence_view(
+        &self,
+        sequence_id: &str,
+        view: &ProjectView,
+    ) -> Result<CompiledSequence, String> {
         let root = &self.root;
         let lighting = &root["lighting"];
         let sequence = array(lighting, "sequences")
             .iter()
             .find(|s| s["id"] == sequence_id)
             .ok_or("场景列表不存在")?;
-        self.compile_steps(sequence)
+        self.compile_steps(sequence, view)
     }
     /// Compile a scene as one held step using the same execution semantics as a list.
     /// # Errors
     /// Refuses missing scenes, unsupported patches and execution budget violations.
     pub fn compile_scene(&self, scene_id: &str) -> Result<CompiledSequence, String> {
+        self.compile_scene_view(scene_id, &self.view())
+    }
+    pub(super) fn compile_scene_view(
+        &self,
+        scene_id: &str,
+        view: &ProjectView,
+    ) -> Result<CompiledSequence, String> {
         let scene = array(&self.root["lighting"], "scenes")
             .iter()
             .find(|scene| scene["id"] == scene_id)
@@ -131,12 +146,16 @@ impl Document {
             "delay":{"ticks":"0","ticksPerSecond":"1000"},"fade":{"ticks":"0","ticksPerSecond":"1000"},
             "advance":{"kind":"manual"}}]
         });
-        self.compile_steps(&sequence)
+        self.compile_steps(&sequence, view)
     }
-    fn compile_steps(&self, sequence: &serde_json::Value) -> Result<CompiledSequence, String> {
+    fn compile_steps(
+        &self,
+        sequence: &serde_json::Value,
+        view: &ProjectView,
+    ) -> Result<CompiledSequence, String> {
         let root = &self.root;
         let (output, defaults, targets) = compile_output(root)?;
-        let view = self.view();
+        check_plan_size(array(sequence, "steps").len(), defaults.len())?;
         let mut previous = defaults.clone();
         let mut steps = Vec::new();
         let mut effects = Vec::new();
@@ -170,12 +189,18 @@ impl Document {
             previous.clone_from(&target);
             keyframe_count += crate::effects::keyframe_count(&scene.effects);
             if keyframe_count > stagemaster_playback::MAX_KEYFRAMES {
-                return Err("列表关键帧超出计划容量，请缩小列表或减少关键帧".into());
+                return Err(format!(
+                    "列表关键帧超出计划容量：已累计 {keyframe_count}，上限 {}；请拆分列表或减少关键帧",
+                    stagemaster_playback::MAX_KEYFRAMES
+                ));
             }
             let channels = crate::effects::compile(&scene.effects, &targets)?;
             effect_count += channels.len();
             if effect_count > stagemaster_playback::MAX_EFFECT_CHANNELS {
-                return Err("列表的动态效果超出计划容量，请缩小列表".into());
+                return Err(format!(
+                    "列表效果通道超出计划容量：已累计 {effect_count}，上限 {}；请拆分列表或减少效果",
+                    stagemaster_playback::MAX_EFFECT_CHANNELS
+                ));
             }
             effects.push(channels);
             steps.push(Step {
@@ -188,11 +213,6 @@ impl Document {
                     None
                 },
             });
-            if steps.len() > stagemaster_playback::MAX_STEPS
-                || steps.len() * defaults.len() > stagemaster_playback::MAX_TARGET_VALUES
-            {
-                return Err("列表超出预览计划容量，请缩小列表".into());
-            }
         }
         Ok(CompiledSequence {
             plan: Plan::with_effects(defaults, steps, sequence["repeat"] == "loop", effects)?,
@@ -212,6 +232,21 @@ impl Document {
     }
 }
 type Targets = Vec<(String, String)>;
+fn check_plan_size(steps: usize, attributes: usize) -> Result<(), String> {
+    use stagemaster_playback::{MAX_STEPS, MAX_TARGET_VALUES};
+    if steps > MAX_STEPS {
+        return Err(format!(
+            "列表步骤超出计划容量：{steps} / {MAX_STEPS} 步；请拆分列表或删除多余步骤"
+        ));
+    }
+    let targets = steps * attributes;
+    if targets > MAX_TARGET_VALUES {
+        return Err(format!(
+            "列表目标数值超出计划容量：{steps} 步 × {attributes} 个属性 = {targets}，上限 {MAX_TARGET_VALUES}；请拆分列表"
+        ));
+    }
+    Ok(())
+}
 fn compile_output(root: &serde_json::Value) -> Result<(CompiledOutput, Vec<u16>, Targets), String> {
     let lighting = &root["lighting"];
     let mut line: Option<(&str, u16)> = None;

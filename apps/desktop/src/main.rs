@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod check;
 mod preview;
 mod previs;
 mod session;
@@ -94,6 +95,7 @@ fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(Session::default())))
         .manage(previs::Bridge::default())
+        .manage(check::Service::default())
         .plugin(tauri_plugin_dialog::init())
         .menu(|app| {
             let app_menu = Submenu::with_items(
@@ -145,6 +147,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             project_request,
             preview_request,
+            check::check_request,
             previs::previs_request
         ])
         .build(tauri::generate_context!())
