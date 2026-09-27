@@ -1,5 +1,7 @@
 # 当前开发状态
 
+已完成 [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md)：基线 `4e09820`，结果为本次 `feat(transfer): add bounded package protocol and resumable uploads` 提交。复用 SMP／minicbor，独立 no_std 封包／重组、受限安装服务、事务归属与主机上传协调；见 [ADR-031](decisions/PRODUCT-ADR-031-package-transfer.md) 和[接口](../module-api/package-transfer.md)。全量 241 Rust＋最终 17 项定向（新增 2）、fmt／严格 Clippy／最终 Xtensa 编译通过；各请求回执丢失／重连、重启／取消、旧意图不重放和真实包逐帧对比通过。软件权限边界不等于设备认证；未接正式 GATT／Flash、未刷机／输出 DMX，原 14610／14928 保留。下一项 PLAYER-003D Flash 存储承接与固件分区／资源核对，当前 goal 持续推进。
+
 已完成 [PLAYER-003B](tasks/PLAYER-003B-package-installation.md)：基线 `31e040f`，结果为本次 `feat(install): add transport-independent package installation transactions` 提交。独立 no_std 安装状态机、两槽完整校验／持久提交、重传／取消／待确认对账、旧读源租约与文件参考适配；见 [ADR-030](decisions/PRODUCT-ADR-030-package-installation.md) 和[接口](../module-api/package-installation.md)。全量 224 Rust＋最终 14 项定向（新增 2）、fmt／严格 Clippy／Xtensa 编译通过；逐存储点故障与进程退出、真实导出包安装／重开／替换和三个节目各 400 帧摘要通过。软件参考验收不等于实板断电／GATT 安装；未刷机／输出 DMX，原 14610／14928 保留。下一项 PLAYER-003C 受限传输协议与主机上传协调，继续保持安装、权限、运行和物理输出分离。
 
 已完成 [PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md)：基线 `21f3306`，结果为本次 `fix(project): keep compact projects editable and recoverable` 提交。按 [ADR-029](decisions/PRODUCT-ADR-029-project-capacity.md) 统一打开／编辑／保存／恢复容量规则，必要时回退紧凑 JSON，预留修订空间并保护超限事务。212 Rust、fmt／严格 Clippy与桌面构建通过；原生 7,002 场景编辑／保存重开、QA 异常终止后恢复另存与原文件摘要通过，原用户 14610／14928 保留。PLAYER-003A 已提交 `21f3306`；下一断点为 PLAYER-003B 传输无关安装事务。
@@ -75,6 +77,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) | done（软件传输闭环） | 有界封包／分片、权限注入边界、幂等回执、上传／重连／取消和真实文件重放通过；真实 GATT／设备认证及 Flash 后续 |
 | [PLAYER-003B](tasks/PLAYER-003B-package-installation.md) | done（软件安装事务） | 两槽提交／严格恢复、幂等块／取消／待确认、读源租约、逐点故障与文件重放通过；GATT／Flash／实际运行后续 |
 | [PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md) | done（容量一致性） | 紧凑工程打开／编辑／保存／异常恢复与修订余量统一；7,002 场景原生验收通过 |
 | [PLAYER-003A](tasks/PLAYER-003A-host-package.md) | done（主机执行包） | 自包含／版本化／独立解码／逐节目装载、容量与损坏拒绝、桌面真实导出；设备安装、授权和 DMX 后续 |
@@ -117,7 +120,7 @@
 | [PROJECT-001](tasks/PROJECT-001-project-contract.md) | in progress | 灯光编辑子集读取／领域校验及保存重开已随 DESKTOP-001 完成；场景列表及单路编译已由 DESKTOP-003 补齐；时间线、迁移恢复和其他领域待实施 |
 | [PLAYER-001](tasks/PLAYER-001-software-playback-foundation.md) | in progress | PLAYER-001A 已实现独立有界执行、正式工程编译和 512 通道预览；设备预算实测、片段包、模拟发送确认／故障与完整出口待办 |
 | [PLAYER-002](tasks/PLAYER-002-esp32-probe.md) | in progress；002A done | 工具链／共享内核与 BLE GATT 实板验证通过；UART DMX、时序／电气仍待办 |
-| PLAYER-003–005 | in progress | PLAYER-003A 主机执行包、003B 软件安装事务已完成；传输协议／控制、GATT／Flash 接入、设备 UI／本地操作及整机验收待实施 |
+| PLAYER-003–005 | in progress | PLAYER-003A 主机执行包、003B 软件安装事务、003C 软件传输已完成；GATT／Flash／控制接入、设备 UI／本地操作及整机验收待实施 |
 | AUTH-001 | planned | 手机／电脑中转正式授权，离线时当前文件可生成 24 小时临时包；到期收尾后禁止新播放。商业验收前须补服务、离线签发、可信时间和生产保护；依据 [PRODUCT-ADR-004](decisions/PRODUCT-ADR-004-relayed-device-authorization.md) |
 
 ## 最新验证

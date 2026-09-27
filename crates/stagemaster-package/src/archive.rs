@@ -25,6 +25,15 @@ pub trait ReadAt {
     /// Returns an error on any short or failed read; never silently fills missing bytes.
     fn read_exact(&self, offset: usize, target: &mut [u8]) -> Result<(), Error>;
 }
+impl<T: ReadAt + ?Sized> ReadAt for &T {
+    fn len(&self) -> usize {
+        T::len(self)
+    }
+    fn read_exact(&self, offset: usize, target: &mut [u8]) -> Result<(), Error> {
+        T::read_exact(self, offset, target)
+    }
+}
+
 impl ReadAt for [u8] {
     fn len(&self) -> usize {
         <[u8]>::len(self)

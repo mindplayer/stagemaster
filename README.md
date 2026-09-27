@@ -6,6 +6,7 @@
 
 当前开发入口：
 
+- [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，正式蓝牙／Flash 接入仍待实施。
 - [播放包安装事务](docs/module-api/package-installation.md)：PLAYER-003B 接入独立 Rust 状态机、双槽提交、断连续传／重复请求、异常恢复和旧读源保护；文件参考已验证，GATT／Flash 接入及实板验收继续推进。
 - [工程容量与恢复](docs/module-api/project-capacity.md)：PROJECT-002 修复紧凑工程能打开却可能无法保存的问题；完整内容保留，自动选择可读或紧凑 JSON，已验证 7,002 场景编辑、保存重开及异常恢复。
 

@@ -1,5 +1,7 @@
 # 实现状态
 
+2026-09-28 PLAYER-003C 完成[播放包传输与上传协调](module-api/package-transfer.md)：独立有界协议、分片／原回执重试、按事务续传／取消、归属与权限注入边界；全量 241 Rust＋最终 17 项定向（新增 2）和最终 Xtensa 编译通过。真实导出包经内存链路及文件安装后逐帧一致；正式 GATT I/O、认证与 Flash 尚未接入。
+
 2026-09-28 PLAYER-003B 完成[播放包安装事务](module-api/package-installation.md)：no_std 安装状态机与文件参考适配、双槽提交／完整性恢复、幂等块／取消／待确认、稳定读源租约；全量 224 Rust＋最终 14 项定向（新增 2）、严格检查和 Xtensa 编译通过，逐点故障／进程退出与真实文件重放验收通过。尚未接 GATT 上传或设备 Flash，不是板级掉电证明。
 
 2026-09-28 PROJECT-002 修复[工程容量与编码](module-api/project-capacity.md)：完整紧凑内容、必要修订余量和有界排版回退统一用于打开／编辑／保存／恢复；212 Rust 及原生 7,002 场景保存重开／异常恢复通过。
@@ -12,7 +14,7 @@
 | 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
 | 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
 | ESP32／ARM 独立场景播放盒 | ESP32-S3 诊断固件与共享内核已实测；RS485 禁止发送 | [PLAYER-002A](development/tasks/PLAYER-002-esp32-probe.md)：no_std 自检、512 属性负载、资源与 GATT 实板测试 | UART DMX／电气与时序、执行包、安装、UI 和本地面板；ARM 未验证 |
-| 主机编译、设备包与无线传输 | 工程编译、独立持久包、桌面导出和传输无关软件安装已实现；GATT 仅有诊断连接 | [播放包](module-api/playback-package.md)与[安装事务](module-api/package-installation.md)通过主机／故障／重放验证；[ADR-014](development/decisions/PRODUCT-ADR-014-device-link-probe.md)保留实板诊断连接证据 | 受限传输封包／主机协调、GATT／Flash 接入、身份与控制权及板级验收 |
+| 主机编译、设备包与无线传输 | 工程编译、独立持久包、桌面导出、软件安装和传输协调已实现；GATT 仅有诊断连接 | [播放包](module-api/playback-package.md)、[安装事务](module-api/package-installation.md)、[传输](module-api/package-transfer.md)通过主机／故障／重放验证；[ADR-014](development/decisions/PRODUCT-ADR-014-device-link-probe.md)保留实板诊断连接证据 | Flash 适配／固件资源、真实 GATT 上传、身份与控制权及板级验收 |
 | 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
 | AI 辅助编辑 | 独立 draft-1 伪接口；无模型或服务实现 | [AI-001](development/tasks/AI-001-assisted-editing-api.md)复用工程命令，分开模型窄工具与可信宿主；包括受限上下文、提案、应用／撤销、冲突及幂等对账 | 先用已存在场景的参数编辑验证运行权限／事务，再接可替换模型适配；不进入播放或输出路径 |
 | 外部音视频／设备控制与监看 | 资料研究与接口草案；无协议接入 | [专项设计](audiovisual-stage-design.md)及 external-contracts／external-examples 区分控制、反馈和监看，已纳入 TS 检查 | 验证一个外部播放器、一个媒体返回源与灯光模拟的闭环 |
