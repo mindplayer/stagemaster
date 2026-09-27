@@ -108,11 +108,14 @@ export function DeviceCenter({ host }: { host: ApplicationHost }) {
       <button
         ref={button}
         className="wb-device-toggle"
+        aria-label={`设备连接：${label}`}
         aria-expanded={open}
         aria-controls="device-center"
         disabled={host.kind !== "desktop"}
         title={
-          host.kind === "browser" ? "请使用桌面应用连接蓝牙设备" : "设备连接"
+          host.kind === "browser"
+            ? "请使用桌面应用连接蓝牙设备"
+            : `设备连接 · ${label}`
         }
         onClick={() => (open ? close() : setOpen(true))}
       >

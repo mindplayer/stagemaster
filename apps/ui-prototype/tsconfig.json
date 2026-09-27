@@ -23,6 +23,8 @@
     "tests/demo-session.test.ts",
     "tests/editor-tools.test.ts",
     "tests/package-tools.test.ts",
-    "tests/package-panel-harness.tsx"
+    "tests/package-panel-harness.tsx",
+    "tests/device-tools.test.ts",
+    "tests/device-panel-harness.tsx"
   ]
 }

@@ -44,6 +44,7 @@
   line-height: 1.6;
   margin: 8px 0 0;
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 .wb-device-center header p {
   margin-top: 4px;
@@ -67,10 +68,18 @@
   display: block;
   font-size: 15px;
 }
+.wb-device-summary > div {
+  min-width: 0;
+  flex: 1;
+}
+.wb-device-summary > button {
+  flex-shrink: 0;
+}
 .wb-device-summary span {
   color: var(--wb-muted);
   display: block;
   margin-top: 5px;
+  overflow-wrap: anywhere;
 }
 .wb-device-summary.online strong {
   color: var(--wb-accent);
@@ -142,8 +151,9 @@
   max-height: 230px;
   overflow: auto;
 }
-.wb-device-list label {
+.workbench .wb-device-list label {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 9px;
   padding: 14px 10px;
@@ -160,6 +170,12 @@
   flex: 1;
   min-width: 0;
 }
+.wb-device-list label strong {
+  overflow-wrap: anywhere;
+}
+.wb-device-list label > span {
+  flex-shrink: 0;
+}
 .wb-device-list label span {
   color: var(--wb-muted);
   font-size: 10px;
@@ -169,9 +185,11 @@
   overflow-wrap: anywhere;
   margin-top: 5px;
 }
-.wb-device-list input {
+.workbench .wb-device-center .wb-device-list input[type="radio"] {
   accent-color: var(--wb-accent);
   width: 15px;
+  height: 15px;
+  padding: 0;
   flex: 0 0 15px;
 }
 .wb-device-empty {
