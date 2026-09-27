@@ -28,6 +28,7 @@ import "./stage.css";
 export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
+  showPrevis(): void;
 }
 export const StageWorkspace = forwardRef<
   StageHandle,
@@ -91,7 +92,7 @@ export const StageWorkspace = forwardRef<
       throw reason;
     }
   }
-  useImperativeHandle(ref, () => ({ collect, accept: cancel }));
+  useImperativeHandle(ref, () => ({ collect, accept: cancel, showPrevis: () => setView("three") }));
   async function choose(target: StageSelection) {
     if (await beforeChange()) {
       setSelection(target);

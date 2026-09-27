@@ -125,6 +125,7 @@ export function auditProject(p) {
   for (const module of ['lighting','media','motion','io','monitoring','surfaces','stage']) for (const [key, values] of Object.entries(p[module] ?? {})) if (kinds[key]) add(kinds[key], values);
   for (const [key, kind] of Object.entries({ syncGroups:'sync-group',actions:'action',conditions:'condition',rules:'rule',timelines:'timeline',entryPoints:'entry-point' })) add(kind, p[key]);
   for (const seq of p.lighting?.sequences ?? []) add('step', seq.steps);
+  for (const scene of p.lighting?.scenes ?? []) add('effect', scene.effects);
   for (const t of p.timelines) { add('track', t.tracks); for (const track of t.tracks) add('item', track.items); }
   for (const page of p.surfaces?.pages ?? []) add('control', page.controls);
   unique(p.requires.map(x => x.key), '能力键');
@@ -158,6 +159,16 @@ export function auditProject(p) {
     for (const a of preset.values) assert(matches(attr(a.target).valueType, a.value), '预设值类型不符');
   }
   for (const scene of p.lighting?.scenes ?? []) {
+    const effects = scene.effects ?? [], activeTargets = [];
+    if (effects.length) assert(declared.has('lighting.effects.basic@1'), '缺少动态效果能力声明');
+    for (const effect of effects) {
+      unique(effect.channels.map(c => c.attribute), '效果属性');
+      for (const fixtureId of effect.fixtureIds) for (const channel of effect.channels) {
+        assert(attr({fixtureId, attribute:channel.attribute}).valueType.kind === 'normalized', '效果仅支持归一化属性');
+        if (effect.enabled) activeTargets.push(`${fixtureId}/${channel.attribute}`);
+      }
+    }
+    unique(activeTargets, '已启用效果目标');
     unique(scene.assignments.map(a => `${a.target.fixtureId}/${a.target.attribute}`), '场景属性');
     for (const a of scene.assignments) {
       const attribute = attr(a.target);

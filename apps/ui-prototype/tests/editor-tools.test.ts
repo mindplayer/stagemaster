@@ -43,6 +43,7 @@ const project: ProjectView = {
   stage: {spaces:[],constructions:[],placements:[]},
 };
 const scene: SceneView = {
+  effects: [],
   id: "s",
   name: "s",
   values: [

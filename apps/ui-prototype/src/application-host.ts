@@ -1,4 +1,5 @@
 import type { StageEdit, StageView } from "./stage-types";
+import type { EffectEdit, SceneEffect } from "./effect-types";
 import type { PrevisRequest, PrevisStatus, PrevisPlacement } from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
@@ -11,6 +12,7 @@ export type EditCommand =
   | EditOperation
   | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "effect"; command: EffectEdit }
   | { op: "stage"; command: StageEdit }
   | { op: "library"; command: LibraryEdit }
   | { op: "sequence"; command: SequenceEdit }
@@ -57,6 +59,7 @@ export interface FixtureView {
 export interface SceneView {
   id: string;
   name: string;
+  effects: SceneEffect[];
   values: {
     fixtureId: string;
     attribute: string;

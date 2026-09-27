@@ -5,6 +5,16 @@ const examples = loadExamples();
 const basic = () => structuredClone(examples.find(d => d.project?.name === '单路灯光示例'));
 const room = () => structuredClone(examples.find(d => d.project?.name === '密室声光电联动示例'));
 const invalid = (name, make, mutate, pattern) => test(name, () => { const p = make(); mutate(p); assert.throws(() => auditProject(p), pattern); });
+const withEffect = () => {
+  const p=basic();
+  p.requires.push({key:'lighting.effects.basic',version:1});
+  p.lighting.scenes[0].effects=[{id:'29999999-0000-4000-8000-000000000001',name:'追逐',enabled:true,fixtureIds:[p.lighting.fixtures[0].id],periodMs:1000,spreadDegrees:360,phaseDegrees:0,reverse:false,waveform:'pulse',dutyPercent:25,channels:[{attribute:'dimmer',low:0,high:65535}]}];
+  return p;
+};
+test('动态效果结构与引用可独立审核',()=>assert.doesNotThrow(()=>auditProject(withEffect())));
+invalid('效果必须声明能力',withEffect,p=>{p.requires=p.requires.filter(c=>c.key!=='lighting.effects.basic');},/能力声明/);
+invalid('效果引用灯具必须存在',withEffect,p=>{p.lighting.scenes[0].effects[0].fixtureIds=[p.project.id];},/种类错误/);
+invalid('不能同时启用争用同属性的效果',withEffect,p=>{const copy=structuredClone(p.lighting.scenes[0].effects[0]);copy.id='29999999-0000-4000-8000-000000000002';p.lighting.scenes[0].effects.push(copy);},/效果目标/);
 
 test('全部设计文档通过结构、对象及跨文件引用检查', () => assert.equal(auditDocuments(examples), 5));
 test('严格 JSON 保留字符串精度及合法中文', () => assert.deepEqual(parseStrict('{"名称":"音乐😀","ticks":"9223372036854775807"}'), { 名称:'音乐😀',ticks:'9223372036854775807' }));

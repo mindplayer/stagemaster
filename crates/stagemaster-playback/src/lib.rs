@@ -4,11 +4,14 @@
 
 extern crate alloc;
 use alloc::{string::String, vec::Vec};
+mod effect;
+pub use effect::{Curve, EffectChannel};
 
 pub const MAX_STEPS: usize = 1024;
 pub const MAX_ATTRIBUTES: usize = 512;
 pub const MAX_TARGET_VALUES: usize = 262_144;
 pub const MAX_TIME_MS: u64 = 86_400_000;
+pub const MAX_EFFECT_CHANNELS: usize = 16_384;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Step {
@@ -29,12 +32,25 @@ pub struct Plan {
     steps: Vec<Step>,
     repeat: bool,
     cycle_ms: Option<u64>,
+    effects: Vec<Vec<EffectChannel>>,
 }
 impl Plan {
     /// Validate an in-memory plan. This is not a persistent/device wire format.
     /// # Errors
     /// Rejects dimensions, time or storage limits, and zero-duration automatic loops.
     pub fn new(defaults: Vec<u16>, steps: Vec<Step>, repeat: bool) -> Result<Self, String> {
+        let effects = alloc::vec![Vec::new(); steps.len()];
+        Self::with_effects(defaults, steps, repeat, effects)
+    }
+    /// Construct a bounded plan with one effect set per step.
+    /// # Errors
+    /// Rejects invalid or overlapping channels and oversized effect plans.
+    pub fn with_effects(
+        defaults: Vec<u16>,
+        steps: Vec<Step>,
+        repeat: bool,
+        effects: Vec<Vec<EffectChannel>>,
+    ) -> Result<Self, String> {
         if defaults.is_empty() || defaults.len() > MAX_ATTRIBUTES {
             return Err("预览需要 1–512 个灯具属性".into());
         }
@@ -56,6 +72,26 @@ impl Plan {
                 return Err("每项时间须在 0–86400 秒内".into());
             }
         }
+        if effects.len() != steps.len()
+            || effects.iter().map(Vec::len).sum::<usize>() > MAX_EFFECT_CHANNELS
+        {
+            return Err("效果计划超出容量或与步骤不一致".into());
+        }
+        for channels in &effects {
+            let mut occupied = [false; MAX_ATTRIBUTES];
+            for channel in channels {
+                if channel.index >= defaults.len()
+                    || !(100..=3_600_000).contains(&channel.period_ms)
+                    || !(1..=99).contains(&channel.duty_percent)
+                {
+                    return Err("效果属性、周期或亮段比例无效".into());
+                }
+                if occupied[channel.index] {
+                    return Err("同一步骤的效果属性不能重叠".into());
+                }
+                occupied[channel.index] = true;
+            }
+        }
         let cycle_ms = steps.iter().map(Step::duration).sum::<Option<u64>>();
         if repeat && cycle_ms == Some(0) {
             return Err("自动循环总时长不能为零，请增加渐变、延时或等待时间".into());
@@ -65,6 +101,7 @@ impl Plan {
             steps,
             repeat,
             cycle_ms,
+            effects,
         })
     }
     #[must_use]
@@ -79,6 +116,11 @@ impl Plan {
     #[must_use]
     pub fn value_buffer_bytes(&self) -> usize {
         (self.steps.len() + 3) * self.defaults.len() * 2
+    }
+    /// Effect payload bytes, excluding Vec metadata and allocator overhead.
+    #[must_use]
+    pub fn effect_buffer_bytes(&self) -> usize {
+        self.effects.iter().map(Vec::len).sum::<usize>() * core::mem::size_of::<EffectChannel>()
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -153,8 +195,10 @@ impl Player {
             if self.elapsed_ms < duration {
                 break;
             }
-            self.elapsed_ms -= duration;
-            self.values.copy_from_slice(&step.target);
+            let remaining = self.elapsed_ms - duration;
+            self.elapsed_ms = duration;
+            self.render();
+            self.elapsed_ms = remaining;
             if index + 1 == self.plan.steps.len() {
                 if !self.plan.repeat {
                     self.status = Status::Finished;
@@ -175,17 +219,21 @@ impl Player {
         Ok(())
     }
     fn render(&mut self) {
-        let step = &self.plan.steps[self.index.expect("active step")];
+        let index = self.index.expect("active step");
+        let step = &self.plan.steps[index];
         if self.elapsed_ms < step.delay_ms {
             self.values.copy_from_slice(&self.from);
-        } else if step.fade_ms == 0 || self.elapsed_ms - step.delay_ms >= step.fade_ms {
-            self.values.copy_from_slice(&step.target);
-        } else {
-            let elapsed = self.elapsed_ms - step.delay_ms;
-            for ((value, from), target) in self.values.iter_mut().zip(&self.from).zip(&step.target)
-            {
+            return;
+        }
+        let elapsed = self.elapsed_ms - step.delay_ms;
+        self.values.copy_from_slice(&step.target);
+        for effect in &self.plan.effects[index] {
+            self.values[effect.index] = effect.sample(elapsed);
+        }
+        if elapsed < step.fade_ms {
+            for (value, from) in self.values.iter_mut().zip(&self.from) {
                 let weighted =
-                    u64::from(*from) * (step.fade_ms - elapsed) + u64::from(*target) * elapsed;
+                    u64::from(*from) * (step.fade_ms - elapsed) + u64::from(*value) * elapsed;
                 *value = u16::try_from((weighted + step.fade_ms / 2) / step.fade_ms)
                     .expect("bounded interpolation");
             }

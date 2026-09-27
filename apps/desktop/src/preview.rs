@@ -17,6 +17,10 @@ pub(crate) enum Request {
         generation: u32,
         sequence_id: String,
     },
+    LoadScene {
+        generation: u32,
+        scene_id: String,
+    },
     Control {
         epoch: u32,
         serial: u32,
@@ -41,12 +45,14 @@ pub(crate) enum Command {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Snapshot {
     epoch: u32,
+    control_serial: u32,
     loaded: Option<LoadedView>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct LoadedView {
     sequence_id: String,
+    scene_id: Option<String>,
     name: String,
     source_revision: String,
     status: &'static str,
@@ -58,6 +64,7 @@ struct LoadedView {
     stale: bool,
     can_next: bool,
     buffer_bytes: usize,
+    effect_buffer_bytes: usize,
     steps: Vec<stagemaster_project::CompiledStep>,
     output: stagemaster_project::PreviewOutput,
 }
@@ -65,6 +72,7 @@ struct Loaded {
     player: Player,
     output: stagemaster_project::CompiledOutput,
     sequence_id: String,
+    scene_id: Option<String>,
     name: String,
     source_revision: String,
     steps: Vec<stagemaster_project::CompiledStep>,
@@ -124,6 +132,28 @@ impl Preview {
         content_version: u64,
         id: &str,
     ) -> Result<(), String> {
+        self.install(document.compile_sequence(id)?, content_version, None);
+        Ok(())
+    }
+    pub(crate) fn load_scene(
+        &mut self,
+        document: &Document,
+        content_version: u64,
+        id: &str,
+    ) -> Result<(), String> {
+        self.install(
+            document.compile_scene(id)?,
+            content_version,
+            Some(id.into()),
+        );
+        Ok(())
+    }
+    fn install(
+        &mut self,
+        compiled: CompiledSequence,
+        content_version: u64,
+        scene_id: Option<String>,
+    ) {
         let CompiledSequence {
             plan,
             output,
@@ -131,19 +161,23 @@ impl Preview {
             name,
             revision_id,
             steps,
-        } = document.compile_sequence(id)?;
+        } = compiled;
         let player = Player::new(plan, self.now());
         self.clear();
         self.loaded = Some(Loaded {
             player,
             output,
-            sequence_id: id,
+            sequence_id: if scene_id.is_some() {
+                String::new()
+            } else {
+                id
+            },
+            scene_id,
             name,
             source_revision: revision_id,
             steps,
             content_version,
         });
-        Ok(())
     }
     pub(crate) fn control(
         &mut self,
@@ -189,6 +223,7 @@ impl Preview {
             let step = index.map(|i| &l.player.plan().steps()[i]);
             Some(LoadedView {
                 sequence_id: l.sequence_id.clone(),
+                scene_id: l.scene_id.clone(),
                 name: l.name.clone(),
                 source_revision: l.source_revision.clone(),
                 status: status_name(l.player.status()),
@@ -200,6 +235,7 @@ impl Preview {
                 stale: l.content_version != content_version,
                 can_next: l.player.can_next(),
                 buffer_bytes: l.player.plan().value_buffer_bytes(),
+                effect_buffer_bytes: l.player.plan().effect_buffer_bytes(),
                 steps: l.steps.clone(),
                 output: l.output.render(l.player.values())?,
             })
@@ -208,6 +244,7 @@ impl Preview {
         };
         Ok(Snapshot {
             epoch: self.epoch,
+            control_serial: self.last_serial,
             loaded,
         })
     }
@@ -231,6 +268,56 @@ mod tests {
         .unwrap();
         input["entryPoints"] = serde_json::json!([]);
         Document::decode(&serde_json::to_vec(&input).unwrap()).unwrap()
+    }
+    #[test]
+    fn scene_effect_renderer_and_monitor_share_clock_serial_and_epoch() {
+        let mut doc = document();
+        let view = doc.view();
+        let scene = &view.scenes[0].id;
+        let fixture = &view.fixtures[0].id;
+        doc.edit(
+            serde_json::from_value(
+                serde_json::json!({"op":"effect","command":{"kind":"put","sceneId":scene,"effect":{
+            "id":"29999999-0000-4000-8000-000000000001","name":"测试呼吸","enabled":true,
+            "fixtureIds":[fixture],"periodMs":1000,"spreadDegrees":0,"phaseDegrees":0,
+            "reverse":false,"waveform":"triangle","dutyPercent":50,
+            "channels":[{"attribute":"dimmer","low":0,"high":65535}]}}}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let mut p = Preview::default();
+        p.load_scene(&doc, 1, scene).unwrap();
+        let now = p.now();
+        let epoch = p.epoch;
+        p.control(
+            1,
+            epoch,
+            1,
+            Command::Execute {
+                step_id: scene.clone(),
+            },
+            now,
+        )
+        .unwrap();
+        let rendered =
+            serde_json::to_value(p.render_output(1, now + 250).unwrap().output.unwrap()).unwrap();
+        let monitored = p.snapshot(1, now + 250).unwrap();
+        assert_eq!(monitored.control_serial, 1);
+        let loaded = monitored.loaded.unwrap();
+        assert_eq!(loaded.scene_id.as_ref(), Some(scene));
+        assert!(loaded.sequence_id.is_empty());
+        assert_eq!(rendered, serde_json::to_value(loaded.output).unwrap());
+        p.control(1, epoch, 2, Command::Pause, now + 250).unwrap();
+        p.control(1, epoch, 3, Command::Resume, now + 10_000)
+            .unwrap();
+        let frame = p.snapshot(1, now + 10_250).unwrap();
+        assert_eq!(frame.loaded.unwrap().elapsed_ms, 500);
+        p.load(&doc, 1, &view.sequences[0].id).unwrap();
+        assert!(p.control(1, epoch, 4, Command::Stop, p.now()).is_err());
+        let frame = p.snapshot(1, p.now()).unwrap();
+        assert_eq!(frame.control_serial, 0);
+        assert!(frame.loaded.unwrap().scene_id.is_none());
     }
     #[test]
     fn renderer_polling_or_disconnect_cannot_own_the_show_clock() {

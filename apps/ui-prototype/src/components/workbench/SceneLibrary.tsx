@@ -69,8 +69,14 @@ export function SceneLibrary({
             <div>
               <strong>{scene.name}</strong>
               <small>
-                {new Set(scene.values.map((v) => v.fixtureId)).size} 台灯具 ·{" "}
-                {scene.values.length} 项属性
+                {
+                  new Set([
+                    ...scene.values.map((v) => v.fixtureId),
+                    ...scene.effects.flatMap((e) => e.fixtureIds),
+                  ]).size
+                }{" "}
+                台灯具 · {scene.values.length} 项属性
+                {!!scene.effects.length && ` · ${scene.effects.length} 个效果`}
               </small>
             </div>
           </button>

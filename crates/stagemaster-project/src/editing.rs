@@ -10,6 +10,9 @@ use serde_json::{Value, json};
     deny_unknown_fields
 )]
 pub enum EditCommand {
+    Effect {
+        command: crate::EffectEdit,
+    },
     Stage {
         command: crate::StageEdit,
     },
@@ -74,6 +77,7 @@ pub enum ValueMode {
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
+        EditCommand::Effect { command } => crate::effects::apply(root, command)?,
         EditCommand::Stage { command } => crate::stage::apply(root, command)?,
         EditCommand::Library { command } => crate::library::apply(root, command)?,
         EditCommand::Sequence { command } => crate::sequence::apply(root, command)?,
@@ -134,10 +138,7 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
         }
         EditCommand::AddScene { name } => add_scene(root, &name)?,
         EditCommand::DuplicateScene { id: source, name } => {
-            let mut copy = find(list(root, "scenes")?, &source)?.clone();
-            copy["id"] = id().into();
-            copy["name"] = name.into();
-            list(root, "scenes")?.push(copy);
+            duplicate_scene(root, &source, name)?;
         }
         EditCommand::RenameScene { id, name } => {
             find(list(root, "scenes")?, &id)?["name"] = name.into();
@@ -173,6 +174,14 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
             }
         }
     }
+    Ok(())
+}
+fn duplicate_scene(root: &mut Value, source: &str, name: String) -> Result<(), String> {
+    let mut copy = find(list(root, "scenes")?, source)?.clone();
+    copy["id"] = id().into();
+    copy["name"] = name.into();
+    crate::effects::renew_ids(&mut copy);
+    list(root, "scenes")?.push(copy);
     Ok(())
 }
 pub(super) fn validate_target(

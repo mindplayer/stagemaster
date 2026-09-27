@@ -36,6 +36,17 @@ impl Session {
         use crate::preview::Request;
         match request {
             Request::Snapshot => {}
+            Request::LoadScene {
+                generation,
+                scene_id,
+            } => {
+                self.guard(generation)?;
+                self.preview.load_scene(
+                    self.document.as_ref().ok_or("请先打开工程")?,
+                    self.content_version,
+                    &scene_id,
+                )?;
+            }
             Request::Load {
                 generation,
                 sequence_id,
@@ -358,6 +369,41 @@ mod tests {
 #[cfg(test)]
 mod preview_integration_tests {
     use super::*;
+    #[test]
+    fn effect_and_color_base_edit_undo_as_one_atomic_scene_change() {
+        use serde_json::json;
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = json!([]);
+        let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let view = doc.view();
+        let scene = &view.scenes[0].id;
+        let fixture = &view.fixtures[0].id;
+        let mut s = Session::default();
+        s.replace(doc.clone(), None);
+        s.preview(crate::preview::Request::LoadScene {
+            generation: s.generation,
+            scene_id: scene.clone(),
+        })
+        .unwrap();
+        let command = json!({"op":"batch","commands":[
+            {"op":"setSceneValue","sceneId":scene,"fixtureId":fixture,"attribute":"dimmer","mode":"literal","value":65535},
+            {"op":"effect","command":{"kind":"put","sceneId":scene,"effect":{
+                "id":"29999999-0000-4000-8000-000000000001","name":"呼吸","enabled":true,"fixtureIds":[fixture],
+                "periodMs":1000,"spreadDegrees":0,"phaseDegrees":0,"reverse":false,"waveform":"smooth","dutyPercent":25,
+                "channels":[{"attribute":"dimmer","low":0,"high":65535}]}}}]});
+        s.edit(s.generation, serde_json::from_value(command).unwrap())
+            .unwrap();
+        assert_eq!(s.undo.len(), 1);
+        assert_eq!(loaded(&mut s)["stale"], true);
+        let changed = s.document.clone().unwrap();
+        s.history(s.generation, false).unwrap();
+        assert_eq!(s.document.as_ref(), Some(&doc));
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.document.as_ref(), Some(&changed));
+    }
     fn loaded(session: &mut Session) -> serde_json::Value {
         serde_json::to_value(session.preview(crate::preview::Request::Snapshot).unwrap()).unwrap()["loaded"].clone()
     }

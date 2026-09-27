@@ -37,8 +37,10 @@ export interface FixtureOutput {
 }
 export interface PreviewSnapshot {
   epoch: number;
+  controlSerial: number;
   loaded: null | {
     sequenceId: string;
+    sceneId: string | null;
     name: string;
     sourceRevision: string;
     status: "idle" | "running" | "paused" | "finished";
@@ -50,6 +52,7 @@ export interface PreviewSnapshot {
     stale: boolean;
     canNext: boolean;
     bufferBytes: number;
+    effectBufferBytes: number;
     steps: { id: string; name: string; number: string }[];
     output: { universe: number; slots: number[]; fixtures: FixtureOutput[] };
   };
@@ -59,5 +62,6 @@ export type PreviewCommand =
   | { kind: "next" | "pause" | "resume" | "stop" };
 export type PreviewRequest =
   | { kind: "snapshot" }
+  | { kind: "loadScene"; generation: number; sceneId: string }
   | { kind: "load"; generation: number; sequenceId: string }
   | { kind: "control"; epoch: number; serial: number; command: PreviewCommand };

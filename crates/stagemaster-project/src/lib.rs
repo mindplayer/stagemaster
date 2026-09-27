@@ -1,6 +1,8 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
 mod compilation;
 mod editing;
+mod effects;
+pub use effects::{EffectEdit, EffectValues, SceneEffect, Waveform};
 mod library;
 mod sequence;
 mod stage;

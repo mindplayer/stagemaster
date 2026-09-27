@@ -1,6 +1,6 @@
 # 已实现：列表编辑、编译与离线预览
 
-基于 [ADR-013](../development/decisions/PRODUCT-ADR-013-sequence-preview.md)，由 DESKTOP-003 / PLAYER-001A 实现。本文是当前运行接口，区别于其他文件中的未来伪 API。
+基于 [ADR-013](../development/decisions/PRODUCT-ADR-013-sequence-preview.md)，由 DESKTOP-003 / PLAYER-001A 实现。EFFECT-001 已扩展[单场景与动态效果](lighting-effects.md)：共用同一执行器和单调时钟。本文是当前运行接口，区别于其他文件中的未来伪 API。
 
 ## 单向依赖
 
@@ -36,8 +36,8 @@ let output = compiled.output.render(player.values())?;
 
 ## 桌面预览服务
 
-独立 `preview_request` 接口：snapshot；load（工程 generation、sequenceId）；control（预览 epoch、递增 serial、command）。控制命令为 execute（stepId）、next、pause、resume、stop。UI 每次只保留一个监看请求，控制期间忽略此前发出的旧监看结果。
+独立 `preview_request` 接口：snapshot；load（工程 generation、sequenceId）；loadScene（generation、sceneId）；control（预览 epoch、递增 serial、command）。根快照带 controlSerial，避免不同面板独立递增产生冲突。控制命令为 execute（stepId）、next、pause、resume、stop。UI 每次只保留一个监看请求，控制期间忽略此前发出的旧监看结果。
 
 打开／新建成功清空预览，取消文件操作保留；保存不使计划过期。编辑／撤销／重做改变内容代次，旧计划保持独立，但拒绝新的执行和继续；仍允许暂停、停止、重新载入。UI 未应用草稿在载入前统一验证。运行状态不进入工程和编辑历史。
 
-输出是完整 512 字节槽位和归一化灯具属性；当前编译器要求工程内灯具全部配适在同一输出域／线路。它是离线数值预览，不包含 RS485 驱动、设备发送确认、物理时序、3D 光学、专业灯具分段或多源混合。未来这些通过相应适配与契约扩展，不改写 UI 播放算法。
+输出是完整 512 字节槽位和归一化灯具属性；当前编译器要求工程内灯具全部配适在同一输出域／线路。PREVIS-001 已通过独立[预演适配](previsualization.md)把该输出用于应用内三维。播放模块本身不包含 RS485 驱动、设备发送确认、物理时序、3D 光学、专业灯具分段或多源混合；这些通过相应适配与契约扩展，不改写 UI 播放算法。

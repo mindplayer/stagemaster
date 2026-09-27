@@ -44,8 +44,8 @@ export function PrevisPanel({ host, scenes, busy, generation, run, ...interactio
     <label>灯光来源
       <select aria-label="三维灯光来源" value={value} disabled={busy || host.kind !== "desktop"} onChange={(event) => select(event.target.value)}>
         <option value="defaults">灯具默认值</option>
-        <option value="playback">跟随列表预览</option>
-        {scenes.map((scene) => <option key={scene.id} value={`scene:${scene.id}`}>{scene.name}</option>)}
+        <option value="playback">跟随播放预览</option>
+        {scenes.map((scene) => <option key={scene.id} value={`scene:${scene.id}`}>{scene.name}{scene.effects.length ? " · 静态值" : ""}</option>)}
         {source?.kind === "scene" && !scenes.some((scene) => scene.id === source.sceneId) && <option value={value}>原场景已删除</option>}
       </select>
     </label>

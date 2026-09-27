@@ -69,6 +69,7 @@ pub struct SceneView {
     pub id: String,
     pub name: String,
     pub values: Vec<SceneValue>,
+    pub effects: Vec<crate::SceneEffect>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -169,6 +170,7 @@ pub(super) fn project(root: &Value) -> ProjectView {
         scenes: array(lighting, "scenes")
             .iter()
             .map(|scene| SceneView {
+                effects: crate::effects::read(scene),
                 id: text(scene, "id").into(),
                 name: text(scene, "name").into(),
                 values: array(scene, "assignments")

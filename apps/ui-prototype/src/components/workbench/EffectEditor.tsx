@@ -1,0 +1,385 @@
+import { useState } from "react";
+import type { EditOperation, FixtureView } from "../../application-host";
+import type { SceneEffect } from "../../effect-types";
+import { effectCommands, reorderEffect } from "../../effect-tools";
+import { seconds, secondsToMs } from "../../sequence-tools";
+import { LibraryDialog } from "./LibraryDialog";
+
+const labels = { dimmer: "亮度", red: "红", green: "绿", blue: "蓝" };
+export function EffectEditor({
+  effect,
+  sceneId,
+  fixtures,
+  selected,
+  isNew,
+  busy,
+  error,
+  onCancel,
+  onApply,
+}: {
+  effect: SceneEffect;
+  sceneId: string;
+  fixtures: FixtureView[];
+  selected: string[];
+  isNew: boolean;
+  busy: boolean;
+  error: string;
+  onCancel(): void;
+  onApply(commands: EditOperation[]): Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState(effect);
+  const [period, setPeriod] = useState(seconds(effect.periodMs));
+  const [timing, setTiming] = useState({
+    spread: String(effect.spreadDegrees),
+    phase: String(effect.phaseDegrees),
+    duty: String(effect.dutyPercent),
+  });
+  const [query, setQuery] = useState("");
+  const isColor = ["red", "green", "blue"].every((key) =>
+    effect.channels.some((c) => c.attribute === key),
+  );
+  const [illuminate, setIlluminate] = useState(
+    isNew && isColor && effect.enabled,
+  );
+  const [ends, setEnds] = useState(() =>
+    effect.channels.map((c) => ({
+      low: String((c.low / 65535) * 100),
+      high: String((c.high / 65535) * 100),
+    })),
+  );
+  const change = (patch: Partial<SceneEffect>) =>
+    setDraft((d) => ({ ...d, ...patch }));
+  const color = (end: "low" | "high") =>
+    "#" +
+    ["red", "green", "blue"]
+      .map((key) => {
+        const index = effect.channels.findIndex((c) => c.attribute === key);
+        return Math.round((Number(ends[index]?.[end] ?? 0) * 255) / 100)
+          .toString(16)
+          .padStart(2, "0");
+      })
+      .join("");
+  function putColor(end: "low" | "high", hex: string) {
+    setEnds((previous) =>
+      previous.map((v, i) => {
+        const index = ["red", "green", "blue"].indexOf(
+          effect.channels[i].attribute,
+        );
+        return index < 0
+          ? v
+          : {
+              ...v,
+              [end]: String(
+                (parseInt(hex.slice(1 + index * 2, 3 + index * 2), 16) / 255) *
+                  100,
+              ),
+            };
+      }),
+    );
+  }
+  return (
+    <LibraryDialog
+      title={isNew ? "添加灯光效果" : "编辑灯光效果"}
+      busy={busy}
+      error={error}
+      onCancel={onCancel}
+      submit="应用效果"
+      onSubmit={() => {
+        const periodMs = secondsToMs(period, "循环周期");
+        if (periodMs < 100 || periodMs > 3_600_000)
+          throw new Error("循环周期应在 0.1–3600 秒之间");
+        const channels = draft.channels.map((c, i) => ({
+          ...c,
+          ...Object.fromEntries(
+            ["low", "high"].map((key) => {
+              const raw = ends[i][key as "low" | "high"];
+              const value = Number(raw);
+              if (
+                !raw.trim() ||
+                !Number.isFinite(value) ||
+                value < 0 ||
+                value > 100
+              )
+                throw new Error("效果两端值应在 0–100% 之间");
+              return [key, Math.round((value * 65535) / 100)];
+            }),
+          ),
+        }));
+        return onApply(
+          effectCommands(
+            sceneId,
+            {
+              ...draft,
+              periodMs,
+              channels,
+              spreadDegrees: Number(timing.spread),
+              phaseDegrees: Number(timing.phase),
+              dutyPercent: Number(timing.duty),
+            },
+            fixtures,
+            illuminate,
+          ),
+        );
+      }}
+    >
+      <label>
+        效果名称
+        <input
+          autoFocus
+          required
+          maxLength={256}
+          aria-label="效果名称"
+          value={draft.name}
+          onChange={(e) => change({ name: e.target.value })}
+        />
+      </label>
+      <div className="effect-fields">
+        <label>
+          循环周期 · 秒
+          <input
+            type="number"
+            required
+            min={0.1}
+            max={3600}
+            step={0.001}
+            inputMode="decimal"
+            aria-label="循环周期"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+          />
+        </label>
+        <label>
+          变化方式
+          <select
+            aria-label="变化方式"
+            value={draft.waveform}
+            onChange={(e) =>
+              change({ waveform: e.target.value as SceneEffect["waveform"] })
+            }
+          >
+            <option value="smooth">平滑往返</option>
+            <option value="triangle">线性往返</option>
+            <option value="pulse">脉冲切换</option>
+          </select>
+        </label>
+      </div>
+      {isColor && (
+        <div className="effect-fields effect-colors">
+          <label>
+            颜色一
+            <input
+              type="color"
+              aria-label="颜色一"
+              value={color("low")}
+              onChange={(e) => putColor("low", e.target.value)}
+            />
+          </label>
+          <label>
+            颜色二
+            <input
+              type="color"
+              aria-label="颜色二"
+              value={color("high")}
+              onChange={(e) => putColor("high", e.target.value)}
+            />
+          </label>
+        </div>
+      )}
+      <details open={!isColor}>
+        <summary>{isColor ? "精确颜色通道" : "亮度范围"}</summary>
+        {draft.channels.map((c, i) => (
+          <div className="effect-fields" key={c.attribute}>
+            {(["low", "high"] as const).map((end, j) => (
+              <label key={end}>
+                {labels[c.attribute]} · 数值{j ? "二" : "一"} %
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  max={100}
+                  step="any"
+                  aria-label={`${labels[c.attribute]}数值${j ? "二" : "一"}`}
+                  value={ends[i][end]}
+                  onChange={(e) =>
+                    setEnds((prev) =>
+                      prev.map((v, n) =>
+                        n === i ? { ...v, [end]: e.target.value } : v,
+                      ),
+                    )
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        ))}
+      </details>
+      <div className="effect-fields">
+        <label>
+          灯间展开 · 度
+          <input
+            type="number"
+            required
+            min={0}
+            max={360}
+            step={1}
+            aria-label="灯间展开"
+            value={timing.spread}
+            onChange={(e) => setTiming({ ...timing, spread: e.target.value })}
+          />
+        </label>
+        {draft.waveform === "pulse" ? (
+          <label>
+            亮段比例 · %
+            <input
+              type="number"
+              required
+              min={1}
+              max={99}
+              step={1}
+              aria-label="亮段比例"
+              value={timing.duty}
+              onChange={(e) => setTiming({ ...timing, duty: e.target.value })}
+            />
+          </label>
+        ) : (
+          <label>
+            起始相位 · 度
+            <input
+              type="number"
+              required
+              min={0}
+              max={359}
+              step={1}
+              aria-label="起始相位"
+              value={timing.phase}
+              onChange={(e) => setTiming({ ...timing, phase: e.target.value })}
+            />
+          </label>
+        )}
+      </div>
+      {draft.waveform === "pulse" && (
+        <label>
+          起始相位 · 度
+          <input
+            type="number"
+            required
+            min={0}
+            max={359}
+            step={1}
+            aria-label="起始相位"
+            value={timing.phase}
+            onChange={(e) => setTiming({ ...timing, phase: e.target.value })}
+          />
+        </label>
+      )}
+      <div className="effect-checks">
+        <label>
+          <input
+            type="checkbox"
+            checked={draft.reverse}
+            onChange={(e) => change({ reverse: e.target.checked })}
+          />
+          反向灯序
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={draft.enabled}
+            onChange={(e) => change({ enabled: e.target.checked })}
+          />
+          启用效果
+        </label>
+        {isColor && (
+          <label>
+            <input
+              type="checkbox"
+              checked={illuminate}
+              onChange={(e) => setIlluminate(e.target.checked)}
+            />
+            同时将所选灯具亮度设为 100%
+          </label>
+        )}
+      </div>
+      <details className="effect-order">
+        <summary>灯具与顺序 · {draft.fixtureIds.length} 台</summary>
+        <button
+          type="button"
+          disabled={!selected.length}
+          onClick={() => change({ fixtureIds: [...selected] })}
+        >
+          采用当前选灯顺序
+        </button>
+        <ol>
+          {draft.fixtureIds.map((id, i) => (
+            <li key={id}>
+              <span>
+                {fixtures.find((f) => f.id === id)?.name ?? "灯具已删除"}
+              </span>
+              <button
+                type="button"
+                aria-label={`上移第 ${i + 1} 台灯具`}
+                disabled={i === 0}
+                onClick={() =>
+                  change({ fixtureIds: reorderEffect(draft.fixtureIds, i, -1) })
+                }
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                aria-label={`下移第 ${i + 1} 台灯具`}
+                disabled={i === draft.fixtureIds.length - 1}
+                onClick={() =>
+                  change({ fixtureIds: reorderEffect(draft.fixtureIds, i, 1) })
+                }
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                aria-label={`移除${fixtures.find((f) => f.id === id)?.name ?? "灯具"}`}
+                onClick={() =>
+                  change({
+                    fixtureIds: draft.fixtureIds.filter((f) => f !== id),
+                  })
+                }
+              >
+                移除
+              </button>
+            </li>
+          ))}
+        </ol>
+        <input
+          aria-label="搜索待添加灯具"
+          placeholder="搜索待添加灯具"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="effect-add-fixtures">
+          {fixtures
+            .filter(
+              (f) =>
+                !draft.fixtureIds.includes(f.id) &&
+                f.name.toLowerCase().includes(query.trim().toLowerCase()),
+            )
+            .map((f) => (
+              <button
+                type="button"
+                key={f.id}
+                disabled={
+                  !draft.channels.every((c) =>
+                    f.attributes.some((a) => a.key === c.attribute),
+                  )
+                }
+                onClick={() =>
+                  change({ fixtureIds: [...draft.fixtureIds, f.id] })
+                }
+              >
+                添加 {f.name}
+              </button>
+            ))}
+        </div>
+      </details>
+    </LibraryDialog>
+  );
+}

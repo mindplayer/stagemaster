@@ -214,13 +214,31 @@ export function ParameterPanel({
                 : mode === "preset"
                   ? `预设 · ${state.presetName}`
                   : "已记录";
+          const effected = scene.effects.some(
+            (effect) =>
+              effect.enabled &&
+              effect.channels.some(
+                (channel) => channel.attribute === attribute.key,
+              ) &&
+              effect.fixtureIds.some((id) =>
+                fixtures.some((fixture) => fixture.id === id),
+              ),
+          );
           return (
             <div className="wb-parameter" key={attribute.key}>
               <div className="wb-section-title">
                 <label htmlFor={`param-${attribute.key}`}>
                   {attribute.label}
                 </label>
-                <span>{status}</span>
+                <span
+                  title={
+                    effected
+                      ? "此处编辑静态值；受效果控制的灯具在停用效果后使用此值"
+                      : undefined
+                  }
+                >
+                  {effected ? "效果覆盖 · 静态值" : status}
+                </span>
               </div>
               <div className="wb-value-row">
                 <input

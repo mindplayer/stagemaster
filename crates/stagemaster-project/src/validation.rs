@@ -90,6 +90,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         }
     }
     crate::sequence::validate(root)?;
+    crate::effects::validate(root)?;
     Ok(())
 }
 
@@ -115,7 +116,13 @@ fn supported(root: &Value) -> Result<(), String> {
     }
     let mut capabilities = BTreeSet::new();
     for capability in array(root, "requires") {
-        if !["lighting.basic", "stage.layout", "stage.spaces"].contains(&text(capability, "key"))
+        if ![
+            "lighting.basic",
+            "lighting.effects.basic",
+            "stage.layout",
+            "stage.spaces",
+        ]
+        .contains(&text(capability, "key"))
             || capability["version"] != 1
         {
             return Err(format!(

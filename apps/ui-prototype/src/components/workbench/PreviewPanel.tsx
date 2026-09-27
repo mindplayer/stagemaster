@@ -6,7 +6,7 @@ import {
   ArrowClockwiseIcon,
   SkipForwardIcon,
 } from "@phosphor-icons/react";
-import type { ApplicationHost } from "../../application-host";
+import type { ApplicationHost, SceneView } from "../../application-host";
 import type {
   PreviewCommand,
   PreviewSnapshot,
@@ -21,22 +21,27 @@ import {
 export function PreviewPanel({
   host,
   sequence,
+  scene,
   stepId,
   generation,
   busy,
   beforeAction,
   visible,
+  onView3d,
 }: {
   host: ApplicationHost;
-  sequence: SequenceView | undefined;
+  sequence?: SequenceView;
+  scene?: SceneView;
   stepId: string;
   generation: number;
   busy: boolean;
   beforeAction(): Promise<boolean>;
   visible: boolean;
+  onView3d?(): void;
 }) {
   const [snapshot, setSnapshot] = useState<PreviewSnapshot>({
     epoch: 0,
+    controlSerial: 0,
     loaded: null,
   });
   const [error, setError] = useState("");
@@ -45,7 +50,6 @@ export function PreviewPanel({
   const [showChannels, setShowChannels] = useState(false);
   const [channelQuery, setChannelQuery] = useState("");
   const current = useRef(snapshot);
-  const serial = useRef(0);
   const controlBusy = useRef(false);
   const epochRequest = useRef(0);
   const alive = useRef(true);
@@ -98,25 +102,39 @@ export function PreviewPanel({
         return;
       // Flush can change the project generation, so obtain the host's authoritative snapshot.
       if (command === "load") {
-        if (!sequence) return;
+        if (!sequence && !scene) return;
         const project = await host.request({ kind: "snapshot" });
         publish(
-          await host.preview({
-            kind: "load",
-            generation: project.generation,
-            sequenceId: sequence.id,
-          }),
+          await host.preview(
+            scene
+              ? {
+                  kind: "loadScene",
+                  generation: project.generation,
+                  sceneId: scene.id,
+                }
+              : {
+                  kind: "load",
+                  generation: project.generation,
+                  sequenceId: sequence!.id,
+                },
+          ),
         );
-        serial.current = 0;
-      } else
+      } else {
+        // Several views share one player. Read the current serial, never restart a local counter.
+        const latest = await host.preview({ kind: "snapshot" });
+        if (latest.epoch !== current.current.epoch) {
+          publish(latest);
+          throw new Error("预览内容已更换，请确认后重试");
+        }
         publish(
           await host.preview({
             kind: "control",
             epoch: current.current.epoch,
-            serial: ++serial.current,
+            serial: latest.controlSerial + 1,
             command,
           }),
         );
+      }
     } catch (reason) {
       if (alive.current)
         setError(reason instanceof Error ? reason.message : String(reason));
@@ -126,7 +144,11 @@ export function PreviewPanel({
     }
   }
   const loaded = snapshot.loaded;
-  const same = !!loaded && loaded.sequenceId === sequence?.id;
+  const same =
+    !!loaded &&
+    (scene
+      ? loaded.sceneId === scene.id
+      : !loaded.sceneId && loaded.sequenceId === sequence?.id);
   const ready = same && !loaded?.stale;
   const active = loaded?.steps.find((s) => s.id === loaded.stepId);
   const status = loaded
@@ -144,7 +166,9 @@ export function PreviewPanel({
       : loaded.elapsedMs < loaded.delayMs + loaded.fadeMs
         ? "渐变"
         : loaded.waitMs === null
-          ? "等待手动推进"
+          ? loaded.sceneId
+            ? "场景持续播放"
+            : "等待手动推进"
           : "自动等待";
   const duration = loaded
     ? loaded.delayMs + loaded.fadeMs + (loaded.waitMs ?? 0)
@@ -176,12 +200,12 @@ export function PreviewPanel({
       </div>
       <div className="wb-preview-toolbar">
         <button
-          disabled={!sequence || working || busy}
+          disabled={(!sequence && !scene) || working || busy}
           onClick={() => void act("load")}
           title="将当前编辑内容载入预览，并回到默认值"
         >
           <ArrowClockwiseIcon />
-          {same ? "重新载入" : "载入列表"}
+          {same ? "重新载入" : scene ? "载入场景" : "载入列表"}
         </button>
         <button
           className="wb-primary"
@@ -189,16 +213,18 @@ export function PreviewPanel({
           onClick={() => void act({ kind: "execute", stepId })}
         >
           <PlayIcon weight="fill" />
-          执行所选
+          {scene ? "播放场景" : "执行所选"}
         </button>
-        <button
-          aria-label="执行下一步"
-          title="执行下一步"
-          disabled={!ready || working || busy || !loaded?.canNext}
-          onClick={() => void act({ kind: "next" })}
-        >
-          <SkipForwardIcon />
-        </button>
+        {!scene && (
+          <button
+            aria-label="执行下一步"
+            title="执行下一步"
+            disabled={!ready || working || busy || !loaded?.canNext}
+            onClick={() => void act({ kind: "next" })}
+          >
+            <SkipForwardIcon />
+          </button>
+        )}
         <button
           disabled={
             !loaded ||
@@ -221,6 +247,11 @@ export function PreviewPanel({
           <StopIcon />
           停止
         </button>
+        {onView3d && (
+          <button disabled={!ready || working || busy} onClick={onView3d}>
+            三维监看
+          </button>
+        )}
       </div>
       {loaded?.stale && (
         <p className="wb-preview-warning" role="status">
@@ -237,7 +268,11 @@ export function PreviewPanel({
         <>
           <div className="wb-playback-position">
             <strong>
-              {active ? `${active.number} · ${active.name}` : "选择步骤后执行"}
+              {active
+                ? `${active.number} · ${active.name}`
+                : scene
+                  ? "场景已就绪"
+                  : "选择步骤后执行"}
             </strong>
             <span>
               {phase}{" "}
@@ -338,7 +373,9 @@ export function PreviewPanel({
           )}
         </>
       ) : (
-        <div className="wb-preview-empty">载入场景列表，预览灯光变化</div>
+        <div className="wb-preview-empty">
+          {scene ? "载入当前场景，预览灯光效果" : "载入场景列表，预览灯光变化"}
+        </div>
       )}
     </section>
   );

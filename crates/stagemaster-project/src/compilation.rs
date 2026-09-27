@@ -115,10 +115,32 @@ impl Document {
             .iter()
             .find(|s| s["id"] == sequence_id)
             .ok_or("场景列表不存在")?;
+        self.compile_steps(sequence)
+    }
+    /// Compile a scene as one held step using the same execution semantics as a list.
+    /// # Errors
+    /// Refuses missing scenes, unsupported patches and execution budget violations.
+    pub fn compile_scene(&self, scene_id: &str) -> Result<CompiledSequence, String> {
+        let scene = array(&self.root["lighting"], "scenes")
+            .iter()
+            .find(|scene| scene["id"] == scene_id)
+            .ok_or("场景不存在")?;
+        let sequence = serde_json::json!({
+            "id":scene_id,"name":scene["name"],"tracking":"isolated","repeat":"once",
+            "steps":[{"id":scene_id,"name":scene["name"],"number":"1","sceneId":scene_id,
+            "delay":{"ticks":"0","ticksPerSecond":"1000"},"fade":{"ticks":"0","ticksPerSecond":"1000"},
+            "advance":{"kind":"manual"}}]
+        });
+        self.compile_steps(&sequence)
+    }
+    fn compile_steps(&self, sequence: &serde_json::Value) -> Result<CompiledSequence, String> {
+        let root = &self.root;
         let (output, defaults, targets) = compile_output(root)?;
         let view = self.view();
         let mut previous = defaults.clone();
         let mut steps = Vec::new();
+        let mut effects = Vec::new();
+        let mut effect_count = 0;
         for step in array(sequence, "steps") {
             let mut target = if sequence["tracking"] == "isolated" {
                 defaults.clone()
@@ -145,6 +167,12 @@ impl Document {
                 };
             }
             previous.clone_from(&target);
+            let channels = crate::effects::compile(&scene.effects, &targets)?;
+            effect_count += channels.len();
+            if effect_count > stagemaster_playback::MAX_EFFECT_CHANNELS {
+                return Err("列表的动态效果超出计划容量，请缩小列表".into());
+            }
+            effects.push(channels);
             steps.push(Step {
                 target,
                 delay_ms: crate::sequence::duration_ms(&step["delay"])?,
@@ -162,7 +190,7 @@ impl Document {
             }
         }
         Ok(CompiledSequence {
-            plan: Plan::new(defaults, steps, sequence["repeat"] == "loop")?,
+            plan: Plan::with_effects(defaults, steps, sequence["repeat"] == "loop", effects)?,
             output,
             id: text(sequence, "id").into(),
             name: text(sequence, "name").into(),

@@ -42,6 +42,8 @@ import {
 } from "./components/stage/StageWorkspace";
 import { ResourcePool } from "./components/workbench/ResourcePool";
 import { PrevisPanel } from "./components/stage/PrevisPanel";
+import { EffectRack } from "./components/workbench/EffectRack";
+import { PreviewPanel } from "./components/workbench/PreviewPanel";
 
 const EMPTY: Snapshot = {
   generation: 0,
@@ -822,6 +824,23 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     )}
                   </div>
                 ))}
+              {page === "scenes" && activeScene && <>
+                <EffectRack key={activeScene.id} scene={activeScene} fixtures={project.fixtures} selected={selected}
+                  busy={busy} error={error} beforeChange={() => run(async () => {})}
+                  onEdit={commands => run(async () => {
+                    await edit({ op: "batch", commands });
+                    setNotice("效果已更新，可撤销恢复；重新载入预览可查看变化");
+                  })} />
+                <PreviewPanel host={host} scene={activeScene} stepId={activeScene.id} generation={snapshot.generation}
+                  busy={busy} beforeAction={() => run(async () => {})} visible={page === "scenes"}
+                  onView3d={() => { void run(async () => {
+                    await host.previs({ kind: "source", generation: current.current.generation, source: { kind: "playback" } });
+                    const status = await host.previs({ kind: "status" });
+                    if (!status.enabled) await host.previs({ kind: "enable" });
+                    stage.current?.showPrevis();
+                    setPage("stage");
+                  }); }} />
+              </>}
               <ResourcePool
                 key={project.id}
                 project={project}

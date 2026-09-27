@@ -4,15 +4,16 @@
 
 ## 当前任务
 
-- [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 是当前 goal：真实空间／灯位、桌面布置、Rust 权威状态到独立 UE 预演闭环。ADR-016 锁定摇头灯边界，ADR-017 定义空间持久化，ADR-018 的中立投影及本机桥已实现并经 120 项 Rust 回归。UE 5.8.3 已安装，Mac 编辑器因缺少完整 Xcode 退出；真实 UE 消费端、桌面入口／草稿冲突和三维运行验收继续，目标未完成。
+- [EFFECT-001](tasks/EFFECT-001-basic-effects.md) 已完成首批真实动态效果：亮度呼吸／追逐、双色循环、灯序／相位、保存历史、单场景及列表共享播放、应用内三维监看。按 [ADR-021](decisions/PRODUCT-ADR-021-lighting-effects.md) 保持 Rust 唯一求值；137 项 Rust、41 项 UI、63 项格式检查和原生编辑／保存／三维验证通过。下一增量优先细化关键帧、速度控制与效果资源复用；摇头效果先完成档案、运动求解和校准依赖。
+- [PREVIS-001](tasks/PREVIS-001-real-stage-preview.md) 首个真实闭环已完成：Xcode 26.1.1／UE 5.8.3 工作，独立 UE 在程序内部呈现，空间／灯位编辑与播放联动已验收。[UX-013](tasks/UX-013-modeling-workflow.md) 已补尺寸建模、对象层级、画布缩放和三维剖视。后续光学、规模性能与客户独立打包仍需实测。
 
 - [PLAN-001](tasks/PLAN-001-capability-adoption.md) 将成熟能力汇总为[统一落地表](../product-capability-plan.md)：后续主动检查必要功能、模块归属与验收缺口。它是能力导航，不新增一套排期；相关边界随具体任务落实，当前可见编辑及首次软硬件交付顺序继续有效。
 - 用户最新澄清当前没有 iPad，仍以 MacBook 设计、开发和验收；未来 iPad 主力定位只要求提前准备。按修订后的 [ADR-008](decisions/PRODUCT-ADR-008-ipad-primary-authoring.md) 保持共享命令、可适配布局、宿主与渲染边界，不前置移动宿主实施／真机验证，不等待设备型号。
 - DEV-005、UX-003／004 已完成；用户曾认可舞台画布／时间线，DESKTOP-001 后要求重新定义主界面与效果编辑。当前优先级以 [ADR-007](decisions/PRODUCT-ADR-007-effect-editing-first.md) 为准；G0 按开发基础范围结项，CORE-001／002 修复保留。
 - [HW-001](tasks/HW-001-first-player-baseline.md) 已完成范围和资料评估：首版同时交付软件与独立播放盒，现有微雪 ESP32-S3-RS485-CAN、1 路 DMX。
 - [HW-002](tasks/HW-002-project-segments.md) 已比较工程内容、存储与传输：主机生成自包含播放包；整场或片段由实际预算决定；原传输排序由 [ADR-014](decisions/PRODUCT-ADR-014-device-link-probe.md) 更新：用户要求 GATT 直连先行，PLAYER-002A 已实测；USB 保留开发恢复，执行包／安装服务与具体传输分开。
-- [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例及 49 项开发期检查，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；最小灯光子集已随 DESKTOP-001 接入 Rust 读写，执行尚未接入。
-- 可见增量优先：[DESKTOP-001](tasks/DESKTOP-001-visible-workbench.md) 已完成真实灯光工程编辑与保存重开；[UX-006](tasks/UX-006-effect-editor-design.md) 已交付交互设计和三张桌面视觉参考，继续按 MacBook 收敛主界面、效果编辑与三维拖动。用户后续已授权真实业务增量；继续按[编排端迭代计划](desktop-iteration-plan.md)把已有能力接到新工作区，再推进 PROJECT-001 场景列表／时间线与 PLAYER-001 Rust 播放。UE 空间搭建和专业预演沿用独立后端方向；iPad 留作后续适配，不阻塞当前任务。正式入口不增加演示数据、教学展板或空壳功能。
+- [PROJECT-001A](tasks/PROJECT-001A-format-design.md) 已完成声光电与互动机构格式草案、Schema、样例，设计边界见 [PRODUCT-ADR-005](decisions/PRODUCT-ADR-005-multidomain-project-format.md)；灯光编辑、保存、列表编译／播放、空间和基础动态效果已接入，媒体与机构执行仍未实现。
+- 可见增量优先：DESKTOP-001–004 已完成灯光工程、灯组／预设、列表和播放；空间、三维、基础效果继续依实际反馈加深。按[编排端迭代计划](desktop-iteration-plan.md)逐步补真实时间线、自定义灯具和专业编排；正式入口不增加演示数据、教学展板或空壳功能。当前按 MacBook 验收，iPad 留作后续适配。
 
 ## 软件先行与硬件承接
 
