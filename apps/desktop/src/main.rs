@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod check;
+mod device;
 mod package;
 mod preview;
 mod previs;
@@ -135,6 +136,9 @@ fn main() {
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
         .manage(package::Service::default())
+        .manage(device::Connections::new(
+            stagemaster_device_host::Ble::default(),
+        ))
         .setup(|app| {
             app.manage(recovery::Service::new(recovery::directory(app)?));
             Ok(())
@@ -194,12 +198,18 @@ fn main() {
             package::package_build,
             package::package_export,
             recovery::recovery_request,
+            device::device_request,
             previs::previs_request
         ])
         .build(tauri::generate_context!())
         .expect("舞台大师桌面应用启动失败")
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
+                if let Err(error) =
+                    tauri::async_runtime::block_on(app.state::<device::Connections>().shutdown())
+                {
+                    eprintln!("设备连接退出清理：{error}");
+                }
                 tauri::async_runtime::block_on(app.state::<previs::Bridge>().close());
             }
             if let tauri::RunEvent::ExitRequested {

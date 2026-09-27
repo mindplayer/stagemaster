@@ -4,6 +4,7 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      device: (request) => invoke("device_request", { request }),
       recovery: (request) => invoke("recovery_request", { request }),
       buildPackage: (generation, selection) =>
         invoke("package_build", { generation, selection }),
@@ -17,6 +18,9 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      device: async () => {
+        throw new Error("请使用桌面应用连接蓝牙设备");
+      },
       recovery: async () => {
         throw new Error("请使用桌面应用恢复工程");
       },

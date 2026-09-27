@@ -1,4 +1,5 @@
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
+import { DeviceCenter } from "./components/devices/DeviceCenter";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
 import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
@@ -675,6 +676,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           </div>
         )}
         <div className="wb-file-actions">
+          <DeviceCenter host={host} />
           <button
             title="新建工程（⌘N / Ctrl+N）"
             disabled={busy || host.kind !== "desktop"}

@@ -11,6 +11,7 @@ const unavailable = async () => {
 };
 const host: ApplicationHost = {
   kind: "desktop",
+  device: unavailable,
   buildPackage: async () =>
     new Promise((resolve) => {
       finish = resolve;

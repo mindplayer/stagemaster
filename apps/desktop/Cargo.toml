@@ -9,6 +9,7 @@ license.workspace = true
 tauri-build = { version = "=2.6.3", features = [] }
 
 [dependencies]
+stagemaster-device-host = { path = "../../crates/stagemaster-device-host" }
 axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
 tokio = { version = "=1.53.1", features = ["net", "sync", "time"] }
 uuid = { version = "=1.26.1", features = ["v4"] }

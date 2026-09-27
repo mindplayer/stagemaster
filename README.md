@@ -6,6 +6,8 @@
 
 当前开发入口：
 
+- [设备连接工作台](docs/module-api/device-connection.md)：DEVICE-001 正在验收；正式应用接入原生蓝牙搜索／连接／取消、独立保活与诊断状态，跨页面保持上下文。真实蓝牙会话待 macOS 权限确认，不包含设备安装或播放控制。
+
 - [独立设备运行层](docs/module-api/device-runtime.md)：PLAYER-003E 接通节目选择／载入／执行、暂停／继续／停止、控制租约和维护互斥；断线继续和重复请求通过软件验收，ESP32 完整构建通过，实板运行仍待验证。
 - [NOR 播放包存储与设备预算](docs/module-api/nor-package-store.md)：PLAYER-003D 接入双槽恢复、读源保护及 ESP32 完整驱动构建／分区检查；当前为本地只读准备镜像，实板擦写和安装尚未验收。
 - [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，NOR 适配已补，正式蓝牙安装和实板验收继续推进。
