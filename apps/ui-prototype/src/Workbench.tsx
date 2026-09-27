@@ -1,4 +1,8 @@
 import {
+  PositionPanel,
+  type PositionHandle,
+} from "./components/fixtures/PositionPanel";
+import {
   ProfileWorkspace,
   type ProfileHandle,
 } from "./components/fixtures/ProfileWorkspace";
@@ -120,6 +124,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const pendingRef = useRef(false);
   const [parameterPending, setParameterPending] = useState(false);
   const parameters = useRef<ParameterHandle>(null);
+  const positions = useRef<PositionHandle>(null);
+  const [positionPending, setPositionPending] = useState(false);
   const sequences = useRef<SequenceHandle>(null);
   const stage = useRef<StageHandle>(null);
   const [stagePending, setStagePending] = useState(false);
@@ -143,6 +149,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const dirty =
     snapshot.dirty ||
     pending ||
+    positionPending ||
     parameterPending ||
     sequencePending ||
     stagePending ||
@@ -228,6 +235,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       }
     }
     commands.push(...(parameters.current?.collect() ?? []));
+    commands.push(...(positions.current?.collect() ?? []));
     commands.push(...(sequences.current?.collect() ?? []));
     commands.push(...(stage.current?.collect() ?? []));
     commands.push(...(profiles.current?.collect() ?? []));
@@ -241,6 +249,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       throw new Error("一次最多修改 256 项，请先应用部分修改");
     await edit({ op: "batch", commands });
     parameters.current?.accept();
+    positions.current?.accept();
     sequences.current?.accept();
     stage.current?.accept();
     profiles.current?.accept();
@@ -321,6 +330,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         setPatchId("");
         setPatchSelection([]);
         setProfilePending(false);
+        setPositionPending(false);
         setSceneId(next.project.scenes[0]?.id ?? "");
         setSelectedIds([]);
         setPatchQuery("");
@@ -565,6 +575,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               (!snapshot.canUndo &&
                 !pending &&
                 !parameterPending &&
+                !positionPending &&
                 !sequencePending)
             }
             onClick={() => history(false)}
@@ -578,6 +589,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               busy ||
               !snapshot.canRedo ||
               pending ||
+              positionPending ||
               parameterPending ||
               sequencePending
             }
@@ -1025,6 +1037,26 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             </section>
             <div className="wb-properties">
               {page === "scenes" && activeScene && (
+                <PositionPanel
+                  key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
+                  ref={positions}
+                  project={project}
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
+                  )}
+                  scene={activeScene}
+                  busy={busy}
+                  onPending={(value) => {
+                    setPositionPending(value);
+                    if (!value) setError("");
+                  }}
+                  onApply={() => {
+                    void run(async () => {});
+                  }}
+                  beforeChange={() => run(async () => {})}
+                />
+              )}
+              {page === "scenes" && activeScene && (
                 <ParameterPanel
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
@@ -1085,6 +1117,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 : error
                   ? "修改未完成"
                   : pending ||
+                      positionPending ||
                       parameterPending ||
                       sequencePending ||
                       profilePending

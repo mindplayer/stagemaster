@@ -5,6 +5,7 @@ import type {
   ProjectView,
 } from "../../application-host";
 import {
+  withMotion,
   FixtureFieldError,
   channelLabels,
   profileDefinition,
@@ -297,9 +298,16 @@ export const ProfileWorkspace = forwardRef<
                           name="family"
                           aria-label="功能组合"
                           value={
-                            value.channels.length === 1
+                            value.channels.filter(
+                              (c) =>
+                                c.attribute !== "pan" && c.attribute !== "tilt",
+                            ).length === 1
                               ? "dimmer"
-                              : value.channels.length === 3
+                              : value.channels.filter(
+                                    (c) =>
+                                      c.attribute !== "pan" &&
+                                      c.attribute !== "tilt",
+                                  ).length === 3
                                 ? "rgb"
                                 : "rgbd"
                           }
@@ -310,7 +318,7 @@ export const ProfileWorkspace = forwardRef<
                                 : e.target.value === "rgb"
                                   ? ["red", "green", "blue"]
                                   : ["dimmer", "red", "green", "blue"];
-                            setDraft({
+                            const next: ProfileDraft = {
                               ...value,
                               footprint: String(keys.length),
                               channels: keys.map((attribute, i) => ({
@@ -320,7 +328,12 @@ export const ProfileWorkspace = forwardRef<
                                 bits: "8",
                                 percent: "0",
                               })),
-                            });
+                            };
+                            const physical = value.positioning;
+                            const moved = physical
+                              ? withMotion(next, true)
+                              : next;
+                            setDraft({ ...moved, positioning: physical });
                           }}
                         >
                           <option value="dimmer">调光</option>
@@ -329,6 +342,80 @@ export const ProfileWorkspace = forwardRef<
                         </select>
                       </label>
                     </div>
+                    <label className="profile-motion-toggle">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(value.positioning)}
+                        onChange={(e) =>
+                          setDraft(withMotion(value, e.target.checked))
+                        }
+                      />
+                      两轴摇头灯
+                    </label>
+                    {value.positioning && (
+                      <section className="profile-motion">
+                        <h3>轴行程与输出方向</h3>
+                        <p className="wb-dim">
+                          按厂家通道表填写物理角度。零角光束沿灯具局部下方；安装朝向在舞台设置。此模型仅支持相交正交两轴。
+                        </p>
+                        {(["pan", "tilt"] as const).map((axis) => (
+                          <div key={axis} className="profile-meta">
+                            {(["minDegrees", "maxDegrees"] as const).map(
+                              (key) => (
+                                <label key={key}>
+                                  {channelLabels[axis]}
+                                  {key === "minDegrees" ? "最小" : "最大"}
+                                  角度（°）
+                                  <input
+                                    name={`${axis}-${key}`}
+                                    aria-label={`${channelLabels[axis]}${key === "minDegrees" ? "最小" : "最大"}角度`}
+                                    value={value.positioning![axis][key]}
+                                    onChange={(e) =>
+                                      setDraft({
+                                        ...value,
+                                        positioning: {
+                                          ...value.positioning!,
+                                          [axis]: {
+                                            ...value.positioning![axis],
+                                            [key]: e.target.value,
+                                          },
+                                        },
+                                      })
+                                    }
+                                  />
+                                </label>
+                              ),
+                            )}
+                            <label>
+                              {channelLabels[axis]}输出映射
+                              <select
+                                aria-label={`${channelLabels[axis]}输出映射`}
+                                value={
+                                  value.positioning![axis].reversed
+                                    ? "reverse"
+                                    : "forward"
+                                }
+                                onChange={(e) =>
+                                  setDraft({
+                                    ...value,
+                                    positioning: {
+                                      ...value.positioning!,
+                                      [axis]: {
+                                        ...value.positioning![axis],
+                                        reversed: e.target.value === "reverse",
+                                      },
+                                    },
+                                  })
+                                }
+                              >
+                                <option value="forward">低值 → 最小角度</option>
+                                <option value="reverse">低值 → 最大角度</option>
+                              </select>
+                            </label>
+                          </div>
+                        ))}
+                      </section>
+                    )}
                     <h3>属性与物理通道</h3>
                     <div className="profile-channels">
                       {value.channels.map((c, i) => {
@@ -392,7 +479,7 @@ export const ProfileWorkspace = forwardRef<
                   </fieldset>
                   <p className="wb-dim">
                     未映射通道输出 0。仅适用于全范围线性调光和
-                    RGB；频闪、复位、色盘和电机需专用定义。
+                    RGB，以及已定义行程的水平／垂直轴；频闪、复位、色盘和外部电机需专用定义。
                   </p>
                   <ChannelStrip draft={value} />
                 </>

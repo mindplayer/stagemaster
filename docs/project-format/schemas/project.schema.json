@@ -638,6 +638,9 @@
           },
           "minItems": 1,
           "maxItems": 512
+        },
+        "positioning": {
+          "$ref": "#/$defs/PositionModel"
         }
       },
       "required": [
@@ -669,6 +672,9 @@
         },
         "domainId": {
           "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "zeroCorrection": {
+          "$ref": "#/$defs/FixtureZero"
         }
       },
       "required": [
@@ -2997,6 +3003,62 @@
       "required": [
         "fixtureId",
         "constructionId"
+      ],
+      "additionalProperties": false
+    },
+    "PositionAxis": {
+      "type": "object",
+      "properties": {
+        "minDegrees": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "maxDegrees": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "reversed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "minDegrees",
+        "maxDegrees",
+        "reversed"
+      ],
+      "additionalProperties": false
+    },
+    "PositionModel": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "intersectingOrthogonal"
+        },
+        "pan": {
+          "$ref": "#/$defs/PositionAxis"
+        },
+        "tilt": {
+          "$ref": "#/$defs/PositionAxis"
+        }
+      },
+      "required": [
+        "kind",
+        "pan",
+        "tilt"
+      ],
+      "additionalProperties": false
+    },
+    "FixtureZero": {
+      "type": "object",
+      "properties": {
+        "panDegrees": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        },
+        "tiltDegrees": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+        }
+      },
+      "required": [
+        "panDegrees",
+        "tiltDegrees"
       ],
       "additionalProperties": false
     }

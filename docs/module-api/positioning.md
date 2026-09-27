@@ -1,6 +1,6 @@
 # 位置求解模块
 
-2026-09-27；PREVIS-001；依据 [ADR-016](../development/decisions/PRODUCT-ADR-016-previsualization-and-positioning.md)。以下静态接口已经有 Rust 实现和保护测试；尚未接灯具档案、场景、设备输出或 UE。自动校准和运动轨迹不是已实现能力。
+2026-09-28；POSITION-001；依据 [ADR-016](../development/decisions/PRODUCT-ADR-016-previsualization-and-positioning.md) 与 [ADR-025](../development/decisions/PRODUCT-ADR-025-moving-head-workflow.md)。Rust 静态求解已接入工程档案、场景轴角、既有编译器和内嵌 UE 姿态。没有真实设备输出、自动校准或连续目标轨迹。
 
 ## 已实现接口
 
@@ -27,11 +27,38 @@ let emitted_ray = model.ray(installation, solution.angles)?;
 | `JointAngles` | 档案解码出的物理角，尚未加实例零偏；不是 0–100% |
 | `solve(..., previous, branch)` | 显式上次设定角、可选解分支；选轴角欧氏行程最小的静态可达解，不持有隐藏历史 |
 | `Solution` | 展开角、前／后解分支、奇点标记和垂直于射线的米制残差；不代表实灯反馈或无碰撞轨迹 |
+| `pose(...)` | 安装底座、水平支架和灯头的世界 +X／+Z 基向量，以及同一光束方向；不包含 UE 类型 |
 | `ray(...)` | 同一份正向计算，给渲染器出光方向；底座／灯体显示也须使用一致姿态 |
 
 模型**明确限于相交、正交两轴，轴心兼出光原点**：水平绕局部 +Z、垂直绕随水平转动的 +X，修正后双轴为零时光束沿局部 -Z。与 GDTF 几何基准不同的档案必须由适配器明确转换；有轴距、出光口偏心、多头／多轴或连续旋转功能的档案不能直接声称适用。
 
 参数先检查有限性与范围。精确轴向目标保持调用方给出的水平角并标记奇点；目标在轴心、非法输入、行程不可达分别返回错误。机械边界只修正不超过 `1e-10°` 的数值舍入，并再次正向验证；不把不能到达的目标夹到边界。
+
+## 工程和编辑接口（已实现）
+
+`Profile.positioning` 是可选的 `{kind:"intersectingOrthogonal",pan:PositionAxis,tilt:PositionAxis}`；`PositionAxis` 包含十进制字符串 `minDegrees/maxDegrees` 和独立 `reversed`。两轴分别限于 ±3600°、最小值严格小于最大值，必须有 normalized／LTP 属性和实际通道映射。增加此字段必须声明 `lighting.positioning@1`，旧应用拒绝未知能力；旧固定灯工程无需新增字段。
+
+`Fixture.zeroCorrection` 是可选的 `{panDegrees,tiltDegrees}`，均为 ±360° 内十进制字符串，作用于单灯全部场景。它只是手工零偏，没有测量、拟合和实灯校准精度承诺。安装位置和旋转仍在 `stage.placements`，与零偏、DMX 输出反向分别归属。
+
+```ts
+type PositionCommand =
+  | {op:"axes"; sceneId:string; fixtureIds:string[];
+      panDegrees:string|null; tiltDegrees:string|null}
+  | {op:"aim"; sceneId:string; fixtureIds:string[];
+      targetMeters:{x:string;y:string;z:string}; branch:"front"|"back"|null}
+  | {op:"home"; sceneId:string; fixtureIds:string[]}
+  | {op:"calibrate"; fixtureId:string;
+      correction:{panDegrees:string;tiltDegrees:string}|null};
+// project_request：{kind:"edit",generation,command:{op:"position",command}}
+```
+
+- Rust `Document::edit` 管理校验和写入，`Document::position_model` 提供只读档案。选择 1–128 台唯一灯具；UI 不求逆解。批次先逐灯求解，任一缺灯位、不可达或范围错误均不写入工程。错误携带灯名，Session 统一历史、保存和预览失效。
+- `axes` 至少填写一轴，未填写的轴保持；`home` 将档案两轴默认值记录进当前场景，不动光色、不发送设备复位。
+- `aim` 输入世界坐标米，逐灯使用安装、零偏、行程和当前场景值／预设／默认值选解。结果写回场景两轴整数；不持久保存目标点，后续移动灯位不会自动追踪。分支约束不可达时拒绝，不强行夹到边界。
+- 原有归一化整数仍为唯一播放值。16 位按 65535、8 位按编码器高字节／255 解码；角度输入就近量化。反向只作用于映射一次，零偏只在运动变换应用一次。预演读实际量化值，不假装八位灯有十六位精度。
+- “释放位置／清除位置”复用原子批次内的两轴 `setSceneValue`，分别结束列表跟踪／删除本场景记录。清除在继承列表中可能沿用前一场景值；不是回默认值。场景间仍按轴角渐变，不保证光点沿世界直线移动。
+- 换档案除属性语义一致外，还必须有相同运动定义；不同物理范围／反向的换灯暂拒绝，避免已有场景值被静默解释成另一个位置。
+- UE 通过中立姿态显示独立底座、支架和灯头，直接使用 Rust 出光方向；关节为通用形状，不是型号尺寸、碰撞或光学仿真。见[预演协议](previsualization.md)。
 
 ## 后续产品接口边界（尚未实现）
 
@@ -41,7 +68,7 @@ let emitted_ray = model.ray(installation, solution.angles)?;
 
 `PositionTrajectoryCompiler` 负责轴锁定、分支连续性、角行程、已知速度／加速度和明确的黑场移动策略。静态解靠近上一帧不保证穿越奇点时路径平滑；不得直接每帧调用当前 `solve` 就称为专业跟随。实时硬件输出需要经过该层与控制权检查。
 
-`FixtureEncoder` 负责功能段、粗细地址、物理角与原始值转换。直接轴角操作、定位状态、机械复位、停放策略分别发出明确命令。翻转操作和退出空间指向都要显示影响并单次撤销；仅改变观察视角不能写工程。
+`FixtureEncoder` 的线性粗细编码和工程物理角映射已接通；功能段和完整型号转换仍待扩展。直接轴角操作、定位状态、机械复位、停放策略分别发出明确命令。翻转操作和退出空间指向都要显示影响并单次撤销；仅改变观察视角不能写工程。
 
 ## 验证
 

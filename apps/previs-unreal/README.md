@@ -2,6 +2,8 @@
 
 此模块消费 Rust 生成的空间和灯光状态，在舞台大师“舞台 → 三维预演”内部显示。工程、播放时钟和真实输出均不归 UE 管理。接口见 [预演契约](../../docs/module-api/previsualization.md)，接入决策见 [ADR-019](../../docs/development/decisions/PRODUCT-ADR-019-embedded-previsualization.md)。
 
+协议 2 接入 Rust 量化后的两轴姿态，独立显示底座／水平支架／垂直灯头。支持场景静态指向和列表轴角渐变；通用网格不代表真实灯具尺寸，未实现图案盘、物理光度或自动校准。详见 [POSITION-001](../../docs/development/tasks/POSITION-001-moving-head-workflow.md)。
+
 当前开发环境已验证 macOS / Apple Silicon、UE 5.8.3、Xcode 26.1.1 和 Metal 工具链 17B54。UE 开发组件在后台离屏运行；客户独立安装包尚未完成。官方灯具资源随已安装引擎加载，不将 Epic 的资源文件复制进 Git。详见[资源清单](../../docs/previsualization-library.md)。
 
 从仓库根目录安装锁定的信令依赖、构建开发适配器：

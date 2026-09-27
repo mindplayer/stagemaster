@@ -141,6 +141,15 @@ export function auditProject(p) {
   };
   const domain = (id, kind) => assert(get(id, 'domain').kind === kind, `执行域种类不符：${id}`);
   for (const profile of p.lighting?.profiles ?? []) {
+    if (profile.positioning) {
+      assert(declared.has('lighting.positioning@1'), '缺少摇头灯位置能力声明');
+      for (const key of ['pan','tilt']) {
+        const a=profile.positioning[key], min=Number(a.minDegrees), max=Number(a.maxDegrees);
+        assert(Number.isFinite(min)&&Number.isFinite(max)&&min>=-3600&&max<=3600&&min<max, '两轴物理范围无效');
+        assert(profile.attributes.some(a=>a.key===key&&a.mix==='ltp'&&a.valueType.kind==='normalized'), '两轴模型缺少 LTP 位置属性');
+        assert(profile.channels.some(c=>c.attribute===key), '位置属性缺少通道映射');
+      }
+    }
     if (profile.sourceResourceId) get(profile.sourceResourceId, 'resource');
     unique(profile.attributes.map(a => a.key), '档案属性');
     const offsets = [];
@@ -152,7 +161,13 @@ export function auditProject(p) {
     }
     unique(offsets, '档案通道偏移'); unique(profile.channels.map(c => c.attribute), '属性通道映射');
   }
-  for (const f of p.lighting?.fixtures ?? []) { get(f.profileId, 'profile'); domain(f.domainId, 'lighting'); }
+  for (const f of p.lighting?.fixtures ?? []) {
+    const profile=get(f.profileId,'profile'); domain(f.domainId,'lighting');
+    if(f.zeroCorrection) {
+      assert(profile.positioning && declared.has('lighting.positioning@1'),'零偏需要两轴灯具及能力声明');
+      assert(Object.values(f.zeroCorrection).every(v=>Number.isFinite(Number(v))&&Math.abs(Number(v))<=360),'零偏超出范围');
+    }
+  }
   for (const g of p.lighting?.groups ?? []) g.fixtureIds.forEach(id => get(id, 'fixture'));
   for (const preset of p.lighting?.presets ?? []) {
     unique(preset.values.map(a => `${a.target.fixtureId}/${a.target.attribute}`), '预设属性');

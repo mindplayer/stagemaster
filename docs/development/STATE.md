@@ -1,9 +1,11 @@
 # 当前开发状态
 
-更新：2026-09-27。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
+更新：2026-09-28。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。
+
+已完成 [POSITION-001](tasks/POSITION-001-moving-head-workflow.md)：基线 `0d2b47d`，结果为本次 `feat(position): integrate moving-head aiming and articulated preview` 提交。按 [ADR-025](decisions/PRODUCT-ADR-025-moving-head-workflow.md) 接入两轴档案范围／反向、手工单灯零偏、场景角度／默认位置／共同世界点静态对焦、释放／清除和运动定义换灯保护。Rust 求解与 DMX 量化共用，UE 协议 2 显示独立底座／支架／灯头；修复实测旋转浮点分量越 1 的误拒绝。165 Rust／66 UI／78 格式／4 UE、类型／fmt／严格 Clippy／双端构建通过；原生批量原子历史、错误恢复、保存重开、建档与内嵌姿态／暂停恢复已验收。见[运行接口](../module-api/positioning.md)。仍无持续目标跟随、真实光学／非相交轴／轮盘或现场 DMX；原用户未保存窗口保留，辅助树反复切换问题仍需专项修复。
 
 已完成 [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md)：基线 `a92e5cb`，结果为本次 `feat(fixtures): add profile authoring and safe batch patch workflows` 提交。主动审查后优先补真实灯具接入：工程灯库、8/16 位粗细通道／默认值、使用中模式保护、保留编排与灯位的显式换灯、有序批量配适、占用图与可用地址建议。独立 Rust fixture 模块复用格式／编码／原子历史，见[接口](../module-api/fixture-authoring.md)。160 Rust／62 UI／73 格式、类型／fmt／严格 Clippy／桌面构建与原生错误恢复、撤销、保存重开、内嵌 UE 动态预演通过。当前仅调光／完整 RGB 线性建档；复杂摇头灯、播放盒 DMX、恢复与开演检查按[主动审查](tasks/FIXTURE-002-workflow-audit.md)推进，未将规划当实现。原用户未保存窗口保持运行。
 
@@ -61,6 +63,7 @@
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [POSITION-001](tasks/POSITION-001-moving-head-workflow.md) | done（两轴位置闭环） | 档案／零偏、静态共同对焦、原子历史、量化编码、UE 独立关节、保存重开与播放暂停恢复通过；空间轨迹／复杂关节／实灯后续 |
 | [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md) | done（灯库／配适） | 三种线性属性组合、粗细映射、模式保护／换灯、批量改址与占用、原子历史／保存重开、内嵌动态预演通过；复杂档案与实灯后续 |
 | [STAGE-001](tasks/STAGE-001-rigging-workflow.md) | done（场地装配） | 六项工作流、统一历史／保存、内嵌 UE 场地与光束同步通过；复杂吊点、承载计算与三维直接组操作后续 |
 | [UX-014](tasks/UX-014-fixture-arrangement.md) | done（灯位布置） | 多选／组拖动、五类排列调整、灯序／搜索、一次历史与保存重开通过；三维接已应用灯位，直接拖动仍单灯 |

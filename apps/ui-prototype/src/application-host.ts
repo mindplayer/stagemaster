@@ -1,3 +1,8 @@
+import type {
+  PositionEdit,
+  PositionModel,
+  FixtureZero,
+} from "./position-types";
 import type { FixtureEdit, ProfileView } from "./fixture-types";
 import type { StageEdit, StageView } from "./stage-types";
 import type { EffectEdit, SceneEffect } from "./effect-types";
@@ -16,6 +21,7 @@ import type {
 export type EditCommand =
   EditOperation | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "position"; command: PositionEdit }
   | { op: "fixture"; command: FixtureEdit }
   | { op: "effect"; command: EffectEdit }
   | { op: "stage"; command: StageEdit }
@@ -51,6 +57,8 @@ export type EditOperation =
       value: number;
     };
 export interface FixtureView {
+  positioning?: PositionModel | null;
+  zeroCorrection?: FixtureZero | null;
   profileId: string;
   id: string;
   name: string;

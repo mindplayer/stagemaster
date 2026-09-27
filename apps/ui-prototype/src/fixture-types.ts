@@ -1,3 +1,4 @@
+import type { PositionModel } from "./position-types";
 export interface ProfileChannel {
   attribute: string;
   coarse: number;
@@ -5,6 +6,7 @@ export interface ProfileChannel {
   defaultValue: number;
 }
 export interface ProfileDefinition {
+  positioning?: PositionModel | null;
   name: string;
   manufacturer: string;
   model: string;

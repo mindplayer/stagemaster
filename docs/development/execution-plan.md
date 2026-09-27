@@ -1,8 +1,11 @@
 # 当前执行计划
 
-更新：2026-09-27。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
+更新：2026-09-28。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
 
 ## 当前任务
+
+- [POSITION-001](tasks/POSITION-001-moving-head-workflow.md) 已完成相交正交两轴模型、独立范围／反向、手工零偏、角度／默认位置／共同点静态对焦、释放／清除与 UE 关节预演。165 Rust／66 UI／78 格式／4 UE、严格检查和原生保存重开／60 秒渐变暂停恢复通过；底座与运动解耦。后续先改善编排与三维的操作衔接；持续目标／相对运动、真实光学及硬件输出仍另行验收。
+- [FIXTURE-002](tasks/FIXTURE-002-profiles-patch.md) 已完成工程灯库与批量配适，档案通道和运动定义保持核心校验；通用分段功能和标准灯库导入后续。
 
 - [STAGE-001](tasks/STAGE-001-rigging-workflow.md) 已完成场地装配功能组：桁架／灯杆、批量挂灯、关联平移旋转升降、解除／删除保护、按支撑体选灯、平面测距；同一场地在内嵌 UE 展示。153 Rust／56 UI／73 格式及原生编辑、撤销、保存重开、UE 场地与光束同步通过。后续复杂吊点、门洞、观众区和三维直接组变换分模块扩展。
 

@@ -97,15 +97,33 @@ bool ReadFixture(const TSharedPtr<FJsonObject>& Object, FFixture& Out)
     double Angle = 0;
     FString Optics, PlacementId;
     if (!Text(Object, TEXT("id"), Out.Id) || !Text(Object, TEXT("name"), Out.Name) ||
-        !TripleField(Object, TEXT("originMeters"), Origin, 100000) || !TripleField(Object, TEXT("direction"), Direction, 1.0) ||
+        !TripleField(Object, TEXT("originMeters"), Origin, 100000) || !TripleField(Object, TEXT("direction"), Direction, 1.0 + 1e-9) ||
         !Object->TryGetNumberField(TEXT("fullBeamAngleDegrees"), Angle) || !FMath::IsFinite(Angle) || Angle <= 0 || Angle >= 179 ||
         !Text(Object, TEXT("optics"), Optics) || Optics != TEXT("generic-illustrative") ||
         !ObjectField(Object, TEXT("placement"), Out.Placement) || !Text(Out.Placement, TEXT("fixtureId"), PlacementId) || PlacementId != Out.Id ||
         FMath::Abs(Direction.SizeSquared() - 1) > 0.001) return false;
+    if (Object->HasField(TEXT("moving")) && !Object->TryGetBoolField(TEXT("moving"), Out.Moving)) return false;
     Out.Origin = ToUnreal(Origin);
     Out.Direction = FVector(Direction.X, -Direction.Y, Direction.Z).GetSafeNormal();
     Out.BeamAngle = static_cast<float>(Angle);
     return true;
+}
+// Rotation composition can produce a unit component a few ulps above one.
+// Tolerance applies only to directions, never colors, levels or coordinates.
+bool Basis(const TSharedPtr<FJsonObject>& Object, const TCHAR* Key, FVector& X, FVector& Z)
+{
+    const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+    if (!Array(Object, Key, Values, 2) || Values->Num() != 2 || !Triple((*Values)[0], X, 1.0 + 1e-9) || !Triple((*Values)[1], Z, 1.0 + 1e-9) ||
+        FMath::Abs(X.SizeSquared()-1)>0.001 || FMath::Abs(Z.SizeSquared()-1)>0.001 || FMath::Abs(FVector::DotProduct(X,Z))>0.001) return false;
+    X.Y *= -1; Z.Y *= -1;
+    return true;
+}
+bool ReadPose(const TSharedPtr<FJsonObject>& Data, FJointPose& Pose)
+{
+    if (!Basis(Data,TEXT("base"),Pose.BaseX,Pose.BaseZ) || !Basis(Data,TEXT("pan"),Pose.PanX,Pose.PanZ) ||
+        !Basis(Data,TEXT("head"),Pose.HeadX,Pose.HeadZ) || !TripleField(Data,TEXT("direction"),Pose.Direction,1.0 + 1e-9)) return false;
+    Pose.Direction.Y *= -1;
+    return Pose.Direction.Equals(-Pose.HeadZ,0.001) && Pose.PanZ.Equals(Pose.BaseZ,0.001) && Pose.HeadX.Equals(Pose.PanX,0.001);
 }
 FString Decimal(double Value)
 {
@@ -122,7 +140,7 @@ FVector ToMeters(const FVector& Unreal) { return FVector(Unreal.X, -Unreal.Y, Un
 bool ReadStamp(const TSharedPtr<FJsonObject>& Object, FStamp& Out)
 {
     double Protocol = 0, Generation = 0;
-    return Object.IsValid() && Object->TryGetNumberField(TEXT("protocol"), Protocol) && Protocol == 1 &&
+    return Object.IsValid() && Object->TryGetNumberField(TEXT("protocol"), Protocol) && Protocol == 2 &&
         Text(Object, TEXT("bridgeId"), Out.BridgeId) && Text(Object, TEXT("version"), Out.Version) && Version(Out.Version) &&
         Object->TryGetNumberField(TEXT("generation"), Generation) && FMath::IsFinite(Generation) && Generation >= 0 && Generation <= 4294967295.0 &&
         FMath::FloorToDouble(Generation) == Generation && (Out.Generation = static_cast<uint32>(Generation), true);
@@ -177,6 +195,13 @@ bool ReadFrame(const TSharedPtr<FJsonObject>& Object, FFrame& Out, FString& Erro
         double Intensity = 0;
         if (!ObjectValue(Value, Data) || !Text(Data, TEXT("fixtureId"), Light.Id) || Ids.Contains(Light.Id) || !Color(Data, Light.Color) ||
             !Data->TryGetNumberField(TEXT("intensity"), Intensity) || !FMath::IsFinite(Intensity) || Intensity < 0 || Intensity > 1) return false;
+        if (Data->HasField(TEXT("pose")))
+        {
+            TSharedPtr<FJsonObject> PoseData;
+            FJointPose Pose;
+            if (!ObjectField(Data,TEXT("pose"),PoseData) || !ReadPose(PoseData,Pose)) return false;
+            Light.Pose = Pose;
+        }
         Ids.Add(Light.Id);
         Light.Intensity = static_cast<float>(Intensity);
         Next.Lights.Add(MoveTemp(Light));

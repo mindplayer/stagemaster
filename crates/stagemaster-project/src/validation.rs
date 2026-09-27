@@ -91,6 +91,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     }
     crate::sequence::validate(root)?;
     crate::effects::validate(root)?;
+    crate::position::validate(root)?;
     Ok(())
 }
 
@@ -118,6 +119,7 @@ fn supported(root: &Value) -> Result<(), String> {
     for capability in array(root, "requires") {
         if ![
             "lighting.basic",
+            "lighting.positioning",
             "lighting.effects.basic",
             "lighting.effects.keyframes",
             "stage.layout",

@@ -40,6 +40,7 @@ pub struct PresetView {
 }
 #[derive(Serialize)]
 pub struct ProfileView {
+    pub positioning: Option<crate::PositionModel>,
     pub revision: String,
     pub manufacturer: String,
     pub model: String,
@@ -53,6 +54,8 @@ pub struct ProfileView {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FixtureView {
+    pub positioning: Option<crate::PositionModel>,
+    pub zero_correction: Option<crate::FixtureZero>,
     pub profile_id: String,
     pub id: String,
     pub name: String,
@@ -195,6 +198,10 @@ fn fixture(root: &Value, fixture: &Value) -> FixtureView {
         .iter()
         .find(|p| p["fixtureId"] == fixture["id"]);
     FixtureView {
+        positioning: crate::position::model(profile).expect("validated model"),
+        zero_correction: fixture
+            .get("zeroCorrection")
+            .map(|v| serde_json::from_value(v.clone()).expect("validated zero")),
         profile_id: text(fixture, "profileId").into(),
         id: text(fixture, "id").into(),
         name: text(fixture, "name").into(),
@@ -236,11 +243,11 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
 pub(super) fn attribute_label(key: &str) -> &str {
     match key {
         "dimmer" => "亮度",
+        "pan" => "水平轴",
+        "tilt" => "垂直轴",
         "red" => "红色",
         "green" => "绿色",
         "blue" => "蓝色",
-        "pan" => "水平",
-        "tilt" => "垂直",
         _ => key,
     }
 }
@@ -293,15 +300,18 @@ fn preset(lighting: &Value, preset: &Value) -> PresetView {
 
 fn profile(p: &Value) -> ProfileView {
     ProfileView {
+        positioning: crate::position::model(p).expect("validated model"),
         revision: text(p, "revision").into(),
         manufacturer: text(p, "manufacturer").into(),
         model: text(p, "model").into(),
         mode: text(p, "mode").into(),
         authorable: crate::fixture::supported_keys(
             array(p, "attributes").iter().map(|a| text(a, "key")),
-        ) && array(p, "attributes")
-            .iter()
-            .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),
+        ) && (array(p, "attributes").iter().any(|a| a["key"] == "pan")
+            == p.get("positioning").is_some())
+            && array(p, "attributes")
+                .iter()
+                .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),
         channels: array(p, "channels")
             .iter()
             .map(|c| crate::ProfileChannel {

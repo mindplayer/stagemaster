@@ -73,7 +73,11 @@ export function ParameterPanel({
       change(next);
     }
   }
-  const attributes = commonAttributes(fixtures);
+  const attributes = commonAttributes(fixtures).filter(
+    (a) =>
+      !fixtures.every((f) => f.positioning) ||
+      (a.key !== "pan" && a.key !== "tilt"),
+  );
   const rgb = ["red", "green", "blue"].every((key) =>
     attributes.some((a) => a.key === key),
   );

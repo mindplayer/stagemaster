@@ -284,3 +284,128 @@ fn physical_rgb_without_dimmer_projects_same_values_as_offline_output() {
             .all(|n| n.abs() < f64::EPSILON)
     );
 }
+
+#[test]
+fn moving_pose_shares_quantized_values_and_keeps_the_installation_base_fixed() {
+    let (doc, fixture, scene_id) = setup();
+    let mut root: Value = serde_json::from_slice(&doc.encode().unwrap()).unwrap();
+    root["requires"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"key":"lighting.positioning","version":1}));
+    root["lighting"]["patches"][1]["address"] = json!(20);
+    let p = &mut root["lighting"]["profiles"][1];
+    p["footprint"] = json!(7);
+    p["positioning"] = json!({"kind":"intersectingOrthogonal","pan":{"minDegrees":"-270","maxDegrees":"270","reversed":true},"tilt":{"minDegrees":"-135","maxDegrees":"135","reversed":false}});
+    for (key, offsets, encoding) in [("pan", json!([4]), "u8"), ("tilt", json!([5, 6]), "u16-be")] {
+        p["attributes"].as_array_mut().unwrap().push(json!({"key":key,"mix":"ltp","valueType":{"kind":"normalized"},"default":{"kind":"normalized","value":32768}}));
+        p["channels"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"attribute":key,"offsets":offsets,"encoding":encoding}));
+    }
+    let mut doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+    assert!(scene(&doc).unwrap().fixtures[0].moving);
+    let defaults = editing_lights(&doc, None).unwrap().remove(0).pose.unwrap();
+    edit(
+        &mut doc,
+        json!({"op":"position","command":{"op":"axes","sceneId":scene_id,"fixtureIds":[fixture],"panDegrees":"90","tiltDegrees":"40"}}),
+    );
+    let actual = editing_lights(&doc, Some(&scene_id))
+        .unwrap()
+        .remove(0)
+        .pose
+        .unwrap();
+    assert_eq!(defaults.base, actual.base);
+    assert_ne!(defaults.head, actual.head);
+    for i in 0..3 {
+        assert!((actual.direction[i] + actual.head[1][i]).abs() < 1e-12);
+        assert!((actual.pan[1][i] - actual.base[1][i]).abs() < 1e-12);
+        assert!((actual.head[0][i] - actual.pan[0][i]).abs() < 1e-12);
+    }
+    let compiled = doc.compile_scene(&scene_id).unwrap();
+    let values: Vec<u16> = doc
+        .view()
+        .fixtures
+        .iter()
+        .flat_map(|f| {
+            f.attributes
+                .iter()
+                .map(|a| {
+                    let view = doc.view();
+                    u16::try_from(
+                        view.scenes[0]
+                            .values
+                            .iter()
+                            .find(|v| v.fixture_id == f.id && v.attribute == a.key)
+                            .and_then(|v| v.value)
+                            .unwrap_or(a.default_value),
+                    )
+                    .unwrap()
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let output = compiled.output.render(&values).unwrap();
+    assert_eq!(
+        serde_json::to_value(playback_lights(&doc, &output)).unwrap(),
+        serde_json::to_value(editing_lights(&doc, Some(&scene_id)).unwrap()).unwrap()
+    );
+    let axis = doc.view().fixtures[0]
+        .positioning
+        .as_ref()
+        .unwrap()
+        .pan
+        .clone();
+    let angle = axis
+        .decode(u16::from(output.slots[4]) * 257, false)
+        .unwrap();
+    assert!((angle - 90.0).abs() <= 540.0 / 255.0 / 2.0);
+    assert_moving_fade_and_pause(doc, &scene_id);
+}
+
+fn assert_moving_fade_and_pause(mut doc: Document, scene_id: &str) {
+    edit(
+        &mut doc,
+        json!({"op":"sequence","command":{"kind":"add","name":"运动渐变","sceneId":scene_id}}),
+    );
+    let view = doc.view();
+    let sequence = &view.sequences[0];
+    edit(
+        &mut doc,
+        json!({"op":"sequence","command":{"kind":"updateStep","id":sequence.id,"stepId":sequence.steps[0].id,"sceneId":scene_id,"name":"指向","number":"1","delayMs":0,"fadeMs":1000,"waitMs":null}}),
+    );
+    let compiled = doc.compile_sequence(&sequence.id).unwrap();
+    let mut player = stagemaster_playback::Player::new(compiled.plan, 0);
+    let pose = |values: &[u16]| {
+        playback_lights(&doc, &compiled.output.render(values).unwrap())
+            .remove(0)
+            .pose
+            .unwrap()
+    };
+    let start = pose(player.values());
+    player.execute(0, 0).unwrap();
+    player.advance(500).unwrap();
+    let halfway = pose(player.values());
+    let final_pose = editing_lights(&doc, Some(scene_id))
+        .unwrap()
+        .remove(0)
+        .pose
+        .unwrap();
+    assert_eq!(start.base, halfway.base);
+    assert_eq!(halfway.base, final_pose.base);
+    assert_ne!(halfway.head, start.head);
+    assert_ne!(halfway.head, final_pose.head);
+    player.pause(500).unwrap();
+    player.advance(8000).unwrap();
+    assert_eq!(
+        serde_json::to_value(pose(player.values())).unwrap(),
+        serde_json::to_value(&halfway).unwrap()
+    );
+    player.resume(8000).unwrap();
+    player.advance(8500).unwrap();
+    assert_eq!(
+        serde_json::to_value(pose(player.values())).unwrap(),
+        serde_json::to_value(final_pose).unwrap()
+    );
+}

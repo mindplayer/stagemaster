@@ -34,7 +34,7 @@ pub(crate) struct Stamp {
 impl Stamp {
     pub(super) fn new(id: &str, revision: Revision) -> Self {
         Self {
-            protocol: 1,
+            protocol: 2,
             bridge_id: id.into(),
             generation: revision.generation,
             version: revision.content.to_string(),

@@ -36,6 +36,8 @@ APreviewSceneActor::APreviewSceneActor()
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> LensSurface(TEXT("/DMXFixtures/LightFixtures/DMX_Materials/MI_Lens.MI_Lens"));
     SurfaceMaterial = Material.Object;
     FixtureMesh = Body.Object;
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Joint(TEXT("/Engine/BasicShapes/Cube.Cube"));
+    JointMesh = Joint.Object;
     LensMesh = Lens.Object;
     LensMaterial = LensSurface.Object;
     WorkLight = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("WorkLight"));
@@ -81,6 +83,9 @@ void APreviewSceneActor::ClearVisuals()
     for (const auto& Entry : Fixtures)
     {
         Entry.Value.Body->DestroyComponent();
+        if (Entry.Value.Base) Entry.Value.Base->DestroyComponent();
+        if (Entry.Value.ArmLeft) Entry.Value.ArmLeft->DestroyComponent();
+        if (Entry.Value.ArmRight) Entry.Value.ArmRight->DestroyComponent();
         Entry.Value.Light->DestroyComponent();
         Entry.Value.Lens->DestroyComponent();
     }
@@ -149,6 +154,23 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
             Visual.Light->SetCastVolumetricShadow(true);
             Visual.Light->SetVolumetricScatteringIntensity(1.0f);
         }
+        if (Fixture.Moving && !Visual.Base)
+        {
+            for (TObjectPtr<UStaticMeshComponent>* Part : {&Visual.Base,&Visual.ArmLeft,&Visual.ArmRight})
+            {
+                *Part = Attach<UStaticMeshComponent>(*this);
+                (*Part)->SetStaticMesh(JointMesh);
+                (*Part)->SetCastShadow(false);
+                (*Part)->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+                auto Material = UMaterialInstanceDynamic::Create(SurfaceMaterial,*Part);
+                Material->SetVectorParameterValue(TEXT("Color"),FLinearColor(0.10f,0.13f,0.16f));
+                (*Part)->SetMaterial(0,Material);
+            }
+            Visual.Base->SetWorldScale3D(FVector(0.48,0.32,0.12));
+            Visual.ArmLeft->SetWorldScale3D(FVector(0.065,0.13,0.34));
+            Visual.ArmRight->SetWorldScale3D(FVector(0.065,0.13,0.34));
+        }
+        if (Visual.Base) for (auto Part : {Visual.Base,Visual.ArmLeft,Visual.ArmRight}) Part->SetVisibility(Fixture.Moving);
         // Vendor fixed-head mesh has local +Z optics and the lens plane at 14.747 cm.
         const FQuat Rotation = FRotationMatrix::MakeFromZ(Fixture.Direction).ToQuat();
         const FVector BodyOrigin = Fixture.Origin - Fixture.Direction * 14.747;
@@ -166,6 +188,9 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
         if (!Retained.Contains(It.Key()))
         {
             It.Value().Body->DestroyComponent();
+            if (It.Value().Base) It.Value().Base->DestroyComponent();
+            if (It.Value().ArmLeft) It.Value().ArmLeft->DestroyComponent();
+            if (It.Value().ArmRight) It.Value().ArmRight->DestroyComponent();
             It.Value().Light->DestroyComponent();
             It.Value().Lens->DestroyComponent();
             It.RemoveCurrent();
@@ -177,6 +202,11 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
 }
 void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
 {
+    for (const auto& Fixture : Current.Fixtures)
+    {
+        const auto Light = Frame.Lights.FindByPredicate([&Fixture](const auto& L){return L.Id==Fixture.Id;});
+        if (Fixture.Moving && Light && !Light->Pose.IsSet()) {Invalidate(TEXT("摇头灯姿态缺失，请更新预演组件"));return;}
+    }
     CanEdit = Frame.CanEdit;
     FrameValid = Frame.Status != TEXT("unloaded") && Frame.Status != TEXT("missingScene") && Frame.Status != TEXT("stalePlayback");
     Status = StageMaster::StatusLabel(Frame.Status);
@@ -189,6 +219,23 @@ void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
     {
         if (const auto Visual = Fixtures.Find(Light.Id))
         {
+            if (Light.Pose.IsSet())
+            {
+                auto Fixture = Current.Fixtures.FindByPredicate([&Light](const auto& F){return F.Id==Light.Id;});
+                if (!Fixture || !Fixture->Moving || !Visual->Base) {Invalidate(TEXT("摇头灯姿态与档案不一致"));return;}
+                const auto& P = Light.Pose.GetValue();
+                const FVector Origin = Visual->Light->GetComponentLocation();
+                Fixture->Direction = P.Direction;
+                Visual->Base->SetWorldLocationAndRotation(Origin+P.BaseZ*33,FRotationMatrix::MakeFromXZ(P.BaseX,P.BaseZ).ToQuat());
+                const FQuat PanRotation=FRotationMatrix::MakeFromXZ(P.PanX,P.PanZ).ToQuat();
+                Visual->ArmLeft->SetWorldLocationAndRotation(Origin+P.PanX*20+P.PanZ*15,PanRotation);
+                Visual->ArmRight->SetWorldLocationAndRotation(Origin-P.PanX*20+P.PanZ*15,PanRotation);
+                const FVector BodyOrigin=Origin-P.Direction*14.747;
+                const FQuat HeadRotation=FRotationMatrix::MakeFromXZ(P.HeadX,-P.HeadZ).ToQuat();
+                Visual->Body->SetWorldLocationAndRotation(BodyOrigin,HeadRotation);
+                Visual->Lens->SetWorldLocationAndRotation(BodyOrigin,HeadRotation);
+                Visual->Light->SetWorldRotation(P.Direction.Rotation());
+            }
             Visual->Light->SetLightColor(Light.Color, false);
             Visual->LensMaterial->SetVectorParameterValue(TEXT("DMX Color"), Light.Color);
             Visual->LensMaterial->SetScalarParameterValue(TEXT("DMX Dimmer"), Light.Intensity);
@@ -217,7 +264,7 @@ FBox APreviewSceneActor::GetBounds() const
 }
 FString APreviewSceneActor::FixtureAt(const FHitResult& Hit) const
 {
-    for (const auto& Entry : Fixtures) if (Hit.GetComponent() == Entry.Value.Body) return Entry.Key;
+    for (const auto& Entry : Fixtures) if (Hit.GetComponent() == Entry.Value.Body || Hit.GetComponent()==Entry.Value.Base || Hit.GetComponent()==Entry.Value.ArmLeft || Hit.GetComponent()==Entry.Value.ArmRight) return Entry.Key;
     return {};
 }
 const StageMaster::FFixture* APreviewSceneActor::FindFixture(const FString& Id) const
@@ -230,9 +277,8 @@ bool APreviewSceneActor::PreviewPosition(const FString& Id, const FVector& Locat
     if (!FrameValid || !Visual || Location.ContainsNaN() || Location.GetAbsMax() > 10000000) return false;
     const auto Fixture = FindFixture(Id);
     if (!Fixture) return false;
-    const FVector BodyOrigin = Location - Fixture->Direction * 14.747;
-    Visual->Body->SetWorldLocation(BodyOrigin);
-    Visual->Lens->SetWorldLocation(BodyOrigin);
+    const FVector Delta=Location-Visual->Light->GetComponentLocation();
+    for (auto Part : {Visual->Body,Visual->Lens,Visual->Base,Visual->ArmLeft,Visual->ArmRight}) if(Part) Part->AddWorldOffset(Delta);
     Visual->Light->SetWorldLocation(Location);
     return true;
 }
@@ -242,9 +288,8 @@ void APreviewSceneActor::RestorePosition(const FString& Id)
     const auto Visual = Fixtures.Find(Id);
     if (Fixture && Visual)
     {
-        const FVector BodyOrigin = Fixture->Origin - Fixture->Direction * 14.747;
-        Visual->Body->SetWorldLocation(BodyOrigin);
-        Visual->Lens->SetWorldLocation(BodyOrigin);
+        const FVector Delta=Fixture->Origin-Visual->Light->GetComponentLocation();
+        for (auto Part : {Visual->Body,Visual->Lens,Visual->Base,Visual->ArmLeft,Visual->ArmRight}) if(Part) Part->AddWorldOffset(Delta);
         Visual->Light->SetWorldLocation(Fixture->Origin);
     }
 }

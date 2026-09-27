@@ -19,6 +19,9 @@ struct FPreviewFixtureVisual
 {
     GENERATED_BODY()
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> Base;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> ArmLeft;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> ArmRight;
     UPROPERTY() TObjectPtr<USpotLightComponent> Light;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Lens;
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> LensMaterial;
@@ -56,6 +59,7 @@ private:
     void ClearVisuals();
     UPROPERTY() TObjectPtr<UMaterialInterface> SurfaceMaterial;
     UPROPERTY() TObjectPtr<UStaticMesh> FixtureMesh;
+    UPROPERTY() TObjectPtr<UStaticMesh> JointMesh;
     UPROPERTY() TObjectPtr<UStaticMesh> LensMesh;
     UPROPERTY() TObjectPtr<UMaterialInterface> LensMaterial;
     UPROPERTY() TObjectPtr<UDirectionalLightComponent> WorkLight;

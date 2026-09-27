@@ -86,7 +86,39 @@ pub struct Solution {
     pub residual_meters: f64,
 }
 
+/// World-space joint bases; each pair is local +X and +Z. Renderer independent.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct JointPose {
+    pub base: [[f64; 3]; 2],
+    pub pan: [[f64; 3]; 2],
+    pub head: [[f64; 3]; 2],
+    pub direction: [f64; 3],
+}
 impl IntersectingHead {
+    /// # Errors
+    /// Rejects invalid installations, models and out-of-travel setpoints.
+    pub fn pose(self, installation: Installation, angles: JointAngles) -> Result<JointPose, Error> {
+        self.validate()?;
+        installation.validate()?;
+        self.validate_angles(angles)?;
+        let base = installation.rotation();
+        let pan = base
+            * DQuat::from_rotation_z(
+                (angles.pan_degrees + self.zero_correction.pan_degrees).to_radians(),
+            );
+        let head = pan
+            * DQuat::from_rotation_x(
+                (angles.tilt_degrees + self.zero_correction.tilt_degrees).to_radians(),
+            );
+        let basis = |q: DQuat| [(q * DVec3::X).to_array(), (q * DVec3::Z).to_array()];
+        Ok(JointPose {
+            base: basis(base),
+            pan: basis(pan),
+            head: basis(head),
+            direction: (head * DVec3::NEG_Z).to_array(),
+        })
+    }
+
     /// # Errors
     /// Rejects unsupported/unbounded ranges or corrections. No implicit home values.
     pub fn validate(self) -> Result<(), Error> {

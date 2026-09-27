@@ -16,6 +16,7 @@ pub struct ProfileChannel {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProfileDefinition {
+    pub positioning: Option<crate::PositionModel>,
     pub name: String,
     pub manufacturer: String,
     pub model: String,
@@ -40,7 +41,7 @@ pub struct Repatch {
 pub enum FixtureEdit {
     SaveProfile {
         id: Option<String>,
-        definition: ProfileDefinition,
+        definition: Box<ProfileDefinition>,
     },
     RemoveProfile {
         id: String,
@@ -59,6 +60,15 @@ pub enum FixtureEdit {
 pub(super) fn supported_keys<'a>(keys: impl Iterator<Item = &'a str>) -> bool {
     let mut keys = keys.collect::<Vec<_>>();
     keys.sort_unstable();
+    if keys.contains(&"pan") || keys.contains(&"tilt") {
+        if keys.iter().filter(|&&k| k == "pan" || k == "tilt").count() != 2
+            || !keys.contains(&"pan")
+            || !keys.contains(&"tilt")
+        {
+            return false;
+        }
+        keys.retain(|&k| k != "pan" && k != "tilt");
+    }
     keys == ["dimmer"]
         || keys == ["blue", "green", "red"]
         || keys == ["blue", "dimmer", "green", "red"]
@@ -80,6 +90,13 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     if !supported_keys(def.channels.iter().map(|c| c.attribute.as_str())) {
         return Err("当前模式编辑支持调光、完整 RGB 或调光加 RGB；不能重复属性".into());
     }
+    let has_axes = def.channels.iter().any(|c| c.attribute == "pan");
+    if has_axes != def.positioning.is_some() {
+        return Err("水平／垂直通道必须配套定义两轴物理模型".into());
+    }
+    if let Some(m) = &def.positioning {
+        m.head(None)?;
+    }
     let mut occupied = BTreeSet::new();
     for channel in &def.channels {
         for number in std::iter::once(channel.coarse).chain(channel.fine) {
@@ -95,12 +112,14 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
             }
         }
     }
-    Ok(
-        json!({"id":profile_id,"revision":id(),"name":def.name.trim(),"manufacturer":def.manufacturer.trim(),"model":def.model.trim(),"mode":def.mode.trim(),"footprint":def.footprint,
-            "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":"normalized"},"default":{"kind":"normalized","value":c.default_value},"mix":if c.attribute=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
-            "channels":def.channels.iter().map(|c|json!({"attribute":c.attribute,"encoding":if c.fine.is_some(){"u16-be"}else{"u8"},"offsets":std::iter::once(c.coarse).chain(c.fine).map(|n|n-1).collect::<Vec<_>>()})).collect::<Vec<_>>()
-        }),
-    )
+    let mut profile = json!({"id":profile_id,"revision":id(),"name":def.name.trim(),"manufacturer":def.manufacturer.trim(),"model":def.model.trim(),"mode":def.mode.trim(),"footprint":def.footprint,
+        "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":"normalized"},"default":{"kind":"normalized","value":c.default_value},"mix":if c.attribute=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
+        "channels":def.channels.iter().map(|c|json!({"attribute":c.attribute,"encoding":if c.fine.is_some(){"u16-be"}else{"u8"},"offsets":std::iter::once(c.coarse).chain(c.fine).map(|n|n-1).collect::<Vec<_>>()})).collect::<Vec<_>>()
+    });
+    if let Some(m) = &def.positioning {
+        profile["positioning"] = json!(m);
+    }
+    Ok(profile)
 }
 fn unused(root: &Value, profile_id: &str) -> Result<(), String> {
     let fixtures = array(&root["lighting"], "fixtures")
@@ -172,6 +191,9 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             id: existing,
             definition,
         } => {
+            if definition.positioning.is_some() {
+                crate::position::require(root);
+            }
             if let Some(existing) = existing {
                 unused(root, &existing)?;
                 let profile = build(&definition, &existing)?;
@@ -221,6 +243,11 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
                     .iter()
                     .find(|p| p["id"] == fixture["profileId"])
                     .ok_or("原模式不存在")?;
+                if old.get("positioning") != target.get("positioning") {
+                    return Err(
+                        "运动模型不同，不能保持已记录轴角；请单独建立新的灯具并重新对焦".into(),
+                    );
+                }
                 if keys(old) != target_keys {
                     return Err(format!(
                         "灯具“{}”与目标模式的属性不一致，不能保留全部编排",

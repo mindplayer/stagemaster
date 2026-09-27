@@ -21,6 +21,7 @@ pub struct Mesh {
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Fixture {
+    pub moving: bool,
     pub id: String,
     pub name: String,
     pub placement: FixturePlacement,
@@ -42,12 +43,21 @@ pub struct Scene {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Light {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pose: Option<JointPose>,
     pub fixture_id: String,
     pub intensity: f64,
     /// Normalized RGB emitter strengths, separate from dimming.
     pub color: [f64; 3],
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct JointPose {
+    pub base: [[f64; 3]; 2],
+    pub pan: [[f64; 3]; 2],
+    pub head: [[f64; 3]; 2],
+    pub direction: [f64; 3],
+}
 /// Build rendering geometry from a validated authoritative editing document.
 /// # Errors
 /// Refuses invalid projections and preview geometry budgets without altering the document.
@@ -167,6 +177,9 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 .iter()
                 .map(|a| a.key.as_str())
                 .collect::<Vec<_>>();
+            if fixture.positioning.is_some() {
+                attributes.retain(|&k| k != "pan" && k != "tilt");
+            }
             attributes.sort_unstable();
             if attributes != ["dimmer"]
                 && attributes != ["blue", "dimmer", "green", "red"]
@@ -180,6 +193,7 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
             };
             let ray = installation.fixed_ray().map_err(|_| "灯具安装变换无效")?;
             Ok(Fixture {
+                moving: fixture.positioning.is_some(),
                 id: fixture.id.clone(),
                 name: fixture.name.clone(),
                 placement: placement.clone(),
@@ -205,6 +219,8 @@ pub fn editing_lights(document: &Document, scene_id: Option<&str>) -> Result<Vec
 pub struct LightRig {
     fixtures: Vec<stagemaster_project::FixtureView>,
     scenes: Vec<stagemaster_project::SceneView>,
+    placements: Vec<FixturePlacement>,
+    profiles: Vec<stagemaster_project::ProfileView>,
 }
 impl LightRig {
     #[must_use]
@@ -218,6 +234,8 @@ impl LightRig {
             .collect::<std::collections::BTreeSet<_>>();
         view.fixtures.retain(|f| placed.contains(f.id.as_str()));
         Self {
+            placements: view.stage.placements,
+            profiles: view.profiles,
             fixtures: view.fixtures,
             scenes: view.scenes,
         }
@@ -234,7 +252,7 @@ impl LightRig {
                     .ok_or("预演场景不存在")
             })
             .transpose()?;
-        Ok(lights(&self.fixtures, |fixture, key, default| {
+        Ok(lights(self, |fixture, key, default| {
             scene
                 .and_then(|scene| {
                     scene
@@ -250,7 +268,7 @@ impl LightRig {
     /// The host must verify that the player output belongs to this rig's document version.
     #[must_use]
     pub fn playback(&self, output: &PreviewOutput) -> Vec<Light> {
-        lights(&self.fixtures, |fixture, key, default| {
+        lights(self, |fixture, key, default| {
             output
                 .fixtures
                 .iter()
@@ -266,11 +284,8 @@ impl LightRig {
 pub fn playback_lights(document: &Document, output: &PreviewOutput) -> Vec<Light> {
     LightRig::new(document).playback(output)
 }
-fn lights(
-    fixtures: &[stagemaster_project::FixtureView],
-    value: impl Fn(&str, &str, u64) -> u64,
-) -> Vec<Light> {
-    fixtures
+fn lights(rig: &LightRig, value: impl Fn(&str, &str, u64) -> u64) -> Vec<Light> {
+    rig.fixtures
         .iter()
         .map(|f| {
             let attribute = |key: &str, fallback: f64| {
@@ -286,7 +301,65 @@ fn lights(
             let rgb = ["red", "green", "blue"]
                 .iter()
                 .all(|key| f.attributes.iter().any(|a| a.key == *key));
+            let pose = f.positioning.as_ref().map(|model| {
+                let placement = rig
+                    .placements
+                    .iter()
+                    .find(|p| p.fixture_id == f.id)
+                    .expect("placed fixture");
+                let profile = rig
+                    .profiles
+                    .iter()
+                    .find(|p| p.id == f.profile_id)
+                    .expect("validated profile");
+                let axis = |key: &str, m: &stagemaster_project::PositionAxis| {
+                    let a = f
+                        .attributes
+                        .iter()
+                        .find(|a| a.key == key)
+                        .expect("validated axis");
+                    let fine = profile
+                        .channels
+                        .iter()
+                        .find(|c| c.attribute == key)
+                        .expect("mapped axis")
+                        .fine
+                        .is_some();
+                    m.decode(
+                        u16::try_from(value(&f.id, key, a.default_value))
+                            .expect("normalized value"),
+                        fine,
+                    )
+                    .expect("validated range")
+                };
+                let install = Installation {
+                    position_meters: placement
+                        .position_meters
+                        .numbers(100_000.0)
+                        .expect("validated placement"),
+                    rotation_degrees_xyz: placement
+                        .rotation_degrees_xyz
+                        .numbers(3600.0)
+                        .expect("validated installation"),
+                };
+                let angles = stagemaster_spatial::positioning::JointAngles {
+                    pan_degrees: axis("pan", &model.pan),
+                    tilt_degrees: axis("tilt", &model.tilt),
+                };
+                let pose = model
+                    .head(f.zero_correction.as_ref())
+                    .expect("validated model")
+                    .pose(install, angles)
+                    .expect("decoded angles within travel");
+                JointPose {
+                    base: pose.base,
+                    pan: pose.pan,
+                    head: pose.head,
+                    direction: pose.direction,
+                }
+            });
             Light {
+                pose,
                 fixture_id: f.id.clone(),
                 intensity: attribute("dimmer", 1.0),
                 color: if rgb {

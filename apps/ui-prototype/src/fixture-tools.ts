@@ -2,6 +2,8 @@ import type { FixtureView, ProjectView } from "./application-host";
 import type { ProfileDefinition, Repatch } from "./fixture-types";
 export const channelLabels: Record<string, string> = {
   dimmer: "亮度",
+  pan: "水平轴",
+  tilt: "垂直轴",
   red: "红色",
   green: "绿色",
   blue: "蓝色",
@@ -38,6 +40,7 @@ export function profileDraft(profile?: ProfileDefinition): ProfileDraft {
     })),
   };
   return {
+    ...(p.positioning ? { positioning: structuredClone(p.positioning) } : {}),
     name: p.name,
     manufacturer: p.manufacturer,
     model: p.model,
@@ -82,10 +85,37 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const footprint = integer(draft.footprint, 1, 512, "footprint", "模式占用");
   const keys = draft.channels
     .map((c) => c.attribute)
+    .filter((k) => !draft.positioning || (k !== "pan" && k !== "tilt"))
     .sort()
     .join(",");
   if (!["dimmer", "blue,green,red", "blue,dimmer,green,red"].includes(keys))
     throw new FixtureFieldError("family", "请选择调光、RGB 或调光加 RGB");
+  if (draft.positioning) {
+    if (
+      draft.channels.filter((c) => c.attribute === "pan").length !== 1 ||
+      draft.channels.filter((c) => c.attribute === "tilt").length !== 1
+    )
+      throw new FixtureFieldError("family", "两轴模型必须包含水平和垂直通道");
+    for (const axis of ["pan", "tilt"] as const) {
+      const a = draft.positioning[axis];
+      for (const key of ["minDegrees", "maxDegrees"] as const) {
+        if (
+          !/^-?(0|[1-9]\d*)(\.\d+)?$/.test(a[key]) ||
+          !Number.isFinite(Number(a[key])) ||
+          Math.abs(Number(a[key])) > 3600
+        )
+          throw new FixtureFieldError(
+            `${axis}-${key}`,
+            `${channelLabels[axis]}角度须为 -3600 至 3600 度`,
+          );
+      }
+      if (Number(a.minDegrees) >= Number(a.maxDegrees))
+        throw new FixtureFieldError(
+          `${axis}-maxDegrees`,
+          `${channelLabels[axis]}最大角度必须大于最小角度`,
+        );
+    }
+  }
   const occupied = new Set<number>();
   const channels = draft.channels.map((c, i) => {
     const slot = (raw: string, part: "coarse" | "fine") => {
@@ -111,7 +141,14 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
       defaultValue: Math.round((Number(c.percent) * 65535) / 100),
     };
   });
-  return { ...meta, footprint, channels };
+  return {
+    ...meta,
+    footprint,
+    channels,
+    ...(draft.positioning
+      ? { positioning: structuredClone(draft.positioning) }
+      : {}),
+  };
 }
 export function profileMatches(p: ProfileDefinition, query: string) {
   return `${p.name} ${p.manufacturer} ${p.model} ${p.mode} ${p.footprint}`
@@ -128,6 +165,18 @@ export function compatibleProfile(
     .join(",");
   return fixtures.every(
     (f) =>
+      Boolean(f.positioning) === Boolean(p.positioning) &&
+      (!f.positioning ||
+        (f.positioning.kind === p.positioning!.kind &&
+          ["pan", "tilt"].every((key) => {
+            const a = f.positioning![key as "pan" | "tilt"],
+              b = p.positioning![key as "pan" | "tilt"];
+            return (
+              a.minDegrees === b.minDegrees &&
+              a.maxDegrees === b.maxDegrees &&
+              a.reversed === b.reversed
+            );
+          }))) &&
       f.attributes
         .map((a) => a.key)
         .sort()
@@ -202,4 +251,39 @@ export function availablePatch(
     }
   }
   return null;
+}
+
+export function withMotion(
+  draft: ProfileDraft,
+  enabled: boolean,
+): ProfileDraft {
+  const channels = draft.channels.filter(
+    (c) => c.attribute !== "pan" && c.attribute !== "tilt",
+  );
+  if (!enabled) return { ...draft, positioning: null, channels };
+  let offset = Math.max(
+    Number(draft.footprint) || channels.length,
+    ...channels.flatMap((c) => [
+      Number(c.coarse) || 0,
+      c.bits === "16" ? Number(c.fine) || 0 : 0,
+    ]),
+  );
+  for (const attribute of ["pan", "tilt"])
+    channels.push({
+      attribute,
+      coarse: String(++offset),
+      fine: String(++offset),
+      bits: "16",
+      percent: "50",
+    });
+  return {
+    ...draft,
+    channels,
+    footprint: String(offset),
+    positioning: {
+      kind: "intersectingOrthogonal",
+      pan: { minDegrees: "-270", maxDegrees: "270", reversed: false },
+      tilt: { minDegrees: "-135", maxDegrees: "135", reversed: false },
+    },
+  };
 }

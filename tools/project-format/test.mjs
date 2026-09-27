@@ -118,3 +118,20 @@ invalid('挂接不可省略能力声明',rigging,p=>{p.requires=p.requires.filte
 invalid('一台灯不可重复挂接',rigging,p=>{p.stage.attachments.push({...p.stage.attachments[0]});},/重复/);
 invalid('挂接不可悬空',rigging,p=>{p.stage.placements=[];},/灯位/);
 invalid('挂接空间不可分离',rigging,p=>{p.stage.placements[0].spaceId=null;},/空间必须一致/);
+
+const withPosition = () => {
+ const p=basic(),profile=p.lighting.profiles[0];
+ p.requires.push({key:'lighting.positioning',version:1});
+ profile.positioning={kind:'intersectingOrthogonal',pan:{minDegrees:'-270',maxDegrees:'270',reversed:true},tilt:{minDegrees:'-135',maxDegrees:'135',reversed:false}};
+ const width=profile.footprint;
+ for(const [i,key] of ['pan','tilt'].entries()) {profile.attributes.push({key,valueType:{kind:'normalized'},default:{kind:'normalized',value:32768},mix:'ltp'});profile.channels.push({attribute:key,encoding:'u16-be',offsets:[width+i*2,width+i*2+1]});}
+ profile.footprint+=4;
+ let address=1;for(const patch of p.lighting.patches){patch.address=address;address+=p.lighting.profiles.find(pr=>pr.id===p.lighting.fixtures.find(f=>f.id===patch.fixtureId).profileId).footprint;}
+ p.lighting.fixtures[0].zeroCorrection={panDegrees:'2.5',tiltDegrees:'-3'};
+ return p;
+};
+test('两轴物理定义、通道映射和手工零偏可独立核验',()=>assert.doesNotThrow(()=>auditProject(withPosition())));
+invalid('摇头灯档案必须声明能力',withPosition,p=>{p.requires=p.requires.filter(c=>c.key!=='lighting.positioning');},/位置能力/);
+invalid('物理行程不可倒置',withPosition,p=>{p.lighting.profiles[0].positioning.pan.maxDegrees='-280';},/物理范围/);
+invalid('两轴不能丢失位置通道',withPosition,p=>{p.lighting.profiles[0].channels=p.lighting.profiles[0].channels.filter(c=>c.attribute!=='pan');},/位置属性/);
+invalid('手工轴零偏有界',withPosition,p=>{p.lighting.fixtures[0].zeroCorrection.panDegrees='361';},/零偏/);

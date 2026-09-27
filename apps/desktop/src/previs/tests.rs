@@ -76,7 +76,7 @@ async fn loopback_authentication_origin_and_closed_capabilities_are_enforced() {
         StatusCode::CONFLICT
     );
     let scene = json_get(&client, &bridge, "/v1/scene").await;
-    assert_eq!(scene["protocol"], 1);
+    assert_eq!(scene["protocol"], 2);
     assert_eq!(scene["scene"]["fixtures"].as_array().unwrap().len(), 1);
     let frame = json_get(&client, &bridge, "/v1/frame").await;
     assert_eq!(frame["version"], scene["version"]);

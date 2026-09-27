@@ -16,7 +16,7 @@ TSharedPtr<FJsonObject> Parse(const FString& Text)
     return Result;
 }
 const TCHAR* SceneJson = TEXT(R"json({
-    "protocol":1,"bridgeId":"test-bridge","generation":7,"version":"9007199254740993",
+    "protocol":2,"bridgeId":"test-bridge","generation":7,"version":"9007199254740993",
     "scene":{"projectId":"project","projectName":"预演测试","meshes":[
         {"id":"floor","name":"地面","color":[0.2,0.3,0.4],"triangles":[[[0,0,1],[2,0,1],[0,3,1]]]}
     ],"fixtures":[
@@ -113,12 +113,31 @@ bool FPreviewValidationTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("bad role retains prior scene"), Scene.Meshes[0].EnclosureShell);
 
     StageMaster::FFrame Frame;
-    Object = Parse(TEXT(R"json({"protocol":1,"bridgeId":"bridge","generation":0,"version":"2","status":"running",
+    Object = Parse(TEXT(R"json({"protocol":2,"bridgeId":"bridge","generation":0,"version":"2","status":"running",
         "source":{"kind":"playback"},"canEdit":false,"lights":[{"fixtureId":"fixture","intensity":0.5,"color":[1,0.25,0]}]})json"));
     TestTrue(TEXT("playback frame accepted"), StageMaster::ReadFrame(Object, Frame, Error));
     Object->GetArrayField(TEXT("lights"))[0]->AsObject()->SetNumberField(TEXT("intensity"), 1.1);
     TestFalse(TEXT("unbounded brightness rejected"), StageMaster::ReadFrame(Object, Frame, Error));
     TestEqual(TEXT("bad frame retains previous light values"), Frame.Lights[0].Intensity, 0.5f);
+    auto Light=Object->GetArrayField(TEXT("lights"))[0]->AsObject();
+    Light->SetNumberField(TEXT("intensity"),0.5);
+    auto Pose=Parse(TEXT(R"json({"base":[[1,0,0],[0,0,1]],"pan":[[0,1,0],[0,0,1]],"head":[[0,1,0],[1,0,0]],"direction":[-1,0,0]})json"));
+    Light->SetObjectField(TEXT("pose"),Pose);
+    TestTrue(TEXT("joint frame accepted"),StageMaster::ReadFrame(Object,Frame,Error));
+    if (!TestTrue(TEXT("pose retained"),Frame.Lights[0].Pose.IsSet())) return false;
+    TestTrue(TEXT("pan handedness converted once"),Frame.Lights[0].Pose->PanX.Equals(FVector(0,-1,0)));
+    TestTrue(TEXT("head direction shared"),Frame.Lights[0].Pose->Direction.Equals(FVector(-1,0,0)));
+    Pose->SetArrayField(TEXT("direction"),Parse(TEXT("{\"v\":[0,0,-1]}"))->GetArrayField(TEXT("v")));
+    TestFalse(TEXT("inconsistent ray rejected atomically"),StageMaster::ReadFrame(Object,Frame,Error));
+    TestTrue(TEXT("previous pose retained"),Frame.Lights[0].Pose->Direction.Equals(FVector(-1,0,0)));
+    // Captured from the Rust bridge: a rotated pan Z was 1.0000000000000002.
+    Pose=Parse(TEXT(R"json({"base":[[0.8660254037844387,0.49999999999999994,0.0],[0.0,0.0,1.0]],"pan":[[0.7606355239555037,-0.6491791738009904,0.0],[0.0,0.0,1.0000000000000002]],"head":[[0.7606355239555037,-0.6491791738009905,0.0],[0.36289812949224637,0.4252034261244286,0.8291604151327273]],"direction":[-0.36289812949224637,-0.4252034261244286,-0.8291604151327273]})json"));
+    Light->SetObjectField(TEXT("pose"),Pose);
+    TestTrue(TEXT("real Rust aim with rounding overshoot accepted"),StageMaster::ReadFrame(Object,Frame,Error));
+    Pose->SetArrayField(TEXT("pan"),Parse(TEXT("{\"v\":[[1,0,0],[0,0,1.001]]}"))->GetArrayField(TEXT("v")));
+    TestFalse(TEXT("non-unit axis still rejected"),StageMaster::ReadFrame(Object,Frame,Error));
+    Object->SetNumberField(TEXT("protocol"),1);
+    TestFalse(TEXT("legacy renderer protocol explicitly rejected"),StageMaster::ReadStamp(Object,Stamp));
     return true;
 }
 #endif

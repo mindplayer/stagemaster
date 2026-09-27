@@ -56,7 +56,7 @@
 
 七个模块对象 lighting/media/motion/io/stage/monitoring/surfaces 可省略。其他顶层数组必须显式出现，没有内容用 []；编辑中的工程允许 entryPoints=[]，发布／执行必须另外选择有效入口（见 [ADR-006](../development/decisions/PRODUCT-ADR-006-visible-desktop-increments.md) 的草案修正）。已出现的模块须完整携带其规定的数组；不要把“缺失”“空值”和“删除对象”混成同一含义。
 
-requires 的本草案能力键为 lighting.basic、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、stage.rigging、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic`／`lighting.effects.keyframes` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；已支持最多 32 个循环关键帧，不含摇头运动。
+requires 的本草案能力键为 lighting.basic、lighting.positioning、lighting.effects.basic、media.external、motion.external、io.logic、automation.rules、timeline.basic、stage.layout、stage.spaces、stage.rigging、monitoring、surface.mapping，版本均为 1。这些是**格式能力声明**，不表示现有程序已实现全部模块。EFFECT-001 的 `lighting.effects.basic`／`lighting.effects.keyframes` 已接入 Rust 编辑／编译／预览，具体两端曲线、顺序与时钟语义见[场景动态效果](../module-api/lighting-effects.md)；已支持最多 32 个循环关键帧，不含摇头运动。
 
 ## 3. 身份、资源、精确时间与单位
 
@@ -83,7 +83,7 @@ requires 的本草案能力键为 lighting.basic、lighting.effects.basic、medi
 
 ## 4. 灯光语义
 
-profiles 固定灯具模式及其修订，记录属性类型、默认值、HTP／LTP 混合规则和 DMX 通道映射。本草案编码支持归一化属性的 u8 与粗细双通道 u16-be，offsets 从 0 起；粗细顺序不能凭相邻地址猜测。现有复杂灯具功能范围、子灯、条件模式和效果器未在此简化档案中完整建模，后续由独立能力／版本扩展；不能声称已实现 GDTF 导入。
+profiles 固定灯具模式及其修订，记录属性类型、默认值、HTP／LTP 混合规则和 DMX 通道映射。本草案编码支持归一化属性的 u8 与粗细双通道 u16-be，offsets 从 0 起；粗细顺序不能凭相邻地址猜测。POSITION-001 增加可选 positioning 两轴模型及实例 zeroCorrection，使用 `lighting.positioning@1` 能力门控；字段、静态目标烘焙和量化语义见[位置接口](../module-api/positioning.md)。现有复杂灯具功能范围、子灯、条件模式和效果器未在此简化档案中完整建模，后续由独立能力／版本扩展；不能声称已实现 GDTF 导入。
 
 2026-09-24 的 [ADR-009](../development/decisions/PRODUCT-ADR-009-fixture-definition.md) 与[灯具定义设计](../ui-design/fixture-definition-design.md)补充了可复用能力、硬件变体、功能区间、轮盘档位、虚拟属性及个人灯库的方向。它们是后续契约扩展依据，尚未改变本草案、Schema 或 Rust 支持范围；实施需明确版本、迁移和编码行为，不能仅取消现有重复映射校验。
 

@@ -24,6 +24,7 @@ struct FMesh
 };
 struct FFixture
 {
+    bool Moving = false;
     FString Id;
     FString Name;
     FVector Origin;
@@ -39,8 +40,13 @@ struct FScene
     TArray<FMesh> Meshes;
     TArray<FFixture> Fixtures;
 };
+struct FJointPose
+{
+    FVector BaseX, BaseZ, PanX, PanZ, HeadX, HeadZ, Direction;
+};
 struct FLight
 {
+    TOptional<FJointPose> Pose;
     FString Id;
     float Intensity = 0;
     FLinearColor Color;
