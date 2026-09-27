@@ -6,6 +6,8 @@
 
 当前开发入口：
 
+- [工程容量与恢复](docs/module-api/project-capacity.md)：PROJECT-002 修复紧凑工程能打开却可能无法保存的问题；完整内容保留，自动选择可读或紧凑 JSON，已验证 7,002 场景编辑、保存重开及异常恢复。
+
 - [独立播放包](docs/module-api/playback-package.md)：PLAYER-003A 接入只读选择编译、逐节目装载、内存限额和原子导出；复用共享播放内核，支持场景／列表、效果／关键帧及粗细通道。当前为软件参考路径，设备安装、授权和真实 DMX 仍待实现。
 
 - [工程检查与定位修复](docs/module-api/project-check.md)：CHECK-001 已接真实 Rust 编译／计划容量与桌面问题导航，支持过期报告保护、搜索／分页和修复后重查；电脑预览通过不代表设备可发布。每日实现进度以 [当前状态](docs/development/STATE.md) 为准。

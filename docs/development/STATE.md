@@ -1,5 +1,7 @@
 # 当前开发状态
 
+已完成 [PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md)：基线 `21f3306`，结果为本次 `fix(project): keep compact projects editable and recoverable` 提交。按 [ADR-029](decisions/PRODUCT-ADR-029-project-capacity.md) 统一打开／编辑／保存／恢复容量规则，必要时回退紧凑 JSON，预留修订空间并保护超限事务。212 Rust、fmt／严格 Clippy与桌面构建通过；原生 7,002 场景编辑／保存重开、QA 异常终止后恢复另存与原文件摘要通过，原用户 14610／14928 保留。PLAYER-003A 已提交 `21f3306`；下一断点为 PLAYER-003B 传输无关安装事务。
+
 更新：2026-09-28。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 

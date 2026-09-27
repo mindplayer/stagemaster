@@ -9,6 +9,7 @@ pub use check::{
 pub use package::{PackageBuild, PackageIssue, PackageProgram, PackageReport, PackageSelection};
 mod editing;
 mod effects;
+mod encoding;
 mod fixture;
 mod position;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
@@ -40,6 +41,8 @@ pub use view::{
     SceneValue, SceneView, SequenceView, StepView,
 };
 
+/// Maximum input/output bytes; editable compact content must also leave room
+/// for the next saved revision (38 bytes when the parent revision list is empty).
 pub const MAX_BYTES: usize = 8 * 1024 * 1024;
 const VERSION: &str = "0.1.0-draft.1";
 
@@ -61,6 +64,7 @@ impl Document {
     pub fn decode(bytes: &[u8]) -> Result<Self, String> {
         let root = strict_json::decode(bytes)?;
         validation::validate(&root)?;
+        encoding::validate_capacity(&root)?;
         Ok(Self {
             saved_revision: Some(text(&root["project"], "revisionId").into()),
             root,
@@ -79,6 +83,7 @@ impl Document {
             "syncGroups":[],"actions":[],"conditions":[],"rules":[],"timelines":[],"entryPoints":[],"extensions":[]
         });
         validation::validate(&root)?;
+        encoding::validate_capacity(&root)?;
         Ok(Self {
             root,
             saved_revision: None,
@@ -95,15 +100,7 @@ impl Document {
         let mut next = self.root.clone();
         editing::apply(&mut next, command)?;
         validation::validate(&next)?;
-        // Bound memory and prevent creating a document that cannot be reopened.
-        if serde_json::to_vec_pretty(&next)
-            .map_err(|_| "工程编码失败")?
-            .len()
-            + 1
-            > MAX_BYTES
-        {
-            return Err("工程超过 8 MiB 限制".into());
-        }
+        encoding::validate_capacity(&next)?;
         self.root = next;
         Ok(())
     }
@@ -128,16 +125,12 @@ impl Document {
         }
         left == right
     }
-    /// Serialize the complete validated document.
+    /// Serialize the complete validated document, using compact JSON if indented
+    /// JSON would exceed the file limit. No content is omitted to make it fit.
     /// # Errors
     /// Returns an encoding or document-size error.
     pub fn encode(&self) -> Result<Vec<u8>, String> {
-        let mut bytes = serde_json::to_vec_pretty(&self.root).map_err(|_| "工程编码失败")?;
-        bytes.push(b'\n');
-        if bytes.len() > MAX_BYTES {
-            return Err("工程超过 8 MiB 限制".into());
-        }
-        Ok(bytes)
+        encoding::encode(&self.root)
     }
     /// Retain the latest saved revision while moving through local undo history.
     pub fn use_revision_from(&mut self, saved: &Self) {

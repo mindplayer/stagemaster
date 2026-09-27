@@ -339,6 +339,12 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+    mod capacity_fixture {
+        include!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../crates/stagemaster-project/tests/support/capacity.rs"
+        ));
+    }
     fn session() -> Session {
         let mut session = Session::default();
         session.replace(Document::new("工程").unwrap(), None);
@@ -421,6 +427,42 @@ mod tests {
         assert!(!s.redo.is_empty());
         s.edit(s.generation, rename("二")).unwrap();
         assert!(s.redo.is_empty());
+    }
+    #[test]
+    fn capacity_failure_preserves_history_generation_and_recovery_snapshot() {
+        let root = capacity_fixture::root_of_size(stagemaster_project::MAX_BYTES - 38 - 6);
+        let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let mut s = Session::default();
+        s.replace(doc, None);
+        let description = |value: &str| EditCommand::SetInfo {
+            name: "容量验收".into(),
+            description: value.into(),
+        };
+        s.edit(s.generation, description("中文")).unwrap();
+        assert_eq!(s.undo.len(), 1);
+        s.history(s.generation, false).unwrap();
+        let before = s.document.clone();
+        let generation = s.generation;
+        let version = s.content_version;
+        let checkpoint = s.checkpoint().document;
+        assert!(
+            s.edit(generation, description("中文x"))
+                .unwrap_err()
+                .contains("8 MiB")
+        );
+        assert_eq!(s.document, before);
+        assert_eq!(s.generation, generation);
+        assert_eq!(s.content_version, version);
+        assert_eq!(s.checkpoint().document, checkpoint);
+        assert!(s.undo.is_empty());
+        assert_eq!(s.redo.len(), 1);
+        s.history(generation, true).unwrap();
+        let doc = s.document.as_ref().unwrap();
+        assert_eq!(doc.view().description, "中文");
+        assert_eq!(
+            doc.next_revision().encode().unwrap().len(),
+            stagemaster_project::MAX_BYTES
+        );
     }
 }
 
