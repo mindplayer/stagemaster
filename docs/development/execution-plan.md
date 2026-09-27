@@ -4,7 +4,9 @@
 
 ## 当前任务
 
-- [PLAYER-003D](tasks/PLAYER-003D-flash-store.md) 已完成 NOR 双槽、撕裂恢复／读源保护、真实 ESP32 驱动完整构建、独立分区和资源报告；软件故障模型不等同实板断电。下一项 PLAYER-003E 补已安装／激活／运行及维护互斥，再接正式 GATT 与受控实板验证。
+- [PLAYER-003E](tasks/PLAYER-003E-device-runtime.md) 已完成独立运行层、节目选择／载入、实例与控制租约、断线继续和维护写门，实际目标板完整构建通过；继续正式设备连接和软件操作链，物理输出与生产授权仍各自验收。
+
+- [PLAYER-003D](tasks/PLAYER-003D-flash-store.md) 已完成 NOR 双槽、撕裂恢复／读源保护、真实 ESP32 驱动完整构建、独立分区和资源报告；软件故障模型不等同实板断电。PLAYER-003E 已补已安装／载入／运行与维护互斥，正式 GATT 和受控实板验证继续推进。
 
 - [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) 已完成软件协议／重组／受限服务与主机上传协调，按摘要与权威偏移恢复，错误回执不当作回滚，已完成意图重连不重装。PLAYER-003D 已补 NOR Flash 存储承接、固件分区和资源核对；实际 GATT 接入、权限和实板时序／断电独立验证。
 
@@ -61,7 +63,7 @@
 | AUTH-001：中转交付与临时播放授权 | 手机／电脑联网取得正式授权，离线时凭受限许可生成当前文件的 24 小时临时包；设备验证、可信时间、到期提示／有限收尾与生产保护 | 弱网／无网、重传不延期、错设备／坏签名、断电／回拨／状态回退、循环到期收尾与联网转正；硬件实际保护能力有证据 |
 | PLAYER-005：整机验收与交付 | 指定灯具／模式、连接器与供电、故障策略、版本与操作说明 | 至少一次 8 小时工程压力运行的时序／内存记录；真实渐变／跳转、掉电恢复、断线与重复命令测试；问题关闭后才声明可交付 |
 
-PLAYER-003A 已完成主机参考包、独立解码及桌面导出，见[工单](tasks/PLAYER-003A-host-package.md)；[PLAYER-003B](tasks/PLAYER-003B-package-installation.md) 已完成安装状态机及文件参考持久提交／恢复；[PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) 已完成传输封包与上传协调。这些是可独立验证的软件出口，PLAYER-003 的实板安装／输出出口仍未完成。[PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md) 已补齐紧凑工程读写容量一致性和异常恢复验证，PLAYER-003D 已补 Flash 存储与固件准备；下一增量为独立运行应用层。
+PLAYER-003A 已完成主机参考包、独立解码及桌面导出，见[工单](tasks/PLAYER-003A-host-package.md)；[PLAYER-003B](tasks/PLAYER-003B-package-installation.md) 已完成安装状态机及文件参考持久提交／恢复；[PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) 已完成传输封包与上传协调。这些是可独立验证的软件出口，PLAYER-003 的实板安装／输出出口仍未完成。[PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md) 已补齐紧凑工程读写容量一致性和异常恢复验证，PLAYER-003D 已补 Flash 存储与固件准备；PLAYER-003E 已补独立运行应用层，随后接正式设备连接和完整操作链。
 
 PLAYER-002 的工具链和输出风险验证不必等待 PLAYER-001 全部完成，但由当前会话交错执行，不启动其他代理。PLAYER-003 必须依赖已验证的执行语义与板级路径；正式接灯须先完成接口审查与相应授权。8 小时是工程起始门槛，不是寿命认证；其他容量和时序容差在测试前明确，不能事后迁就实现。
 

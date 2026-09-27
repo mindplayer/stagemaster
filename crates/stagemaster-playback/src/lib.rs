@@ -186,6 +186,27 @@ pub struct Player {
     from: Vec<u16>,
 }
 impl Player {
+    /// Construct with recoverable allocation failures for memory-constrained hosts.
+    /// # Errors
+    /// Return the allocator error if either live value buffer cannot be reserved.
+    pub fn try_new(plan: Plan, now_ms: u64) -> Result<Self, alloc::collections::TryReserveError> {
+        let mut values = Vec::new();
+        values.try_reserve_exact(plan.defaults.len())?;
+        values.extend_from_slice(&plan.defaults);
+        let mut from = Vec::new();
+        from.try_reserve_exact(plan.defaults.len())?;
+        from.extend_from_slice(&plan.defaults);
+        Ok(Self {
+            plan,
+            status: Status::Idle,
+            index: None,
+            elapsed_ms: 0,
+            last_ms: now_ms,
+            values,
+            from,
+        })
+    }
+
     #[must_use]
     pub fn new(plan: Plan, now_ms: u64) -> Self {
         Self {

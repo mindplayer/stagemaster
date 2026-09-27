@@ -1,6 +1,8 @@
 # 当前开发状态
 
-已完成 [PLAYER-003D](tasks/PLAYER-003D-flash-store.md)：基线 `9ae315a`，结果为本次 `feat(storage): add NOR package slots and ESP32 storage readiness` 提交。按 [ADR-032](decisions/PRODUCT-ADR-032-nor-package-store.md) 接入独立 NOR 双槽／撕裂恢复／尾部编程／租约与只读维护边界；见[接口与资源报告](../module-api/nor-package-store.md)。256 Rust、fmt／严格 Clippy、实际 ESP32 release 链接／Clippy及分区往返通过；100 个驱动操作点×4 故障模式、512 字节元数据破坏及逐帧等价通过。固件只读检查独立构建，535,232 B 本地镜像；128 KiB 堆的并存限制和实际栈帧已记录。未刷机／实板擦写／DMX，原 14610／14928 保留。下一项 PLAYER-003E 独立设备运行应用层，持续 goal 推进。
+已完成 [PLAYER-003E](tasks/PLAYER-003E-device-runtime.md)：基线 `4b3ffe9`，结果为本次 `feat(runtime): add device playback authority and maintenance lifecycle` 提交。按 [ADR-033](decisions/PRODUCT-ADR-033-device-runtime.md) 接入独立 Rust 运行层，分离包／选择／载入／实例，统一控制租约、历史回执、断线继续、装载失败与安装维护；见[接口](../module-api/device-runtime.md)。270 Rust＋最终 14 项定向、fmt／严格 Clippy、实际 ESP32 release 链接和既有导出包三节目逐帧对照通过；Runtime 880 B，独立本地镜像 574,992 B。许可调用边界已留，24 小时生产授权仍未实现。未刷机／输出，原 14610／14928 保留。持续 goal 向正式设备连接和软件操作链推进。
+
+已完成 [PLAYER-003D](tasks/PLAYER-003D-flash-store.md)：基线 `9ae315a`，结果 `4b3ffe9`。按 [ADR-032](decisions/PRODUCT-ADR-032-nor-package-store.md) 接入独立 NOR 双槽／撕裂恢复／尾部编程／租约与只读维护边界；见[接口与资源报告](../module-api/nor-package-store.md)。256 Rust、fmt／严格 Clippy、实际 ESP32 release 链接／Clippy及分区往返通过；100 个驱动操作点×4 故障模式、512 字节元数据破坏及逐帧等价通过。固件只读检查独立构建，535,232 B 本地镜像；128 KiB 堆的并存限制和实际栈帧已记录。未刷机／实板擦写／DMX，原 14610／14928 保留。下一项 PLAYER-003E 独立设备运行应用层，持续 goal 推进。
 
 已完成 [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md)：基线 `4e09820`，结果为本次 `feat(transfer): add bounded package protocol and resumable uploads` 提交。复用 SMP／minicbor，独立 no_std 封包／重组、受限安装服务、事务归属与主机上传协调；见 [ADR-031](decisions/PRODUCT-ADR-031-package-transfer.md) 和[接口](../module-api/package-transfer.md)。全量 241 Rust＋最终 17 项定向（新增 2）、fmt／严格 Clippy／最终 Xtensa 编译通过；各请求回执丢失／重连、重启／取消、旧意图不重放和真实包逐帧对比通过。软件权限边界不等于设备认证；未接正式 GATT／Flash、未刷机／输出 DMX，原 14610／14928 保留。下一项 PLAYER-003D Flash 存储承接与固件分区／资源核对，当前 goal 持续推进。
 

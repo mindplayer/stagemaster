@@ -1,0 +1,20 @@
+[package]
+name = "stagemaster-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+stagemaster-playback = { path = "../stagemaster-playback" }
+stagemaster-package = { path = "../stagemaster-package" }
+stagemaster-install = { path = "../stagemaster-install" }
+
+[dev-dependencies]
+stagemaster-project = { path = "../stagemaster-project" }
+stagemaster-install-store = { path = "../stagemaster-install-store" }
+serde_json = "=1.0.151"
+tempfile = "=3.27.0"
+
+[lints]
+workspace = true

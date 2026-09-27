@@ -1887,7 +1887,9 @@ dependencies = [
  "stagemaster-device-link",
  "stagemaster-install",
  "stagemaster-nor-store",
+ "stagemaster-package",
  "stagemaster-playback",
+ "stagemaster-runtime",
  "stagemaster-transfer",
  "static_cell",
  "trouble-host",
@@ -1923,6 +1925,15 @@ dependencies = [
 [[package]]
 name = "stagemaster-playback"
 version = "0.1.0"
+
+[[package]]
+name = "stagemaster-runtime"
+version = "0.1.0"
+dependencies = [
+ "stagemaster-install",
+ "stagemaster-package",
+ "stagemaster-playback",
+]
 
 [[package]]
 name = "stagemaster-transfer"

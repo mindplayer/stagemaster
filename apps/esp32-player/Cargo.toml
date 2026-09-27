@@ -8,9 +8,12 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+runtime-readiness = ["storage-readiness", "dep:stagemaster-runtime", "dep:stagemaster-package"]
 storage-readiness = ["dep:esp-storage", "dep:stagemaster-install", "dep:stagemaster-nor-store", "dep:stagemaster-transfer", "esp-bootloader-esp-idf/embedded-storage"]
 
 [dependencies]
+stagemaster-runtime = { path = "../../crates/stagemaster-runtime", optional = true }
+stagemaster-package = { path = "../../crates/stagemaster-package", optional = true }
 esp-storage = { version = "=0.10.0", features = ["esp32s3"], optional = true }
 stagemaster-install = { path = "../../crates/stagemaster-install", optional = true }
 stagemaster-nor-store = { path = "../../crates/stagemaster-nor-store", optional = true }

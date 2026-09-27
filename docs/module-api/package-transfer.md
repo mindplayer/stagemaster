@@ -1,6 +1,6 @@
 # 播放包传输接口
 
-PLAYER-003C；[ADR-031](../development/decisions/PRODUCT-ADR-031-package-transfer.md)。`stagemaster-transfer` 已有 no_std 编码／重组、受限安装服务与主机上传协调。当前仅为内存链路＋文件存储的软件参考；没有接正式 GATT 特征、设备 Flash 或密码学认证。
+PLAYER-003C；[ADR-031](../development/decisions/PRODUCT-ADR-031-package-transfer.md)。`stagemaster-transfer` 已有 no_std 编码／重组、受限安装服务与主机上传协调。软件协议已在文件和 [NOR 存储](nor-package-store.md)参考路径验证；[独立运行层](device-runtime.md)另行承接。尚未接正式 GATT 特征或密码学认证，真实 Flash 写入／无线安装未验收。
 
 ## 模块调用与归属
 
@@ -69,7 +69,7 @@ CBOR 复用 minicbor；只接收固定数量的键／确定长度容器，允许
 
 存储错误会停止自动推进；`retry()` 在没有在途消息时查询状态，**不会自动取消失败事务**。用户明确取消调用 `request_cancel()`；同一在途操作先获结果，或重连查询后再取消。待确认提交必须先对账，不能绕过。若提交已成功，结果为 `Installed`；否则才能得到 `Cancelled` 或尚未开始的 `NotStarted`。
 
-完成／取消结果是本次意图的历史结果，重连后保持终态，不代表设备当前仍在使用它。不得用旧上传对象自动覆盖后续安装；再次安装需新建 `Upload`。当前没有独立运行选择或播放命令。
+完成／取消结果是本次意图的历史结果，重连后保持终态，不代表设备当前仍在使用它。不得用旧上传对象自动覆盖后续安装；再次安装需新建 `Upload`。安装协议本身没有运行命令；独立选择／控制由[设备运行层](device-runtime.md)承接，尚未增加控制的线缆／无线封包。
 
 ## 验证与资源
 

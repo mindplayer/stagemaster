@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Inspect an already built Xtensa ELF with the installed binutils; never contact a board."""
+import argparse
 import json
 import re
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ELF = ROOT / 'target/esp32-storage-check/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('profile', choices=['storage', 'runtime'], default='storage', nargs='?')
+profile = parser.parse_args().profile
+ELF = ROOT / f'target/esp32-{profile}-check/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe'
 
 
 def command(*args):
@@ -14,22 +18,29 @@ def command(*args):
 
 
 symbols = command('xtensa-esp32s3-elf-nm', '-SC', str(ELF))
-resource = next(line.split() for line in symbols.splitlines()
-                if line.endswith('stagemaster_esp32_probe::package_storage::RESOURCE_BYTES'))
-address, length = int(resource[0], 16), int(resource[1], 16)
-assert length == 24
-raw = command('xtensa-esp32s3-elf-objdump', '-s', f'--start-address={address}',
-              f'--stop-address={address + length}', str(ELF))
-words = []
-for line in raw.splitlines():
-    tokens = line.split()
-    if tokens and re.fullmatch(r'[0-9a-f]{8}', tokens[0]):
-        for token in tokens[1:]:
-            if not re.fullmatch(r'[0-9a-f]{8}', token):
-                break
-            words.append(int.from_bytes(bytes.fromhex(token), 'little'))
-assert len(words) == 6
-labels = ['service_including_store', 'store', 'snapshot', 'frame', 'assembler', 'driver_reference']
+def type_sizes(symbol, labels):
+    resource = next(line.split() for line in symbols.splitlines() if line.endswith(symbol))
+    address, length = int(resource[0], 16), int(resource[1], 16)
+    assert length == len(labels) * 4
+    raw = command('xtensa-esp32s3-elf-objdump', '-s', f'--start-address={address}',
+                  f'--stop-address={address + length}', str(ELF))
+    words = []
+    for line in raw.splitlines():
+        tokens = line.split()
+        if tokens and re.fullmatch(r'[0-9a-f]{8}', tokens[0]):
+            for token in tokens[1:]:
+                if not re.fullmatch(r'[0-9a-f]{8}', token):
+                    break
+                words.append(int.from_bytes(bytes.fromhex(token), 'little'))
+    assert len(words) == len(labels)
+    return dict(zip(labels, words))
+
+
+sizes = type_sizes('stagemaster_esp32_probe::package_storage::RESOURCE_BYTES',
+                   ['service_including_store', 'store', 'snapshot', 'frame', 'assembler', 'driver_reference'])
+if profile == 'runtime':
+    sizes.update(type_sizes('stagemaster_esp32_probe::runtime_readiness::RUNTIME_RESOURCE_BYTES',
+                            ['runtime', 'control_request', 'control_receipt', 'runtime_state']))
 sections = {}
 for line in command('xtensa-esp32s3-elf-size', '-A', str(ELF)).splitlines():
     values = line.split()
@@ -49,10 +60,11 @@ selected = {name: size for name, size in entries.items()
             if any(part in name for part in ['stagemaster_nor_store::io::',
                                              'stagemaster_nor_store::metadata::',
                                              'esp_bootloader_esp_idf::partitions::read_partition_table',
-                                             'stagemaster_transfer::service::Service'])}
+                                             'stagemaster_transfer::service::Service',
+                                             'stagemaster_runtime::runtime::Runtime'])}
 print(json.dumps({
     'elf': str(ELF.relative_to(ROOT)),
-    'type_bytes': dict(zip(labels, words)),
+    'type_bytes': sizes,
     'sections': {k: sections[k] for k in ['.bss', '.data', '.data.wifi', '.stack']},
     'function_entry_stack_bytes_not_call_chain_peak': selected,
     'largest_entry': sorted(entries.items(), key=lambda item: item[1], reverse=True)[:5],

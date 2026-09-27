@@ -69,3 +69,16 @@ TMPDIR="$PWD/tmp" tmp/esp-tools/espflash partition-table --skip-update-check --t
 TMPDIR="$PWD/tmp" tmp/esp-tools/espflash partition-table --skip-update-check --to-csv data/player-003d/partitions.bin --output data/player-003d/partitions-roundtrip.csv
 TMPDIR="$PWD/tmp" tmp/esp-tools/espflash save-image --chip esp32s3 --flash-size 16mb --skip-update-check --partition-table apps/esp32-player/partitions-storage.csv --target-app-partition ota_0 target/esp32-storage-check/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe data/player-003d/storage-readiness.bin
 ```
+
+## 设备运行准备（PLAYER-003E）
+
+新增 `runtime-readiness` 特性，在存储检查基础上只读恢复 Runtime 的包绑定，真实策略拒绝播放，不建立控制连接。保留完整运行请求／装载／帧生成函数进行代码生成和链接；类型检查不能替代这个构建。
+
+```sh
+bash tools/hardware/firmware.sh runtime-build
+bash tools/hardware/firmware.sh runtime-check
+bash tools/hardware/firmware.sh runtime-size
+bash tools/hardware/firmware.sh runtime-report
+```
+
+目录 `target/esp32-runtime-check/` 与诊断／存储检查产物分别保留。没有运行镜像刷写命令；具体[运行契约和预算](../../docs/module-api/device-runtime.md)。报告脚本仅调用 binutils 读取 ELF，不接触板卡。安装维护需实际输出静默确认；当前软件检查不证明无线、看门狗和任务栈动态峰值。

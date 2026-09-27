@@ -88,6 +88,8 @@ pub fn inspect(peripheral: esp_hal::peripherals::FLASH<'static>) {
     };
     let mut service = Service::new(installer).unwrap();
     retain_handler(&mut service);
+    #[cfg(feature = "runtime-readiness")]
+    crate::runtime_readiness::inspect(&service, boot);
     esp_println::println!(
         "Xtensa 类型大小（服务含存储／存储／读源／帧／重组／驱动）：{:?}",
         RESOURCE_BYTES

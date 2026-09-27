@@ -12,6 +12,7 @@ members = [
   "crates/stagemaster-install",
   "crates/stagemaster-install-store",
   "crates/stagemaster-nor-store",
+  "crates/stagemaster-runtime",
   "crates/stagemaster-transfer",
   "crates/stagemaster-device-link",
   "crates/stagemaster-project-store",

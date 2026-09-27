@@ -13,6 +13,8 @@ mod diagnostics;
 mod package_layout;
 #[cfg(feature = "storage-readiness")]
 mod package_storage;
+#[cfg(feature = "runtime-readiness")]
+mod runtime_readiness;
 mod self_test;
 
 esp_bootloader_esp_idf::esp_app_desc!();
