@@ -1,8 +1,8 @@
 # 当前开发状态
 
-进行中：[DEVICE-001](tasks/DEVICE-001-connection-workspace.md)，基线 `3c86123`。按 [ADR-034](decisions/PRODUCT-ADR-034-device-connection-workspace.md) 已接入独立原生 BLE／应用级保活和正式设备面板；285 Rust、最终 23 定向、74 UI、严格 Clippy／类型／桌面与 ESP32 构建通过。原生空工程入口、筛选／Esc／工程草稿保持、权限等待／超时与取消已核验。真实搜索／连接／保活／重连待用户亲自允许“舞台大师连接验收”使用蓝牙；系统工具拒绝操作该权限窗口，未绕过。见[接口](../module-api/device-connection.md)。本轮不刷机／写设备节目存储／输出 DMX；原 14610／14928 保持，goal 仍进行中，当前只是软件检查点。
+等待外部条件：[DEVICE-001](tasks/DEVICE-001-connection-workspace.md)，基线 `3c86123`，软件检查点 `de9d8ac`、界面修复 `e1867f9`。按 [ADR-034](decisions/PRODUCT-ADR-034-device-connection-workspace.md) 已接入独立原生 BLE／应用级保活和正式设备面板；285 Rust、最终 23 定向、74 UI、严格 Clippy／类型／桌面与 ESP32 构建通过。原生空工程入口、筛选／Esc／工程草稿保持、权限等待／超时与取消已核验。真实搜索／连接／保活／重连待用户亲自允许“舞台大师连接验收”使用蓝牙；系统工具拒绝操作该权限窗口，未绕过。见[接口](../module-api/device-connection.md)。本轮不刷机／写设备节目存储／输出 DMX；原 14610／14928 保持。第 3 次连续目标轮复查仍因同一系统权限条件无法进入真实搜索，独立软件验收已完成，goal 标记 blocked，未结项。
 
-DEVICE-001 检查点 `de9d8ac` 后继续界面验收：正式网页连接入口禁用已确认；组件发现并修复通用表单样式导致的竖排和长名称溢出，补窄窗完整辅助名称。隐藏选择、取消、迟到状态、通信故障和收起重开通过，1100×800 无水平溢出；见[出口审查](tasks/DEVICE-001-acceptance-audit.md)。系统权限阻塞第 2 次目标轮复查仍在，真实 GATT 出口未完成。
+DEVICE-001 检查点 `de9d8ac` 后继续界面验收并提交 `e1867f9`：正式网页连接入口禁用已确认；组件发现并修复通用表单样式导致的竖排和长名称溢出，补窄窗完整辅助名称。隐藏选择、取消、迟到状态、通信故障和收起重开通过，1100×800 无水平溢出；见[出口审查](tasks/DEVICE-001-acceptance-audit.md)。真实 GATT 出口未完成，用户完成系统授权并恢复目标后继续实板验收。
 
 已完成 [PLAYER-003E](tasks/PLAYER-003E-device-runtime.md)：基线 `4b3ffe9`，结果 `3c86123`。按 [ADR-033](decisions/PRODUCT-ADR-033-device-runtime.md) 接入独立 Rust 运行层，分离包／选择／载入／实例，统一控制租约、历史回执、断线继续、装载失败与安装维护；见[接口](../module-api/device-runtime.md)。270 Rust＋最终 14 项定向、fmt／严格 Clippy、实际 ESP32 release 链接和既有导出包三节目逐帧对照通过；Runtime 880 B，独立本地镜像 574,992 B。许可调用边界已留，24 小时生产授权仍未实现。未刷机／输出，原 14610／14928 保留。持续 goal 向正式设备连接和软件操作链推进。
 
