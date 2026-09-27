@@ -49,3 +49,23 @@ TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python -u tools/hardware/gatt_probe.py
 测试服务读写／通知一致性、错误版本／会话、重复／乱序、长度拒绝、30 秒心跳、无有效心跳约 6 秒断开、三次重连和本地内核持续推进。`PASS` 不代表 DMX 电气、真实灯具或长期稳定性通过。
 
 固件 ELF 的 `.rotext_dummy` 与 `.text` 共段会触发工具链 RWX 段告警；保留告警和 `readelf` 记录，没有用编译开关掩盖。该裸机链接属性不等于运行时权限隔离；生产内存保护须单独审查。
+
+## NOR 存储准备（PLAYER-003D）
+
+新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。当前板卡尚未安装 `partitions-storage.csv`，不能直接在默认旧分区启用节目写入。
+
+```sh
+bash tools/hardware/firmware.sh storage-build
+bash tools/hardware/firmware.sh storage-check
+bash tools/hardware/firmware.sh storage-size
+bash tools/hardware/firmware.sh storage-report
+```
+
+报告直接读取 Xtensa ELF 类型大小和入口栈帧，不是硬件动态峰值。详细[预算／限制](../../docs/module-api/nor-package-store.md)和[验收](../../docs/development/tasks/PLAYER-003D-flash-store.md)。本地分区和镜像验证命令不会访问设备：
+
+```sh
+mkdir -p data/player-003d
+TMPDIR="$PWD/tmp" tmp/esp-tools/espflash partition-table --skip-update-check --to-binary apps/esp32-player/partitions-storage.csv --output data/player-003d/partitions.bin
+TMPDIR="$PWD/tmp" tmp/esp-tools/espflash partition-table --skip-update-check --to-csv data/player-003d/partitions.bin --output data/player-003d/partitions-roundtrip.csv
+TMPDIR="$PWD/tmp" tmp/esp-tools/espflash save-image --chip esp32s3 --flash-size 16mb --skip-update-check --partition-table apps/esp32-player/partitions-storage.csv --target-app-partition ota_0 target/esp32-storage-check/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe data/player-003d/storage-readiness.bin
+```

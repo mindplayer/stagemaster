@@ -1,5 +1,7 @@
 # 当前开发状态
 
+已完成 [PLAYER-003D](tasks/PLAYER-003D-flash-store.md)：基线 `9ae315a`，结果为本次 `feat(storage): add NOR package slots and ESP32 storage readiness` 提交。按 [ADR-032](decisions/PRODUCT-ADR-032-nor-package-store.md) 接入独立 NOR 双槽／撕裂恢复／尾部编程／租约与只读维护边界；见[接口与资源报告](../module-api/nor-package-store.md)。256 Rust、fmt／严格 Clippy、实际 ESP32 release 链接／Clippy及分区往返通过；100 个驱动操作点×4 故障模式、512 字节元数据破坏及逐帧等价通过。固件只读检查独立构建，535,232 B 本地镜像；128 KiB 堆的并存限制和实际栈帧已记录。未刷机／实板擦写／DMX，原 14610／14928 保留。下一项 PLAYER-003E 独立设备运行应用层，持续 goal 推进。
+
 已完成 [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md)：基线 `4e09820`，结果为本次 `feat(transfer): add bounded package protocol and resumable uploads` 提交。复用 SMP／minicbor，独立 no_std 封包／重组、受限安装服务、事务归属与主机上传协调；见 [ADR-031](decisions/PRODUCT-ADR-031-package-transfer.md) 和[接口](../module-api/package-transfer.md)。全量 241 Rust＋最终 17 项定向（新增 2）、fmt／严格 Clippy／最终 Xtensa 编译通过；各请求回执丢失／重连、重启／取消、旧意图不重放和真实包逐帧对比通过。软件权限边界不等于设备认证；未接正式 GATT／Flash、未刷机／输出 DMX，原 14610／14928 保留。下一项 PLAYER-003D Flash 存储承接与固件分区／资源核对，当前 goal 持续推进。
 
 已完成 [PLAYER-003B](tasks/PLAYER-003B-package-installation.md)：基线 `31e040f`，结果为本次 `feat(install): add transport-independent package installation transactions` 提交。独立 no_std 安装状态机、两槽完整校验／持久提交、重传／取消／待确认对账、旧读源租约与文件参考适配；见 [ADR-030](decisions/PRODUCT-ADR-030-package-installation.md) 和[接口](../module-api/package-installation.md)。全量 224 Rust＋最终 14 项定向（新增 2）、fmt／严格 Clippy／Xtensa 编译通过；逐存储点故障与进程退出、真实导出包安装／重开／替换和三个节目各 400 帧摘要通过。软件参考验收不等于实板断电／GATT 安装；未刷机／输出 DMX，原 14610／14928 保留。下一项 PLAYER-003C 受限传输协议与主机上传协调，继续保持安装、权限、运行和物理输出分离。

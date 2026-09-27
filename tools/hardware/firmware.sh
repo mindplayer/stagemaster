@@ -8,6 +8,21 @@ export TMPDIR="$project_root/tmp"
 source "$project_root/tmp/esp-tools/export-esp.sh"
 firmware="$project_root/target/esp32-player/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe"
 case "$action" in
+  storage-build|storage-check)
+    export CARGO_TARGET_DIR="$project_root/target/esp32-storage-check"
+    cd "$project_root/apps/esp32-player"
+    if [[ "$action" == storage-build ]]; then
+      cargo +esp build --release --features storage-readiness --locked --offline
+    else
+      cargo +esp clippy --release --features storage-readiness --locked --offline -- -D warnings
+    fi
+    ;;
+  storage-report)
+    python3 "$project_root/tools/hardware/storage-report.py"
+    ;;
+  storage-size)
+    xtensa-esp32s3-elf-size -A "$project_root/target/esp32-storage-check/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe"
+    ;;
   build)
     cd "$project_root/apps/esp32-player"
     cargo +esp build --release --locked --offline
@@ -27,5 +42,5 @@ case "$action" in
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac

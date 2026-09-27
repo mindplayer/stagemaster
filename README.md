@@ -6,8 +6,9 @@
 
 当前开发入口：
 
-- [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，正式蓝牙／Flash 接入仍待实施。
-- [播放包安装事务](docs/module-api/package-installation.md)：PLAYER-003B 接入独立 Rust 状态机、双槽提交、断连续传／重复请求、异常恢复和旧读源保护；文件参考已验证，GATT／Flash 接入及实板验收继续推进。
+- [NOR 播放包存储与设备预算](docs/module-api/nor-package-store.md)：PLAYER-003D 接入双槽恢复、读源保护及 ESP32 完整驱动构建／分区检查；当前为本地只读准备镜像，实板擦写和安装尚未验收。
+- [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，NOR 适配已补，正式蓝牙安装和实板验收继续推进。
+- [播放包安装事务](docs/module-api/package-installation.md)：PLAYER-003B 接入独立 Rust 状态机、双槽提交、断连续传／重复请求、异常恢复和旧读源保护；文件参考已验证，GATT 接入及实板验收继续推进。
 - [工程容量与恢复](docs/module-api/project-capacity.md)：PROJECT-002 修复紧凑工程能打开却可能无法保存的问题；完整内容保留，自动选择可读或紧凑 JSON，已验证 7,002 场景编辑、保存重开及异常恢复。
 
 - [独立播放包](docs/module-api/playback-package.md)：PLAYER-003A 接入只读选择编译、逐节目装载、内存限额和原子导出；复用共享播放内核，支持场景／列表、效果／关键帧及粗细通道。当前为软件参考路径，设备安装、授权和真实 DMX 仍待实现。

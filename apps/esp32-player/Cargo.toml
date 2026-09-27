@@ -7,7 +7,14 @@ license = "LicenseRef-Proprietary"
 
 [workspace]
 
+[features]
+storage-readiness = ["dep:esp-storage", "dep:stagemaster-install", "dep:stagemaster-nor-store", "dep:stagemaster-transfer", "esp-bootloader-esp-idf/embedded-storage"]
+
 [dependencies]
+esp-storage = { version = "=0.10.0", features = ["esp32s3"], optional = true }
+stagemaster-install = { path = "../../crates/stagemaster-install", optional = true }
+stagemaster-nor-store = { path = "../../crates/stagemaster-nor-store", optional = true }
+stagemaster-transfer = { path = "../../crates/stagemaster-transfer", optional = true }
 stagemaster-playback = { path = "../../crates/stagemaster-playback" }
 stagemaster-device-link = { path = "../../crates/stagemaster-device-link" }
 esp-hal = { version = "=1.2.2", features = ["esp32s3", "unstable"] }
