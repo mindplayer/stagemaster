@@ -8,13 +8,18 @@ import {
 import { StageSelectionOverlay } from "./StageSelectionOverlay";
 import { resizedByHandle } from "../../stage-geometry";
 import type { ProjectView } from "../../application-host";
-import type { StageObject, StageSelection } from "../../stage-types";
+import type {
+  FixturePlacement,
+  StageObject,
+  StageSelection,
+} from "../../stage-types";
 import {
   bounds,
   objectOutline,
   selectedStage,
   translated,
 } from "../../stage-tools";
+import { selectInBox } from "../../placement-tools";
 type Camera = { x: number; y: number; width: number };
 type Gesture = {
   pointer: number;
@@ -27,25 +32,40 @@ type Gesture = {
   dx: number;
   dy: number;
   handle: string | null;
+  mode: "pan" | "object" | "box" | "click";
+  fixtures: FixturePlacement[];
+  additive: boolean;
 };
 export function StageCanvas({
   project,
   selection,
+  selectedIds,
   preview,
   focusRequest,
   busy,
   pending,
   onSelect,
+  onSelectPlacements,
+  onMovePlacements,
+  onArrange,
   onMove,
   onGesture,
 }: {
   project: ProjectView;
   selection: StageSelection | null;
+  selectedIds: string[];
   preview: StageObject | null;
   focusRequest: number;
   busy: boolean;
   pending: boolean;
-  onSelect(target: StageSelection): void;
+  onSelect(
+    target: StageSelection,
+    additive?: boolean,
+    preserve?: boolean,
+  ): void;
+  onSelectPlacements(ids: string[], additive?: boolean): void;
+  onMovePlacements(placements: FixturePlacement[]): void;
+  onArrange(): void;
   onMove(object: StageObject): void;
   onGesture(value: boolean): void;
 }) {
@@ -55,6 +75,8 @@ export function StageCanvas({
   const [gesture, setGesture] = useState<Gesture | null>(null),
     active = useRef<Gesture | null>(null);
   const [snap, setSnap] = useState(true);
+  const [tool, setTool] = useState<"select" | "move" | "pan">("select");
+  const [labels, setLabels] = useState(true);
   const height = camera.width / ratio;
   useEffect(() => {
     const el = svg.current;
@@ -89,7 +111,31 @@ export function StageCanvas({
   ];
   const currentObject = preview ?? selectedStage(project.stage, selection);
   function fit(selected = false) {
-    const points = selected && currentObject ? (objectOutline(currentObject)?.map(p => [Number(p[0]), Number(p[1])] as [number, number]) ?? (currentObject.kind === "placement" ? [[Number(currentObject.value.positionMeters.x), Number(currentObject.value.positionMeters.y)] as [number, number]] : [])) : allPoints;
+    const groupPoints = project.stage.placements
+      .filter((p) => selectedIds.includes(p.fixtureId))
+      .map(
+        (p) =>
+          [Number(p.positionMeters.x), Number(p.positionMeters.y)] as [
+            number,
+            number,
+          ],
+      );
+    const points =
+      selected && groupPoints.length
+        ? groupPoints
+        : selected && currentObject
+          ? (objectOutline(currentObject)?.map(
+              (p) => [Number(p[0]), Number(p[1])] as [number, number],
+            ) ??
+            (currentObject.kind === "placement"
+              ? [
+                  [
+                    Number(currentObject.value.positionMeters.x),
+                    Number(currentObject.value.positionMeters.y),
+                  ] as [number, number],
+                ]
+              : []))
+          : allPoints;
     if (!points.length) {
       setCamera({ x: 4, y: 3, width: 20 });
       return;
@@ -106,7 +152,12 @@ export function StageCanvas({
     });
   }
   const lastFocus = useRef(0);
-  useEffect(() => { if (focusRequest !== lastFocus.current) { lastFocus.current = focusRequest; fit(true); } }, [focusRequest]);
+  useEffect(() => {
+    if (focusRequest !== lastFocus.current) {
+      lastFocus.current = focusRequest;
+      fit(true);
+    }
+  }, [focusRequest]);
   function world(e: { clientX: number; clientY: number }): [number, number] {
     const rect = svg.current!.getBoundingClientRect();
     return [
@@ -126,22 +177,45 @@ export function StageCanvas({
       ? ({ kind: hit.dataset.kind!, id: hit.dataset.id! } as StageSelection)
       : null;
     const object = target ? selectedStage(project.stage, target) : null;
-    if (target) onSelect(target);
-    const movable =
-      object &&
-      (object.kind !== "construction" ||
-        object.value.shape.kind !== "enclosure");
+    const additive = e.shiftKey || e.metaKey || e.ctrlKey;
+    const mode =
+      tool === "pan"
+        ? "pan"
+        : tool === "select"
+          ? target?.kind === "placement"
+            ? "click"
+            : "box"
+          : additive && target?.kind === "placement"
+            ? "click"
+            : object &&
+                (object.kind !== "construction" ||
+                  object.value.shape.kind !== "enclosure")
+              ? "object"
+              : "pan";
+    if (target && mode !== "pan" && mode !== "box")
+      onSelect(target, additive, mode === "object" && !additive);
+    const fixtures =
+      mode === "object" && target?.kind === "placement"
+        ? project.stage.placements.filter((p) =>
+            selectedIds.includes(target.id)
+              ? selectedIds.includes(p.fixtureId)
+              : p.fixtureId === target.id,
+          )
+        : [];
     const g: Gesture = {
       pointer: e.pointerId,
       clientX: e.clientX,
       clientY: e.clientY,
       origin: world(e),
       camera: { ...camera },
-      object: movable ? object : null,
-      target: movable ? target : null,
+      object: mode === "object" ? object : null,
+      target,
       dx: 0,
       dy: 0,
-      handle: hit?.dataset.handle ?? null,
+      handle: mode === "object" ? (hit?.dataset.handle ?? null) : null,
+      mode,
+      fixtures,
+      additive,
     };
     active.current = g;
     setGesture(g);
@@ -153,7 +227,8 @@ export function StageCanvas({
     const rect = svg.current!.getBoundingClientRect();
     let dx = ((e.clientX - g.clientX) / rect.width) * g.camera.width,
       dy = (-(e.clientY - g.clientY) / rect.width) * g.camera.width;
-    if (!g.object) {
+    if (g.mode === "click") return;
+    if (g.mode === "pan") {
       setCamera({ ...g.camera, x: g.camera.x - dx, y: g.camera.y - dy });
       return;
     }
@@ -163,11 +238,11 @@ export function StageCanvas({
       g.dy === 0
     )
       return;
-    if (e.shiftKey) {
+    if (g.mode === "object" && e.shiftKey) {
       if (Math.abs(dx) > Math.abs(dy)) dy = 0;
       else dx = 0;
     }
-    if (snap && !e.altKey) {
+    if (g.mode === "object" && snap && !e.altKey) {
       dx = Math.round(dx * 10) / 10;
       dy = Math.round(dy * 10) / 10;
     }
@@ -185,20 +260,70 @@ export function StageCanvas({
     if (svg.current?.hasPointerCapture(g.pointer))
       svg.current.releasePointerCapture(g.pointer);
     if (!commit) {
-      if (!g.object) setCamera(g.camera);
+      if (g.mode === "pan") setCamera(g.camera);
       return;
     }
-    if (g.object && (g.dx !== 0 || g.dy !== 0))
-      onMove(g.handle ? resizedByHandle(g.object, g.handle, g.dx, g.dy) : translated(g.object, g.dx, g.dy));
+    if (g.mode === "box") {
+      if (g.dx !== 0 || g.dy !== 0)
+        onSelectPlacements(
+          selectInBox(project.stage.placements, g.origin, [
+            g.origin[0] + g.dx,
+            g.origin[1] + g.dy,
+          ]),
+          g.additive,
+        );
+      else if (g.target) onSelect(g.target);
+      else onSelectPlacements([]);
+    }
+    if (g.object && (g.dx !== 0 || g.dy !== 0)) {
+      if (g.fixtures.length)
+        onMovePlacements(
+          g.fixtures.map((p) => {
+            const moved = translated(
+              { kind: "placement", value: p },
+              g.dx,
+              g.dy,
+            );
+            return (moved as { kind: "placement"; value: FixturePlacement })
+              .value;
+          }),
+        );
+      else
+        onMove(
+          g.handle
+            ? resizedByHandle(g.object, g.handle, g.dx, g.dy)
+            : translated(g.object, g.dx, g.dy),
+        );
+    }
   }
-  const identity = (object: StageObject) => object.kind === "placement" ? object.value.fixtureId : object.value.id;
+
+  const identity = (object: StageObject) =>
+    object.kind === "placement" ? object.value.fixtureId : object.value.id;
   const drawn = (object: StageObject): StageObject => {
-    if (gesture?.object && gesture.target?.id === identity(object) && gesture.target.kind === object.kind)
-      return gesture.handle ? resizedByHandle(object, gesture.handle, gesture.dx, gesture.dy) : translated(object, gesture.dx, gesture.dy);
-    return preview && preview.kind === object.kind && identity(preview) === identity(object) ? preview : object;
+    if (
+      gesture?.fixtures.length &&
+      object.kind === "placement" &&
+      gesture.fixtures.some((p) => p.fixtureId === object.value.fixtureId)
+    )
+      return translated(object, gesture.dx, gesture.dy);
+    if (
+      gesture?.object &&
+      gesture.target?.id === identity(object) &&
+      gesture.target.kind === object.kind
+    )
+      return gesture.handle
+        ? resizedByHandle(object, gesture.handle, gesture.dx, gesture.dy)
+        : translated(object, gesture.dx, gesture.dy);
+    return preview &&
+      preview.kind === object.kind &&
+      identity(preview) === identity(object)
+      ? preview
+      : object;
   };
   const isSelected = (kind: StageSelection["kind"], id: string) =>
-    selection?.kind === kind && selection.id === id;
+    kind === "placement"
+      ? selectedIds.includes(id)
+      : selection?.kind === kind && selection.id === id;
   const unit = camera.width / 100;
   const step =
     camera.width > 200 ? 10 : camera.width > 70 ? 5 : camera.width > 30 ? 2 : 1;
@@ -209,7 +334,23 @@ export function StageCanvas({
   return (
     <section className="stage-canvas-panel">
       <div className="stage-canvas-toolbar">
-        <strong>选择与调整</strong>
+        <div className="stage-tool-switch" aria-label="布置工具">
+          {(
+            [
+              ["select", "选择"],
+              ["move", "移动"],
+              ["pan", "平移视图"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              aria-pressed={tool === key}
+              onClick={() => setTool(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <label className="stage-check">
           <input
             type="checkbox"
@@ -218,6 +359,28 @@ export function StageCanvas({
           />
           吸附 0.1 米
         </label>
+        <label className="stage-check">
+          <input
+            type="checkbox"
+            checked={labels}
+            onChange={(e) => setLabels(e.target.checked)}
+          />
+          名称
+        </label>
+        <button
+          disabled={busy || pending || !project.stage.placements.length}
+          onClick={() =>
+            onSelectPlacements(project.stage.placements.map((p) => p.fixtureId))
+          }
+        >
+          全选灯位
+        </button>
+        <button
+          disabled={busy || pending || !selectedIds.length}
+          onClick={onArrange}
+        >
+          排列所选 · {selectedIds.length}
+        </button>
         <span />
         <button
           aria-label="缩小场地"
@@ -238,7 +401,14 @@ export function StageCanvas({
         >
           <MagnifyingGlassPlusIcon />
         </button>
-        <button aria-label="聚焦所选" title="聚焦所选（F）" disabled={!currentObject} onClick={() => fit(true)}>聚焦所选</button>
+        <button
+          aria-label="聚焦所选"
+          title="聚焦所选（F）"
+          disabled={!currentObject}
+          onClick={() => fit(true)}
+        >
+          聚焦所选
+        </button>
         <button aria-label="查看全场" title="查看全场" onClick={() => fit()}>
           <ArrowsOutIcon />
         </button>
@@ -252,7 +422,10 @@ export function StageCanvas({
         viewBox={`${camera.x - camera.width / 2} ${-camera.y - height / 2} ${camera.width} ${height}`}
         onPointerDown={start}
         onPointerMove={move}
-        onPointerUp={(e) => { move(e); end(true); }}
+        onPointerUp={(e) => {
+          move(e);
+          end(true);
+        }}
         onPointerCancel={() => end(false)}
         onLostPointerCapture={() => end(false)}
         onKeyDown={(e) => {
@@ -261,6 +434,51 @@ export function StageCanvas({
             end(false);
           }
           if (e.key.toLowerCase() === "f") fit(!e.shiftKey);
+          if (
+            !busy &&
+            !pending &&
+            !active.current &&
+            (e.metaKey || e.ctrlKey) &&
+            e.key.toLowerCase() === "a"
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            onSelectPlacements(
+              project.stage.placements.map((p) => p.fixtureId),
+            );
+          }
+          if (
+            !busy &&
+            !pending &&
+            !active.current &&
+            selectedIds.length &&
+            ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            const step = e.shiftKey ? 1 : 0.1,
+              dx =
+                e.key === "ArrowLeft"
+                  ? -step
+                  : e.key === "ArrowRight"
+                    ? step
+                    : 0,
+              dy =
+                e.key === "ArrowDown" ? -step : e.key === "ArrowUp" ? step : 0;
+            onMovePlacements(
+              project.stage.placements
+                .filter((p) => selectedIds.includes(p.fixtureId))
+                .map(
+                  (p) =>
+                    (
+                      translated({ kind: "placement", value: p }, dx, dy) as {
+                        kind: "placement";
+                        value: FixturePlacement;
+                      }
+                    ).value,
+                ),
+            );
+          }
         }}
         onWheel={(e) => {
           if (active.current) return;
@@ -268,9 +486,13 @@ export function StageCanvas({
             Math.max(-100, Math.min(100, e.deltaY)) * 0.003,
           );
           const at = world(e);
-          setCamera(c => {
+          setCamera((c) => {
             const width = Math.max(1, Math.min(200000, c.width * factor));
-            return { x: at[0] + (c.x - at[0]) * width / c.width, y: at[1] + (c.y - at[1]) * width / c.width, width };
+            return {
+              x: at[0] + ((c.x - at[0]) * width) / c.width,
+              y: at[1] + ((c.y - at[1]) * width) / c.width,
+              width,
+            };
           });
         }}
       >
@@ -310,8 +532,21 @@ export function StageCanvas({
             />
             <text
               className="stage-room-label"
-              x={Math.min(...objectOutline(drawn({ kind: "space", value: space }))!.map(p => Number(p[0]))) + unit}
-              y={-Math.max(...objectOutline(drawn({ kind: "space", value: space }))!.map(p => Number(p[1]))) + unit * 2}
+              x={
+                Math.min(
+                  ...objectOutline(drawn({ kind: "space", value: space }))!.map(
+                    (p) => Number(p[0]),
+                  ),
+                ) + unit
+              }
+              y={
+                -Math.max(
+                  ...objectOutline(drawn({ kind: "space", value: space }))!.map(
+                    (p) => Number(p[1]),
+                  ),
+                ) +
+                unit * 2
+              }
               fontSize={unit * 1.15}
             >
               {space.name}
@@ -351,19 +586,55 @@ export function StageCanvas({
                 d={`M ${-unit * 0.4} 0 H ${unit * 0.4} M 0 ${-unit * 0.4} V ${unit * 0.4}`}
                 strokeWidth={unit * 0.13}
               />
-              <text y={unit * 2} fontSize={unit * 0.95}>
-                {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
-              </text>
+              {labels && (
+                <text y={unit * 2} fontSize={unit * 0.95}>
+                  {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
+                </text>
+              )}
+              {isSelected("placement", p.fixtureId) && (
+                <text
+                  className="stage-selection-number"
+                  y={-unit * 1.4}
+                  fontSize={unit * 0.9}
+                >
+                  {selectedIds.indexOf(p.fixtureId) + 1}
+                </text>
+              )}
               <title>
                 {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
               </title>
             </g>
           );
         })}
-        {currentObject && <StageSelectionOverlay object={drawn(currentObject)} unit={unit} disabled={busy || pending} onResize={onMove} />}
+        {gesture?.mode === "box" && (gesture.dx !== 0 || gesture.dy !== 0) && (
+          <rect
+            className="stage-marquee"
+            pointerEvents="none"
+            x={Math.min(gesture.origin[0], gesture.origin[0] + gesture.dx)}
+            y={-Math.max(gesture.origin[1], gesture.origin[1] + gesture.dy)}
+            width={Math.abs(gesture.dx)}
+            height={Math.abs(gesture.dy)}
+            strokeWidth={unit * 0.1}
+          />
+        )}
+        {tool === "move" && currentObject && selectedIds.length < 2 && (
+          <StageSelectionOverlay
+            object={drawn(currentObject)}
+            unit={unit}
+            disabled={busy || pending}
+            onResize={onMove}
+          />
+        )}
       </svg>
       <footer>
-        <span>拖动对象移动 · 拖动手柄改尺寸 · Esc 取消</span>
+        <span>
+          {tool === "select"
+            ? "拖框选择灯具 · ⇧ 点击增减选择"
+            : tool === "move"
+              ? "拖动所选灯具整组移动 · ⇧ 锁定方向 · Esc 取消"
+              : "拖动平移视图"}{" "}
+          · 方向键微调
+        </span>
         <span>网格 {step} 米</span>
       </footer>
     </section>
