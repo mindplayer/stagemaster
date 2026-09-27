@@ -4,6 +4,7 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      recovery: (request) => invoke("recovery_request", { request }),
       check: (generation) => invoke("check_request", { generation }),
       preview: (request) => invoke("preview_request", { request }),
       previs: (request) => invoke("previs_request", { request }),
@@ -12,6 +13,9 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      recovery: async () => {
+        throw new Error("请使用桌面应用恢复工程");
+      },
       check: async () => {
         throw new Error("请使用桌面应用检查工程");
       },

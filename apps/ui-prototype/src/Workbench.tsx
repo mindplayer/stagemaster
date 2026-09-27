@@ -1,4 +1,6 @@
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
+import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
+import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
 import { ProjectCheckPanel } from "./components/workbench/ProjectCheckPanel";
 import {
@@ -65,9 +67,15 @@ const EMPTY: Snapshot = {
   dirty: false,
   canUndo: false,
   canRedo: false,
+  recovery: { state: "clean", capturedAtMs: null, problem: null },
 };
 type Page =
-  "profiles" | "stage" | "fixtures" | "scenes" | "sequences" | "settings";
+  | "profiles"
+  | "stage"
+  | "fixtures"
+  | "scenes"
+  | "sequences"
+  | "settings";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -108,6 +116,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
   const [showMonitor, setShowMonitor] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(false);
   const [followScene, setFollowScene] = useState(true);
   const [patchId, setPatchId] = useState("");
   const [patchSelection, setPatchSelection] = useState<string[]>([]);
@@ -151,14 +160,14 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   );
   const activeScene = project?.scenes.find((s) => s.id === sceneId);
   const activeFixture = project?.fixtures.find((f) => f.id === patchId);
-  const dirty =
-    snapshot.dirty ||
+  const hasDrafts =
     pending ||
     positionPending ||
     parameterPending ||
     sequencePending ||
     stagePending ||
     profilePending;
+  const dirty = snapshot.dirty || hasDrafts;
 
   function setForm(next: ProjectForm | null, changed = false) {
     formRef.current = next;
@@ -168,10 +177,25 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   }
   const request = useCallback(
     async (value: ProjectRequest) => {
-      const next = await host.request(value);
-      current.current = next;
-      setSnapshot(next);
-      return next;
+      try {
+        const next = await host.request(value);
+        current.current = next;
+        setSnapshot(next);
+        return next;
+      } catch (reason) {
+        // A native save prompt may have committed a revision before a subsequent
+        // open/retirement failed. Keep the generation current without discarding drafts.
+        if (value.kind !== "snapshot") {
+          try {
+            const next = await host.request({ kind: "snapshot" });
+            current.current = next;
+            setSnapshot(next);
+          } catch {
+            /* Preserve the original actionable error. */
+          }
+        }
+        throw reason;
+      }
     },
     [host],
   );
@@ -331,29 +355,55 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         generation: current.current.generation,
       });
       if (next.project && next.generation !== previousGeneration) {
-        setPage(next.project.fixtures.length ? "scenes" : "fixtures");
-        setShowMonitor(false);
-        setFollowScene(true);
-        setPatchId("");
-        setPatchSelection([]);
-        setProfilePending(false);
-        setPositionPending(false);
-        setSceneId(next.project.scenes[0]?.id ?? "");
-        setSelectedIds([]);
-        setPatchQuery("");
-        setPatchOnlySelected(false);
-        setFixtureQuery("");
-        setSceneQuery("");
-        setOnlySelected(false);
-        setParameterPending(false);
-        setForm(
-          next.project.scenes[0] && next.project.fixtures.length
-            ? sceneForm(next.project.scenes[0])
-            : null,
-        );
+        resetWorkspace(next);
         setNotice(kind === "new" ? "已创建工程" : "已打开工程");
       }
     });
+  }
+  async function recover(entry: RecoveryEntry): Promise<boolean> {
+    let recovered = false;
+    const ok = await run(async () => {
+      const previousGeneration = current.current.generation;
+      const next = await request({
+        kind: "recover",
+        generation: previousGeneration,
+        id: entry.id,
+        token: entry.token,
+      });
+      if (next.project && next.generation !== previousGeneration) {
+        resetWorkspace(next);
+        setShowRecovery(false);
+        setNotice("已恢复为未保存副本，请选择位置保存");
+        recovered = true;
+      }
+    });
+    return ok && recovered;
+  }
+  function resetWorkspace(next: Snapshot) {
+    if (next.project) {
+      setPage(next.project.fixtures.length ? "scenes" : "fixtures");
+      setShowMonitor(false);
+      setFollowScene(true);
+      setPatchId("");
+      setPatchSelection([]);
+      setProfilePending(false);
+      setPositionPending(false);
+      setSceneId(next.project.scenes[0]?.id ?? "");
+      setSelectedIds([]);
+      setPatchQuery("");
+      setPatchOnlySelected(false);
+      setFixtureQuery("");
+      setSceneQuery("");
+      setOnlySelected(false);
+      setParameterPending(false);
+      setForm(
+        next.project.scenes[0] && next.project.fixtures.length
+          ? sceneForm(next.project.scenes[0])
+          : null,
+      );
+      setStagePending(false);
+      setSequencePending(false);
+    }
   }
   function save(saveAs = false) {
     void run(async () => {
@@ -645,6 +695,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             <FolderOpenIcon />
             打开
           </button>
+          <button
+            disabled={busy || host.kind !== "desktop"}
+            onClick={() => {
+              setError("");
+              setShowRecovery(true);
+            }}
+          >
+            恢复
+          </button>
           <span className="wb-toolbar-separator" />
           <button
             aria-label="撤销"
@@ -690,6 +749,39 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           </button>
         </div>
       </header>
+      {project && (dirty || snapshot.recovery.problem) && (
+        <div
+          className={`wb-recovery-status${snapshot.recovery.problem ? " warning" : ""}`}
+          role="status"
+        >
+          <span>
+            {snapshot.recovery.problem
+              ? `恢复保护需要处理：${snapshot.recovery.problem}`
+              : hasDrafts
+                ? "输入框中有未应用修改；应用后将更新恢复点"
+                : snapshot.recovery.state === "protected"
+                  ? `恢复点已更新 · ${new Date(snapshot.recovery.capturedAtMs!).toLocaleTimeString("zh-CN", { hour12: false })} · 工程尚未保存`
+                  : "尚未建立恢复点，请保存工程"}
+          </span>
+          {snapshot.recovery.problem && (
+            <button
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await request({ kind: "snapshot" });
+                }, false)
+              }
+            >
+              重试保护
+            </button>
+          )}
+          {snapshot.recovery.problem && (
+            <button disabled={busy} onClick={() => setShowRecovery(true)}>
+              管理副本
+            </button>
+          )}
+        </div>
+      )}
       {error && (
         <div className="wb-error" role="alert">
           <span>{error}</span>
@@ -720,6 +812,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               onClick={() => fileAction("open")}
             >
               打开工程
+            </button>
+            <button
+              disabled={host.kind !== "desktop" || busy}
+              onClick={() => setShowRecovery(true)}
+            >
+              恢复工程
             </button>
           </div>
         </div>
@@ -1184,8 +1282,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={positions}
                   project={project}
-                  fixtures={selected.map((id) =>
-                    project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map(
+                    (id) => project.fixtures.find((f) => f.id === id)!,
                   )}
                   scene={activeScene}
                   busy={busy}
@@ -1204,8 +1302,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
                   scene={activeScene}
-                  fixtures={selected.map((id) =>
-                    project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map(
+                    (id) => project.fixtures.find((f) => f.id === id)!,
                   )}
                   busy={busy}
                   onApply={() => {
@@ -1295,6 +1393,14 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               setNotice("灯具配适已更新，可撤销恢复");
             })
           }
+        />
+      )}
+      {showRecovery && (
+        <RecoveryCenter
+          host={host}
+          operationError={error}
+          onClose={() => setShowRecovery(false)}
+          onRestore={recover}
         />
       )}
       {confirmDelete && (

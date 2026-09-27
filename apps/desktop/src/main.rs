@@ -2,6 +2,7 @@
 mod check;
 mod preview;
 mod previs;
+mod recovery;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
@@ -19,6 +20,11 @@ enum Request {
     },
     Open {
         generation: u32,
+    },
+    Recover {
+        generation: u32,
+        id: String,
+        token: String,
     },
     Save {
         generation: u32,
@@ -43,40 +49,71 @@ enum Request {
 #[tauri::command]
 async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snapshot, String> {
     tauri::async_runtime::spawn_blocking(move || {
+        let service = app.state::<recovery::Service>();
+        let _operation = service
+            .operations
+            .lock()
+            .map_err(|_| "工程操作队列发生错误")?;
         let state = app.state::<previs::SharedSession>();
         let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
-        match request {
-            Request::Snapshot => {}
-            Request::New { generation } => session.create(&app, generation)?,
-            Request::Open { generation } => session.open(&app, generation)?,
-            Request::Save {
-                generation,
-                save_as,
-            } => {
-                session.save(&app, generation, save_as)?;
-            }
-            Request::Edit {
-                generation,
-                command,
-            } => session.edit(generation, command)?,
-            Request::PrevisPlacement {
-                generation,
-                version,
-                placement,
-            } => {
-                session.place_from_viewport(generation, &version, placement)?;
-            }
-            Request::History { generation, redo } => session.history(generation, redo)?,
-            Request::Close => {
-                if session.allow_replace(&app)? {
-                    app.exit(0);
-                }
-            }
+        let result = dispatch(&app, request, &mut session);
+        let checkpoint = session.checkpoint();
+        drop(session);
+        // Disk I/O does not hold the mutex used by playback/viewport polling.
+        let status = if matches!(result, Ok(true)) {
+            recovery::Status::default()
+        } else {
+            service.status_after(checkpoint)
+        };
+        let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
+        session.recovery = status;
+        let snapshot = session.snapshot();
+        drop(session);
+        if result? {
+            app.exit(0);
         }
-        Ok(session.snapshot())
+        Ok(snapshot)
     })
     .await
     .map_err(|_| "工程操作未完成".to_string())?
+}
+fn dispatch(
+    app: &tauri::AppHandle,
+    request: Request,
+    session: &mut Session,
+) -> Result<bool, String> {
+    match request {
+        Request::Snapshot => {}
+        Request::New { generation } => session.create(app, generation)?,
+        Request::Open { generation } => session.open(app, generation)?,
+        Request::Recover {
+            generation,
+            id,
+            token,
+        } => session.recover(app, generation, &id, &token)?,
+        Request::Save {
+            generation,
+            save_as,
+        } => {
+            session.save(app, generation, save_as)?;
+        }
+        Request::Edit {
+            generation,
+            command,
+        } => session.edit(generation, command)?,
+        Request::PrevisPlacement {
+            generation,
+            version,
+            placement,
+        } => {
+            session.place_from_viewport(generation, &version, placement)?;
+        }
+        Request::History { generation, redo } => session.history(generation, redo)?,
+        Request::Close => {
+            return session.allow_replace(app);
+        }
+    }
+    Ok(false)
 }
 #[tauri::command]
 async fn preview_request(
@@ -96,6 +133,10 @@ fn main() {
         .manage(Arc::new(Mutex::new(Session::default())))
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
+        .setup(|app| {
+            app.manage(recovery::Service::new(recovery::directory(app)?));
+            Ok(())
+        })
         .plugin(tauri_plugin_dialog::init())
         .menu(|app| {
             let app_menu = Submenu::with_items(
@@ -148,6 +189,7 @@ fn main() {
             project_request,
             preview_request,
             check::check_request,
+            recovery::recovery_request,
             previs::previs_request
         ])
         .build(tauri::generate_context!())

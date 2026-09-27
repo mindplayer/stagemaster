@@ -19,7 +19,8 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  EditOperation | { op: "batch"; commands: EditOperation[] };
+  | EditOperation
+  | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
   | { op: "position"; command: PositionEdit }
   | { op: "fixture"; command: FixtureEdit }
@@ -103,16 +104,21 @@ export interface Snapshot {
   dirty: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  recovery: import("./recovery-types").RecoveryStatus;
 }
 export type ProjectRequest =
   | { kind: "snapshot" | "close" }
   | { kind: "new" | "open"; generation: number }
+  | { kind: "recover"; generation: number; id: string; token: string }
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
   | ({ kind: "previsPlacement" } & PrevisPlacement)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  recovery(
+    request: import("./recovery-types").RecoveryRequest,
+  ): Promise<import("./recovery-types").RecoveryCatalog>;
   check(generation: number): Promise<import("./check-types").ProjectCheck>;
   request(request: ProjectRequest): Promise<Snapshot>;
   preview(request: PreviewRequest): Promise<PreviewSnapshot>;

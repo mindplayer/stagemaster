@@ -17,6 +17,8 @@ pub(crate) struct Session {
     preview: crate::preview::Preview,
     previs_source: crate::previs::protocol::Source,
     previs_edit_allowed: bool,
+    pub(crate) recovery: crate::recovery::Status,
+    recovery_source: Option<String>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +29,40 @@ pub(crate) struct Snapshot {
     dirty: bool,
     can_undo: bool,
     can_redo: bool,
+    recovery: crate::recovery::Status,
 }
 impl Session {
+    pub(crate) fn checkpoint(&self) -> crate::recovery::Checkpoint {
+        crate::recovery::Checkpoint {
+            generation: self.generation,
+            document: self.document.clone().filter(|_| self.dirty()),
+            source_file: self
+                .file
+                .as_ref()
+                .map(|file| file.path().to_string_lossy().into_owned())
+                .or_else(|| self.recovery_source.clone()),
+        }
+    }
+
+    pub(crate) fn recover(
+        &mut self,
+        app: &tauri::AppHandle,
+        generation: u32,
+        id: &str,
+        token: &str,
+    ) -> Result<(), String> {
+        self.guard(generation)?;
+        let service = app.state::<crate::recovery::Service>();
+        let candidate = service.claim(id, token)?;
+        if self.allow_replace(app)? {
+            let document = candidate.document.clone();
+            let source = candidate.source_file.clone();
+            service.take_claim(candidate)?;
+            self.replace(document, None);
+            self.recovery_source = source;
+        }
+        Ok(())
+    }
     pub(crate) fn check_snapshot(&self, generation: u32) -> Result<Document, String> {
         self.guard(generation)?;
         self.document
@@ -94,6 +128,7 @@ impl Session {
             dirty: self.dirty(),
             can_undo: !self.undo.is_empty(),
             can_redo: !self.redo.is_empty(),
+            recovery: self.recovery.clone(),
         }
     }
     fn dirty(&self) -> bool {
@@ -114,6 +149,7 @@ impl Session {
         self.saved = file.as_ref().map(|_| doc.clone());
         self.document = Some(doc);
         self.file = file;
+        self.recovery_source = None;
         self.undo.clear();
         self.redo.clear();
         self.preview.clear();
@@ -260,6 +296,7 @@ impl Session {
     }
     pub(crate) fn allow_replace(&mut self, app: &tauri::AppHandle) -> Result<bool, String> {
         if !self.dirty() {
+            app.state::<crate::recovery::Service>().retire()?;
             return Ok(true);
         }
         let result = app
@@ -273,7 +310,7 @@ impl Session {
                 "取消".into(),
             ))
             .blocking_show_with_result();
-        match result {
+        let allowed = match result {
             MessageDialogResult::Yes => self.save(app, self.generation, false),
             MessageDialogResult::No => Ok(true),
             MessageDialogResult::Custom(label) if label == "保存" => {
@@ -281,7 +318,11 @@ impl Session {
             }
             MessageDialogResult::Custom(label) if label == "不保存" => Ok(true),
             _ => Ok(false),
+        }?;
+        if allowed {
+            app.state::<crate::recovery::Service>().retire()?;
         }
+        Ok(allowed)
     }
 }
 
@@ -376,6 +417,48 @@ mod tests {
 #[cfg(test)]
 mod preview_integration_tests {
     use super::*;
+    #[test]
+    fn restored_document_is_dirty_has_no_save_target_history_or_loaded_player() {
+        let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(
+            "../../../docs/project-format/examples/lighting-basic.project.json"
+        ))
+        .unwrap();
+        root["entryPoints"] = serde_json::json!([]);
+        let document = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+        let mut session = Session::default();
+        session.replace(document.clone(), None);
+        session
+            .preview(crate::preview::Request::LoadScene {
+                generation: session.generation,
+                scene_id: document.view().scenes[0].id.clone(),
+            })
+            .unwrap();
+        session
+            .edit(
+                session.generation,
+                EditCommand::SetInfo {
+                    name: "编辑中".into(),
+                    description: String::new(),
+                },
+            )
+            .unwrap();
+        session.history(session.generation, false).unwrap();
+        assert!(!session.redo.is_empty());
+        // This is the same replacement path used after the recovery claim succeeds.
+        session.replace(document.clone(), None);
+        assert!(session.dirty());
+        assert!(session.file.is_none());
+        assert!(session.saved.is_none());
+        assert!(session.undo.is_empty() && session.redo.is_empty());
+        assert!(loaded(&mut session).is_null());
+        assert_eq!(session.checkpoint().document, Some(document));
+        session.recovery_source = Some("仅作来源说明.json".into());
+        assert_eq!(
+            session.checkpoint().source_file.as_deref(),
+            Some("仅作来源说明.json")
+        );
+        assert!(session.file.is_none());
+    }
     #[test]
     fn check_captures_a_read_only_generation_without_replacing_preview_or_history() {
         let mut root: serde_json::Value = serde_json::from_slice(include_bytes!(

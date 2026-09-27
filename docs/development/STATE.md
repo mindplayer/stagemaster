@@ -3,6 +3,8 @@
 更新：2026-09-28。当前 Astra 会话直接负责架构、实现、测试、审查、集成和状态维护；不再委派 Sol／Qwen。
 依据：[DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)、[开发方法](README.md)、[当前执行计划](execution-plan.md)。文件统一留在本项目内，见[目录规则](project-files.md)。
 
+已完成 [RECOVERY-001](tasks/RECOVERY-001-project-recovery.md)：基线 `cd7e0e9`，结果为本次 `feat(recovery): add leased project checkpoints and desktop recovery center` 提交。按 [ADR-027](decisions/PRODUCT-ADR-027-project-recovery.md) 增加独立 Rust 检查点、OS 会话租约、中文恢复中心、失败重试、明确丢弃和恢复为副本；不改工程格式。186 Rust／68 UI、最终定向回归、类型／fmt／严格 Clippy、桌面构建与双实例真实 SIGKILL 恢复、原文件摘要、取消／清理、损坏／较早记录、写入失败及窄窗口／Escape 通过。只保护已应用编辑，不含输入草稿／播放状态；原用户 14610／14928 保留。见[接口](../module-api/project-recovery.md)和[首版交付审查](tasks/RECOVERY-001-delivery-audit.md)；下一软件增量为 PLAYER-003A 主机有界执行包，板级 DMX／安装／授权仍须独立验证。
+
 已完成 [CHECK-001](tasks/CHECK-001-project-check.md)：基线 `3c322e6`，结果为本次 `feat(check): add read-only project diagnostics and repair navigation` 提交。按 [ADR-026](decisions/PRODUCT-ADR-026-project-check.md) 接入独立 Rust 检查、真实配适／编译／计划统计、桌面问题定位、旧报告保护、搜索／分页／取消；电脑预览与未开放的设备发布分开。172 Rust／68 UI、后续定向回归、类型／fmt／严格 Clippy／桌面构建与原生修复、1025→1024 步、保存重开、并发编辑／取消、窄窗口通过；2,000 场景检查从 7.779 秒降至 0.428 秒。见[接口](../module-api/project-check.md)。原未保存窗口仍保留。下一项工程恢复，再推进设备执行包／安装。
 
 用户要求使用持续目标模式改进界面，并强调吸收成熟经验。UX-009／010 已完成当前可操作界面设计的两轮迭代与目标验收，见 [UX-010 完成审查](tasks/UX-010-editing-recovery.md)；后续按具体反馈和真实产品接入推进。复用优先已写入根开发规则，不重启大范围选型或把设计夹具接进正式业务。

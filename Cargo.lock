@@ -3447,6 +3447,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
+ "tempfile",
  "tokio",
  "uuid",
 ]
@@ -3518,8 +3519,12 @@ dependencies = [
 name = "stagemaster-project-store"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
  "stagemaster-project",
  "tempfile",
+ "uuid",
 ]
 
 [[package]]

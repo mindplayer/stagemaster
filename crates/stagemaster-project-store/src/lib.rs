@@ -1,4 +1,9 @@
 //! Local file persistence, separate from project semantics and desktop dialogs.
+mod recovery;
+pub use recovery::{
+    MAX_RECOVERY_RECORDS, RecoveryCandidate, RecoveryCatalog, RecoveryEntry, RecoverySession,
+    RecoveryState, RecoveryStore,
+};
 use stagemaster_project::{Document, MAX_BYTES};
 use std::{
     fs::{self, File, OpenOptions},

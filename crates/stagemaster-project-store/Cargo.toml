@@ -8,6 +8,10 @@ license.workspace = true
 [dependencies]
 stagemaster-project = { path = "../stagemaster-project" }
 tempfile = "=3.27.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.151", features = ["raw_value"] }
+sha2 = "=0.10.9"
+uuid = { version = "=1.26.1", features = ["v4"] }
 
 [lints]
 workspace = true
