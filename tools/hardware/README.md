@@ -63,6 +63,17 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-devi
 
 最后一条复用产品原生宿主，验证实际描述读取／保活／断开清除。运行这些工具前释放应用当前蓝牙连接；不要并发运行两个客户端。同一 Rust target 目录的构建／测试也应串行，避免独立 Cargo 工作区构建干扰。
 
+## 安全连接候选（DEVICE-002B）
+
+`security-readiness` 仅加入要求 LE 已认证加密的只读探针；不包含安装、播放或输出。独立输出目录 `target/esp32-security-check/`。候选和实板发现见 [ADR-036](../../docs/development/decisions/PRODUCT-ADR-036-authenticated-device-session.md)。默认刷写命令仍只刷默认诊断构建，不会自动选择这个实验镜像。
+
+```sh
+bash tools/hardware/firmware.sh security-build
+bash tools/hardware/firmware.sh security-check
+```
+
+受控刷入候选镜像后，`admission_probe.py` 不配对，只验首握手前固定期限和握手后正常过期。`secure_link_probe.py` 才会触发系统验证码流程，须已有当前设备配对确认，并由 USB 本地读取动态验证码；不会选固定密码或跳过失败。两者均使用项目 Python 环境及 `PYTHONDONTWRITEBYTECODE=1`，避免缓存写到源码目录。绑定目前仅在设备 RAM，持久化／撤销／业务权限和正向跨端验收未完成。
+
 ## NOR 存储准备（PLAYER-003D）
 
 新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。当前板卡尚未安装 `partitions-storage.csv`，不能直接在默认旧分区启用节目写入。

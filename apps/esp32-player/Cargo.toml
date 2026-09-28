@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+security-readiness = ["trouble-host/security"]
 runtime-readiness = ["storage-readiness", "dep:stagemaster-runtime", "dep:stagemaster-package"]
 storage-readiness = ["dep:esp-storage", "dep:stagemaster-install", "dep:stagemaster-nor-store", "dep:stagemaster-transfer", "esp-bootloader-esp-idf/embedded-storage"]
 

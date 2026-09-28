@@ -8,7 +8,7 @@ export TMPDIR="$project_root/tmp"
 source "$project_root/tmp/esp-tools/export-esp.sh"
 firmware="$project_root/target/esp32-player/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe"
 case "$action" in
-  storage-build|storage-check|runtime-build|runtime-check)
+  storage-build|storage-check|runtime-build|runtime-check|security-build|security-check)
     profile="${action%%-*}"
     export CARGO_TARGET_DIR="$project_root/target/esp32-$profile-check"
     cd "$project_root/apps/esp32-player"
@@ -43,5 +43,5 @@ case "$action" in
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|security-build|security-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac
