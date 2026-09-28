@@ -4,7 +4,7 @@
 
 ## 所有权和调用
 
-`stagemaster-device-link::client`：无 I/O、无堆分配的主机请求／回执状态与诊断解码，和固件共用既有协议。`stagemaster-device-host`：应用级连接服务，`Transport` 窄接口，`Ble` 原生适配。Tauri `device_request` 仅转发；`ApplicationHost.device` 是组件唯一宿主入口。无工程、播放器、安装存储或 DMX 依赖。
+`stagemaster-device-link::client`：无 I/O、无堆分配的主机请求／回执状态与诊断解码，和固件共用既有协议。`stagemaster-device-host`：应用级连接服务，`Transport` 窄接口，`Ble` 原生适配。Tauri `device_request` 仅转发；`ApplicationHost.device` 是组件唯一宿主入口。新增[主机安装消息接口](host-installation-io.md)复用传输编解码，与保活共用同一连接任务；不拥有工程／播放状态，不执行存储或 DMX I/O。
 
 ```rust,ignore
 // 应用管理一个实例，在 Tokio 运行时内调用。创建／查看不会初始化蓝牙。

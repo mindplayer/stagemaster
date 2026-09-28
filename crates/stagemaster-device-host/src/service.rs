@@ -1,83 +1,24 @@
-use crate::{
-    Candidate, DeviceDescription, Diagnostics, MAX_CANDIDATES, Phase, Problem, ProblemCode as C,
-    Request, Snapshot, Transport,
-};
+mod connected;
+mod diagnostics;
+mod installation;
+mod scan;
+mod state;
+
+use crate::{Phase, Problem, ProblemCode as C, Request, Snapshot, Transport};
 use futures_util::FutureExt;
-use stagemaster_device_link::client::{Client, Diagnostics as WireDiagnostics, Error as WireError};
-use std::panic::AssertUnwindSafe;
+use state::{Inner, update};
 use std::{
+    panic::AssertUnwindSafe,
     sync::{Arc, Mutex},
-    time::{Duration, SystemTime},
+    time::Duration,
 };
 use tokio::{
     sync::{Mutex as AsyncMutex, watch},
-    time::{Instant, sleep, timeout},
+    time::{sleep, timeout},
 };
 
-const IO_TIMEOUT: Duration = Duration::from_millis(2500);
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
-const SCAN_DURATION: Duration = Duration::from_secs(8);
 const CLEANUP_TIMEOUT: Duration = Duration::from_secs(5);
-const FRESH_MS: u64 = 4500;
-
-#[derive(Clone, Copy)]
-struct Stamp {
-    monotonic: Instant,
-    wall: SystemTime,
-}
-impl Stamp {
-    fn now() -> Self {
-        Self {
-            monotonic: Instant::now(),
-            wall: SystemTime::now(),
-        }
-    }
-    fn age(self) -> u64 {
-        // Wall clock only invalidates connections across suspend/clock changes.
-        // It never grants liveness or acts as a playback/licensing clock.
-        let wall = self.wall.elapsed().map_or(Duration::MAX, |v| v);
-        millis(self.monotonic.elapsed().max(wall))
-    }
-}
-fn millis(value: Duration) -> u64 {
-    u64::try_from(value.as_millis()).unwrap_or(u64::MAX)
-}
-
-struct Inner {
-    snapshot: Snapshot,
-    cancel: Option<watch::Sender<bool>>,
-    last_reply: Option<Stamp>,
-    closed: bool,
-}
-impl Inner {
-    fn touch(&mut self) {
-        self.snapshot.revision += 1;
-    }
-    fn clear_live(&mut self) {
-        self.snapshot.diagnostics = None;
-        self.snapshot.description = None;
-        self.snapshot.round_trip_ms = None;
-        self.snapshot.last_reply_age_ms = None;
-        self.last_reply = None;
-    }
-    fn snapshot(&mut self) -> Snapshot {
-        if let Some(last) = self.last_reply {
-            let age = last.age();
-            if self.snapshot.phase == Phase::Connected && age >= FRESH_MS {
-                self.snapshot.phase = Phase::Stopping;
-                self.snapshot.problem = Some(Problem::new(C::Timeout));
-                self.clear_live();
-                if let Some(cancel) = &self.cancel {
-                    let _ = cancel.send(true);
-                }
-                self.touch();
-            } else {
-                self.snapshot.last_reply_age_ms = Some(age);
-            }
-        }
-        self.snapshot.clone()
-    }
-}
 
 /// Independent from UI lifetime. Call shutdown at application exit.
 pub struct Service<B: Transport> {
@@ -105,6 +46,8 @@ impl<B: Transport> Service<B> {
                 cancel: None,
                 last_reply: None,
                 closed: false,
+                installation: None,
+                install_busy: std::sync::Weak::new(),
             })),
             backend: Arc::new(AsyncMutex::new(backend)),
         }
@@ -225,17 +168,6 @@ impl<B: Transport> Service<B> {
     }
 }
 
-fn update(inner: &Mutex<Inner>, epoch: u32, change: impl FnOnce(&mut Inner)) {
-    if let Ok(mut state) = inner.lock()
-        && state.snapshot.epoch == epoch
-        && state.snapshot.phase != Phase::Stopping
-        && !state.closed
-    {
-        change(&mut state);
-        state.touch();
-    }
-}
-
 async fn run<B: Transport>(
     inner: Arc<Mutex<Inner>>,
     backend: Arc<AsyncMutex<B>>,
@@ -292,112 +224,9 @@ async fn operate<B: Transport>(
     epoch: u32,
     id: Option<&str>,
 ) -> Result<(), Problem> {
-    let Some(id) = id else {
-        return scan(inner, backend, epoch).await;
-    };
-    timeout(CONNECT_TIMEOUT, backend.connect(id))
-        .await
-        .map_err(|_| Problem::new(C::Timeout))??;
-    let mut client = Client::default();
-    let mut last = exchange(inner, backend, epoch, &mut client, false).await?;
-    loop {
-        sleep(Duration::from_secs(2)).await;
-        if last.age() >= FRESH_MS {
-            return Err(Problem::new(C::Timeout));
-        }
-        last = exchange(inner, backend, epoch, &mut client, true).await?;
-    }
-}
-
-async fn scan<B: Transport>(
-    inner: &Mutex<Inner>,
-    backend: &mut B,
-    epoch: u32,
-) -> Result<(), Problem> {
-    timeout(CONNECT_TIMEOUT, backend.start_scan())
-        .await
-        .map_err(|_| Problem::new(C::SetupTimeout))??;
-    update(inner, epoch, |state| {
-        state.snapshot.phase = Phase::Scanning;
-        state.snapshot.scan_performed = true;
-    });
-    let deadline = Instant::now() + SCAN_DURATION;
-    loop {
-        let candidate = tokio::select! {
-            biased;
-            () = tokio::time::sleep_until(deadline) => return Ok(()),
-            value = backend.discover() => value?,
-        };
-        update(inner, epoch, |state| {
-            add_candidate(&mut state.snapshot, candidate);
-        });
-    }
-}
-
-fn add_candidate(snapshot: &mut Snapshot, candidate: Candidate) {
-    if let Some(existing) = snapshot
-        .candidates
-        .iter_mut()
-        .find(|c| c.id == candidate.id)
-    {
-        *existing = candidate;
-    } else if snapshot.candidates.len() < MAX_CANDIDATES {
-        snapshot.candidates.push(candidate);
+    if let Some(id) = id {
+        connected::run(inner, backend, epoch, id).await
     } else {
-        snapshot.truncated = true;
+        scan::run(inner, backend, epoch).await
     }
-}
-
-async fn exchange<B: Transport>(
-    inner: &Mutex<Inner>,
-    backend: &mut B,
-    epoch: u32,
-    client: &mut Client,
-    heartbeat: bool,
-) -> Result<Stamp, Problem> {
-    let started = Instant::now();
-    let stamp = timeout(IO_TIMEOUT, async {
-        let request = client.request().map_err(protocol)?;
-        backend.write(&request).await?;
-        // Firmware stores the application receipt before acknowledging ATT write.
-        // A mismatched cache may be read again; a request is NEVER resent.
-        loop {
-            let bytes = backend.reply().await?;
-            match client.accept(&bytes) {
-                Ok(()) => break,
-                Err(WireError::Correlation) => sleep(Duration::from_millis(30)).await,
-                Err(value) => return Err(protocol(value)),
-            }
-        }
-        let stamp = Stamp::now();
-        let diagnostics =
-            WireDiagnostics::decode(&backend.diagnostics().await?).map_err(protocol)?;
-        let description = if heartbeat {
-            None
-        } else {
-            backend
-                .description()
-                .await?
-                .map(|bytes| DeviceDescription::decode(&bytes, client.session_id().unwrap_or(0)))
-                .transpose()?
-        };
-        Ok::<_, Problem>((stamp, Diagnostics::from(diagnostics), description))
-    })
-    .await
-    .map_err(|_| Problem::new(C::Timeout))??;
-    update(inner, epoch, |state| {
-        state.snapshot.phase = Phase::Connected;
-        state.snapshot.diagnostics = Some(stamp.1);
-        if !heartbeat {
-            state.snapshot.description = stamp.2;
-        }
-        state.snapshot.round_trip_ms = Some(millis(started.elapsed()));
-        state.snapshot.heartbeat_count += u64::from(heartbeat);
-        state.last_reply = Some(stamp.0);
-        state.snapshot.last_reply_age_ms = Some(stamp.0.age());
-    });
-    Ok(stamp.0)
-}
-fn protocol(error: WireError) -> Problem {
-    Problem::new(C::Protocol).detail(format!("{error:?}"))
 }

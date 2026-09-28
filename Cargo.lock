@@ -3676,6 +3676,12 @@ dependencies = [
  "serde_json",
  "stagemaster-device-info",
  "stagemaster-device-link",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-project",
+ "stagemaster-transfer",
+ "tempfile",
  "tokio",
  "uuid",
 ]

@@ -1,11 +1,13 @@
-//! Application-owned device connectivity. No project, player, storage or DMX dependency.
+//! Application-owned connectivity and framed I/O; no project ownership or storage/DMX I/O.
 #![forbid(unsafe_code)]
 mod ble;
 mod description;
+mod installation_peer;
 mod service;
 mod transport;
 pub use ble::Ble;
 pub use description::{DeviceDescription, DeviceLimits};
+pub use installation_peer::InstallationPeer;
 use serde::{Deserialize, Serialize};
 pub use service::Service;
 pub use transport::Transport;
@@ -116,6 +118,7 @@ pub enum ProblemCode {
     Timeout,
     Protocol,
     Description,
+    Installation,
     Lost,
     Stale,
     Busy,
@@ -142,8 +145,9 @@ impl Problem {
             C::PoweredOff => "系统蓝牙已关闭，请打开蓝牙后重新搜索",
             C::Unavailable => "设备已不在本次搜索结果中，请重新搜索",
             C::Timeout => "设备未及时回复，请检查供电、距离及是否被其他应用连接，然后重新连接",
-            C::Protocol => "设备回复与当前诊断协议不匹配，请核对设备固件",
+            C::Protocol => "设备回复与当前通信协议不匹配，请核对设备固件",
             C::Description => "设备身份或能力描述无效，请核对固件并重新连接",
+            C::Installation => "当前连接尚未获得节目安装权限，请检查设备能力与认证状态",
             C::Lost => "设备连接已中断，请检查供电与距离后重新连接",
             C::Stale => "连接状态已变化，请按当前状态重新操作",
             C::Busy => "正在处理设备连接，请等待完成或取消当前操作",

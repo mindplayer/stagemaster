@@ -31,6 +31,7 @@ async fn inspect(service: &Service<Ble>) -> Result<(), Box<dyn Error>> {
         id: found.candidates[0].id.clone(),
     })?;
     let connected = settled(service).await?;
+    assert!(service.installation_peer(connected.epoch)?.is_none());
     let description = connected.description.as_ref().ok_or("缺少设备描述")?;
     assert_eq!(description.firmware, "0.2.0");
     assert_eq!(description.authentication_method, 0);
@@ -45,6 +46,7 @@ async fn inspect(service: &Service<Ble>) -> Result<(), Box<dyn Error>> {
     let boot = description.boot_id.clone();
     sleep(Duration::from_secs(12)).await;
     let steady = service.request(Request::Status)?;
+    assert!(service.installation_peer(steady.epoch)?.is_none());
     assert_eq!(steady.phase, Phase::Connected);
     assert!(steady.heartbeat_count >= 5);
     let description = steady.description.as_ref().ok_or("保活后缺少描述")?;
@@ -57,7 +59,7 @@ async fn inspect(service: &Service<Ble>) -> Result<(), Box<dyn Error>> {
     let disconnected = settled(service).await?;
     assert_eq!(disconnected.phase, Phase::Idle);
     assert!(disconnected.description.is_none() && disconnected.diagnostics.is_none());
-    println!("PASS: 原生宿主读取、保活、身份保持、断开清除；禁止输出");
+    println!("PASS: 原生宿主读取、保活、身份保持、无安装权限、断开清除；禁止输出");
     Ok(())
 }
 

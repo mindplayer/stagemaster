@@ -6,6 +6,8 @@ use stagemaster_device_info::{Description, MODEL_WAVESHARE_ESP32_S3_RS485_CAN, c
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceDescription {
+    #[serde(skip)]
+    pub(crate) installation_declared: bool,
     pub device_id: String,
     pub boot_id: String,
     pub model: u16,
@@ -40,6 +42,7 @@ impl DeviceDescription {
         value.check_session(session).map_err(problem)?;
         let l = value.limits;
         Ok(Self {
+            installation_declared: value.declares(cap::INSTALLATION),
             device_id: hex(&value.device),
             boot_id: hex(&value.boot),
             model: value.model,
@@ -79,7 +82,7 @@ impl DeviceDescription {
         })
     }
 }
-fn hex(bytes: &[u8]) -> String {
+pub(crate) fn hex(bytes: &[u8]) -> String {
     use std::fmt::Write;
     let mut result = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
