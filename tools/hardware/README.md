@@ -50,6 +50,19 @@ TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python -u tools/hardware/gatt_probe.py
 
 固件 ELF 的 `.rotext_dummy` 与 `.text` 共段会触发工具链 RWX 段告警；保留告警和 `readelf` 记录，没有用编译开关掩盖。该裸机链接属性不等于运行时权限隔离；生产内存保护须单独审查。
 
+## 只读设备身份（DEVICE-002A）
+
+默认诊断固件现为 0.2.0。新增只读 96 字节身份／能力特征，仍不接受节目安装或控制；格式见[设备描述](../../docs/module-api/device-description.md)。两次运行之间显式重启，用独立编解码核对稳定设备身份／新启动身份；脚本每次检查三次重连与 24 次保活。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python tools/hardware/device_description_probe.py --output data/DEVICE-002/identity-before.json
+tmp/esp-tools/espflash reset --port /dev/cu.usbmodem2101 --chip esp32s3 --non-interactive --skip-update-check
+PYTHONDONTWRITEBYTECODE=1 TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python tools/hardware/device_description_probe.py --previous data/DEVICE-002/identity-before.json --output data/DEVICE-002/identity-after.json
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-host --example inspect_device --locked --offline
+```
+
+最后一条复用产品原生宿主，验证实际描述读取／保活／断开清除。运行这些工具前释放应用当前蓝牙连接；不要并发运行两个客户端。同一 Rust target 目录的构建／测试也应串行，避免独立 Cargo 工作区构建干扰。
+
 ## NOR 存储准备（PLAYER-003D）
 
 新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。当前板卡尚未安装 `partitions-storage.csv`，不能直接在默认旧分区启用节目写入。

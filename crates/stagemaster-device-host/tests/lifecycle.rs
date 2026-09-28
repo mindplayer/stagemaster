@@ -26,6 +26,9 @@ struct State {
     wrong_reply: bool,
     self_test: bool,
     outputs_disabled: bool,
+    description: Option<Vec<u8>>,
+    block_description: bool,
+    fail_description: bool,
 }
 struct Fake(Arc<Mutex<State>>);
 impl Fake {
@@ -109,6 +112,17 @@ impl Transport for Fake {
         }
         self.0.lock().unwrap().server = None;
         Ok(())
+    }
+    async fn description(&mut self) -> Result<Option<Vec<u8>>, Problem> {
+        self.call("description");
+        if self.0.lock().unwrap().block_description {
+            pending::<()>().await;
+        }
+        let state = self.0.lock().unwrap();
+        if state.fail_description {
+            return Err(Problem::new(C::Lost));
+        }
+        Ok(state.description.clone())
     }
 }
 fn candidate(index: usize) -> Candidate {
@@ -457,4 +471,173 @@ async fn dropping_the_service_cannot_leave_a_detached_heartbeat_loop() {
     settle().await;
     assert_eq!(state.lock().unwrap().writes, 1);
     assert!(state.lock().unwrap().server.is_none());
+}
+
+fn device_description() -> stagemaster_device_info::Description {
+    use stagemaster_device_info::{Description, Firmware, Limits, capability};
+    Description {
+        device: [1; 16],
+        boot: [2; 16],
+        session: 45,
+        model: 1,
+        firmware: Firmware {
+            major: 0,
+            minor: 2,
+            patch: 0,
+        },
+        capabilities: capability::DIAGNOSTICS,
+        authentication: 0,
+        limits: Limits::default(),
+    }
+}
+
+#[tokio::test(start_paused = true)]
+async fn description_is_read_once_bound_to_connection_and_removed_on_disconnect() {
+    let (service, state) = setup(1);
+    let mut description = device_description();
+    description.capabilities |= 1 << 31;
+    description.model = 999;
+    state.lock().unwrap().description = Some(description.encode().unwrap().to_vec());
+    let connected = connect(&service).await;
+    assert_eq!(connected.phase, Phase::Connected);
+    let info = connected.description.unwrap();
+    assert_eq!(info.device_id, "01".repeat(16));
+    assert_eq!(info.boot_id, "02".repeat(16));
+    assert_eq!(info.model_name, "未识别型号（999）");
+    assert_eq!(info.declared_functions, ["连接诊断"]);
+    assert_eq!(info.unknown_capabilities, 1 << 31);
+    assert_eq!(info.authentication_method, 0);
+    assert_eq!(info.limits.package_bytes, 0);
+    for _ in 0..4 {
+        tokio::time::advance(Duration::from_secs(2)).await;
+        settle().await;
+    }
+    assert_eq!(status(&service).description, Some(info));
+    assert_eq!(
+        state
+            .lock()
+            .unwrap()
+            .calls
+            .iter()
+            .filter(|v| **v == "description")
+            .count(),
+        1
+    );
+    let stopping = service
+        .request(Request::Cancel {
+            epoch: connected.epoch,
+        })
+        .unwrap();
+    assert!(stopping.description.is_none());
+    settle().await;
+    state.lock().unwrap().description = None;
+    service
+        .request(Request::Connect {
+            epoch: status(&service).epoch,
+            id: "0".into(),
+        })
+        .unwrap();
+    settle().await;
+    let legacy = status(&service);
+    assert_eq!(legacy.phase, Phase::Connected);
+    assert!(legacy.description.is_none());
+    assert!(legacy.diagnostics.is_some());
+    service.shutdown().await.unwrap();
+}
+
+#[tokio::test(start_paused = true)]
+async fn present_bad_description_cannot_fall_back_to_legacy_or_report_connected() {
+    let valid = device_description().encode().unwrap().to_vec();
+    let mut old_session = valid.clone();
+    old_session[40] = 44;
+    let mut next_version = valid.clone();
+    next_version[4] = 2;
+    let mut false_installation = valid.clone();
+    false_installation[56] |= 4;
+    for bytes in [
+        vec![],
+        valid[..95].to_vec(),
+        old_session,
+        next_version,
+        false_installation,
+    ] {
+        let (service, state) = setup(1);
+        state.lock().unwrap().description = Some(bytes);
+        let rejected = connect(&service).await;
+        assert_eq!(rejected.phase, Phase::Fault);
+        assert_eq!(rejected.problem.unwrap().code, C::Description);
+        assert!(rejected.description.is_none() && rejected.diagnostics.is_none());
+        assert_eq!(state.lock().unwrap().calls.last(), Some(&"disconnect"));
+        service.shutdown().await.unwrap();
+    }
+}
+
+#[tokio::test(start_paused = true)]
+async fn description_timeout_read_error_and_cancel_do_not_publish_partial_identity() {
+    for fault in 0..3 {
+        let (service, state) = setup(1);
+        {
+            let mut s = state.lock().unwrap();
+            s.description = Some(device_description().encode().unwrap().to_vec());
+            s.block_description = fault != 1;
+            s.fail_description = fault == 1;
+        }
+        let current = connect(&service).await;
+        assert!(current.description.is_none() && current.diagnostics.is_none());
+        match fault {
+            0 => {
+                tokio::time::advance(Duration::from_secs(3)).await;
+            }
+            2 => {
+                service
+                    .request(Request::Cancel {
+                        epoch: current.epoch,
+                    })
+                    .unwrap();
+            }
+            _ => {}
+        }
+        settle().await;
+        let done = status(&service);
+        assert_eq!(
+            done.phase,
+            if fault == 2 {
+                Phase::Idle
+            } else {
+                Phase::Fault
+            }
+        );
+        assert!(done.description.is_none());
+        if fault != 2 {
+            assert_eq!(
+                done.problem.unwrap().code,
+                if fault == 0 { C::Timeout } else { C::Lost }
+            );
+        }
+        service.shutdown().await.unwrap();
+    }
+}
+
+#[tokio::test(start_paused = true)]
+async fn new_boot_is_read_after_reconnect_and_old_boot_is_never_kept_on_expiry() {
+    let (service, state) = setup(1);
+    let mut description = device_description();
+    state.lock().unwrap().description = Some(description.encode().unwrap().to_vec());
+    let first = connect(&service).await.description.unwrap();
+    tokio::time::advance(Duration::from_secs(7)).await;
+    assert!(status(&service).description.is_none());
+    settle().await;
+    description.boot = [3; 16];
+    state.lock().unwrap().description = Some(description.encode().unwrap().to_vec());
+    service
+        .request(Request::Connect {
+            epoch: status(&service).epoch,
+            id: "0".into(),
+        })
+        .unwrap();
+    settle().await;
+    let next = status(&service).description.unwrap();
+    assert_eq!(next.device_id, first.device_id);
+    assert_ne!(next.boot_id, first.boot_id);
+    service.shutdown().await.unwrap();
 }

@@ -1,9 +1,11 @@
 //! Application-owned device connectivity. No project, player, storage or DMX dependency.
 #![forbid(unsafe_code)]
 mod ble;
+mod description;
 mod service;
 mod transport;
 pub use ble::Ble;
+pub use description::{DeviceDescription, DeviceLimits};
 use serde::{Deserialize, Serialize};
 pub use service::Service;
 pub use transport::Transport;
@@ -67,6 +69,8 @@ pub struct Snapshot {
     pub selected: Option<Candidate>,
     /// Present only after a successful read, cleared on disconnect/failure.
     pub diagnostics: Option<Diagnostics>,
+    /// A correlated declaration, not authenticated identity or installation permission.
+    pub description: Option<DeviceDescription>,
     pub heartbeat_count: u64,
     pub round_trip_ms: Option<u64>,
     pub last_reply_age_ms: Option<u64>,
@@ -83,6 +87,7 @@ impl Default for Snapshot {
             truncated: false,
             selected: None,
             diagnostics: None,
+            description: None,
             heartbeat_count: 0,
             round_trip_ms: None,
             last_reply_age_ms: None,
@@ -110,6 +115,7 @@ pub enum ProblemCode {
     Unavailable,
     Timeout,
     Protocol,
+    Description,
     Lost,
     Stale,
     Busy,
@@ -137,6 +143,7 @@ impl Problem {
             C::Unavailable => "设备已不在本次搜索结果中，请重新搜索",
             C::Timeout => "设备未及时回复，请检查供电、距离及是否被其他应用连接，然后重新连接",
             C::Protocol => "设备回复与当前诊断协议不匹配，请核对设备固件",
+            C::Description => "设备身份或能力描述无效，请核对固件并重新连接",
             C::Lost => "设备连接已中断，请检查供电与距离后重新连接",
             C::Stale => "连接状态已变化，请按当前状态重新操作",
             C::Busy => "正在处理设备连接，请等待完成或取消当前操作",

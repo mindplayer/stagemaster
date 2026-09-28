@@ -21,9 +21,13 @@ struct LinkService {
     response: [u8; 20],
     #[characteristic(uuid = "f889ed63-0100-4e83-968e-799ab99558fa", read)]
     info: [u8; 20],
+    #[characteristic(uuid = "f889ed64-0100-4e83-968e-799ab99558fa", read, value = [0; 96])]
+    description: [u8; 96],
 }
 
 pub async fn run<C: Controller>(controller: C, snapshot: fn() -> [u8; 20]) -> ! {
+    // main has enabled the BLE controller before entering this boot-scoped adapter.
+    let identity = crate::identity::Identity::capture();
     let mut random = [0; 6];
     esp_hal::rng::Rng::new().read(&mut random);
     random[5] |= 0xc0; // A boot-scoped static random BLE address, not device authentication.
@@ -80,10 +84,12 @@ pub async fn run<C: Controller>(controller: C, snapshot: fn() -> [u8; 20]) -> ! 
                 let conn = raw.with_attribute_server(&server).unwrap();
                 let mut nonce = [0; 8];
                 esp_hal::rng::Rng::new().read(&mut nonce);
-                let mut session =
-                    Session::new(u64::from_le_bytes(nonce).max(1), Instant::now().as_millis())
-                        .unwrap();
+                let session_id = u64::from_le_bytes(nonce).max(1);
+                let mut session = Session::new(session_id, Instant::now().as_millis()).unwrap();
                 conn.set(&server.link.response, &[0; 20]).unwrap();
+                // Fixed for this connection, including every offset of ATT long reads.
+                conn.set(&server.link.description, &identity.describe(session_id))
+                    .unwrap();
                 println!("GATT connected");
                 serve(&server, &conn, &mut session, snapshot).await;
             }

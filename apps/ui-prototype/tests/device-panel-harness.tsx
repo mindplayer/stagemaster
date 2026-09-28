@@ -17,6 +17,7 @@ let snapshot: DeviceSnapshot = {
   truncated: false,
   selected: null,
   diagnostics: null,
+  description: null,
   heartbeatCount: 0,
   roundTripMs: null,
   lastReplyAgeMs: null,
@@ -76,6 +77,7 @@ const host: ApplicationHost = {
       change({
         phase: "idle",
         diagnostics: null,
+        description: null,
         lastReplyAgeMs: null,
         roundTripMs: null,
       });
@@ -132,6 +134,24 @@ function Harness() {
           >
             确认连接
           </button>
+          <button onClick={() => change({
+            description: {
+              deviceId: "534d4553503332533300b0a73201020304",
+              bootId: "0123456789abcdef0123456789abcdef",
+              model: 1,
+              modelName: "微雪 ESP32-S3-RS485-CAN",
+              firmware: "0.2.0",
+              declaredFunctions: ["连接诊断"],
+              unknownCapabilities: 0,
+              authenticationMethod: 0,
+              limits: {
+                packageVersion: 0, transferVersion: 0, packageBytes: 0,
+                programs: 0, universes: 0, messageBytes: 0, chunkBytes: 0,
+                slotBytes: 0, loaderBytes: 0, frameMs: 0,
+              },
+            },
+          })}>注入设备描述</button>
+          <button onClick={() => change({ description: null })}>模拟旧诊断固件</button>
           <button
             onClick={() => {
               unavailable = true;
@@ -151,6 +171,7 @@ function Harness() {
               change({
                 phase: "fault",
                 diagnostics: null,
+                description: null,
                 lastReplyAgeMs: null,
                 roundTripMs: null,
                 problem: {

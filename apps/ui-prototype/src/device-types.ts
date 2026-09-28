@@ -20,6 +20,28 @@ export interface DeviceDiagnostics {
   heapUsed: number;
   heapFree: number;
 }
+export interface DeviceDescription {
+  deviceId: string;
+  bootId: string;
+  model: number;
+  modelName: string;
+  firmware: string;
+  declaredFunctions: string[];
+  unknownCapabilities: number;
+  authenticationMethod: number;
+  limits: {
+    packageVersion: number;
+    transferVersion: number;
+    packageBytes: number;
+    programs: number;
+    universes: number;
+    messageBytes: number;
+    chunkBytes: number;
+    slotBytes: number;
+    loaderBytes: number;
+    frameMs: number;
+  };
+}
 export interface DeviceProblem {
   code: string;
   message: string;
@@ -33,6 +55,7 @@ export interface DeviceSnapshot {
   truncated: boolean;
   selected: DeviceCandidate | null;
   diagnostics: DeviceDiagnostics | null;
+  description: DeviceDescription | null;
   scanPerformed: boolean;
   heartbeatCount: number;
   roundTripMs: number | null;

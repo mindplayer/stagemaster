@@ -15,6 +15,7 @@ members = [
   "crates/stagemaster-runtime",
   "crates/stagemaster-transfer",
   "crates/stagemaster-device-link",
+  "crates/stagemaster-device-info",
   "crates/stagemaster-device-host",
   "crates/stagemaster-project-store",
   "crates/stagemaster-spatial",

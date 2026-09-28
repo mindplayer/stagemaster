@@ -17,6 +17,7 @@ const idle: DeviceSnapshot = {
   truncated: false,
   selected: null,
   diagnostics: null,
+  description: null,
   heartbeatCount: 0,
   roundTripMs: null,
   lastReplyAgeMs: null,

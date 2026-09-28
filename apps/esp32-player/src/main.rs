@@ -9,6 +9,7 @@ use esp_hal::{clock::CpuClock, timer::timg::TimerGroup};
 mod ble;
 mod board;
 mod diagnostics;
+mod identity;
 #[cfg(feature = "storage-readiness")]
 mod package_layout;
 #[cfg(feature = "storage-readiness")]
@@ -24,7 +25,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let _output_disabled = board::OutputDisabled::new(peripherals.GPIO21);
     esp_alloc::heap_allocator!(size: 128 * 1024);
-    esp_println::println!("StageMaster PLAYER-002A: RS485 disabled, diagnostic only");
+    esp_println::println!("StageMaster DEVICE-002A: RS485 disabled, diagnostic only");
     #[cfg(feature = "storage-readiness")]
     package_storage::inspect(peripherals.FLASH);
     self_test::verify();

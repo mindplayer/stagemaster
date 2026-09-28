@@ -3674,10 +3674,15 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "stagemaster-device-info",
  "stagemaster-device-link",
  "tokio",
  "uuid",
 ]
+
+[[package]]
+name = "stagemaster-device-info"
+version = "0.1.0"
 
 [[package]]
 name = "stagemaster-device-link"

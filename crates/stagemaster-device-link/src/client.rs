@@ -18,6 +18,16 @@ pub struct Client {
     pending: Option<Packet>,
 }
 impl Client {
+    /// Correlation token of the accepted handshake, never authentication evidence.
+    #[must_use]
+    pub const fn session_id(&self) -> Option<u64> {
+        if self.session == 0 {
+            None
+        } else {
+            Some(self.session)
+        }
+    }
+
     /// # Errors
     /// An unanswered request or exhausted sequence requires a new connection.
     pub fn request(&mut self) -> Result<[u8; PACKET_BYTES], Error> {

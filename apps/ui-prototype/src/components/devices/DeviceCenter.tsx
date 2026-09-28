@@ -14,6 +14,7 @@ import {
   deviceMatches,
   newerDeviceSnapshot,
 } from "../../device-tools";
+import { DeviceIdentity } from "./DeviceIdentity";
 import "./devices.css";
 
 // This component stays mounted when the panel closes. The native service owns
@@ -217,7 +218,7 @@ export function DeviceCenter({ host }: { host: ApplicationHost }) {
                     <dd>{snapshot!.roundTripMs} 毫秒</dd>
                   </div>
                 </dl>
-                <p>当前固件提供连接诊断，尚不支持安装或执行节目。</p>
+                <DeviceIdentity description={snapshot?.description ?? null} />
               </section>
             )}
             <section className="wb-device-discovery" aria-label="搜索设备">

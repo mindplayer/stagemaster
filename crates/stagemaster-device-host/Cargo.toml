@@ -10,6 +10,7 @@ btleplug = "=0.13.2"
 futures-util = "=0.3.34"
 serde = { version = "=1.0.229", features = ["derive"] }
 stagemaster-device-link = { path = "../stagemaster-device-link" }
+stagemaster-device-info = { path = "../stagemaster-device-info" }
 tokio = { version = "=1.53.1", features = ["rt", "sync", "time", "macros"] }
 uuid = "=1.26.1"
 

@@ -1,6 +1,6 @@
 [package]
 name = "stagemaster-esp32-probe"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.97"
 license = "LicenseRef-Proprietary"
@@ -20,6 +20,7 @@ stagemaster-nor-store = { path = "../../crates/stagemaster-nor-store", optional 
 stagemaster-transfer = { path = "../../crates/stagemaster-transfer", optional = true }
 stagemaster-playback = { path = "../../crates/stagemaster-playback" }
 stagemaster-device-link = { path = "../../crates/stagemaster-device-link" }
+stagemaster-device-info = { path = "../../crates/stagemaster-device-info" }
 esp-hal = { version = "=1.2.2", features = ["esp32s3", "unstable"] }
 esp-radio = { version = "=1.0.0-beta.1", features = ["esp32s3", "ble", "unstable"] }
 esp-rtos = { version = "=0.4.0", features = ["esp32s3", "embassy", "esp-radio", "esp-alloc"] }

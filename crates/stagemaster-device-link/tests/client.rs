@@ -6,11 +6,13 @@ use stagemaster_device_link::{
 #[test]
 fn host_and_device_match_and_old_receipts_do_not_renew() {
     let mut host = Client::default();
+    assert_eq!(host.session_id(), None);
     let mut device = Session::new(17, 0).unwrap();
     let hello = host.request().unwrap();
     assert_eq!(host.request(), Err(Error::State));
     let reply = device.receive(&hello, 10).encode();
     host.accept(&reply).unwrap();
+    assert_eq!(host.session_id(), Some(17));
     assert_eq!(host.accept(&reply), Err(Error::State));
     for i in 1..40 {
         let ping = host.request().unwrap();

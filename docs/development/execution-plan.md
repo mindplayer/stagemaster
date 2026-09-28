@@ -4,6 +4,8 @@
 
 ## 当前任务
 
+- [DEVICE-002](tasks/DEVICE-002-program-installation.md) 进行中：稳定设备标识／真实能力、受限业务会话、桌面至 GATT／双槽 Flash 安装闭环。当前按 [ADR-035](decisions/PRODUCT-ADR-035-device-capabilities.md) 实施只读描述；安装权限和实际 Flash／无线调度随后独立落实，不启用物理输出。
+
 - [DEVICE-001](tasks/DEVICE-001-connection-workspace.md) 已完成 macOS 正式诊断连接工作台：独立原生 BLE／协议与中文面板，软件与实板搜索／取消／连接／保活／重连、主机停顿失效和重开通过。与工程编辑／安装／播放／授权解耦，原未保存用户窗口保留；下一步先定义稳定身份／能力和正式业务会话，再接传输、安装与运行模块。
 
 - [PLAYER-003E](tasks/PLAYER-003E-device-runtime.md) 已完成独立运行层、节目选择／载入、实例与控制租约、断线继续和维护写门，实际目标板完整构建通过；继续正式设备连接和软件操作链，物理输出与生产授权仍各自验收。

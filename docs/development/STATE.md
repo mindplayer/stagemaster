@@ -1,5 +1,9 @@
 # 当前开发状态
 
+临时交付 SHOWCASE-001：应用户及同事查看需求，新增 `data/showcases/星河现场·10米舞台.project.json`，10×6×6.5 米、地面与独立背墙、五道桁架、80 灯／28 场景／5 个循环列表。依用户“全亮无层次”反馈已重编为每段 14–22 台启用、主辅光束与低亮度背景分层；33 项真实工程检查通过；QA 17899 已打开并在应用内 UE 跟随全场自动巡演，工作照明关闭。此窗口现供用户演示，不再作为可随时关闭的空白验收窗口。原 14610／14928 保留。生成器和边界见 [SHOWCASE-001](tasks/SHOWCASE-001-concert-preview.md)，DEVICE-002 仍为主开发任务。
+
+进行中：[DEVICE-002](tasks/DEVICE-002-program-installation.md)，基线 `0a0b7e7`。A 已完成独立只读描述（[ADR-035](decisions/PRODUCT-ADR-035-device-capabilities.md)、[接口](../module-api/device-description.md)）：295 Rust／74 UI、严格检查／双端构建、实际 ESP32 六连接／两启动／48 保活及原生宿主读取清除通过；固件 0.2.0 仅诊断，堆 41,044／90,028 B。B 受限业务认证、C GATT／NOR 安装、D 桌面下发与核验仍待完成，goal 保持原完整范围。原用户工程／UE 及展示窗口保留，刷机仅中断诊断 BLE，RS485 继续禁用。
+
 已完成：[DEVICE-001](tasks/DEVICE-001-connection-workspace.md)，基线 `3c86123`，产品代码结果 `e1867f9`，最终出口为本次 `docs(device): complete native connection acceptance` 提交。独立 Rust 原生 BLE／应用保活和中文设备面板，见[接口](../module-api/device-connection.md)。真实 macOS 发现／连接／自检、超过 30 秒保活、跨工作区保持、主动重连、QA 进程暂停 7 秒后的过期恢复，以及最新版搜索取消和退出重开后的新会话均已验收。285 Rust 全量＋最终 23 定向、74 UI、严格 Clippy／类型／桌面与 ESP32 构建通过。设备报告禁止输出，未刷机／写节目存储／输出 DMX，原用户 14610／14928 保持。
 
 DEVICE-001 正式网页禁用、组件隐藏选择／迟到状态／故障与 1100×800 布局通过；最新原生单选行排版及完整状态辅助名称已核验。两次系统授权等待均由用户完成，未绕过；最新 QA 14406 已正常退出，同一构建重开为 17899 后搜索／连接／保活成功，窗口保持已连接供查看。见[完整出口审查](tasks/DEVICE-001-acceptance-audit.md)。整机睡眠、跨平台和长时间压力仍未实测；后续先定义稳定设备身份／能力与正式业务会话，再接已有受限传输、安装和运行模块，不把诊断连接当作节目发布完成。

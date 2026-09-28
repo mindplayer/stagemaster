@@ -1,6 +1,6 @@
 use crate::{
-    Candidate, Diagnostics, MAX_CANDIDATES, Phase, Problem, ProblemCode as C, Request, Snapshot,
-    Transport,
+    Candidate, DeviceDescription, Diagnostics, MAX_CANDIDATES, Phase, Problem, ProblemCode as C,
+    Request, Snapshot, Transport,
 };
 use futures_util::FutureExt;
 use stagemaster_device_link::client::{Client, Diagnostics as WireDiagnostics, Error as WireError};
@@ -55,6 +55,7 @@ impl Inner {
     }
     fn clear_live(&mut self) {
         self.snapshot.diagnostics = None;
+        self.snapshot.description = None;
         self.snapshot.round_trip_ms = None;
         self.snapshot.last_reply_age_ms = None;
         self.last_reply = None;
@@ -371,13 +372,25 @@ async fn exchange<B: Transport>(
         let stamp = Stamp::now();
         let diagnostics =
             WireDiagnostics::decode(&backend.diagnostics().await?).map_err(protocol)?;
-        Ok::<_, Problem>((stamp, Diagnostics::from(diagnostics)))
+        let description = if heartbeat {
+            None
+        } else {
+            backend
+                .description()
+                .await?
+                .map(|bytes| DeviceDescription::decode(&bytes, client.session_id().unwrap_or(0)))
+                .transpose()?
+        };
+        Ok::<_, Problem>((stamp, Diagnostics::from(diagnostics), description))
     })
     .await
     .map_err(|_| Problem::new(C::Timeout))??;
     update(inner, epoch, |state| {
         state.snapshot.phase = Phase::Connected;
         state.snapshot.diagnostics = Some(stamp.1);
+        if !heartbeat {
+            state.snapshot.description = stamp.2;
+        }
         state.snapshot.round_trip_ms = Some(millis(started.elapsed()));
         state.snapshot.heartbeat_count += u64::from(heartbeat);
         state.last_reply = Some(stamp.0);

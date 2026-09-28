@@ -14,6 +14,7 @@ const SERVICE: Uuid = Uuid::from_u128(0xf889ed60_0100_4e83_968e_799ab99558fa);
 const RX: Uuid = Uuid::from_u128(0xf889ed61_0100_4e83_968e_799ab99558fa);
 const TX: Uuid = Uuid::from_u128(0xf889ed62_0100_4e83_968e_799ab99558fa);
 const INFO: Uuid = Uuid::from_u128(0xf889ed63_0100_4e83_968e_799ab99558fa);
+const DESCRIPTION: Uuid = Uuid::from_u128(0xf889ed64_0100_4e83_968e_799ab99558fa);
 
 /// Lazy native adapter. Construction never asks for permissions or scans.
 #[derive(Default)]
@@ -26,6 +27,7 @@ pub struct Ble {
     found: BTreeMap<String, Peripheral>,
     pending: Option<Peripheral>,
     characteristics: Option<[Characteristic; 3]>,
+    description: Option<Characteristic>,
     scanning: bool,
 }
 #[allow(clippy::needless_pass_by_value)] // Used directly as a Result::map_err adapter.
@@ -170,6 +172,17 @@ impl Transport for Ble {
         peripheral.connect().await.map_err(error)?;
         peripheral.discover_services().await.map_err(error)?;
         let characteristics = peripheral.characteristics();
+        self.description = characteristics
+            .iter()
+            .find(|c| c.service_uuid == SERVICE && c.uuid == DESCRIPTION)
+            .cloned();
+        if self
+            .description
+            .as_ref()
+            .is_some_and(|c| !c.properties.contains(CharPropFlags::READ))
+        {
+            return Err(Problem::new(C::Description));
+        }
         let find = |uuid, flag| {
             characteristics
                 .iter()
@@ -203,6 +216,7 @@ impl Transport for Ble {
     }
     async fn disconnect(&mut self) -> Result<(), Problem> {
         self.characteristics = None;
+        self.description = None;
         if let Some(peripheral) = &self.pending {
             // Do not gate on is_connected: cancelling a pending connect is essential.
             match peripheral.disconnect().await {
@@ -212,6 +226,17 @@ impl Transport for Ble {
         }
         self.pending = None;
         Ok(())
+    }
+    async fn description(&mut self) -> Result<Option<Vec<u8>>, Problem> {
+        let (peripheral, _) = self.active()?;
+        match &self.description {
+            Some(characteristic) => peripheral
+                .read(characteristic)
+                .await
+                .map(Some)
+                .map_err(error),
+            None => Ok(None),
+        }
     }
 }
 impl Ble {
