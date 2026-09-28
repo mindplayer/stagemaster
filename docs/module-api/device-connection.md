@@ -1,6 +1,6 @@
 # 主机设备连接接口
 
-依据 [ADR-034](../development/decisions/PRODUCT-ADR-034-device-connection-workspace.md)；实现范围和验收状态见 [DEVICE-001](../development/tasks/DEVICE-001-connection-workspace.md)。当前软件已接通，正式应用的真实蓝牙会话验收仍待 macOS 权限确认；不把组件／协议测试当实板证据。
+依据 [ADR-034](../development/decisions/PRODUCT-ADR-034-device-connection-workspace.md)；实现范围和验收状态见 [DEVICE-001](../development/tasks/DEVICE-001-connection-workspace.md)。macOS 原生 QA 已通过真实发现、连接、保活、主动重连和主机进程暂停后的过期恢复；更新界面产物后的原生补验仍待系统再次授权。不把组件测试或跨平台库的支持范围当实板证据。
 
 ## 所有权和调用
 
