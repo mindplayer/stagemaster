@@ -1,6 +1,8 @@
 //! Public management wire data, NEVER proof of authentication or a device Grant.
+mod application_receipt;
 mod packet;
 mod receipt;
+pub use application_receipt::{APPLICATION_RECEIPT_BYTES, ApplicationReceipt};
 pub use packet::{Packet, Serial};
 pub use receipt::Receipt;
 
@@ -11,6 +13,7 @@ pub const MIN_FRAGMENT: u16 = 16;
 pub const MAX_FRAGMENT: u16 = 240;
 pub const MESSAGE_BYTES: u16 = 1280;
 pub const AUTHENTICATED_LESC: u16 = 1;
+pub const AUTHENTICATED_APPLICATION: u16 = 2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {

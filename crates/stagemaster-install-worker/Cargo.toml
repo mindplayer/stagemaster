@@ -5,7 +5,13 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+application = ["dep:stagemaster-device-auth", "dep:stagemaster-device-session", "dep:stagemaster-device-link"]
+
 [dependencies]
+stagemaster-device-auth = { path = "../stagemaster-device-auth", features = ["application"], optional = true }
+stagemaster-device-session = { path = "../stagemaster-device-session", optional = true }
+stagemaster-device-link = { path = "../stagemaster-device-link", optional = true }
 stagemaster-install = { path = "../stagemaster-install" }
 stagemaster-transfer = { path = "../stagemaster-transfer" }
 stagemaster-runtime = { path = "../stagemaster-runtime" }

@@ -7,9 +7,11 @@ license.workspace = true
 
 [features]
 default = []
+application = ["dep:stagemaster-device-session"]
 persistence = ["dep:ekv", "dep:embassy-sync", "dep:embedded-storage"]
 
 [dependencies]
+stagemaster-device-session = { path = "../stagemaster-device-session", optional = true }
 zeroize = { version = "=1.9.0", default-features = false }
 ekv = { version = "=1.0.0", optional = true, default-features = false, features = ["crc", "page-size-4096", "align-4", "max-page-count-32", "max-chunk-size-256"] }
 embassy-sync = { version = "=0.6.2", optional = true }

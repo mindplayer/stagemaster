@@ -1,6 +1,8 @@
-//! Device-owned binding records. No radio, UI, output or commercial-license authority.
+//! Device admission from bindings or application keys. No radio, UI or playback license.
 #![no_std]
 #![forbid(unsafe_code)]
+#[cfg(feature = "application")]
+pub mod application;
 pub mod authority;
 mod binding;
 mod codec;

@@ -3883,6 +3883,7 @@ dependencies = [
  "ekv",
  "embassy-sync",
  "embedded-storage",
+ "stagemaster-device-session",
  "zeroize",
 ]
 
@@ -4003,6 +4004,9 @@ name = "stagemaster-install-worker"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "stagemaster-device-auth",
+ "stagemaster-device-link",
+ "stagemaster-device-session",
  "stagemaster-install",
  "stagemaster-install-store",
  "stagemaster-package",
