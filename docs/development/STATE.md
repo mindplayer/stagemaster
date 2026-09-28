@@ -1,5 +1,7 @@
 # 当前开发状态
 
+HW-003 用户新增连接灯：基线 `308e015`，结果为本次 `feat(hardware): show diagnostic connection on the RS485 green indicator` 提交。核对官方 LED2 电路后，由板级独占 GPIO17，在 GPIO21 始终低的只读构建中实现握手成功常亮／断开和超时熄灭；[验收](tasks/HW-003-link-indicator.md) 含三种目标构建／严格检查、实板四条连接亮灭、16 次保活及三次重连。当前板卡为 591,728 B 安全诊断镜像，正式应用 PID 44624 已重新发现并连接／18 次保活；圆弧工程已保存且未改动。用户已确认实物“已经绿灯常亮”；真正 DMX 期间该灯跟随 TX 串行数据，无法独立指定闪烁节拍。刷机清除旧 RAM 绑定，配对机制此前已验证、本轮未重做。DEVICE-002 主目标继续，未开放业务安装／物理输出。
+
 DEVICE-002B 连接权限核心：基线 `0a713dd`，结果为本次 `feat(auth): gate live authority on bounded pairing and durable bonds` 提交。按 [ADR-043](decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 实现固定物理准入窗口／次数、连接代次、持久密钥恢复、保活／取消／撤销与提交后重连。28 项 auth 定向、367 项全工作区最终复核、严格检查和 Xtensa 库级编译通过；[验收](tasks/DEVICE-002B-authority-acceptance.md) 保留首次原存储测试偶发租约失败，独立和原命令复跑通过但根因待定位。尚未接板级存储／栈事件，没有刷机，不把核心通过当无线安装完成。用户新增状态灯需求已核对官方原理图，下一小增量让诊断连接时 RS485 绿灯常亮；真正 DMX 期间其亮灭由 UART 数据决定。
 
 DEVICE-002B 绑定存储增量：基线 `d8692f3`，结果为本次 `feat(auth): add bounded persistent device binding vault` 提交。按 [ADR-042](decisions/PRODUCT-ADR-042-device-binding-vault.md) 新增独立有界绑定档案及可选 EKV 原子存储，严格格式／配置、提交回读、撤销、秘密脱敏及 I/O 错误锁存。352 项工作区测试、11 项含持久化定向测试（其中 5 项与全量重叠）、严格检查及 Xtensa 库级编译通过；逐操作故障与多轮更新后损坏验证见[验收](tasks/DEVICE-002B-vault-acceptance.md)。新增产品文件最大 143 行。本轮没有刷机或修改分区，真实板卡仍为上一轮只读安全候选；持久绑定实板接入、连接权限与正式 GATT 安装仍待完成。配对确认已获授权，不重复询问。

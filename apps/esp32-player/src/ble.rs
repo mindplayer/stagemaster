@@ -45,6 +45,7 @@ pub async fn run<C: Controller>(
     controller: C,
     identity: crate::identity::Identity,
     snapshot: fn() -> [u8; 20],
+    mut connected: impl FnMut(bool),
 ) -> ! {
     let mut random = [0; 6];
     esp_hal::rng::Rng::new().read(&mut random);
@@ -120,7 +121,8 @@ pub async fn run<C: Controller>(
                     conn.set(&server.security_probe.proof, &proof).unwrap();
                 }
                 println!("GATT connected");
-                serve(&server, &conn, session_id, snapshot).await;
+                serve(&server, &conn, session_id, snapshot, &mut connected).await;
+                connected(false);
             }
         },
     )
@@ -133,6 +135,7 @@ async fn serve<P: PacketPool>(
     conn: &GattConnection<'_, '_, P>,
     session_id: u64,
     snapshot: fn() -> [u8; 20],
+    connected: &mut impl FnMut(bool),
 ) {
     let mut session = Session::new(session_id, Instant::now().as_millis()).unwrap();
     // Experimental pairing must precede HELLO: CoreBluetooth can serialize ATT
@@ -238,7 +241,11 @@ async fn serve<P: PacketPool>(
                     )
                     .await
                     {
-                        Ok(Ok(())) => {}
+                        Ok(Ok(())) => {
+                            if bytes[1] == stagemaster_device_link::HELLO | 0x80 && bytes[2] == 0 {
+                                connected(true);
+                            }
+                        }
                         Ok(Err(error)) => {
                             println!("GATT notification failed {:?}", error);
                             conn.raw().disconnect();

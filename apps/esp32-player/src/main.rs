@@ -29,7 +29,7 @@ esp_bootloader_esp_idf::esp_app_desc!();
 #[esp_rtos::main]
 async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
-    let _output_disabled = board::OutputDisabled::new(peripherals.GPIO21);
+    let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
     esp_alloc::heap_allocator!(size: 128 * 1024);
     esp_println::println!("StageMaster DEVICE-002A: RS485 disabled, diagnostic only");
     #[cfg(all(feature = "storage-readiness", not(feature = "worker-readiness")))]
@@ -66,12 +66,14 @@ async fn main(_spawner: embassy_executor::Spawner) {
             peripherals.FROM_CPU_INTR1,
             peripherals.FLASH,
             identity.boot(),
-            &_output_disabled,
+            &output_disabled,
         );
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
     }
     embassy_futures::join::join(
-        ble::run(controller, identity, diagnostics::snapshot),
+        ble::run(controller, identity, diagnostics::snapshot, |connected| {
+            output_disabled.connected(connected);
+        }),
         diagnostics::run(),
     )
     .await;

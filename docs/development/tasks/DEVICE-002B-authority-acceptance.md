@@ -12,7 +12,7 @@
 - Xtensa `xtensa-esp32s3-none-elf`、persistence 开启／locked／offline 的库级 check 通过；不是完整固件链接或实板认证。
 - 首次全工作区运行在原 `stagemaster-install-store` 的 `every_write_failure_reconciles_and_reopens_to_a_complete_version_then_retries` 失败：旧槽 snapshot 报“此槽正在接收新包”。该测试独立原断言复跑通过，继续用原全工作区命令复核；没有串行化、忽略测试或放松断言。此处保留失败，不宣称根因已修复。
 
-日志：`logs/device-002b-authority-{first-tests,first-clippy,tests,clippy,xtensa-check,workspace-tests,storage-failure-repro,workspace-retry,workspace-clippy}.log`。全量原命令复核 367 项通过；首次存储租约偶发失败根因仍待定位，保留为后续集成审查项。
+日志：`logs/device-002b-authority-{first-tests,first-clippy,tests,clippy,xtensa-check,workspace-tests,storage-failure-repro,workspace-retry,workspace-clippy}.log`。全量原命令复核 367 项通过；首次存储租约偶发失败根因仍待定位，保留为后续集成审查项。后续原文件存储整组单独复核 12 项亦通过，见 `logs/device-002b-authority-storage-suite-recheck.log`；没有修改该模块或其测试。
 
 ## 未完成项
 
