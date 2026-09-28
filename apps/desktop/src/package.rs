@@ -2,9 +2,12 @@
 use serde::Serialize;
 use stagemaster_project::{PackageIssue, PackageReport, PackageSelection};
 use stagemaster_project_store::PackageFile;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, MutexGuard};
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
+
+#[cfg(test)]
+mod tests;
 
 #[derive(Default)]
 pub(crate) struct Service {
@@ -14,7 +17,23 @@ pub(crate) struct Service {
 struct Prepared {
     generation: u32,
     token: String,
-    bytes: Vec<u8>,
+    bytes: Arc<[u8]>,
+}
+impl Service {
+    // All cache mutations and consumers acquire this before recovery.operations.
+    pub(crate) fn operation(&self) -> Result<MutexGuard<'_, ()>, String> {
+        self.gate
+            .try_lock()
+            .map_err(|_| "另一项播放包操作尚未结束，请稍后重试".into())
+    }
+    pub(crate) fn prepared(&self, generation: u32, token: &str) -> Result<Arc<[u8]>, String> {
+        let prepared = self.prepared.lock().map_err(|_| "播放包会话发生错误")?;
+        let prepared = prepared.as_ref().ok_or("请先生成播放包")?;
+        if prepared.generation != generation || prepared.token != token {
+            return Err("播放包结果已失效，请重新生成".into());
+        }
+        Ok(prepared.bytes.clone())
+    }
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -39,10 +58,7 @@ pub(crate) async fn package_build(
 ) -> Result<BuildResponse, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let service = app.state::<Service>();
-        let _permit = service
-            .gate
-            .try_lock()
-            .map_err(|_| "另一项播放包操作尚未结束，请稍后重试")?;
+        let _permit = service.operation()?;
         *service.prepared.lock().map_err(|_| "播放包会话发生错误")? = None;
         let document = {
             let shared = app.state::<crate::previs::SharedSession>();
@@ -57,7 +73,7 @@ pub(crate) async fn package_build(
                 *service.prepared.lock().map_err(|_| "播放包会话发生错误")? = Some(Prepared {
                     generation,
                     token: token.clone(),
-                    bytes: built.bytes,
+                    bytes: built.bytes.into(),
                 });
                 Ok(BuildResponse {
                     generation,
@@ -85,10 +101,7 @@ pub(crate) async fn package_export(
 ) -> Result<ExportResponse, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let service = app.state::<Service>();
-        let _permit = service
-            .gate
-            .try_lock()
-            .map_err(|_| "另一项播放包操作尚未结束，请稍后重试")?;
+        let _permit = service.operation()?;
         let prepared = service.prepared.lock().map_err(|_| "播放包会话发生错误")?;
         let prepared = prepared.as_ref().ok_or("请先生成播放包")?;
         if prepared.generation != generation || prepared.token != token {

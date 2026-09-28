@@ -14,9 +14,8 @@ import {
   selectionKey,
 } from "../../package-tools";
 import "./package-panel.css";
+import { PackageResults } from "./PackageResults";
 const PAGE = 12;
-const size = (bytes: number) =>
-  bytes < 1024 ? `${bytes} 字节` : `${(bytes / 1024).toFixed(1)} KiB`;
 export function PackagePanel({
   host,
   project,
@@ -26,6 +25,8 @@ export function PackagePanel({
   busy,
   capture,
   onLocate,
+  onInstall,
+  installReason,
 }: {
   host: ApplicationHost;
   project: ProjectView;
@@ -35,6 +36,8 @@ export function PackagePanel({
   busy: boolean;
   capture(): Promise<number | null>;
   onLocate(location: CheckLocation, generation: number): Promise<boolean>;
+  onInstall(generation: number, token: string): Promise<void>;
+  installReason: string | null;
 }) {
   const [selected, setSelected] = useState<PackageSelection[]>([]);
   const [query, setQuery] = useState("");
@@ -43,7 +46,9 @@ export function PackagePanel({
   const [resultPage, setResultPage] = useState(0);
   const [result, setResult] = useState<PackageResult | null>(null);
   const [builtSelection, setBuiltSelection] = useState("");
-  const [working, setWorking] = useState<"build" | "export" | null>(null);
+  const [working, setWorking] = useState<"build" | "export" | "install" | null>(
+    null,
+  );
   const [cancelled, setCancelled] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -86,9 +91,6 @@ export function PackagePanel({
         : candidates.length;
     return index(a) - index(b);
   });
-  const resultCount = report?.programs.length ?? result?.issues.length ?? 0;
-  const resultPages = Math.max(1, Math.ceil(resultCount / PAGE));
-  const activeResultPage = Math.min(resultPage, resultPages - 1);
   const disabled = busy || working !== null;
   async function build() {
     if (inFlight.current) return;
@@ -291,6 +293,35 @@ export function PackagePanel({
         >
           {working === "export" ? "正在导出…" : "另存播放包"}
         </button>
+        <button
+          disabled={disabled || !current || !result?.token || !!installReason}
+          title={installReason || undefined}
+          onClick={() => {
+            if (!current || !result?.token || inFlight.current) return;
+            inFlight.current = true;
+            setWorking("install");
+            setError("");
+            void (async () => {
+              try {
+                const version = await capture();
+                if (version === null) return;
+                if (version !== result.generation)
+                  throw new Error("工程已变化，请重新生成播放包");
+                await onInstall(version, result.token!);
+              } catch (reason) {
+                if (!discard.current)
+                  setError(
+                    reason instanceof Error ? reason.message : String(reason),
+                  );
+              } finally {
+                inFlight.current = false;
+                if (!discard.current) setWorking(null);
+              }
+            })();
+          }}
+        >
+          {working === "install" ? "正在开始安装…" : "安装到设备"}
+        </button>
         {result && (
           <strong className={current && report ? "passed" : ""}>
             {!current ? "结果已过期" : report ? "软件校验通过" : "需要修复"}
@@ -302,6 +333,9 @@ export function PackagePanel({
           {error}
         </p>
       )}
+      {report && current && installReason && (
+        <p className="wb-package-caption">{installReason}</p>
+      )}
       {message && (
         <p className="wb-package-message" role="status">
           {message}
@@ -312,102 +346,19 @@ export function PackagePanel({
           工程、草稿或选择已变化，请重新生成。
         </p>
       )}
-      {report && (
-        <>
-          <div className="wb-package-metrics">
-            <span>
-              <b>{report.programs.length}</b> 个节目
-            </span>
-            <span>
-              <b>{size(report.bytes)}</b> 文件大小
-            </span>
-            <span>
-              <b>
-                {size(
-                  Math.max(...report.programs.map((p) => p.loaderPeakBytes)),
-                )}
-              </b>{" "}
-              最大参考装载峰值 / {size(report.maxLoaderBytes)}
-            </span>
-          </div>
-          <div className="wb-package-results">
-            {reportPrograms
-              .slice(activeResultPage * PAGE, (activeResultPage + 1) * PAGE)
-              .map((p, i) => (
-                <div key={activeResultPage * PAGE + i}>
-                  <span>
-                    <b>{p.name}</b>
-                    <small>
-                      {p.steps} 步 · {p.attributes} 个属性 · {p.effectChannels}{" "}
-                      个效果通道
-                    </small>
-                  </span>
-                  <span>
-                    {size(p.encodedBytes)}
-                    <small>参考装载 {size(p.loaderPeakBytes)}</small>
-                  </span>
-                  <button
-                    disabled={!current || disabled}
-                    onClick={() => void onLocate(p.location, result.generation)}
-                  >
-                    定位
-                  </button>
-                </div>
-              ))}
-          </div>
-          <details className="wb-package-details">
-            <summary>文件校验信息</summary>
-            <p>来源快照：{report.sourceDigest}</p>
-            <p>播放包：{report.packageDigest}</p>
-            <p>
-              输出线路 {report.universe} · 目录参考内存{" "}
-              {size(report.catalogResidentBytes)}
-            </p>
-          </details>
-        </>
-      )}
-      {!!result?.issues.length && (
-        <div className="wb-package-results" aria-label="播放包问题">
-          {result.issues
-            .slice(activeResultPage * PAGE, (activeResultPage + 1) * PAGE)
-            .map((issue, i) => (
-              <div key={i}>
-                <span>{issue.message}</span>
-                {issue.location && (
-                  <button
-                    disabled={!current || disabled}
-                    onClick={() =>
-                      void onLocate(issue.location!, result.generation)
-                    }
-                  >
-                    定位问题
-                  </button>
-                )}
-              </div>
-            ))}
-        </div>
-      )}
-      {resultPages > 1 && (
-        <div className="wb-package-pager">
-          <button
-            disabled={activeResultPage === 0}
-            onClick={() => setResultPage(activeResultPage - 1)}
-          >
-            上一组结果
-          </button>
-          <span>
-            结果 {activeResultPage + 1} / {resultPages} 页
-          </span>
-          <button
-            disabled={activeResultPage + 1 >= resultPages}
-            onClick={() => setResultPage(activeResultPage + 1)}
-          >
-            下一组结果
-          </button>
-        </div>
+      {result && (
+        <PackageResults
+          result={result}
+          reportPrograms={reportPrograms}
+          current={current}
+          disabled={disabled}
+          resultPage={resultPage}
+          setResultPage={setResultPage}
+          onLocate={onLocate}
+        />
       )}
       <p className="wb-package-caption">
-        包含已应用的未保存编辑。当前为软件参考包；设备安装与播放授权尚未接入。
+        包含已应用的未保存编辑。安装使用生成时的固定内容；安装不会开始播放。
       </p>
     </section>
   );

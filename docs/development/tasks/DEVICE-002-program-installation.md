@@ -57,7 +57,7 @@ A 结果 `c8613c7`。B 的 [ADR-036](../decisions/PRODUCT-ADR-036-authenticated-
 
 ## 范围与验收
 
-D 主机通信增量已实施，基线 `fd92ca1`：同一连接任务协调保活和安装消息，按 [ADR-039](../decisions/PRODUCT-ADR-039-host-install-io.md) 接经验证权限、单请求、分片与响应期限、取消清理及恢复边界。325 Rust／最终 36 项定向／严格检查、真实 ESP32 原生只读回归通过；[证据和未完成项](DEVICE-002D-host-io-acceptance.md)。当前原生 `Ble` 无安装权限，没有把软件夹具授权接到产品；正式 GATT 与 D 界面仍待完成。
+D 主机通信增量已实施，基线 `fd92ca1`：同一连接任务协调保活和安装消息，按 [ADR-039](../decisions/PRODUCT-ADR-039-host-install-io.md) 接经验证权限、单请求、分片与响应期限、取消清理及恢复边界。325 Rust／最终 36 项定向／严格检查、真实 ESP32 原生只读回归通过；[证据和未完成项](DEVICE-002D-host-io-acceptance.md)。当前原生 `Ble` 无安装权限，没有把软件夹具授权接到产品；正式 GATT 仍待完成。后续 D 任务层和正式桌面入口已依 [ADR-040](../decisions/PRODUCT-ADR-040-host-installation-task.md) 实现，见[任务层验收](DEVICE-002D-task-workflow.md)：337 全量＋最终 41 定向、78 UI、严格检查和双端编译通过；原生包生成／过期／无权限禁用通过，本轮系统蓝牙未就绪。实际已认证 GATT 下发与原生完整任务仍未验收。
 
 - 项目内源码、协议／固件、桌面宿主与组件、锁文件、测试、工具和文档。工程 JSON 与播放计划语义不因通信接入而改变。
 - 独立格式用例、乱序／旧连接／旧启动、未知版本、矛盾能力和旧诊断兼容；声明、权限和实际运行状态必须分开。

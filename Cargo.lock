@@ -3654,6 +3654,7 @@ dependencies = [
  "serde",
  "serde_json",
  "stagemaster-device-host",
+ "stagemaster-device-upload",
  "stagemaster-playback",
  "stagemaster-previs",
  "stagemaster-project",
@@ -3693,6 +3694,24 @@ version = "0.1.0"
 [[package]]
 name = "stagemaster-device-link"
 version = "0.1.0"
+
+[[package]]
+name = "stagemaster-device-upload"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "serde",
+ "serde_json",
+ "stagemaster-device-host",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-project",
+ "stagemaster-transfer",
+ "tempfile",
+ "tokio",
+ "uuid",
+]
 
 [[package]]
 name = "stagemaster-dmx"

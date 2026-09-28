@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DEVICE-002D 任务层增量：基线 `59224fd`，结果为本次 `feat(device): add independent installation tasks and desktop workflow` 提交。按 [ADR-040](decisions/PRODUCT-ADR-040-host-installation-task.md) 完成独立不可变包任务、已确认进度、取消／恢复／提交核验、会话间连续请求游标，以及正式中文安装面板与播放包入口；337 Rust 全量＋最终 41 定向（新增 2）、78 UI、严格检查、桌面构建和 Xtensa 检查通过。修复同连接新任务序号归零和包／工程门锁顺序风险，见[验收](tasks/DEVICE-002D-task-workflow.md)。新增产品文件最大 206 行，播放包结果已拆分；既有 Workbench 仅接线。原生实际包生成／过期／上下文／无权限禁用通过，本轮蓝牙搜索报告系统未就绪；B 绑定仍待确认，正式无线安装与维护集成未完成，goal 保持全范围。旧展示 PID 在本轮已不存在，最新主程序已打开圆弧工程；无固件或物理输出操作。
+
 DEVICE-002D 主机调度增量：基线 `fd92ca1`，结果为本次 `feat(device): coordinate installation I/O with connection heartbeats` 提交。依 [ADR-039](decisions/PRODUCT-ADR-039-host-install-io.md)，同一连接任务接入经授权的单消息入口，按片段穿插保活、固定期限、严格回执匹配及断线清理；现有上传器经软件适配实际完成文件双槽安装／重连核验。325 Rust、最终 36 项主机定向、严格 Clippy／fmt 和 ESP32 原生只读五次保活通过；见 [验收](tasks/DEVICE-002D-host-io-acceptance.md)。代码按职责拆分，新增产品文件均不超过 178 行，原服务文件从 403 行收敛至 232 行。原生安装权限继续为无，正式 GATT／系统绑定、维护状态和桌面进度／恢复仍未完成；goal 保持全范围，未启用物理输出。
 
 开发规则补充 DEV-006：依用户要求，手写代码按职责拆分，避免入口／页面／服务持续膨胀；300–400 行主动评估，超过 500 行记录保留理由或拆分，既有大文件随相关任务小步整理。规则和审查步骤已写入根 `AGENTS.md` 及开发方法；见 [DEV-006](tasks/DEV-006-readable-modules.md)。该次只改开发规范，不代表已完成全库重构；随后主机通信增量已落实相关模块拆分。

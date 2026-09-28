@@ -4,6 +4,9 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      installation: (request) => invoke("installation_request", { request }),
+      startInstallation: (generation, token, epoch, deviceId) =>
+        invoke("installation_start", { generation, token, epoch, deviceId }),
       device: (request) => invoke("device_request", { request }),
       recovery: (request) => invoke("recovery_request", { request }),
       buildPackage: (generation, selection) =>
@@ -18,6 +21,12 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      installation: async () => {
+        throw new Error("请使用桌面应用管理设备节目安装");
+      },
+      startInstallation: async () => {
+        throw new Error("请使用桌面应用安装设备节目");
+      },
       device: async () => {
         throw new Error("请使用桌面应用连接蓝牙设备");
       },

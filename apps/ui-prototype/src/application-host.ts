@@ -19,8 +19,7 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  | EditOperation
-  | { op: "batch"; commands: EditOperation[] };
+  EditOperation | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
   | { op: "position"; command: PositionEdit }
   | { op: "fixture"; command: FixtureEdit }
@@ -116,6 +115,15 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  installation(
+    request: import("./installation-types").InstallationRequest,
+  ): Promise<import("./installation-types").InstallationView>;
+  startInstallation(
+    generation: number,
+    token: string,
+    epoch: number,
+    deviceId: string,
+  ): Promise<import("./installation-types").InstallationView>;
   device(
     request: import("./device-types").DeviceRequest,
   ): Promise<import("./device-types").DeviceSnapshot>;

@@ -19,8 +19,19 @@ import "./devices.css";
 
 // This component stays mounted when the panel closes. The native service owns
 // connectivity even if the entire webview disappears.
-export function DeviceCenter({ host }: { host: ApplicationHost }) {
+export function DeviceCenter({
+  host,
+  dismiss = false,
+  onOpen,
+}: {
+  host: ApplicationHost;
+  dismiss?: boolean;
+  onOpen?(): void;
+}) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (dismiss) setOpen(false);
+  }, [dismiss]);
   const [snapshot, setSnapshot] = useState<DeviceSnapshot | null>(null);
   const [transportError, setTransportError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -118,7 +129,13 @@ export function DeviceCenter({ host }: { host: ApplicationHost }) {
             ? "请使用桌面应用连接蓝牙设备"
             : `设备连接 · ${label}`
         }
-        onClick={() => (open ? close() : setOpen(true))}
+        onClick={() => {
+          if (open) close();
+          else {
+            onOpen?.();
+            setOpen(true);
+          }
+        }}
       >
         <BluetoothIcon />
         <span>设备</span>

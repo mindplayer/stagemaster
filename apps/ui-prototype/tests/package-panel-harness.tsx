@@ -12,6 +12,8 @@ const unavailable = async () => {
 const host: ApplicationHost = {
   kind: "desktop",
   device: unavailable,
+  installation: unavailable,
+  startInstallation: unavailable,
   buildPackage: async () =>
     new Promise((resolve) => {
       finish = resolve;
@@ -61,6 +63,8 @@ createRoot(document.getElementById("root")!).render(
       busy={false}
       capture={async () => 1}
       onLocate={async () => true}
+      onInstall={async () => {}}
+      installReason="隔离组件测试不连接设备"
     />
   </div>,
 );

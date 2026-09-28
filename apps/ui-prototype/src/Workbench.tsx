@@ -1,5 +1,7 @@
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
-import { DeviceCenter } from "./components/devices/DeviceCenter";
+import { DeviceTools } from "./components/devices/DeviceTools";
+import { startInstallationReason } from "./installation-tools";
+import { useInstallation } from "./components/installation/useInstallation";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
 import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
@@ -105,6 +107,7 @@ const infoForm = (p: ProjectView): ProjectForm => ({
 });
 
 export function Workbench({ host }: { host: ApplicationHost }) {
+  const installation = useInstallation(host);
   const [snapshot, setSnapshot] = useState(EMPTY);
   const current = useRef(EMPTY);
   const [busy, setBusy] = useState(false);
@@ -676,7 +679,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           </div>
         )}
         <div className="wb-file-actions">
-          <DeviceCenter host={host} />
+          <DeviceTools host={host} installation={installation} />
           <button
             title="新建工程（⌘N / Ctrl+N）"
             disabled={busy || host.kind !== "desktop"}
@@ -1271,6 +1274,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   busy={busy}
                   capture={captureCheck}
                   onLocate={locateCheck}
+                  onInstall={installation.start}
+                  installReason={startInstallationReason(
+                    installation.view,
+                    installation.communicationError,
+                  )}
                 />
                 <ProjectCheckPanel
                   key={`check:${project.id}`}

@@ -90,6 +90,8 @@ const host: ApplicationHost = {
   check: unsupported,
   buildPackage: unsupported,
   exportPackage: unsupported,
+  installation: unsupported,
+  startInstallation: unsupported,
   onCloseRequested: async () => () => {},
 };
 function Harness() {

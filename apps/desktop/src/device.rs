@@ -1,6 +1,6 @@
 use stagemaster_device_host::{Ble, Problem, Request, Service, Snapshot};
 
-pub type Connections = Service<Ble>;
+pub type Connections = std::sync::Arc<Service<Ble>>;
 
 #[tauri::command]
 pub async fn device_request(

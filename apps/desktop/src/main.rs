@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod check;
 mod device;
+mod installation;
+mod lifecycle;
 mod package;
 mod preview;
 mod previs;
@@ -72,6 +74,7 @@ async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snap
         let snapshot = session.snapshot();
         drop(session);
         if result? {
+            app.state::<installation::Service>().begin_shutdown();
             app.exit(0);
         }
         Ok(snapshot)
@@ -112,6 +115,9 @@ fn dispatch(
         }
         Request::History { generation, redo } => session.history(generation, redo)?,
         Request::Close => {
+            if !installation::allow_exit(app)? {
+                return Ok(false);
+            }
             return session.allow_replace(app);
         }
     }
@@ -131,14 +137,17 @@ async fn preview_request(
     .map_err(|_| "预览操作未完成".to_string())?
 }
 fn main() {
+    let devices = Arc::new(stagemaster_device_host::Service::new(
+        stagemaster_device_host::Ble::default(),
+    ));
+    let installation = installation::Service::new(devices.clone());
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(Session::default())))
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
         .manage(package::Service::default())
-        .manage(device::Connections::new(
-            stagemaster_device_host::Ble::default(),
-        ))
+        .manage(devices)
+        .manage(installation)
         .setup(|app| {
             app.manage(recovery::Service::new(recovery::directory(app)?));
             Ok(())
@@ -199,27 +208,11 @@ fn main() {
             package::package_export,
             recovery::recovery_request,
             device::device_request,
+            installation::installation_request,
+            installation::installation_start,
             previs::previs_request
         ])
         .build(tauri::generate_context!())
         .expect("舞台大师桌面应用启动失败")
-        .run(|app, event| {
-            if matches!(event, tauri::RunEvent::Exit) {
-                if let Err(error) =
-                    tauri::async_runtime::block_on(app.state::<device::Connections>().shutdown())
-                {
-                    eprintln!("设备连接退出清理：{error}");
-                }
-                tauri::async_runtime::block_on(app.state::<previs::Bridge>().close());
-            }
-            if let tauri::RunEvent::ExitRequested {
-                api, code: None, ..
-            } = event
-            {
-                api.prevent_exit();
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.emit("project-close-requested", ());
-                }
-            }
-        });
+        .run(lifecycle::handle_run);
 }
