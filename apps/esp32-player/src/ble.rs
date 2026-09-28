@@ -1,11 +1,9 @@
 //! GATT adapter for the diagnostic protocol. It owns no playback commands.
-use embassy_futures::{
-    join::join,
-    select::{Either, select},
-};
-use embassy_time::{Duration, Instant, Timer, with_timeout};
+mod session;
+use embassy_futures::join::join;
+#[cfg(feature = "binding-readiness")]
+use embassy_time::{Duration, Timer, with_timeout};
 use esp_println::println;
-use stagemaster_device_link::Session;
 use trouble_host::prelude::*;
 
 #[cfg(not(feature = "security-readiness"))]
@@ -47,15 +45,30 @@ pub async fn run<C: Controller>(
     snapshot: fn() -> [u8; 20],
     mut connected: impl FnMut(bool),
 ) -> ! {
+    #[cfg(feature = "binding-readiness")]
+    let mut binding = crate::bindings::link::Link::start().await;
     let mut random = [0; 6];
     esp_hal::rng::Rng::new().read(&mut random);
     random[5] |= 0xc0; // A boot-scoped static random BLE address, not device authentication.
-    let mut resources: HostResources<DefaultPacketPool, 1, 2> = HostResources::new();
+    #[cfg(feature = "binding-readiness")]
+    if let Some(local) = binding.local() {
+        random = local.address().bytes();
+    }
+    let mut resources: HostResources<DefaultPacketPool, 1, 2, 1, 4> = HostResources::new();
     let builder =
         trouble_host::new(controller, &mut resources).set_random_address(Address::random(random));
     #[cfg(feature = "security-readiness")]
     let builder = builder.set_io_capabilities(IoCapabilities::DisplayOnly);
+    #[cfg(feature = "binding-readiness")]
+    let builder = match binding.local() {
+        Some(local) => builder.enable_privacy(
+            IdentityResolvingKey::new(u128::from_le_bytes(*local.irk().bytes())).unwrap(),
+        ),
+        None => builder,
+    };
     let stack = builder.build();
+    #[cfg(feature = "binding-readiness")]
+    assert!(binding.reload(&stack));
     let mut runner = stack.runner();
     let mut peripheral = stack.peripheral();
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
@@ -85,6 +98,8 @@ pub async fn run<C: Controller>(
             runner.run().await.unwrap();
         },
         async {
+            #[cfg(feature = "binding-readiness")]
+            binding.open_local_test_window();
             loop {
                 println!(
                     "GATT advertising; heap used={} free={}",
@@ -104,6 +119,8 @@ pub async fn run<C: Controller>(
                 let raw = advertiser.accept().await.unwrap();
                 #[cfg(feature = "security-readiness")]
                 raw.set_bondable(true).unwrap();
+                #[cfg(feature = "binding-readiness")]
+                binding.connect();
                 let conn = raw.with_attribute_server(&server).unwrap();
                 let mut nonce = [0; 8];
                 esp_hal::rng::Rng::new().read(&mut nonce);
@@ -114,152 +131,53 @@ pub async fn run<C: Controller>(
                     .unwrap();
                 #[cfg(feature = "security-readiness")]
                 {
+                    #[cfg(not(feature = "binding-readiness"))]
                     let mut proof = [0; 16];
-                    proof[..4].copy_from_slice(b"SMTP");
-                    proof[4] = 1;
-                    proof[8..].copy_from_slice(&session_id.to_le_bytes());
+                    #[cfg(not(feature = "binding-readiness"))]
+                    {
+                        proof[..4].copy_from_slice(b"SMTP");
+                        proof[4] = 1;
+                        proof[8..].copy_from_slice(&session_id.to_le_bytes());
+                    }
+                    #[cfg(feature = "binding-readiness")]
+                    let proof = [0; 16];
                     conn.set(&server.security_probe.proof, &proof).unwrap();
                 }
                 println!("GATT connected");
-                serve(&server, &conn, session_id, snapshot, &mut connected).await;
+                session::serve(
+                    &server,
+                    &conn,
+                    session_id,
+                    snapshot,
+                    &mut connected,
+                    #[cfg(feature = "binding-readiness")]
+                    &mut binding,
+                )
+                .await;
                 connected(false);
+                #[cfg(feature = "binding-readiness")]
+                {
+                    binding.close();
+                    conn.raw().disconnect();
+                    // Allow the runner to finish physical disconnection before changing bonds.
+                    assert!(
+                        with_timeout(Duration::from_secs(5), async {
+                            while conn.raw().is_connected() {
+                                Timer::after_millis(20).await;
+                            }
+                        })
+                        .await
+                        .is_ok(),
+                        "physical disconnect deadline"
+                    );
+                    drop(conn);
+                    binding.persist().await;
+                    assert!(binding.reload(&stack));
+                    Timer::after_millis(100).await;
+                }
             }
         },
     )
     .await;
     panic!("BLE runner stopped");
-}
-
-async fn serve<P: PacketPool>(
-    server: &Server<'_>,
-    conn: &GattConnection<'_, '_, P>,
-    session_id: u64,
-    snapshot: fn() -> [u8; 20],
-    connected: &mut impl FnMut(bool),
-) {
-    let mut session = Session::new(session_id, Instant::now().as_millis()).unwrap();
-    // Experimental pairing must precede HELLO: CoreBluetooth can serialize ATT
-    // behind its native passkey sheet. Established diagnostic leases stay 6 s.
-    #[cfg(feature = "security-readiness")]
-    let admission_deadline = Instant::now() + Duration::from_secs(90);
-    #[cfg(feature = "security-readiness")]
-    let mut awaiting_hello = true;
-    loop {
-        #[cfg(feature = "security-readiness")]
-        let expired = if awaiting_hello {
-            Instant::now() >= admission_deadline
-        } else {
-            session.poll(Instant::now().as_millis()).unwrap()
-        };
-        #[cfg(not(feature = "security-readiness"))]
-        let expired = session.poll(Instant::now().as_millis()).unwrap();
-        if expired {
-            println!("GATT application heartbeat expired; local playback continues");
-            conn.raw().disconnect();
-            break;
-        }
-        let event = match select(conn.next(), Timer::after_millis(100)).await {
-            Either::First(event) => event,
-            Either::Second(()) => continue,
-        };
-        match event {
-            #[cfg(feature = "security-readiness")]
-            GattConnectionEvent::PassKeyDisplay(key) => {
-                // Development USB display only. Never log the LTK or bond structure.
-                println!("DEVELOPMENT PAIRING CODE: {}", key);
-            }
-            #[cfg(feature = "security-readiness")]
-            GattConnectionEvent::PairingComplete {
-                security_level,
-                bond,
-            } => {
-                println!("PAIRING {:?}; bonded={}", security_level, bond.is_some());
-            }
-            #[cfg(feature = "security-readiness")]
-            GattConnectionEvent::Encrypted {
-                security_level,
-                bond,
-            } => {
-                println!("ENCRYPTED {:?}; resumed={}", security_level, bond.is_some());
-            }
-            #[cfg(feature = "security-readiness")]
-            GattConnectionEvent::PairingFailed(error) => {
-                println!("PAIRING FAILED {:?}", error);
-            }
-            GattConnectionEvent::Disconnected { reason } => {
-                println!("GATT disconnected {:?}", reason);
-                break;
-            }
-            GattConnectionEvent::Gatt { event } => {
-                let mut response = None;
-                let reply = match event {
-                    GattEvent::Read(event) if event.handle() == server.link.info.handle => {
-                        // Use the attribute table's bounded read/offset handling.
-                        conn.set(&server.link.info, &snapshot()).unwrap();
-                        event.accept()
-                    }
-                    GattEvent::Write(event) if event.handle() == server.link.request.handle => {
-                        match event.with_data(|offset, data| offset == 0 && data.len() == 20) {
-                            true => {
-                                response = Some(event.with_data(|_offset, data| {
-                                    let now = Instant::now().as_millis();
-                                    #[cfg(feature = "security-readiness")]
-                                    if awaiting_hello {
-                                        let mut candidate = Session::new(session_id, now).unwrap();
-                                        let reply = candidate.receive(data, now);
-                                        if reply.code == 0 {
-                                            session = candidate;
-                                            awaiting_hello = false;
-                                        }
-                                        return reply.encode();
-                                    }
-                                    session.receive(data, now).encode()
-                                }));
-                                event.accept_unprocessed()
-                            }
-                            false => event.reject(AttErrorCode::INVALID_ATTRIBUTE_VALUE_LENGTH),
-                        }
-                    }
-                    _ => event.accept(),
-                };
-                if let Some(bytes) = response {
-                    conn.set(&server.link.response, &bytes).unwrap();
-                }
-                if let Ok(reply) = reply
-                    && with_timeout(Duration::from_millis(250), reply.send())
-                        .await
-                        .is_err()
-                {
-                    println!("GATT ATT reply deadline exceeded");
-                    conn.raw().disconnect();
-                    break;
-                }
-                if let Some(bytes) = response {
-                    match with_timeout(
-                        Duration::from_millis(250),
-                        server.link.response.notify(conn, &bytes, false),
-                    )
-                    .await
-                    {
-                        Ok(Ok(())) => {
-                            if bytes[1] == stagemaster_device_link::HELLO | 0x80 && bytes[2] == 0 {
-                                connected(true);
-                            }
-                        }
-                        Ok(Err(error)) => {
-                            println!("GATT notification failed {:?}", error);
-                            conn.raw().disconnect();
-                            break;
-                        }
-                        Err(_) => {
-                            println!("GATT notification deadline exceeded");
-                            conn.raw().disconnect();
-                            break;
-                        }
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
 }

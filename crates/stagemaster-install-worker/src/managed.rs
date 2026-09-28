@@ -57,6 +57,26 @@ impl<S: Storage, P: PlaybackPolicy> ManagedWorker<S, P> {
             .observe(if self.permit.is_some() { live } else { None });
     }
 
+    /// Run related credential storage on the same owner under the current permit.
+    /// The trusted board adapter owns this closure; it is never decoded from a peer.
+    /// # Errors
+    /// Requires confirmed quiescence, valid time, and an active maintenance window.
+    pub fn with_storage_maintenance<T>(
+        &mut self,
+        now_ms: u64,
+        operation: impl FnOnce() -> T,
+    ) -> Result<T, Code> {
+        let result = self
+            .runtime
+            .tick(now_ms)
+            .and_then(|()| self.permit.ok_or(Code::Mode))
+            .and_then(|permit| self.runtime.with_maintenance(permit, operation));
+        if result.is_err() {
+            self.worker.observe(None);
+        }
+        result
+    }
+
     /// Execute synchronous storage work only inside the current maintenance window.
     /// Invalid operation modes do not stop or take over playback.
     pub fn process(

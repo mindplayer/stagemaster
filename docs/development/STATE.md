@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DEVICE-002B 实板绑定增量：基线 `400d071`，结果为本次 `feat(device): persist authenticated BLE bindings on shared flash` 提交。按 [ADR-044](decisions/PRODUCT-ADR-044-board-binding-storage.md) 接单一 Flash 所有者、独立 132 KiB 绑定区、维护门和真实安全栈；绑定先持久回读，再重连证明。368 Rust／28 auth（部分重叠）、严格检查、两种 Xtensa 完整构建及四启动／85 次保活、两次约 6 秒超时实测通过；首次配对失败保留，见[验收](tasks/DEVICE-002B-board-binding-acceptance.md)。板卡保留 766,384 B 普通绑定镜像，第 2 代／1 主体恢复正常，无自动初始化／配对窗口；A 第 9 代、B 第 8 代未改写。原应用 PID 44624 已重连／56 次保活，圆弧工程保持保存。新增产品文件最多 202 行。实体绑定／撤销管理、正式业务会话与 GATT 下发仍待接通；设备声明仍仅诊断，RS485 禁用，DEVICE-002 goal 保持完整范围。
+
 HW-003 用户新增连接灯：基线 `308e015`，结果为本次 `feat(hardware): show diagnostic connection on the RS485 green indicator` 提交。核对官方 LED2 电路后，由板级独占 GPIO17，在 GPIO21 始终低的只读构建中实现握手成功常亮／断开和超时熄灭；[验收](tasks/HW-003-link-indicator.md) 含三种目标构建／严格检查、实板四条连接亮灭、16 次保活及三次重连。当前板卡为 591,728 B 安全诊断镜像，正式应用 PID 44624 已重新发现并连接／18 次保活；圆弧工程已保存且未改动。用户已确认实物“已经绿灯常亮”；真正 DMX 期间该灯跟随 TX 串行数据，无法独立指定闪烁节拍。刷机清除旧 RAM 绑定，配对机制此前已验证、本轮未重做。DEVICE-002 主目标继续，未开放业务安装／物理输出。
 
 DEVICE-002B 连接权限核心：基线 `0a713dd`，结果为本次 `feat(auth): gate live authority on bounded pairing and durable bonds` 提交。按 [ADR-043](decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 实现固定物理准入窗口／次数、连接代次、持久密钥恢复、保活／取消／撤销与提交后重连。28 项 auth 定向、367 项全工作区最终复核、严格检查和 Xtensa 库级编译通过；[验收](tasks/DEVICE-002B-authority-acceptance.md) 保留首次原存储测试偶发租约失败，独立和原命令复跑通过但根因待定位。尚未接板级存储／栈事件，没有刷机，不把核心通过当无线安装完成。用户新增状态灯需求已核对官方原理图，下一小增量让诊断连接时 RS485 绿灯常亮；真正 DMX 期间其亮灭由 UART 数据决定。

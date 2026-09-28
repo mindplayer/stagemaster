@@ -1,11 +1,16 @@
 #![no_std]
 #![no_main]
 
+#[cfg(all(feature = "binding-readiness", feature = "worker-write-test"))]
+compile_error!("binding readiness and local package write probe must be separate images");
+
 extern crate alloc;
 
 use esp_backtrace as _;
 use esp_hal::{clock::CpuClock, timer::timg::TimerGroup};
 
+#[cfg(feature = "binding-readiness")]
+mod bindings;
 mod ble;
 mod board;
 mod diagnostics;
@@ -21,7 +26,9 @@ mod package_storage;
 #[cfg(all(feature = "runtime-readiness", not(feature = "worker-readiness")))]
 mod runtime_readiness;
 mod self_test;
-#[cfg(feature = "worker-readiness")]
+#[cfg(feature = "binding-readiness")]
+mod shared_flash;
+#[cfg(all(feature = "worker-readiness", not(feature = "binding-readiness")))]
 mod worker_probe;
 
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -68,6 +75,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
             identity.boot(),
             &output_disabled,
         );
+        #[cfg(not(feature = "binding-readiness"))]
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
     }
     embassy_futures::join::join(

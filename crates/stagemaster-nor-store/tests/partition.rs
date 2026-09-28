@@ -53,8 +53,10 @@ fn actual_profile_has_two_app_slots_and_a_separate_bounded_nor_partition() {
     assert_eq!(list.iter().filter(|e| e.kind == 0).count(), 2);
     assert_eq!(
         list.last().unwrap().offset + list.last().unwrap().length,
-        0x00a1_2000
+        0x00a3_3000
     );
+    assert_eq!(list[index].offset + list[index].length, 0x00a1_2000);
+    assert_eq!(list.last().unwrap().length, 0x21000);
 }
 #[test]
 fn foreign_overlapping_truncated_or_flagged_tables_are_never_writable() {
@@ -82,7 +84,7 @@ fn foreign_overlapping_truncated_or_flagged_tables_are_never_writable() {
         (6, 1),
     ] {
         let mut list = original.clone();
-        let target = list.last_mut().unwrap();
+        let target = list.iter_mut().find(|entry| entry.package_label).unwrap();
         match field {
             0 | 2 => target.offset = value,
             1 => target.length = value,
@@ -103,7 +105,7 @@ fn foreign_overlapping_truncated_or_flagged_tables_are_never_writable() {
     list[0].length += 4096;
     assert_eq!(check(&list), Err(Error::Overlap));
     let mut list = original;
-    let mut duplicate = *list.last().unwrap();
+    let mut duplicate = *list.iter().find(|entry| entry.package_label).unwrap();
     duplicate.offset = 0x00b0_0000;
     duplicate.length = 4096;
     list.push(duplicate);

@@ -22,7 +22,16 @@ case "$action" in
       cargo +esp clippy --release --features worker-write-test --locked --offline -- -D warnings
     fi
     ;;
-  storage-build|storage-check|runtime-build|runtime-check|security-build|security-check|worker-build|worker-check)
+  binding-test-build|binding-test-check)
+    export CARGO_TARGET_DIR="$project_root/target/esp32-binding-test"
+    cd "$project_root/apps/esp32-player"
+    if [[ "$action" == *-build ]]; then
+      cargo +esp build --release --features binding-local-test --locked --offline
+    else
+      cargo +esp clippy --release --features binding-local-test --locked --offline -- -D warnings
+    fi
+    ;;
+  storage-build|storage-check|runtime-build|runtime-check|security-build|security-check|worker-build|worker-check|binding-build|binding-check)
     profile="${action%%-*}"
     export CARGO_TARGET_DIR="$project_root/target/esp32-$profile-check"
     cd "$project_root/apps/esp32-player"
@@ -59,5 +68,5 @@ case "$action" in
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|binding-build|binding-check|binding-test-build|binding-test-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac

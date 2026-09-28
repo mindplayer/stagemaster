@@ -5,6 +5,56 @@ use stagemaster_runtime::{Action, Code, MaintenanceError, Mode, ProgramKey, Stat
 use stagemaster_transfer::{Command as WireCommand, Outcome, Request, Upload};
 
 #[test]
+fn credential_storage_closure_requires_current_confirmed_maintenance() {
+    let (_dir, mut worker, _metrics, _bytes) = fixture();
+    let writes = std::cell::Cell::new(0);
+    assert_eq!(
+        worker.with_storage_maintenance(0, || writes.set(1)),
+        Err(Code::Mode)
+    );
+    assert_eq!(writes.get(), 0);
+    worker
+        .confirm_quiescent(worker.quiescence_request().unwrap(), 0)
+        .unwrap();
+    open(&mut worker, 1, 0);
+    worker
+        .with_storage_maintenance(1, || writes.set(1))
+        .unwrap();
+    assert_eq!(writes.get(), 1);
+    assert_eq!(
+        worker.with_storage_maintenance(0, || writes.set(2)),
+        Err(Code::Clock)
+    );
+    assert_eq!(writes.get(), 1);
+    let status = Request {
+        link: [1; 16],
+        id: 1,
+        action: stagemaster_transfer::Action::Status,
+    }
+    .encode()
+    .unwrap();
+    assert!(matches!(
+        worker
+            .process(
+                Command::Frame {
+                    epoch: epoch(1),
+                    frame: status
+                },
+                1,
+                || Some(epoch(1))
+            )
+            .result,
+        Err(Error::NotOpen)
+    ));
+    worker.finish_maintenance(2).unwrap();
+    assert_eq!(
+        worker.with_storage_maintenance(2, || writes.set(2)),
+        Err(Code::Mode)
+    );
+    assert_eq!(writes.get(), 1);
+}
+
+#[test]
 fn only_confirmed_maintenance_can_mutate_and_finish_never_starts_playback() {
     let (_dir, mut worker, metrics, bytes) = fixture();
     assert!(matches!(

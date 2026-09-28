@@ -9,12 +9,15 @@ license = "LicenseRef-Proprietary"
 
 [features]
 security-readiness = ["trouble-host/security"]
+binding-readiness = ["security-readiness", "worker-readiness", "dep:stagemaster-device-auth"]
+binding-local-test = ["binding-readiness"]
 runtime-readiness = ["storage-readiness", "dep:stagemaster-runtime", "dep:stagemaster-package"]
 storage-readiness = ["dep:esp-storage", "dep:stagemaster-install", "dep:stagemaster-nor-store", "dep:stagemaster-transfer", "esp-bootloader-esp-idf/embedded-storage"]
 worker-readiness = ["storage-readiness", "dep:stagemaster-install-worker", "dep:stagemaster-runtime", "dep:embassy-sync", "dep:embedded-storage", "esp-alloc/internal-heap-stats"]
 worker-write-test = ["worker-readiness", "dep:stagemaster-package", "dep:sha2"]
 
 [dependencies]
+stagemaster-device-auth = { path = "../../crates/stagemaster-device-auth", features = ["persistence"], optional = true }
 sha2 = { version = "=0.10.9", default-features = false, optional = true }
 stagemaster-install-worker = { path = "../../crates/stagemaster-install-worker", optional = true }
 embassy-sync = { version = "=0.8.0", optional = true }

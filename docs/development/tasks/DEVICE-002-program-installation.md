@@ -88,3 +88,8 @@ D 主机通信增量已实施，基线 `fd92ca1`：同一连接任务协调保�
 ## B 连接权限核心增量
 
 基线 `0a713dd`，按 [ADR-043](../decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 完成独立 Authority，严格区分配对提案、持久结果与实时密钥证明；固定准入次数／期限、过期／降级／取消撤回和新旧连接隔离已验证。367 全量最终复核、28 auth 定向、严格检查及 Xtensa 库级编译通过；[验收](DEVICE-002B-authority-acceptance.md) 保留首次原文件存储测试偶发租约失败，尚不能认定根因消除。物理入口、真实凭据存储／栈和无线安装仍待集成；本轮未刷机。
+
+
+## B 实板绑定存储与恢复
+
+基线 `400d071`，依 [ADR-044](../decisions/PRODUCT-ADR-044-board-binding-storage.md) 将 VaultStore／Authority 接到同一板端 Flash 执行器与真实安全栈，已验证 macOS 配对提案→持久回读→断线重连认证，以及跨启动恢复。368 全量、28 auth 定向、严格检查、实板四次启动／85 次保活与两次超时通过，首次失败保留；详见[板级验收](DEVICE-002B-board-binding-acceptance.md)。当前为普通恢复镜像、仅诊断能力，原生应用已重新连接；实体绑定与撤销入口、正式业务会话、GATT 安装仍待完成，父任务不结项。

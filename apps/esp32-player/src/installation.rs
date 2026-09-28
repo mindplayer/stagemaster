@@ -1,8 +1,10 @@
 //! Board-local owner of the install service. No GATT write path is connected here.
 mod runtime;
 use core::sync::atomic::{AtomicU8, AtomicU32, AtomicUsize, Ordering};
+#[cfg(not(feature = "binding-readiness"))]
 use embassy_futures::select::{Either, select};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Channel};
+#[cfg(not(feature = "binding-readiness"))]
 use embassy_time::Timer;
 use esp_hal::{peripherals, system::Stack};
 use esp_rtos::embassy::Executor;
@@ -82,11 +84,31 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
         return false;
     }
     // Driver and all Rc-backed handles are created and remain on this core.
-    let mut flash = esp_storage::FlashStorage::new(peripheral).multicore_auto_park();
+    let flash = esp_storage::FlashStorage::new(peripheral).multicore_auto_park();
+    #[cfg(feature = "binding-readiness")]
+    let shared = crate::shared_flash::SharedFlash::new(flash);
+    #[cfg(feature = "binding-readiness")]
+    let (nor, mut bindings) = {
+        let Some(nor) = shared.partition(crate::package_layout::PARTITION_LABEL) else {
+            return false;
+        };
+        let Some(bindings) = shared
+            .partition("stmbonds")
+            .and_then(crate::bindings::Store::new)
+        else {
+            return false;
+        };
+        (nor, bindings)
+    };
+    #[cfg(not(feature = "binding-readiness"))]
+    let mut flash = flash;
+    #[cfg(not(feature = "binding-readiness"))]
     let Some(entry) = crate::package_storage::partition(&mut flash) else {
         return false;
     };
+    #[cfg(not(feature = "binding-readiness"))]
     let mut region = entry.as_flash_region(&mut flash);
+    #[cfg(not(feature = "binding-readiness"))]
     let nor = region.as_nor_flash().unwrap();
     let nor = crate::measured_nor::MeasuredNor::new(nor);
     let device = match NorDevice::new(nor, Layout::new(crate::package_layout::SLOT_BYTES).unwrap())
@@ -138,6 +160,11 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
     let mut replayed = None;
     loop {
         worker.observe(live_epoch());
+        #[cfg(feature = "binding-readiness")]
+        let Some(command) = bindings.next(&mut worker).await else {
+            continue;
+        };
+        #[cfg(not(feature = "binding-readiness"))]
         let command = match select(REQUESTS.receive(), Timer::after_millis(100)).await {
             Either::First(command) => command,
             Either::Second(()) => continue,

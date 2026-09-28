@@ -22,6 +22,8 @@ let state = device.finish_maintenance(now_ms)?;
 
 工作连接撤销仍有前后双检查。已经开始的 Flash 操作可能完成，但撤销后的结果不能进入另一连接。维护不能改变这一现实或把失联误判为回滚。
 
+`with_storage_maintenance(now_ms, closure)` 为同一存储所有者的绑定档案等关联存储提供相同维护许可：先检查单调时间，再检查当前静默许可，最后同步执行可信闭包。闭包不是无线数据或对端指定代码，不接受外部伪造的许可；未确认静默、已退出维护或时钟倒退时不调用闭包，并撤销旧安装工作连接。绑定初始化和提交使用它，启动只读恢复不写存储。参见 [ADR-044](../development/decisions/PRODUCT-ADR-044-board-binding-storage.md)。
+
 ## 结束维护与恢复
 
 - Worker 的受限服务提供只读 `progress()`，不产生存储 I/O。没有事务，或事务已经 Committed／Cancelled，才允许结束维护。

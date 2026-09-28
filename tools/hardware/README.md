@@ -142,3 +142,27 @@ PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/worker_probe.p
 ## 运行维护集成（DEVICE-002C）
 
 当前 worker-readiness／worker-write-test 均使用 ManagedWorker，通过 Runtime 的有效维护窗口执行每个存储命令。只读构建仍不写包；本地写测试增加真实目录绑定、运行态拒写和重新进入维护的断言。使用 `worker_probe.py --expect-maintenance-cycle` 验证这条额外路径；该选项应与明确构建／刷入的 worker-write-test 及原有包逐帧参考一起使用，不能在只读固件上假定会发生。机制与本轮数据见[维护验收](../../docs/development/tasks/DEVICE-002C-maintenance-acceptance.md)。GATT 正式安装仍须完成认证，GPIO21 始终禁用。
+
+## 持久绑定适配（DEVICE-002B）
+
+`binding-readiness` 将绑定和节目分区交给同一个第二核 Flash 驱动，在广播前只读恢复稳定身份及密钥。普通版本不自动初始化、不自动开启新配对；`binding-local-test` 是单独刷入的受控验收镜像，允许全空白初始化和本次启动的一次 90 秒／最多 3 次尝试窗口。两者均保持节目只读、RS485 禁用、诊断能力声明，不提供正式安装接口；不能与 `worker-write-test` 混编。分区增量、生命周期和实测边界见 [ADR-044](../../docs/development/decisions/PRODUCT-ADR-044-board-binding-storage.md)。
+
+```sh
+bash tools/hardware/firmware.sh binding-build
+bash tools/hardware/firmware.sh binding-check
+bash tools/hardware/firmware.sh binding-test-build
+bash tools/hardware/firmware.sh binding-test-check
+```
+
+对应产物位于 `target/esp32-binding-check/` 与 `target/esp32-binding-test/`；构建不刷机。已有硬件授权时，按上述显式串口／分区表／ota_0 参数刷入指定产物。新绑定必须在 macOS 原生窗口输入开发板当次随机码；首次配对连接会主动结束，只有保存回读通过后的重连才能读到试验认证标识。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/serial_observe.py \
+  --port /dev/cu.usbmodem2101 --log logs/device-binding-serial.log --seconds 180
+# 另一个终端，首次受控配对；串口与 BLE 各自只有一个客户端。
+PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/binding_probe.py --pair
+# 恢复普通镜像／重启之后；不会请求初始化或新配对窗口。
+PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/binding_probe.py --seconds 100 --expiry
+```
+
+USB 观察器不开复位控制线，日志中的临时配对码脱敏；实时终端仍显示一次性码供本机配对，勿将其原始标准输出另存为日志。工具的最长运行时间有界。`--expiry` 验证已认证连接的重复保活不能延长租约，不能只把首次连接正常算作持久绑定验收。测试结束恢复普通镜像及用户原有应用连接。
