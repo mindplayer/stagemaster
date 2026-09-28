@@ -74,7 +74,7 @@ impl Link {
             (Some(a), Some(c)) => match a.resumed(c, &evidence, now()) {
                 Ok(grant) => {
                     self.granted = true;
-                    // Installation is still disabled; no worker epoch is published yet.
+                    // The GATT adapter must separately prepare the worker before publishing its epoch.
                     esp_println::println!("持久绑定已认证 epoch={}", grant.connection().epoch());
                     true
                 }
@@ -96,6 +96,16 @@ impl Link {
         match (&mut self.authority, self.connection) {
             (Some(a), Some(c)) if self.granted => a.grant(c, keys::security(level), now()).is_ok(),
             _ => false,
+        }
+    }
+    #[cfg(feature = "installation-gatt")]
+    pub fn grant(
+        &mut self,
+        level: Result<SecurityLevel, trouble_host::Error>,
+    ) -> Option<stagemaster_device_auth::authority::Grant> {
+        match (&mut self.authority, self.connection) {
+            (Some(a), Some(c)) if self.granted => a.grant(c, keys::security(level), now()).ok(),
+            _ => None,
         }
     }
     pub fn heartbeat(&mut self, level: Result<SecurityLevel, trouble_host::Error>) -> bool {
@@ -148,6 +158,15 @@ impl Link {
             }
         }
         if let Some(vault) = self.authority.as_ref().and_then(Authority::vault) {
+            // Explicit current-Mac cache-repair image only. Keep the durable vault
+            // intact until replacement pairing commits; do not reload its old LTK
+            // into the stack after macOS has forgotten that bond. Generation 2
+            // and exactly one owner make this one-shot on the authorized test board.
+            #[cfg(feature = "binding-repair-test")]
+            if vault.generation() == 2 && vault.bindings().count() == 1 {
+                esp_println::println!("当前 Mac 绑定修复：保留持久档案，等待一次新配对提交");
+                return true;
+            }
             for binding in vault.bindings() {
                 if stack.add_bond_information(keys::bond(binding)).is_err() {
                     return false;

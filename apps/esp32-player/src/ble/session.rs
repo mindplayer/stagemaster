@@ -9,11 +9,15 @@ use trouble_host::prelude::*;
 pub(super) async fn serve<P: PacketPool>(
     server: &Server<'_>,
     conn: &GattConnection<'_, '_, P>,
-    session_id: u64,
+    description: &[u8; 96],
     snapshot: fn() -> [u8; 20],
     connected: &mut impl FnMut(bool),
     #[cfg(feature = "binding-readiness")] binding: &mut crate::bindings::link::Link,
 ) {
+    let description = stagemaster_device_info::Description::decode(description).unwrap();
+    let session_id = description.session;
+    #[cfg(feature = "installation-gatt")]
+    let mut installation = super::installation::Channel::new(description);
     let mut session = Session::new(session_id, Instant::now().as_millis()).unwrap();
     // Experimental pairing must precede HELLO: CoreBluetooth can serialize ATT
     // behind its native passkey sheet. Established diagnostic leases stay 6 s.
@@ -37,7 +41,15 @@ pub(super) async fn serve<P: PacketPool>(
             conn.raw().disconnect();
             break;
         }
-        let event = match select(conn.next(), Timer::after_millis(100)).await {
+        #[cfg(feature = "installation-gatt")]
+        if !installation.tick(&server.installation, conn, binding).await {
+            conn.raw().disconnect();
+            break;
+        }
+        let delay = 100;
+        #[cfg(feature = "installation-gatt")]
+        let delay = if installation.sending() { 1 } else { delay };
+        let event = match select(conn.next(), Timer::after_millis(delay)).await {
             Either::First(event) => event,
             Either::Second(()) => continue,
         };
@@ -110,6 +122,32 @@ pub(super) async fn serve<P: PacketPool>(
             GattConnectionEvent::Gatt { event } => {
                 let mut response = None;
                 let reply = match event {
+                    #[cfg(feature = "installation-gatt")]
+                    GattEvent::Read(event)
+                        if event.handle() == server.installation.receipt.handle =>
+                    {
+                        if installation.authorize(conn, binding) {
+                            event.accept()
+                        } else {
+                            conn.raw().disconnect();
+                            event.reject(AttErrorCode::INSUFFICIENT_AUTHORISATION)
+                        }
+                    }
+                    #[cfg(feature = "installation-gatt")]
+                    GattEvent::Write(event)
+                        if event.handle() == server.installation.request.handle =>
+                    {
+                        let valid = event.with_data(|offset, bytes| {
+                            offset == 0
+                                && installation.receive(bytes, &server.installation, conn, binding)
+                        });
+                        if valid {
+                            event.accept_unprocessed()
+                        } else {
+                            conn.raw().disconnect();
+                            event.reject(AttErrorCode::INSUFFICIENT_AUTHORISATION)
+                        }
+                    }
                     #[cfg(feature = "binding-readiness")]
                     GattEvent::Read(event)
                         if event.handle() == server.security_probe.proof.handle =>
@@ -199,4 +237,6 @@ pub(super) async fn serve<P: PacketPool>(
             _ => {}
         }
     }
+    #[cfg(feature = "installation-gatt")]
+    installation.close();
 }

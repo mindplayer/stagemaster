@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod client;
+pub mod management;
 
 pub const PACKET_BYTES: usize = 20;
 pub const PROTOCOL_VERSION: u8 = 1;

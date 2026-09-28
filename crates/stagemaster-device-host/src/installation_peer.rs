@@ -1,9 +1,10 @@
 use crate::{DeviceDescription, Problem, ProblemCode as C, description::hex};
 use stagemaster_transfer::{Frame, MAX_FRAME_BYTES, Request, VERSION};
 
-/// Verified facts from a trusted platform adapter, never a deserialized peer claim.
-/// Creating this value asserts authentication on this physical connection; the
-/// adapter must have subscribed its bounded receiver before publishing it.
+/// Installation session admitted by the native adapter, not an IPC permission claim.
+/// The bonded GATT adapter correlates the device-authorized receipt and subscribes
+/// a bounded receiver. The device independently checks its actual security and
+/// authority on every dispatch; this value is not remote firmware attestation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InstallationPeer {
     pub device: [u8; 16],

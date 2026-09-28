@@ -1,4 +1,4 @@
-//! Board-local owner of the install service. No GATT write path is connected here.
+//! Board-local owner of the install service; only the live authenticated epoch may dispatch.
 mod runtime;
 use core::sync::atomic::{AtomicU8, AtomicU32, AtomicUsize, Ordering};
 #[cfg(not(feature = "binding-readiness"))]
@@ -119,11 +119,10 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
             return false;
         }
     };
-    #[cfg(feature = "worker-write-test")]
-    // Compile-time LOCAL TEST ONLY. Main holds GPIO21 low for the entire boot;
-    // no loaded device runtime or output adapter can run in this test firmware.
+    #[cfg(any(feature = "worker-write-test", feature = "installation-gatt"))]
+    // All writes run through ManagedWorker maintenance and the independent live epoch.
     let store = device.open_for_installation().unwrap();
-    #[cfg(not(feature = "worker-write-test"))]
+    #[cfg(not(any(feature = "worker-write-test", feature = "installation-gatt")))]
     let store = device.open_read_only().unwrap();
     let (installer, recovery) = match Installer::open(store, boot) {
         Ok(opened) => opened,

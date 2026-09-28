@@ -1,4 +1,6 @@
 //! GATT adapter for the diagnostic protocol. It owns no playback commands.
+#[cfg(feature = "installation-gatt")]
+mod installation;
 mod session;
 use embassy_futures::join::join;
 #[cfg(feature = "binding-readiness")]
@@ -12,11 +14,30 @@ struct Server {
     link: LinkService,
 }
 
-#[cfg(feature = "security-readiness")]
+#[cfg(all(feature = "security-readiness", not(feature = "installation-gatt")))]
 #[gatt_server]
 struct Server {
     link: LinkService,
     security_probe: SecurityProbe,
+}
+
+#[cfg(feature = "installation-gatt")]
+#[gatt_server]
+struct Server {
+    link: LinkService,
+    security_probe: SecurityProbe,
+    installation: InstallationService,
+}
+
+#[cfg(feature = "installation-gatt")]
+#[gatt_service(uuid = "f889ed80-0100-4e83-968e-799ab99558fa")]
+struct InstallationService {
+    #[characteristic(uuid = "f889ed81-0100-4e83-968e-799ab99558fa", read, value = [0; 80], permissions(read = authenticated))]
+    receipt: [u8; 80],
+    #[characteristic(uuid = "f889ed82-0100-4e83-968e-799ab99558fa", write, value = [0; 244], permissions(write = authenticated))]
+    request: [u8; 244],
+    #[characteristic(uuid = "f889ed83-0100-4e83-968e-799ab99558fa", notify, value = [0; 244], permissions(cccd = authenticated))]
+    response: [u8; 244],
 }
 
 /// Experimental read-only proof. No install command or production wire contract.
@@ -116,7 +137,24 @@ pub async fn run<C: Controller>(
                     )
                     .await
                     .unwrap();
+                #[cfg(not(feature = "installation-gatt"))]
                 let raw = advertiser.accept().await.unwrap();
+                #[cfg(feature = "installation-gatt")]
+                let raw = {
+                    use embassy_futures::select::{Either, select};
+                    // An old worker may finish after disconnection. Always drain it,
+                    // including while no peer is connected, so it cannot block recovery.
+                    match select(advertiser.accept(), async {
+                        loop {
+                            crate::installation::COMPLETIONS.receive().await;
+                        }
+                    })
+                    .await
+                    {
+                        Either::First(result) => result.unwrap(),
+                        Either::Second(()) => unreachable!(),
+                    }
+                };
                 #[cfg(feature = "security-readiness")]
                 raw.set_bondable(true).unwrap();
                 #[cfg(feature = "binding-readiness")]
@@ -127,8 +165,15 @@ pub async fn run<C: Controller>(
                 let session_id = u64::from_le_bytes(nonce).max(1);
                 conn.set(&server.link.response, &[0; 20]).unwrap();
                 // Fixed for this connection, including every offset of ATT long reads.
-                conn.set(&server.link.description, &identity.describe(session_id))
-                    .unwrap();
+                #[cfg(not(feature = "installation-gatt"))]
+                let enabled = false;
+                #[cfg(feature = "installation-gatt")]
+                let enabled = binding.local().is_some()
+                    && crate::installation::READY.load(core::sync::atomic::Ordering::Acquire) == 1;
+                let description = identity.describe(session_id, enabled);
+                conn.set(&server.link.description, &description).unwrap();
+                #[cfg(feature = "installation-gatt")]
+                conn.set(&server.installation.receipt, &[0; 80]).unwrap();
                 #[cfg(feature = "security-readiness")]
                 {
                     #[cfg(not(feature = "binding-readiness"))]
@@ -147,7 +192,7 @@ pub async fn run<C: Controller>(
                 session::serve(
                     &server,
                     &conn,
-                    session_id,
+                    &description,
                     snapshot,
                     &mut connected,
                     #[cfg(feature = "binding-readiness")]

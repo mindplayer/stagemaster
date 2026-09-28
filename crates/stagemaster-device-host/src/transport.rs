@@ -15,7 +15,7 @@ pub trait Transport: Send + 'static {
     /// None means the characteristic is absent on a legacy diagnostic device.
     /// Present-but-invalid data and transport failures MUST NOT return None.
     fn description(&mut self) -> impl Future<Output = Result<Option<Vec<u8>>, Problem>> + Send;
-    /// Only a trusted authentication adapter may return verified installation facts.
+    /// Only the native authentication adapter may return an admitted installation session.
     /// Public metadata/diagnostic success MUST NOT create a grant. Reset on disconnect.
     fn installation_peer(&self) -> Option<InstallationPeer> {
         None

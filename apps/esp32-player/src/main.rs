@@ -38,7 +38,10 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
     esp_alloc::heap_allocator!(size: 128 * 1024);
-    esp_println::println!("StageMaster DEVICE-002A: RS485 disabled, diagnostic only");
+    #[cfg(feature = "installation-gatt")]
+    esp_println::println!("StageMaster DEVICE-002: authenticated installation, RS485 disabled");
+    #[cfg(not(feature = "installation-gatt"))]
+    esp_println::println!("StageMaster DEVICE-002: diagnostics, RS485 disabled");
     #[cfg(all(feature = "storage-readiness", not(feature = "worker-readiness")))]
     package_storage::inspect(peripherals.FLASH);
     self_test::verify();

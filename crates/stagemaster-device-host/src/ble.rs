@@ -1,3 +1,6 @@
+mod discovery;
+mod installation;
+mod notifications;
 use crate::{Candidate, MAX_CANDIDATES, Problem, ProblemCode as C, Transport};
 use btleplug::{
     api::{
@@ -29,6 +32,7 @@ pub struct Ble {
     characteristics: Option<[Characteristic; 3]>,
     description: Option<Characteristic>,
     scanning: bool,
+    installation: Option<installation::Channel>,
 }
 #[allow(clippy::needless_pass_by_value)] // Used directly as a Result::map_err adapter.
 fn error(value: btleplug::Error) -> Problem {
@@ -42,104 +46,13 @@ fn error(value: btleplug::Error) -> Problem {
 }
 impl Transport for Ble {
     async fn start_scan(&mut self) -> Result<(), Problem> {
-        if self.adapter.is_none() {
-            let initialization = self.initializing.get_or_insert_with(|| {
-                Box::pin(async {
-                    let manager = Manager::new().await.map_err(error)?;
-                    manager
-                        .adapters()
-                        .await
-                        .map_err(error)?
-                        .into_iter()
-                        .next()
-                        .ok_or_else(|| Problem::new(C::Adapter))
-                })
-            });
-            let result = initialization.await;
-            self.initializing = None;
-            self.adapter = Some(result?);
-        }
-        let adapter = self
-            .adapter
-            .as_ref()
-            .ok_or_else(|| Problem::new(C::Adapter))?;
-        match adapter.adapter_state().await.map_err(error)? {
-            CentralState::PoweredOn => (),
-            CentralState::PoweredOff => return Err(Problem::new(C::PoweredOff)),
-            CentralState::Unknown => return Err(Problem::new(C::Adapter)),
-        }
-        self.found.clear();
-        self.events = Some(adapter.events().await.map_err(error)?);
-        self.scanning = true; // cleanup also runs after a cancelled start_scan future
-        adapter
-            .start_scan(ScanFilter {
-                services: vec![SERVICE],
-            })
-            .await
-            .map_err(error)
+        self.scan().await
     }
     async fn discover(&mut self) -> Result<Candidate, Problem> {
-        loop {
-            let event = self
-                .events
-                .as_mut()
-                .ok_or_else(|| Problem::new(C::Adapter))?
-                .next()
-                .await
-                .ok_or_else(|| Problem::new(C::Adapter))?;
-            let id = match event {
-                CentralEvent::DeviceDiscovered(id)
-                | CentralEvent::DeviceUpdated(id)
-                | CentralEvent::ServicesAdvertisement { id, .. }
-                | CentralEvent::RssiUpdate { id, .. } => id,
-                CentralEvent::StateUpdate(CentralState::PoweredOff) => {
-                    return Err(Problem::new(C::PoweredOff));
-                }
-                _ => continue,
-            };
-            let peripheral = self
-                .adapter
-                .as_ref()
-                .ok_or_else(|| Problem::new(C::Adapter))?
-                .peripheral(&id)
-                .await
-                .map_err(error)?;
-            let Some(properties) = peripheral.properties().await.map_err(error)? else {
-                continue;
-            };
-            if !properties.services.contains(&SERVICE) {
-                continue;
-            }
-            let id = id.to_string();
-            if self.found.len() < MAX_CANDIDATES || self.found.contains_key(&id) {
-                self.found.insert(id.clone(), peripheral);
-            }
-            // Still report the extra candidate so the service can report truncation.
-            return Ok(Candidate {
-                id,
-                name: properties
-                    .local_name
-                    .unwrap_or_else(|| "未命名设备".into())
-                    .chars()
-                    .filter(|c| !c.is_control())
-                    .take(80)
-                    .collect(),
-                rssi: properties.rssi,
-            });
-        }
+        self.next_candidate().await
     }
     async fn stop_scan(&mut self) -> Result<(), Problem> {
-        if self.scanning {
-            self.adapter
-                .as_ref()
-                .ok_or_else(|| Problem::new(C::Adapter))?
-                .stop_scan()
-                .await
-                .map_err(error)?;
-            self.scanning = false;
-        }
-        self.events = None;
-        Ok(())
+        self.stop().await
     }
     async fn connect(&mut self, id: &str) -> Result<(), Problem> {
         let discovered = self
@@ -197,7 +110,30 @@ impl Transport for Ble {
             find(TX, CharPropFlags::READ)?,
             find(INFO, CharPropFlags::READ)?,
         ]);
+        if let Some(characteristic) = &self.description {
+            let bytes = peripheral.read(characteristic).await.map_err(error)?;
+            self.installation = installation::Channel::prepare(&peripheral, &bytes).await?;
+        }
         Ok(())
+    }
+    fn installation_peer(&self) -> Option<crate::InstallationPeer> {
+        self.installation
+            .as_ref()
+            .and_then(installation::Channel::peer)
+    }
+    async fn write_installation(&mut self, bytes: &[u8]) -> Result<(), Problem> {
+        let peripheral = self.pending.as_ref().ok_or_else(|| Problem::new(C::Lost))?;
+        self.installation
+            .as_mut()
+            .ok_or_else(|| Problem::new(C::Installation))?
+            .write(peripheral, bytes)
+            .await
+    }
+    fn try_installation_notification(&mut self) -> Result<Option<Vec<u8>>, Problem> {
+        match &mut self.installation {
+            Some(channel) => channel.receive(),
+            None => Ok(None),
+        }
     }
     async fn write(&mut self, bytes: &[u8; 20]) -> Result<(), Problem> {
         let (peripheral, characteristics) = self.active()?;
@@ -215,6 +151,7 @@ impl Transport for Ble {
         peripheral.read(&characteristics[2]).await.map_err(error)
     }
     async fn disconnect(&mut self) -> Result<(), Problem> {
+        self.installation = None;
         self.characteristics = None;
         self.description = None;
         if let Some(peripheral) = &self.pending {
@@ -229,14 +166,18 @@ impl Transport for Ble {
     }
     async fn description(&mut self) -> Result<Option<Vec<u8>>, Problem> {
         let (peripheral, _) = self.active()?;
-        match &self.description {
-            Some(characteristic) => peripheral
-                .read(characteristic)
-                .await
-                .map(Some)
-                .map_err(error),
-            None => Ok(None),
+        let bytes = match &self.description {
+            Some(characteristic) => Some(peripheral.read(characteristic).await.map_err(error)?),
+            None => None,
+        };
+        if let Some(channel) = &self.installation {
+            channel.correlate(
+                bytes
+                    .as_deref()
+                    .ok_or_else(|| Problem::new(C::Description))?,
+            )?;
         }
+        Ok(bytes)
     }
 }
 impl Ble {

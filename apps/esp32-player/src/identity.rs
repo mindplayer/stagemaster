@@ -25,8 +25,8 @@ impl Identity {
         Self { device, boot }
     }
 
-    pub fn describe(&self, session: u64) -> [u8; 96] {
-        Description {
+    pub fn describe(&self, session: u64, _installation: bool) -> [u8; 96] {
+        let description = Description {
             device: self.device,
             boot: self.boot,
             session,
@@ -40,8 +40,29 @@ impl Identity {
             capabilities: capability::DIAGNOSTICS,
             authentication: 0,
             limits: Limits::default(),
-        }
-        .encode()
-        .unwrap()
+        };
+        #[cfg(feature = "installation-gatt")]
+        let description = if _installation {
+            Description {
+                capabilities: capability::DIAGNOSTICS
+                    | capability::CATALOG
+                    | capability::INSTALLATION,
+                authentication: stagemaster_device_link::management::AUTHENTICATED_LESC,
+                limits: Limits {
+                    package_version: 1,
+                    transfer_version: 1,
+                    package_bytes: stagemaster_package::MAX_PACKAGE_BYTES as u32,
+                    programs: stagemaster_package::MAX_PROGRAMS as u16,
+                    message_bytes: stagemaster_device_link::management::MESSAGE_BYTES,
+                    chunk_bytes: stagemaster_install::MAX_CHUNK_BYTES as u16,
+                    slot_bytes: crate::package_layout::SLOT_BYTES as u32,
+                    ..Limits::default()
+                },
+                ..description
+            }
+        } else {
+            description
+        };
+        description.encode().unwrap()
     }
 }
