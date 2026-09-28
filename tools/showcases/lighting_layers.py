@@ -18,10 +18,10 @@ def apply_layered_looks(project):
         indexed[fixture['id']] = (role, counts[role])
     # Primary movement / secondary accent / quiet scenic fill. Off means real zero.
     looks = {
-        '环绕波浪': dict(primary=[1,3,5,8,10,12], accent=[20,23], wash=[3,6,9,12], par=[1,3,5,8,10,12], front=[], main=(.02,.65,1), secondary=(.55,.01,1), fill=(.015,.025,.6), floor=.025, fade=1000),
-        '对称扇形': dict(primary=list(range(1,13)), accent=[], wash=[2,7], par=[2,4,6,7,9,11], front=[3,6], main=(.2,.65,1), secondary=(.15,.35,1), fill=(.02,.025,.5), floor=.03, fade=2600),
-        '交叉扫动': dict(primary=list(range(13,19)), accent=[2,11], wash=[9,12], par=[1,4,9,12], front=[], main=(1,.015,.18), secondary=(1,.30,.015), fill=(.18,.005,.35), floor=.025, fade=2200),
-        '中心汇聚': dict(primary=[2,5,8,11], accent=[19,21,22,24], wash=[4,5], par=[3,6,7,10], front=[4,5], main=(1,.32,.035), secondary=(.025,.2,1), fill=(.01,.035,.45), floor=.035, fade=2500),
+        '环绕波浪': dict(primary=[2,5,8,11], accent=[20,23], wash=[], par=[2,5,8,11], front=[], main=(.015,.25,1), secondary=(.32,.005,1), fill=(.015,.025,.6), floor=.012, fade=1000),
+        '对称扇形': dict(primary=[1,3,4,6,7,9,10,12], accent=[], wash=[3,6], par=[2,5,8,11], front=[], main=(.08,.35,1), secondary=(.15,.35,1), fill=(.02,.025,.5), floor=.008, fade=2600),
+        '交叉扫动': dict(primary=[13,15,16,18], accent=[3,10], wash=[], par=[2,11], front=[], main=(1,.005,.05), secondary=(1,.12,.005), fill=(.18,.005,.35), floor=.01, fade=2200),
+        '中心汇聚': dict(primary=[2,5,8,11], accent=[20,23], wash=[], par=[4,9], front=[4,5], main=(1,.18,.01), secondary=(.015,.08,1), fill=(.01,.035,.45), floor=.012, fade=2500),
     }
     for scene in project['lighting']['scenes']:
         family, step_text = scene['name'].split(' · ')
@@ -32,17 +32,17 @@ def apply_layered_looks(project):
         for fid, (role, number) in indexed.items():
             color, level = look['fill'], 0
             if role == 'beam' and number in look['primary']:
-                color, level = look['main'], .58
+                color, level = look['main'], .24
                 primary.append(fid)
             elif role == 'beam' and number in look['accent']:
-                color, level = look['secondary'], .28
+                color, level = look['secondary'], .055
                 accent.append(fid)
             elif role == 'wash' and number in look['wash']:
-                color, level = look['fill'], .035
+                color, level = look['fill'], .012
             elif role == 'par' and number in look['par']:
                 color, level = look['fill'], look['floor']
             elif role == 'front' and number in look['front']:
-                color, level = (1,.55,.25), .025
+                color, level = (1,.55,.25), .008
             settings[fid] = dict(zip(['dimmer','red','green','blue'], [level,*color]))
         for assignment in scene['assignments']:
             target = assignment['target']
@@ -51,8 +51,8 @@ def apply_layered_looks(project):
                 assignment['source'] = {'kind':'literal', 'value':{'kind':'normalized','value':round(settings[target['fixtureId']][attribute]*65535)}}
         scene['effects'] = []
         for ids, name, high, low, period, waveform, duty in [
-            (primary,'主光束 · 分组追逐',.72,.015,4000,'pulse',40),
-            (accent,'辅光束 · 缓慢呼吸',.32,.045,6400,'smooth',50),
+            (primary,'主光束 · 分组追逐',.30,0,4000,'pulse',35),
+            (accent,'辅光束 · 缓慢呼吸',.065,0,6400,'smooth',50),
         ]:
             if ids:
                 scene['effects'].append({'id':str(uuid.uuid4()),'name':name,'enabled':True,'fixtureIds':ids,'channels':[{'attribute':'dimmer','low':round(low*65535),'high':round(high*65535)}],'periodMs':period,'waveform':waveform,'spreadDegrees':360,'phaseDegrees':round((-elapsed % period)/period*360)%360,'reverse':False,'dutyPercent':duty})
