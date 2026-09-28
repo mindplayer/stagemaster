@@ -74,6 +74,8 @@ bash tools/hardware/firmware.sh security-check
 
 受控刷入候选镜像后，`admission_probe.py` 不配对，只验首握手前固定期限和握手后正常过期。`secure_link_probe.py` 才会触发系统验证码流程，须已有当前设备配对确认，并由 USB 本地读取动态验证码；不会选固定密码或跳过失败。两者均使用项目 Python 环境及 `PYTHONDONTWRITEBYTECODE=1`，避免缓存写到源码目录。绑定目前仅在设备 RAM，持久化／撤销／业务权限和正向跨端验收未完成。
 
+macOS 正向配对及同启动重连已实测，见[验收](../../docs/development/tasks/DEVICE-002B-pairing-acceptance.md)。Bleak 2.1.1 公共 CoreBluetooth 读取不转发 timeout，内部默认 20 秒；实验通过独立 `secure_read.py` 使用同一原生 delegate 的 80 秒有界读取。升级依赖须核对该私有实验适配；正式产品不依赖它。临时配对码只在 USB 本地显示，持久日志必须脱敏；不要输出绑定密钥。
+
 ## NOR 存储准备（PLAYER-003D）
 
 新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。DEVICE-002 已受控安装此分区表并改用 SDK 支持的 data／undefined 类型；旧 0x40 类型会被明确拒绝，不能直接在旧表启用节目写入。决定见 [ADR-037](../../docs/development/decisions/PRODUCT-ADR-037-installation-worker.md)。

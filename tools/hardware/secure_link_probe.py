@@ -10,6 +10,7 @@ from bleak import BleakScanner
 from bleak.exc import BleakError
 
 from gatt_probe import Probe, SERVICE, report
+from secure_read import read_authenticated
 
 PROOF = "f889ed71-0100-4e83-968e-799ab99558fa"
 
@@ -32,9 +33,9 @@ async def run():
             info = await probe.info()
             # Pair before HELLO: macOS serializes ordinary ATT while its native
             # pairing sheet waits for the user. Never pretend a heartbeat passed.
-            proof_read = asyncio.create_task(probe.client.read_gatt_char(PROOF))
+            proof_read = asyncio.create_task(read_authenticated(probe.client, PROOF))
             report("awaiting_authenticated_read", attempt=attempt + 1)
-            data = bytes(await asyncio.wait_for(proof_read, 80))
+            data = await proof_read
             session = await probe.exchange(1)
             assert data == b"SMTP\x01\0\0\0" + struct.pack("<Q", session)
             heartbeats = asyncio.create_task(keep_alive(probe, session))
