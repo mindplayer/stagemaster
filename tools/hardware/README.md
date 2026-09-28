@@ -31,7 +31,7 @@ bash tools/hardware/firmware.sh check
 bash tools/hardware/firmware.sh size
 ```
 
-刷写需要当前设备测试授权，显式指定串口；命令会写诊断固件及默认引导／分区，不备份旧固件，不支持用户节目持久安装，也不烧写 eFuse。本轮用户已授权且明确旧固件不保留。
+刷写需要当前设备测试授权，显式指定串口；命令会写诊断固件及引导，并显式采用 `partitions-storage.csv`／ota_0，避免将已配置节目存储的设备改回旧 factory 全占用分区。此命令不备份旧固件、不自动发送节目，也不烧写 eFuse。本轮用户已授权且明确旧固件不保留。
 
 ```sh
 bash tools/hardware/firmware.sh flash /dev/cu.usbmodem2101
@@ -76,7 +76,7 @@ bash tools/hardware/firmware.sh security-check
 
 ## NOR 存储准备（PLAYER-003D）
 
-新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。当前板卡尚未安装 `partitions-storage.csv`，不能直接在默认旧分区启用节目写入。
+新增 `storage-readiness` 可选特性，使用官方分区解析／NOR 区域和独立包存储，只读检查、无安装连接。构建目录 `target/esp32-storage-check/` 与默认诊断镜像隔离；没有存储刷机命令。DEVICE-002 已受控安装此分区表并改用 SDK 支持的 data／undefined 类型；旧 0x40 类型会被明确拒绝，不能直接在旧表启用节目写入。决定见 [ADR-037](../../docs/development/decisions/PRODUCT-ADR-037-installation-worker.md)。
 
 ```sh
 bash tools/hardware/firmware.sh storage-build
@@ -106,3 +106,29 @@ bash tools/hardware/firmware.sh runtime-report
 ```
 
 目录 `target/esp32-runtime-check/` 与诊断／存储检查产物分别保留。没有运行镜像刷写命令；具体[运行契约和预算](../../docs/module-api/device-runtime.md)。报告脚本仅调用 binutils 读取 ELF，不接触板卡。安装维护需实际输出静默确认；当前软件检查不证明无线、看门狗和任务栈动态峰值。
+
+## 双核安装工作任务（DEVICE-002C）
+
+`worker-readiness` 在第二核只读恢复存储；`worker-write-test` 是独立、显式的本地擦写验收镜像。两者都没有无线安装权限，固定测试主体不能当设备认证。Flash 驱动采用官方多核停放；GPIO21 全程保持低电平，没有任何现场输出。
+
+```sh
+bash tools/hardware/firmware.sh worker-build
+bash tools/hardware/firmware.sh worker-check
+STAGEMASTER_PROBE_PACKAGE="$PWD/data/PLAYER-003A/final.smpkg" bash tools/hardware/firmware.sh worker-test-build
+STAGEMASTER_PROBE_PACKAGE="$PWD/data/PLAYER-003A/final.smpkg" bash tools/hardware/firmware.sh worker-test-check
+```
+
+编译命令不刷机。已有相应测试授权时，明确刷入 `target/esp32-worker-test/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe`，同时指定 `--partition-table apps/esp32-player/partitions-storage.csv --target-app-partition ota_0`；必须在启动后立即运行下列监听，以覆盖约 45 秒后的本地测试。测试镜像会在该时刻将编译时嵌入的包写入专用备用槽，不能当成只读镜像。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/worker_probe.py \
+  --port /dev/cu.usbmodem2101 --output data/DEVICE-002/worker-check.json --expect-write
+```
+
+首次新包使用 `--expect-write`；同一镜像重启复测改用 `--expect-existing`，断言持久恢复且实际擦写计数全为零。恢复只读 `worker-readiness` 后使用 `--expect-readonly-recovery`，额外断言未运行本地写探针。脚本持续测量诊断 BLE 保活、内核推进、结束时堆回收，失败后仍观察串口 10 秒并保留原失败及数据，不自动重连伪装通过。测试采用 reset／刷写后重启，不等同物理拔电。
+
+可用 `stagemaster-install-store` 的 `install` 示例生成电脑参考帧摘要，向探针传 `--reference-replay logs/对应参考.log`，核对固件从已安装 Flash 读取的每个节目各 400 帧。所有帧仅在 RAM 编码和计算摘要，未连接 DMX 输出驱动。固件中的共享堆即时采样会受另一核无线临时分配影响，不能拿两个瞬时值的差异断言泄漏；主机仍检查结束时占用返回基线。
+
+`crates/stagemaster-project/examples/export_package.rs` 复用正式电脑编译器，输入工程、显式节目选择 JSON、新包路径；拒绝覆盖旧文件，无设备访问。可用于生成真实工程规模的验证包，不把填充随机数据当合法节目。
+
+工作器对操作耗时、物理 NOR 次数／耗时、调用前栈深度和分配器历史峰值做汇总；避免每块输出完整事务状态。SDK 串口打印本身使用临界区，过多日志会干扰无线时序。成功及失败的实测结果、当前限制见 [DEVICE-002C 验收记录](../../docs/development/tasks/DEVICE-002C-worker-acceptance.md)。

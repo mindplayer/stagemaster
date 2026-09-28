@@ -10,13 +10,19 @@ mod ble;
 mod board;
 mod diagnostics;
 mod identity;
+#[cfg(feature = "worker-readiness")]
+mod installation;
+#[cfg(feature = "worker-readiness")]
+mod measured_nor;
 #[cfg(feature = "storage-readiness")]
 mod package_layout;
 #[cfg(feature = "storage-readiness")]
 mod package_storage;
-#[cfg(feature = "runtime-readiness")]
+#[cfg(all(feature = "runtime-readiness", not(feature = "worker-readiness")))]
 mod runtime_readiness;
 mod self_test;
+#[cfg(feature = "worker-readiness")]
+mod worker_probe;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -26,7 +32,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let _output_disabled = board::OutputDisabled::new(peripherals.GPIO21);
     esp_alloc::heap_allocator!(size: 128 * 1024);
     esp_println::println!("StageMaster DEVICE-002A: RS485 disabled, diagnostic only");
-    #[cfg(feature = "storage-readiness")]
+    #[cfg(all(feature = "storage-readiness", not(feature = "worker-readiness")))]
     package_storage::inspect(peripherals.FLASH);
     self_test::verify();
     esp_println::println!("SELFTEST PASS: delay fade pause resume follow jump clock stop loop");
@@ -52,8 +58,19 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let connector =
         esp_radio::ble::controller::BleConnector::new(peripherals.BT, Default::default()).unwrap();
     let controller = trouble_host::prelude::ExternalController::<_, 20>::new(connector);
+    let identity = identity::Identity::capture();
+    #[cfg(feature = "worker-readiness")]
+    {
+        installation::start(
+            peripherals.CPU_CTRL,
+            peripherals.FROM_CPU_INTR1,
+            peripherals.FLASH,
+            identity.boot(),
+        );
+        _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
+    }
     embassy_futures::join::join(
-        ble::run(controller, diagnostics::snapshot),
+        ble::run(controller, identity, diagnostics::snapshot),
         diagnostics::run(),
     )
     .await;

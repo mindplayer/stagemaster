@@ -8,6 +8,11 @@ pub struct Identity {
     boot: [u8; 16],
 }
 impl Identity {
+    #[cfg(feature = "worker-readiness")]
+    pub const fn boot(&self) -> [u8; 16] {
+        self.boot
+    }
+
     /// Capture exactly once after main has enabled RF. The boot nonce is public
     /// correlation metadata, not a credential or proof of a secure boot chain.
     pub fn capture() -> Self {

@@ -9,7 +9,8 @@
 - [设备连接工作台](docs/module-api/device-connection.md)：DEVICE-001 已完成 macOS 原生蓝牙搜索／连接／取消、独立保活与诊断状态，跨页面保持上下文。真实设备握手、重连、主机停顿失效及应用重开已验收；不包含设备安装或播放控制。
 
 - [独立设备运行层](docs/module-api/device-runtime.md)：PLAYER-003E 接通节目选择／载入／执行、暂停／继续／停止、控制租约和维护互斥；断线继续和重复请求通过软件验收，ESP32 完整构建通过，实板运行仍待验证。
-- [NOR 播放包存储与设备预算](docs/module-api/nor-package-store.md)：PLAYER-003D 接入双槽恢复、读源保护及 ESP32 完整驱动构建／分区检查；当前为本地只读准备镜像，实板擦写和安装尚未验收。
+- [独立安装工作器](docs/module-api/installation-worker.md)：DEVICE-002C 接入双核串行存储、过期队列／回执保护；真实舞台包本地安装、重启恢复、逐帧对照和资源测量已完成一轮，正式认证蓝牙安装与桌面下发仍在推进，压力失败和范围见验收记录。
+- [NOR 播放包存储与设备预算](docs/module-api/nor-package-store.md)：PLAYER-003D 接入双槽恢复、读源保护及 ESP32 完整驱动；DEVICE-002C 已补分区兼容、受控本地实板擦写和恢复。正式无线链路与物理断电仍需独立验收。
 - [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，NOR 适配已补，正式蓝牙安装和实板验收继续推进。
 - [播放包安装事务](docs/module-api/package-installation.md)：PLAYER-003B 接入独立 Rust 状态机、双槽提交、断连续传／重复请求、异常恢复和旧读源保护；文件参考已验证，GATT 接入及实板验收继续推进。
 - [工程容量与恢复](docs/module-api/project-capacity.md)：PROJECT-002 修复紧凑工程能打开却可能无法保存的问题；完整内容保留，自动选择可读或紧凑 JSON，已验证 7,002 场景编辑、保存重开及异常恢复。

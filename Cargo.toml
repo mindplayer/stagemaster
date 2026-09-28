@@ -14,6 +14,7 @@ members = [
   "crates/stagemaster-nor-store",
   "crates/stagemaster-runtime",
   "crates/stagemaster-transfer",
+  "crates/stagemaster-install-worker",
   "crates/stagemaster-device-link",
   "crates/stagemaster-device-info",
   "crates/stagemaster-device-host",

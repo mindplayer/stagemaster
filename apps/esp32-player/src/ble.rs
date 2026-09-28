@@ -41,9 +41,11 @@ struct LinkService {
     description: [u8; 96],
 }
 
-pub async fn run<C: Controller>(controller: C, snapshot: fn() -> [u8; 20]) -> ! {
-    // main has enabled the BLE controller before entering this boot-scoped adapter.
-    let identity = crate::identity::Identity::capture();
+pub async fn run<C: Controller>(
+    controller: C,
+    identity: crate::identity::Identity,
+    snapshot: fn() -> [u8; 20],
+) -> ! {
     let mut random = [0; 6];
     esp_hal::rng::Rng::new().read(&mut random);
     random[5] |= 0xc0; // A boot-scoped static random BLE address, not device authentication.
@@ -225,21 +227,29 @@ async fn serve<P: PacketPool>(
                         .await
                         .is_err()
                 {
+                    println!("GATT ATT reply deadline exceeded");
                     conn.raw().disconnect();
                     break;
                 }
-                if let Some(bytes) = response
-                    && !matches!(
-                        with_timeout(
-                            Duration::from_millis(250),
-                            server.link.response.notify(conn, &bytes, false)
-                        )
-                        .await,
-                        Ok(Ok(()))
+                if let Some(bytes) = response {
+                    match with_timeout(
+                        Duration::from_millis(250),
+                        server.link.response.notify(conn, &bytes, false),
                     )
-                {
-                    conn.raw().disconnect();
-                    break;
+                    .await
+                    {
+                        Ok(Ok(())) => {}
+                        Ok(Err(error)) => {
+                            println!("GATT notification failed {:?}", error);
+                            conn.raw().disconnect();
+                            break;
+                        }
+                        Err(_) => {
+                            println!("GATT notification deadline exceeded");
+                            conn.raw().disconnect();
+                            break;
+                        }
+                    }
                 }
             }
             _ => {}

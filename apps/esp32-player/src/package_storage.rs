@@ -4,14 +4,20 @@ use esp_bootloader_esp_idf::partitions::{
     PARTITION_TABLE_MAX_LEN, PartitionEntry, read_partition_table,
 };
 use esp_storage::FlashStorage;
+#[cfg(not(feature = "worker-readiness"))]
 use stagemaster_install::{Installer, Storage};
+#[cfg(not(feature = "worker-readiness"))]
 use stagemaster_nor_store::{Layout, NorDevice};
+#[cfg(not(feature = "worker-readiness"))]
 use stagemaster_transfer::{Frame, Service};
 
+#[cfg(not(feature = "worker-readiness"))]
 type Driver = esp_bootloader_esp_idf::partitions::NorFlashRegion<'static, 'static, 'static>;
+#[cfg(not(feature = "worker-readiness"))]
 type Store = stagemaster_nor_store::NorStore<Driver>;
 // Kept in the ELF and printed by the read-only check, so budgets use actual Xtensa
 // type layouts rather than macOS pointer sizes. These are sizes, not peak heap usage.
+#[cfg(not(feature = "worker-readiness"))]
 pub static RESOURCE_BYTES: [usize; 6] = [
     core::mem::size_of::<Service<Store>>(),
     core::mem::size_of::<Store>(),
@@ -21,7 +27,7 @@ pub static RESOURCE_BYTES: [usize; 6] = [
     core::mem::size_of::<Driver>(),
 ];
 
-fn partition(flash: &mut FlashStorage<'_>) -> Option<PartitionEntry> {
+pub(crate) fn partition(flash: &mut FlashStorage<'_>) -> Option<PartitionEntry> {
     let mut bytes = [0; PARTITION_TABLE_MAX_LEN];
     let capacity = flash.capacity();
     let table = match read_partition_table(flash, &mut bytes) {
@@ -50,6 +56,7 @@ fn partition(flash: &mut FlashStorage<'_>) -> Option<PartitionEntry> {
     table.get_partition(index).ok()
 }
 
+#[cfg(not(feature = "worker-readiness"))]
 pub fn inspect(peripheral: esp_hal::peripherals::FLASH<'static>) {
     if esp_storage::flash_encryption() {
         esp_println::println!("当前存储检查仅支持未加密的开发板分区");
@@ -103,6 +110,7 @@ pub fn inspect(peripheral: esp_hal::peripherals::FLASH<'static>) {
 
 // Compile and link the actual ESP32 driver path for every service action, but do not
 // invoke it or attach a link. A generic-core-only check would miss driver incompatibilities.
+#[cfg(not(feature = "worker-readiness"))]
 fn retain_handler<S: Storage>(service: &mut Service<S>) {
     let handler: fn(&mut Service<S>, &[u8]) -> Result<Frame, stagemaster_transfer::Error> =
         Service::<S>::process;

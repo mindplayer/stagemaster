@@ -2083,7 +2083,9 @@ version = "0.2.0"
 dependencies = [
  "embassy-executor",
  "embassy-futures",
+ "embassy-sync 0.8.0",
  "embassy-time",
+ "embedded-storage",
  "esp-alloc",
  "esp-backtrace",
  "esp-bootloader-esp-idf",
@@ -2092,9 +2094,11 @@ dependencies = [
  "esp-radio",
  "esp-rtos",
  "esp-storage",
+ "sha2 0.10.9",
  "stagemaster-device-info",
  "stagemaster-device-link",
  "stagemaster-install",
+ "stagemaster-install-worker",
  "stagemaster-nor-store",
  "stagemaster-package",
  "stagemaster-playback",
@@ -2110,6 +2114,14 @@ version = "0.1.0"
 dependencies = [
  "sha2 0.10.9",
  "stagemaster-package",
+]
+
+[[package]]
+name = "stagemaster-install-worker"
+version = "0.1.0"
+dependencies = [
+ "stagemaster-install",
+ "stagemaster-transfer",
 ]
 
 [[package]]

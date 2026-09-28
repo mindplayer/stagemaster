@@ -38,6 +38,8 @@
 
 ## 实现审查补记
 
+DEVICE-002 实板兼容补记：该阶段的自定义 0x40 分区被锁定 Rust SDK 的 FlashRegion 转换拒绝。后续板级类型改为 data／undefined，地址、容量、元数据和包格式不变；原因、严格拒绝旧类型及受控更新规则见 [ADR-037](PRODUCT-ADR-037-installation-worker.md)。本阶段的构建通过不证明自定义类型的实板路径可用。
+
 精确开发板布局采用 `apps/esp32-player/partitions-storage.csv`，末端 `0xa12000`，NVS／PHY／两个 3 MiB 应用区与 2×2 MiB 节目槽不重叠；官方工具二进制往返及本地镜像打包通过。完整 Xtensa 驱动构建已通过，尺寸／堆和实际函数入口栈帧见[接口资源核对](../../module-api/nor-package-store.md)。对齐缓冲并不保证编译器消除驱动分支的整个 4 KiB 栈预留，不能据源码分支估算任务栈。
 
 当前 esp Rust 1.97.0.0／LLVM 21.1.3 在 `2 * slot_bytes + 8192` 代码生成中报 `Cannot select Constant<8192>`，与上游 [esp-rs/rust#275](https://github.com/esp-rs/rust/issues/275) 的移位加大常量问题一致（机制判断，未声称本地定位了 LLVM 根因）。布局构造对固定元数据长度加 `black_box` 优化屏障，使常量经寄存器参与计算；不改变边界、格式或溢出检查。保留原优化级别／Thin LTO／严格检查，完整链接通过。后续工具链升级可以独立复核并移除屏障；仅 `cargo check` 通过不足以验收代码生成。

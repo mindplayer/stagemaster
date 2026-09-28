@@ -8,7 +8,21 @@ export TMPDIR="$project_root/tmp"
 source "$project_root/tmp/esp-tools/export-esp.sh"
 firmware="$project_root/target/esp32-player/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe"
 case "$action" in
-  storage-build|storage-check|runtime-build|runtime-check|security-build|security-check)
+  worker-test-build|worker-test-check)
+    : "${STAGEMASTER_PROBE_PACKAGE:?须明确指定项目内真实导出的测试包绝对路径}"
+    case "$STAGEMASTER_PROBE_PACKAGE" in
+      "$project_root"/data/*) ;;
+      *) printf '测试包必须位于项目 data 目录\n' >&2; exit 2 ;;
+    esac
+    export CARGO_TARGET_DIR="$project_root/target/esp32-worker-test"
+    cd "$project_root/apps/esp32-player"
+    if [[ "$action" == *-build ]]; then
+      cargo +esp build --release --features worker-write-test --locked --offline
+    else
+      cargo +esp clippy --release --features worker-write-test --locked --offline -- -D warnings
+    fi
+    ;;
+  storage-build|storage-check|runtime-build|runtime-check|security-build|security-check|worker-build|worker-check)
     profile="${action%%-*}"
     export CARGO_TARGET_DIR="$project_root/target/esp32-$profile-check"
     cd "$project_root/apps/esp32-player"
@@ -37,11 +51,13 @@ case "$action" in
     ;;
   flash)
     : "${2:?明确指定开发板串口，例如 /dev/cu.usbmodem2101}"
-    "$project_root/tmp/esp-tools/espflash" flash --port "$2" --chip esp32s3 --flash-size 16mb --non-interactive "$firmware"
+    "$project_root/tmp/esp-tools/espflash" flash --port "$2" --chip esp32s3 --flash-size 16mb \
+      --partition-table "$project_root/apps/esp32-player/partitions-storage.csv" \
+      --target-app-partition ota_0 --non-interactive "$firmware"
     ;;
   monitor)
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|security-build|security-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac

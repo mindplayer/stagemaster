@@ -43,6 +43,7 @@ fn check(entries: &[Entry]) -> Result<usize, Error> {
 fn actual_profile_has_two_app_slots_and_a_separate_bounded_nor_partition() {
     let list = entries();
     let index = check(&list).unwrap();
+    assert_eq!((list[index].kind, list[index].subtype), (1, 6));
     assert_eq!(list[index].offset, PARTITION_OFFSET);
     assert_eq!(list[index].length, PARTITION_BYTES);
     assert_eq!(
@@ -75,6 +76,9 @@ fn foreign_overlapping_truncated_or_flagged_tables_are_never_writable() {
         (3, 1),
         (4, 2),
         (5, 0x41),
+        (5, 0x40),
+        (6, 0),
+        (6, 2),
         (6, 1),
     ] {
         let mut list = original.clone();

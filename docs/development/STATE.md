@@ -2,13 +2,13 @@
 
 临时交付 SHOWCASE-002：按用户座席图新建 `data/showcases/圆弧剧场.project.json`。估算舞台 10×3.5 米，用户指定地台 0.5 米／房间总高 7 米（台上净高 6.5 米）；圆弧前沿、背墙、台阶、101 席、80 灯、5 道桁架，中央表演地面留空，落地灯距边缘最大约 0.75 米。33 项工程检查通过，原生 QA 17899 已打开并连接内嵌 UE，正在执行全场巡演，工作照明开启以查看搭建。原星河现场文件及 14610／14928 保留；见 [SHOWCASE-002](tasks/SHOWCASE-002-curved-performance.md)。DEVICE-002 仍为持续开发主任务。
 
-DEVICE-002C 当前未提交断点：独立安装工作器与 ESP32 双核适配已实现，299 Rust／严格 Clippy／固件构建检查通过；首次受控实板测试在官方 `esp-bootloader-esp-idf` 自定义 0x40 分区类型转 FlashRegion 时触发 `unreachable`，没有开始节目擦写，不能计作安装通过。已恢复原可用的只读安全诊断镜像（恢复刷写日志 `logs/device-002c-restore-diagnostic.log`），保留新 OTA／节目分区表；默认刷写脚本不能误换回旧分区表。后续须解决正式分区类型／有界存储适配再重测；B 的系统绑定确认仍待答复，未完成配对。详见 DEVICE-002 工单；本次舞台操作不改变此状态。
+DEVICE-002C 独立工作器增量完成，结果为本次 `feat(device): validate isolated install worker on ESP32` 提交：299 Rust／严格 Clippy／固件实际链接通过。依 [ADR-037](decisions/PRODUCT-ADR-037-installation-worker.md) 修复 SDK 的分区类型兼容，严格使用 `data/undefined` 和既有范围；真实小包／27–28 场景包的双槽安装、重启恢复、逐帧对照通过。保留一轮 BLE 断开；减少热路径串口日志后两轮 438 次保活通过，最大往返 409.483 ms、堆峰值 53,008 B，未据此认定长期稳定性完成。已恢复 543,888 B 的只读 worker 镜像，恢复最新 B 第 6 代、A 第 5 代保留，零擦写／164 次保活通过。见 [实板验收](tasks/DEVICE-002C-worker-acceptance.md)。B 系统绑定仍待答复，正式 GATT 安装和桌面下发尚未接通，物理输出保持禁止，goal 不结项。
 
 临时交付 SHOWCASE-001：应用户及同事查看需求，新增 `data/showcases/星河现场·10米舞台.project.json`，10×6×6.5 米、地面与独立背墙、五道桁架、80 灯／28 场景／5 个循环列表。依用户“全亮无层次”反馈已重编为第一轮每段 14–22 台启用、主辅光束与低亮度背景分层；再次收到层次反馈后收敛至 8–14 台、主光峰值 30%、辅光 6.5%、背景 0.8–1.2%，动态低点归零，33 项工程检查通过。第二轮已由用户确认文件打开，重新载入／执行全场自动巡演、三维跟随及关闭工作照明已核验；实际画面主光亮区与低亮背墙分离，QA 17899 保留运行。通用宽光束和低可见度体积光仍限制预演观感。此窗口现供用户演示，不再作为可随时关闭的空白验收窗口。原 14610／14928 保留。生成器和边界见 [SHOWCASE-001](tasks/SHOWCASE-001-concert-preview.md)，DEVICE-002 仍为主开发任务。
 
 进行中：[DEVICE-002](tasks/DEVICE-002-program-installation.md)，基线 `0a0b7e7`。A 已完成独立只读描述（[ADR-035](decisions/PRODUCT-ADR-035-device-capabilities.md)、[接口](../module-api/device-description.md)）：295 Rust／74 UI、严格检查／双端构建、实际 ESP32 六连接／两启动／48 保活及原生宿主读取清除通过；固件 0.2.0 仅诊断，堆 41,044／90,028 B。B 受限业务认证、C GATT／NOR 安装、D 桌面下发与核验仍待完成，goal 保持原完整范围。原用户工程／UE 及展示窗口保留，刷机仅中断诊断 BLE，RS485 继续禁用。
 
-A 已提交 `c8613c7`。B 候选见 [ADR-036](decisions/PRODUCT-ADR-036-authenticated-device-session.md)：安全／默认固件均构建及严格检查通过。实板发现 macOS 配对等待会阻塞诊断保活，已验证首次握手前固定 90 秒准入（错误请求不续期）、握手后原 6 秒过期，并通过原生诊断兼容；正向配对和绑定恢复尚未通过。用户的当前 Mac／ESP32 安全绑定确认仍待答复，不能完成系统配对。实板现为只读 `security-readiness` 实验镜像（588,016 B），无安装权限／节目写入／DMX；正式受限会话和安装链未完成。
+A 已提交 `c8613c7`。B 候选见 [ADR-036](decisions/PRODUCT-ADR-036-authenticated-device-session.md)：安全／默认固件均构建及严格检查通过。实板发现 macOS 配对等待会阻塞诊断保活，已验证首次握手前固定 90 秒准入（错误请求不续期）、握手后原 6 秒过期，并通过原生诊断兼容；正向配对和绑定恢复尚未通过。用户的当前 Mac／ESP32 安全绑定确认仍待答复，不能完成系统配对。B 的只读 `security-readiness` 实验镜像为 588,016 B；当前实板改用于上述 C 本地工作器测试，仍无无线安装权限或 DMX。正式受限会话和安装链未完成。
 
 已完成：[DEVICE-001](tasks/DEVICE-001-connection-workspace.md)，基线 `3c86123`，产品代码结果 `e1867f9`，最终出口为本次 `docs(device): complete native connection acceptance` 提交。独立 Rust 原生 BLE／应用保活和中文设备面板，见[接口](../module-api/device-connection.md)。真实 macOS 发现／连接／自检、超过 30 秒保活、跨工作区保持、主动重连、QA 进程暂停 7 秒后的过期恢复，以及最新版搜索取消和退出重开后的新会话均已验收。285 Rust 全量＋最终 23 定向、74 UI、严格 Clippy／类型／桌面与 ESP32 构建通过。设备报告禁止输出，未刷机／写节目存储／输出 DMX，原用户 14610／14928 保持。
 

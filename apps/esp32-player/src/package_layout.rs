@@ -61,8 +61,10 @@ pub fn validate(
             if selected.is_some() {
                 return Err(Error::Duplicate);
             }
-            if current.kind != 0x40
-                || current.subtype != 0
+            // SDK FlashRegion supports data/undefined, not custom raw type 0x40.
+            // Reject older tables before its typed conversion can panic.
+            if current.kind != 1
+                || current.subtype != 6
                 || current.offset != PARTITION_OFFSET
                 || current.length != PARTITION_BYTES
                 || current.flags != 0
