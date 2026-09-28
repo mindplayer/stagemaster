@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+session-readiness = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 security-readiness = ["trouble-host/security"]
 binding-readiness = ["security-readiness", "worker-readiness", "dep:stagemaster-device-auth"]
 binding-local-test = ["binding-readiness"]
@@ -19,6 +20,7 @@ worker-readiness = ["storage-readiness", "dep:stagemaster-install-worker", "dep:
 worker-write-test = ["worker-readiness", "dep:stagemaster-package", "dep:sha2"]
 
 [dependencies]
+stagemaster-device-session = { path = "../../crates/stagemaster-device-session", optional = true }
 stagemaster-device-auth = { path = "../../crates/stagemaster-device-auth", features = ["persistence"], optional = true }
 sha2 = { version = "=0.10.9", default-features = false, optional = true }
 stagemaster-install-worker = { path = "../../crates/stagemaster-install-worker", optional = true }

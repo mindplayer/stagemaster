@@ -17,6 +17,7 @@ members = [
   "crates/stagemaster-install-worker",
   "crates/stagemaster-device-link",
   "crates/stagemaster-device-auth",
+  "crates/stagemaster-device-session",
   "crates/stagemaster-device-info",
   "crates/stagemaster-device-host",
   "crates/stagemaster-device-upload",

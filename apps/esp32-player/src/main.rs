@@ -26,6 +26,8 @@ mod package_storage;
 #[cfg(all(feature = "runtime-readiness", not(feature = "worker-readiness")))]
 mod runtime_readiness;
 mod self_test;
+#[cfg(feature = "session-readiness")]
+mod session_probe;
 #[cfg(feature = "binding-readiness")]
 mod shared_flash;
 #[cfg(all(feature = "worker-readiness", not(feature = "binding-readiness")))]
@@ -69,6 +71,8 @@ async fn main(_spawner: embassy_executor::Spawner) {
         esp_radio::ble::controller::BleConnector::new(peripherals.BT, Default::default()).unwrap();
     let controller = trouble_host::prelude::ExternalController::<_, 20>::new(connector);
     let identity = identity::Identity::capture();
+    #[cfg(feature = "session-readiness")]
+    session_probe::verify(&identity);
     #[cfg(feature = "worker-readiness")]
     {
         installation::start(
