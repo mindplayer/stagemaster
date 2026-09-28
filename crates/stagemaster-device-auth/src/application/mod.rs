@@ -1,6 +1,8 @@
 //! Application-key admission. Independent from OS bonds and file playback licenses.
+mod configuration;
 mod permit;
 mod session;
+pub use configuration::{CONFIGURATION_BYTES, Configuration, Role};
 pub use permit::{DevelopmentPermit, Grant, MAX_PERMISSION_MS};
 pub use session::Session;
 

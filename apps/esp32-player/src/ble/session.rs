@@ -12,11 +12,16 @@ pub(super) async fn serve<P: PacketPool>(
     description: &[u8; 96],
     snapshot: fn() -> [u8; 20],
     connected: &mut impl FnMut(bool),
+    #[cfg(feature = "application-gatt")]
+    credentials: &stagemaster_device_auth::application::Configuration,
+    #[cfg(feature = "application-gatt")] worker_epoch: stagemaster_install_worker::Epoch,
     #[cfg(feature = "secure-gatt-test")] secure_key: &stagemaster_device_session::SecretKey,
     #[cfg(feature = "binding-readiness")] binding: &mut crate::bindings::link::Link,
 ) {
     let description = stagemaster_device_info::Description::decode(description).unwrap();
     let session_id = description.session;
+    #[cfg(feature = "application-gatt")]
+    let mut application = super::secure_installation::Channel::new(description, worker_epoch);
     #[cfg(feature = "secure-gatt-test")]
     let mut secure = super::secure_probe::Probe::new(description, conn.raw().att_mtu());
     #[cfg(feature = "installation-gatt")]
@@ -41,6 +46,8 @@ pub(super) async fn serve<P: PacketPool>(
         let expired = expired && !secure.started();
         #[cfg(feature = "binding-readiness")]
         let expired = expired || binding.expired();
+        #[cfg(feature = "application-gatt")]
+        let expired = expired && !application.started();
         if expired {
             println!("GATT application heartbeat expired; local playback continues");
             conn.raw().disconnect();
@@ -51,7 +58,14 @@ pub(super) async fn serve<P: PacketPool>(
             conn.raw().disconnect();
             break;
         }
+        #[cfg(feature = "application-gatt")]
+        if !application.tick(&server.secure_installation, conn).await {
+            conn.raw().disconnect();
+            break;
+        }
         let delay = 100;
+        #[cfg(feature = "application-gatt")]
+        let delay = if application.sending() { 1 } else { delay };
         #[cfg(feature = "secure-gatt-test")]
         if !secure.tick(&server.secure_probe, conn).await {
             conn.raw().disconnect();
@@ -134,6 +148,22 @@ pub(super) async fn serve<P: PacketPool>(
             GattConnectionEvent::Gatt { event } => {
                 let mut response = None;
                 let reply = match event {
+                    #[cfg(feature = "application-gatt")]
+                    GattEvent::Write(event)
+                        if event.handle() == server.secure_installation.request.handle =>
+                    {
+                        let valid = server.secure_installation.response.should_notify(conn)
+                            && event.with_data(|offset, bytes| {
+                                offset == 0
+                                    && application.receive(bytes, credentials, conn.raw().att_mtu())
+                            });
+                        if valid {
+                            event.accept_unprocessed()
+                        } else {
+                            conn.raw().disconnect();
+                            event.reject(AttErrorCode::INSUFFICIENT_AUTHORISATION)
+                        }
+                    }
                     #[cfg(feature = "secure-gatt-test")]
                     GattEvent::Write(event)
                         if event.handle() == server.secure_probe.request.handle =>

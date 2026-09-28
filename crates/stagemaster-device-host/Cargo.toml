@@ -5,7 +5,14 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+bonded-experiment = []
+
 [dependencies]
+getrandom = "=0.3.4"
+zeroize = { version = "=1.9.0", default-features = false }
+stagemaster-device-auth = { path = "../stagemaster-device-auth", features = ["application"] }
+stagemaster-device-session = { path = "../stagemaster-device-session" }
 btleplug = "=0.13.2"
 futures-util = "=0.3.34"
 serde = { version = "=1.0.229", features = ["derive"] }
@@ -16,8 +23,6 @@ tokio = { version = "=1.53.1", features = ["rt", "sync", "time", "macros"] }
 uuid = "=1.26.1"
 
 [dev-dependencies]
-getrandom = "=0.3.4"
-stagemaster-device-session = { path = "../stagemaster-device-session" }
 stagemaster-install = { path = "../stagemaster-install" }
 stagemaster-install-store = { path = "../stagemaster-install-store" }
 stagemaster-package = { path = "../stagemaster-package" }

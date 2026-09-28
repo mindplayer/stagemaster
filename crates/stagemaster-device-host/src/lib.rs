@@ -1,7 +1,9 @@
 //! Application-owned connectivity and framed I/O; no project ownership or storage/DMX I/O.
 #![forbid(unsafe_code)]
 mod ble;
+mod credentials;
 mod description;
+pub use credentials::{DevelopmentConfiguration, read_development_configuration};
 mod installation_peer;
 mod service;
 mod transport;

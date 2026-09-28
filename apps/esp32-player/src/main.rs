@@ -30,7 +30,10 @@ mod self_test;
 mod session_probe;
 #[cfg(feature = "binding-readiness")]
 mod shared_flash;
-#[cfg(all(feature = "worker-readiness", not(feature = "binding-readiness")))]
+#[cfg(all(
+    feature = "worker-readiness",
+    not(any(feature = "binding-readiness", feature = "application-gatt"))
+))]
 mod worker_probe;
 
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -40,9 +43,9 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
     esp_alloc::heap_allocator!(size: 128 * 1024);
-    #[cfg(feature = "installation-gatt")]
+    #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
     esp_println::println!("StageMaster DEVICE-002: authenticated installation, RS485 disabled");
-    #[cfg(not(feature = "installation-gatt"))]
+    #[cfg(not(any(feature = "installation-gatt", feature = "application-gatt")))]
     esp_println::println!("StageMaster DEVICE-002: diagnostics, RS485 disabled");
     #[cfg(all(feature = "storage-readiness", not(feature = "worker-readiness")))]
     package_storage::inspect(peripherals.FLASH);
@@ -82,7 +85,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
             identity.boot(),
             &output_disabled,
         );
-        #[cfg(not(feature = "binding-readiness"))]
+        #[cfg(not(any(feature = "binding-readiness", feature = "application-gatt")))]
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
     }
     embassy_futures::join::join(

@@ -138,7 +138,7 @@ async fn preview_request(
 }
 fn main() {
     let devices = Arc::new(stagemaster_device_host::Service::new(
-        stagemaster_device_host::Ble::default(),
+        device::backend().expect("设备连接配置无效"),
     ));
     let installation = installation::Service::new(devices.clone());
     tauri::Builder::default()

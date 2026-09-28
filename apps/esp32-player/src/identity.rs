@@ -41,13 +41,17 @@ impl Identity {
             authentication: 0,
             limits: Limits::default(),
         };
-        #[cfg(feature = "installation-gatt")]
+        #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
         let description = if _installation {
             Description {
                 capabilities: capability::DIAGNOSTICS
                     | capability::CATALOG
                     | capability::INSTALLATION,
-                authentication: stagemaster_device_link::management::AUTHENTICATED_LESC,
+                authentication: if cfg!(feature = "application-gatt") {
+                    stagemaster_device_link::management::AUTHENTICATED_APPLICATION
+                } else {
+                    stagemaster_device_link::management::AUTHENTICATED_LESC
+                },
                 limits: Limits {
                     package_version: 1,
                     transfer_version: 1,

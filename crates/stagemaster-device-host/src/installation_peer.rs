@@ -2,7 +2,7 @@ use crate::{DeviceDescription, Problem, ProblemCode as C, description::hex};
 use stagemaster_transfer::{Frame, MAX_FRAME_BYTES, Request, VERSION};
 
 /// Installation session admitted by the native adapter, not an IPC permission claim.
-/// The bonded GATT adapter correlates the device-authorized receipt and subscribes
+/// The authenticated GATT adapter correlates the device-authorized receipt and subscribes
 /// a bounded receiver. The device independently checks its actual security and
 /// authority on every dispatch; this value is not remote firmware attestation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

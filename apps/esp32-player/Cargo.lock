@@ -2197,6 +2197,7 @@ dependencies = [
  "ekv",
  "embassy-sync 0.6.2",
  "embedded-storage",
+ "stagemaster-device-session",
  "zeroize",
 ]
 
@@ -2262,6 +2263,9 @@ dependencies = [
 name = "stagemaster-install-worker"
 version = "0.1.0"
 dependencies = [
+ "stagemaster-device-auth",
+ "stagemaster-device-link",
+ "stagemaster-device-session",
  "stagemaster-install",
  "stagemaster-package",
  "stagemaster-runtime",

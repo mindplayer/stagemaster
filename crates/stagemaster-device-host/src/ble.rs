@@ -1,3 +1,4 @@
+mod application;
 mod discovery;
 mod installation;
 mod notifications;
@@ -33,6 +34,9 @@ pub struct Ble {
     description: Option<Characteristic>,
     scanning: bool,
     installation: Option<installation::Channel>,
+    application: Option<application::Channel>,
+    credentials: Option<std::sync::Arc<crate::DevelopmentConfiguration>>,
+    bonded_experiment: bool,
 }
 #[allow(clippy::needless_pass_by_value)] // Used directly as a Result::map_err adapter.
 fn error(value: btleplug::Error) -> Problem {
@@ -112,17 +116,37 @@ impl Transport for Ble {
         ]);
         if let Some(characteristic) = &self.description {
             let bytes = peripheral.read(characteristic).await.map_err(error)?;
-            self.installation = installation::Channel::prepare(&peripheral, &bytes).await?;
+            let desc =
+                stagemaster_device_info::Description::decode(&bytes).map_err(installation::wire)?;
+            if desc.authentication == stagemaster_device_session::AUTHENTICATION {
+                if let Some(config) = self
+                    .credentials
+                    .as_ref()
+                    .filter(|c| c.device() == desc.device)
+                    && desc.declares(stagemaster_device_info::capability::INSTALLATION)
+                {
+                    self.application =
+                        Some(application::Channel::prepare(&peripheral, desc, config).await?);
+                }
+            } else if self.bonded_experiment {
+                self.installation = installation::Channel::prepare(&peripheral, &bytes).await?;
+            }
         }
         Ok(())
     }
     fn installation_peer(&self) -> Option<crate::InstallationPeer> {
+        if let Some(channel) = &self.application {
+            return channel.peer();
+        }
         self.installation
             .as_ref()
             .and_then(installation::Channel::peer)
     }
     async fn write_installation(&mut self, bytes: &[u8]) -> Result<(), Problem> {
         let peripheral = self.pending.as_ref().ok_or_else(|| Problem::new(C::Lost))?;
+        if let Some(channel) = &mut self.application {
+            return channel.write(peripheral, bytes).await;
+        }
         self.installation
             .as_mut()
             .ok_or_else(|| Problem::new(C::Installation))?
@@ -130,12 +154,19 @@ impl Transport for Ble {
             .await
     }
     fn try_installation_notification(&mut self) -> Result<Option<Vec<u8>>, Problem> {
+        if let Some(channel) = &mut self.application {
+            return channel.receive();
+        }
         match &mut self.installation {
             Some(channel) => channel.receive(),
             None => Ok(None),
         }
     }
     async fn write(&mut self, bytes: &[u8; 20]) -> Result<(), Problem> {
+        if let Some(channel) = &mut self.application {
+            let peripheral = self.pending.as_ref().ok_or_else(|| Problem::new(C::Lost))?;
+            channel.heartbeat(peripheral).await?;
+        }
         let (peripheral, characteristics) = self.active()?;
         peripheral
             .write(&characteristics[0], bytes, WriteType::WithResponse)
@@ -151,6 +182,7 @@ impl Transport for Ble {
         peripheral.read(&characteristics[2]).await.map_err(error)
     }
     async fn disconnect(&mut self) -> Result<(), Problem> {
+        self.application = None;
         self.installation = None;
         self.characteristics = None;
         self.description = None;
@@ -177,10 +209,35 @@ impl Transport for Ble {
                     .ok_or_else(|| Problem::new(C::Description))?,
             )?;
         }
+        if let Some(channel) = &self.application {
+            channel.correlate(
+                bytes
+                    .as_deref()
+                    .ok_or_else(|| Problem::new(C::Description))?,
+            )?;
+        }
         Ok(bytes)
     }
 }
 impl Ble {
+    /// Historical LESC experiment only; never enable in ordinary product startup.
+    #[cfg(feature = "bonded-experiment")]
+    #[must_use]
+    pub fn experimental_bonded() -> Self {
+        Self {
+            bonded_experiment: true,
+            ..Self::default()
+        }
+    }
+    /// Explicit development credentials; ordinary construction remains diagnostic-only
+    /// for an application-authenticated device without a matching trusted identity.
+    #[must_use]
+    pub fn with_development_configuration(config: crate::DevelopmentConfiguration) -> Self {
+        Self {
+            credentials: Some(std::sync::Arc::new(config)),
+            ..Self::default()
+        }
+    }
     fn active(&self) -> Result<(&Peripheral, &[Characteristic; 3]), Problem> {
         self.pending
             .as_ref()

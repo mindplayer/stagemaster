@@ -119,10 +119,18 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
             return false;
         }
     };
-    #[cfg(any(feature = "worker-write-test", feature = "installation-gatt"))]
+    #[cfg(any(
+        feature = "worker-write-test",
+        feature = "installation-gatt",
+        feature = "application-gatt"
+    ))]
     // All writes run through ManagedWorker maintenance and the independent live epoch.
     let store = device.open_for_installation().unwrap();
-    #[cfg(not(any(feature = "worker-write-test", feature = "installation-gatt")))]
+    #[cfg(not(any(
+        feature = "worker-write-test",
+        feature = "installation-gatt",
+        feature = "application-gatt"
+    )))]
     let store = device.open_read_only().unwrap();
     let (installer, recovery) = match Installer::open(store, boot) {
         Ok(opened) => opened,

@@ -1,6 +1,8 @@
 # DEVICE-002：软件到设备的节目安装闭环
 
-状态：in progress；基线 `0a0b7e7`，主工作区干净开工，当前 Astra 单一写入负责人。
+状态：completed（受控开发安装出口）；基线 `0a0b7e7`，主工作区干净开工，当前 Astra 单一写入负责人。最终增量基线 `d2890d4`，结果为本次 `feat(device): deliver authenticated direct GATT installation` 提交。
+
+最终 A～D 审查和实际证据见[免配对安装验收](DEVICE-002-direct-installation-acceptance.md)：真实桌面生成／选择／下发／进度／取消／断线恢复／摘要核验通过，实板坏包、身份拒绝、持久恢复和丢提交回执对账通过。421 Rust、78 UI、双端构建和严格检查通过；板卡保留专用开发身份的应用安装镜像，最新 28 场景 B 第 16 代有效，GPIO21 禁用。云端及 24 小时文件许可、生产配置和物理输出不是本出口已实现能力，后续门槛详列验收。下文为各阶段历史，不再把系统绑定、正式 GATT 或桌面安装列为当前阻塞。
 
 最新方向（2026-09-29）：依用户 BLE 直连、不保留系统配对作为必要前提、云端保存相关信息的要求，按 [ADR-046](../decisions/PRODUCT-ADR-046-cloud-owned-direct-gatt.md) 分离连接／安全会话／云端归属。LESC 安装候选与真实中断见[检查点](DEVICE-002-installation-gatt-checkpoint.md)。后续按新方向验证应用层认证，保留 A～D 完整目标；下文系统绑定路线为历史实施依据，不再代表最终产品必要条件。
 

@@ -1,10 +1,12 @@
 //! Explicit current-board installation acceptance using the same service as the app.
-//! LESC experiment only (ADR-045); ADR-046 defines the future product path.
+//! Explicit local development credentials, unbonded encrypted GATT (ADR-051).
 //! No physical output. An optional native locator is required when several boards appear.
 use stagemaster_device_host::{Ble, Phase as LinkPhase, Request, Service as Link, Snapshot};
 use stagemaster_device_upload::{Phase, Prepared, Service, Task};
 use std::{error::Error, sync::Arc, time::Duration};
 use tokio::time::{Instant, sleep};
+#[path = "install_device/faults.rs"]
+mod faults;
 
 const DEVICE: &str = "534d4553503332533300288485569774";
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -35,6 +37,7 @@ async fn connect(link: &Link<Ble>, epoch: u32, locator: &str) -> Result<Snapshot
     let state = settled(link).await?;
     let description = state.description.as_ref().ok_or("缺少描述")?;
     assert_eq!(description.device_id, DEVICE);
+    assert_eq!(description.authentication_method, 2);
     assert!(
         state
             .diagnostics
@@ -86,6 +89,9 @@ async fn exercise(
     };
     // Locator is only a discovery hint. connect checks DEVICE before any install.
     let connected = connect(link, found.epoch, locator).await?;
+    if matches!(mode, "corrupt" | "lost-commit") {
+        return faults::exercise(link, connected.epoch, &bytes, mode, locator).await;
+    }
     let started = upload
         .start(Prepared::new(bytes.clone())?, connected.epoch, DEVICE)?
         .task
@@ -144,7 +150,7 @@ async fn exercise(
     assert_eq!(steady.phase, LinkPhase::Connected);
     assert!(steady.heartbeat_count >= 2);
     println!("结束连接 {}", serde_json::to_string(&steady)?);
-    println!("PASS: {mode}，使用实际绑定、GATT、任务服务和 NOR 回执，禁止输出");
+    println!("PASS: {mode}，使用应用凭据、加密GATT、任务服务和 NOR 回执，禁止输出");
     Ok(())
 }
 
@@ -152,10 +158,11 @@ async fn exercise(
 async fn main() -> Result<()> {
     let arguments: Vec<_> = std::env::args().collect();
     if !(3..=4).contains(&arguments.len())
-        || !["install", "cancel", "resume"].contains(&arguments[2].as_str())
+        || !["install", "cancel", "resume", "corrupt", "lost-commit"]
+            .contains(&arguments[2].as_str())
     {
         return Err(
-            "用法：install_device <项目 data 内播放包> <install|cancel|resume> [本次连接标识]"
+            "用法：install_device <项目 data 内播放包> <install|cancel|resume|corrupt|lost-commit> [本次连接标识]"
                 .into(),
         );
     }
@@ -168,7 +175,14 @@ async fn main() -> Result<()> {
     }
     let bytes: Arc<[u8]> = std::fs::read(path)?.into();
     Prepared::new(bytes.clone())?;
-    let link = Arc::new(Link::new(Ble::default()));
+    let configuration = std::env::var_os("STAGEMASTER_CONTROLLER_CONFIGURATION")
+        .ok_or("须显式指定控制端开发凭据")?;
+    let configuration = std::path::Path::new(&configuration).canonicalize()?;
+    if !configuration.starts_with(root.join("data")) {
+        return Err("开发凭据必须位于当前项目data内".into());
+    }
+    let credentials = stagemaster_device_host::read_development_configuration(&configuration)?;
+    let link = Arc::new(Link::new(Ble::with_development_configuration(credentials)));
     let upload = Service::new(link.clone());
     let result = exercise(
         &link,

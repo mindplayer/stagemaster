@@ -1,9 +1,20 @@
 //! GATT adapter for the diagnostic protocol. It owns no playback commands.
 #[cfg(feature = "installation-gatt")]
 mod installation;
+#[cfg(feature = "application-gatt")]
+mod secure_installation;
 #[cfg(feature = "secure-gatt-test")]
 mod secure_probe;
 mod session;
+#[cfg(all(
+    feature = "application-gatt",
+    any(
+        feature = "security-readiness",
+        feature = "secure-gatt-test",
+        feature = "worker-write-test"
+    )
+))]
+compile_error!("应用安装必须与旧绑定及实验镜像分离");
 #[cfg(all(feature = "secure-gatt-test", feature = "security-readiness"))]
 compile_error!("安全 GATT 实验不得启用系统配对或绑定");
 use embassy_futures::join::join;
@@ -12,7 +23,11 @@ use embassy_time::{Duration, Timer, with_timeout};
 use esp_println::println;
 use trouble_host::prelude::*;
 
-#[cfg(all(not(feature = "security-readiness"), not(feature = "secure-gatt-test")))]
+#[cfg(all(
+    not(feature = "security-readiness"),
+    not(feature = "secure-gatt-test"),
+    not(feature = "application-gatt")
+))]
 #[gatt_server]
 struct Server {
     link: LinkService,
@@ -31,6 +46,21 @@ struct SecureProbeService {
     #[characteristic(uuid = "f889ed92-0100-4e83-968e-799ab99558fa", write, write_without_response, value = [0; 244])]
     request: [u8; 244],
     #[characteristic(uuid = "f889ed93-0100-4e83-968e-799ab99558fa", notify, value = [0; 244])]
+    response: [u8; 244],
+}
+
+#[cfg(feature = "application-gatt")]
+#[gatt_server]
+struct Server {
+    link: LinkService,
+    secure_installation: SecureInstallationService,
+}
+#[cfg(feature = "application-gatt")]
+#[gatt_service(uuid = "f889eda0-0100-4e83-968e-799ab99558fa")]
+struct SecureInstallationService {
+    #[characteristic(uuid = "f889eda2-0100-4e83-968e-799ab99558fa", write_without_response, value = [0; 244])]
+    request: [u8; 244],
+    #[characteristic(uuid = "f889eda3-0100-4e83-968e-799ab99558fa", notify, value = [0; 244])]
     response: [u8; 244],
 }
 
@@ -86,6 +116,10 @@ pub async fn run<C: Controller>(
     snapshot: fn() -> [u8; 20],
     mut connected: impl FnMut(bool),
 ) -> ! {
+    #[cfg(feature = "application-gatt")]
+    let credentials = secure_installation::configuration(&identity);
+    #[cfg(feature = "application-gatt")]
+    let mut worker_epoch = 0_u32;
     #[cfg(feature = "secure-gatt-test")]
     let secure_key = secure_probe::key(&identity);
     #[cfg(feature = "binding-readiness")]
@@ -159,9 +193,9 @@ pub async fn run<C: Controller>(
                     )
                     .await
                     .unwrap();
-                #[cfg(not(feature = "installation-gatt"))]
+                #[cfg(not(any(feature = "installation-gatt", feature = "application-gatt")))]
                 let raw = advertiser.accept().await.unwrap();
-                #[cfg(feature = "installation-gatt")]
+                #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
                 let raw = {
                     use embassy_futures::select::{Either, select};
                     // An old worker may finish after disconnection. Always drain it,
@@ -187,11 +221,18 @@ pub async fn run<C: Controller>(
                 let session_id = u64::from_le_bytes(nonce).max(1);
                 conn.set(&server.link.response, &[0; 20]).unwrap();
                 // Fixed for this connection, including every offset of ATT long reads.
-                #[cfg(not(feature = "installation-gatt"))]
+                #[cfg(not(any(feature = "installation-gatt", feature = "application-gatt")))]
                 let enabled = false;
                 #[cfg(feature = "installation-gatt")]
                 let enabled = binding.local().is_some()
                     && crate::installation::READY.load(core::sync::atomic::Ordering::Acquire) == 1;
+                #[cfg(feature = "application-gatt")]
+                let enabled =
+                    crate::installation::READY.load(core::sync::atomic::Ordering::Acquire) == 1;
+                #[cfg(feature = "application-gatt")]
+                {
+                    worker_epoch = worker_epoch.checked_add(1).expect("工作代次已耗尽，请重启");
+                }
                 let description = identity.describe(session_id, enabled);
                 conn.set(&server.link.description, &description).unwrap();
                 #[cfg(feature = "installation-gatt")]
@@ -217,6 +258,10 @@ pub async fn run<C: Controller>(
                     &description,
                     snapshot,
                     &mut connected,
+                    #[cfg(feature = "application-gatt")]
+                    &credentials,
+                    #[cfg(feature = "application-gatt")]
+                    stagemaster_install_worker::Epoch::new(worker_epoch).unwrap(),
                     #[cfg(feature = "secure-gatt-test")]
                     &secure_key,
                     #[cfg(feature = "binding-readiness")]

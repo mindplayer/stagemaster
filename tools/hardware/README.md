@@ -2,6 +2,8 @@
 
 PLAYER-002A 仅诊断：共享播放内核自检／负载、BLE GATT 直连及会话保活。GPIO21 固定低电平，RS485 发送关闭；没有节目上传、控制或正式 DMX 输出。
 
+上句描述默认诊断构建。DEVICE-002 已增加专用 `application-gatt` 构建，使用独立开发凭据、免系统配对的加密 GATT、实际双槽安装与桌面任务；[配置／调用／复现](../../docs/module-api/development-gatt-configuration.md)及[真实验收](../../docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)。对应 `application-build`／`application-check`，不会自动刷机，GPIO21 仍禁用。云端及文件许可尚未实现。
+
 HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断开／保活过期后熄灭；板级代码始终保持 GPIO21 低。串口会报告对应引脚驱动状态。此灯接在 TXD1，未来接入 UART／DMX 时必须把发送脚的独占权交给输出适配，不能再调用诊断灯控制。灯的实际颜色／亮度仍需肉眼核验；日志不证明已发送 DMX。见[硬件记录](../../docs/development/tasks/HW-003-link-indicator.md)。
 
 ## 项目内环境

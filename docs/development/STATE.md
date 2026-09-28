@@ -1,5 +1,9 @@
 # 当前开发状态
 
+DEVICE-002 完整开发安装出口已通过：本增量基线 `d2890d4`，结果为本次 `feat(device): deliver authenticated direct GATT installation` 提交；父任务基线 `0a0b7e7` 的 A～D 保持完整。依 [ADR-051](decisions/PRODUCT-ADR-051-development-gatt-installation.md)，专用开发凭据经 Noise／加密 GATT 接既有 Gateway、Endpoint、ManagedWorker、NOR 和正式桌面任务，正常流程不依赖系统配对。实际生成、选择设备、下发、已确认进度、取消、断线恢复、坏包拒绝、错误身份拒绝、重启恢复和丢提交回执对账通过，见[完整验收](tasks/DEVICE-002-direct-installation-acceptance.md)。421 Rust、78 UI、严格检查、固件和桌面构建通过；失败和资源限制保留。新产品文件最大 153 行。
+
+当前实板为 691,568 B 专用应用安装镜像，B 第 16 代 28 场景／110,772 B，A 第 15 代保留；GPIO21 禁用、无 DMX／灯具输出。最新独立“舞台大师连接验收”窗口已打开圆弧工程、连接设备并显示真实安装成功及摘要；原正式应用 PID 44624／工程仍已保存，保持断开避免竞争，UE 未操作。凭据及含私钥的固件产物留项目私有忽略目录。云端身份／归属／权限边界已明确，实际云端、24 小时文件许可、生产密钥保护／固件签名、其他平台及长期压力尚未完成；10 分钟开发连接许可不能当文件许可。后续硬件主线是安装包到运行／UART DMX 的受控输出验收，商业授权按 AUTH-001 独立推进，不再重做系统配对或纯回送实验。
+
 DEVICE-002 应用权限／安装组合：基线 `9fd381a`，结果为本次 `feat(device): gate encrypted installation on bounded application permission` 提交。依 [ADR-050](decisions/PRODUCT-ADR-050-application-installation-admission.md)，新增独立开发权限、固定期限、加密就绪回执和复用 Endpoint／ManagedWorker 的 Gateway；主体与蓝牙定位分离，保活不延长许可。413 Rust 全量、严格检查、Xtensa 库级检查和既有只读固件检查通过；真实导出包的软件加密安装／存储重开／取消／断线恢复／丢提交回执对账通过，见[验收](tasks/DEVICE-002-application-admission-acceptance.md)。保留早期编译和规范样例不支持字段的测试输入失败记录。本轮未刷机或操作工程／UE，正式无线安装与可信开发配置仍待接通，云端和 24 小时文件许可未实现；完整 goal active，下一步从该 Gateway 接固件与桌面，不重做纯回送实验。
 
 DEVICE-002 免配对加密 GATT 实证：基线 `5493c5a`，结果为本次 `feat(device): validate direct encrypted GATT and bounded flow control` 提交。依 [ADR-049](decisions/PRODUCT-ADR-049-direct-gatt-session-validation.md)，真实 ESP32／原生 Rust 已完成握手、消息、加密保活和故障拒绝；修复初始 MTU 23／实际 247 时序，参考 SMP 增加平台背压的连续发送。24 个验收连接通过，单连接 128×1280 B 往返最慢 152 ms；小发送片段由最慢 4970 ms 改善到 251 ms。394 Rust／严格检查、双种固件构建通过，见[验收](tasks/DEVICE-002-secure-gatt-acceptance.md)。保留首次失败；快速模式存在稳定的额外 32 B 占用变化待定位，栈和 Flash 并发待验。已恢复 556,320 B 只读镜像，A 第 9 代有效／B Empty／0 擦写；原圆弧工程未改，正式应用重连／63 次保活。测试仅回送数据，不授安装权限；云端和文件许可未实现。下一步将该通道接可信开发凭据／权限、Endpoint／ManagedWorker 和正式桌面安装；完整 goal active。
@@ -253,7 +257,7 @@ DEV-005 清理结果已集成：`5a15e97a1ecedf0a4c821fe38936089c9f2dc2de`；后
 
 按 [FIXTURE-002 主动审查](tasks/FIXTURE-002-workflow-audit.md) 继续，不等待用户逐项提醒。UX-014／STAGE-001 已完成灯位阵列、组编辑、水平支撑体／挂接和内嵌场地；FIXTURE-002 已补线性建档与换灯。下一软件核心依 ADR-009／016 接运动档案、两轴物理范围／反向／零位、单灯安装校准、共同目标和 UE 关节；随后补快门／轮盘等分段功能。现场编程器／速度主控需明确控制权和时间合成，再逐步推进真实时间线。场地后续为隐藏／锁定／空间隔离、门洞／共享墙与观众区；崩溃恢复、问题导航和开演检查列为商业必要增量，辅助功能问题专项补验。
 
-首次软硬件交付已完成软件有界执行包、分块传输／原子安装／运行层，以及 DEVICE-001 的 macOS 正式诊断连接界面；实板业务链仍需稳定身份／能力协商、GATT 传输／存储／运行集成、UART DMX 发送适配／时序与完整隔离接口。当前诊断固件不能播放用户工程或驱动灯具。GATT 先接业务，USB 用于开发恢复；新的动态效果另做设备资源与时序测量。
+首次软硬件交付已完成软件有界执行包、分块传输／原子安装／运行层，以及 DEVICE-002 的专用开发身份下真实桌面 GATT 安装闭环。下一实板增量为已安装包的运行／控制连接、UART DMX 发送适配／时序与完整隔离接口；当前安装镜像仍不能向真实灯具播放。USB 用于开发恢复；云端归属和 AUTH-001 文件许可独立接入，动态效果还需与真实输出一起测量资源和时序。
 
 DESKTOP-002 已完成组件式真实工作台接入；继续依据 [UX-009](../ui-design/component-workspace-design.md) 收集操作反馈，并按成熟软件细节清单迭代；延续现代创作式布局与组件按需展开，不再以静态三图选型阻塞设计迭代。设计中的草稿、场地与片段是交互夹具，正式入口仍接真实工程与命令。UX-006／007／FIXTURE-001 的业务边界继续有效。
 

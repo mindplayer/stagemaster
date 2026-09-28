@@ -5,6 +5,9 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+development-device-access = []
+
 [build-dependencies]
 tauri-build = { version = "=2.6.3", features = [] }
 

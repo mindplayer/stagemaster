@@ -179,8 +179,8 @@ export function ProjectCheckPanel({
         </div>
         <div>
           <strong>设备发布</strong>
-          <b>尚未开放</b>
-          <span>可生成播放包；设备安装与授权尚未接入</span>
+          <b>独立核验</b>
+          <span>生成播放包后，在节目安装中核验设备权限与安装结果</span>
         </div>
       </div>
       {check && report && (

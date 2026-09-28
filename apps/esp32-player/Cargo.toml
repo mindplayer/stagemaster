@@ -8,10 +8,11 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+application-gatt = ["worker-readiness", "dep:stagemaster-device-session", "dep:stagemaster-device-auth", "stagemaster-device-auth/application", "stagemaster-install-worker/application", "dep:stagemaster-package"]
 secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 session-readiness = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 security-readiness = ["trouble-host/security"]
-binding-readiness = ["security-readiness", "worker-readiness", "dep:stagemaster-device-auth"]
+binding-readiness = ["security-readiness", "worker-readiness", "dep:stagemaster-device-auth", "stagemaster-device-auth/persistence"]
 binding-local-test = ["binding-readiness"]
 binding-repair-test = ["installation-gatt", "binding-local-test"]
 installation-gatt = ["binding-readiness", "dep:stagemaster-package"]
@@ -22,7 +23,7 @@ worker-write-test = ["worker-readiness", "dep:stagemaster-package", "dep:sha2"]
 
 [dependencies]
 stagemaster-device-session = { path = "../../crates/stagemaster-device-session", optional = true }
-stagemaster-device-auth = { path = "../../crates/stagemaster-device-auth", features = ["persistence"], optional = true }
+stagemaster-device-auth = { path = "../../crates/stagemaster-device-auth", optional = true }
 sha2 = { version = "=0.10.9", default-features = false, optional = true }
 stagemaster-install-worker = { path = "../../crates/stagemaster-install-worker", optional = true }
 embassy-sync = { version = "=0.8.0", optional = true }

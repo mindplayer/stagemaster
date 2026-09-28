@@ -5,9 +5,9 @@
 ## 当前任务
 
 - 用户新增 [HW-003](tasks/HW-003-link-indicator.md)：诊断连接绿灯常亮／断开熄灭已刷入实板并经正常连接、超时和重连验证；应用已恢复连接，用户已确认实物绿灯常亮。此灯接 TXD1，DMX 期间自然随数据，独立状态闪烁须后续专用灯。DEVICE-002 主目标不变。
-- [DEVICE-002](tasks/DEVICE-002-program-installation.md) 进行中：A 的稳定设备标识／真实能力已完成；B 的本次测试配对已获用户确认，macOS 已认证配对／同启动加密重连通过，受限业务会话仍未完成。C 按 [ADR-037](decisions/PRODUCT-ADR-037-installation-worker.md)／[ADR-038](decisions/PRODUCT-ADR-038-installation-byte-channel.md) 已实现独立存储工作器和有界分片通道，完成真实舞台包本地擦写、恢复与逐帧对照，保留压力断开记录。D 按 [ADR-039](decisions/PRODUCT-ADR-039-host-install-io.md) 已接同一主机连接的保活／安装消息调度及软件上传／恢复验收；后续按 [ADR-040](decisions/PRODUCT-ADR-040-host-installation-task.md) 完成独立任务和桌面进度／取消／恢复入口、同会话连续安装序号及缓存保护，见 [D 任务验收](tasks/DEVICE-002D-task-workflow.md)。C 的运行维护互斥也已由 [ADR-041](decisions/PRODUCT-ADR-041-maintained-install-worker.md) 实板验证；B 安全候选已完成本机正向验证，已按 [ADR-042](decisions/PRODUCT-ADR-042-device-binding-vault.md) 完成独立绑定档案／可选原子存储及故障验证（[验收](tasks/DEVICE-002B-vault-acceptance.md)），后续已按 [ADR-043](decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 实现连接权限核心与存储组合故障验证；继续实际持久绑定、正式认证／GATT／远程维护控制和真实桌面硬件链，见[配对验收](tasks/DEVICE-002B-pairing-acceptance.md)。不启用物理输出。
+- [DEVICE-002](tasks/DEVICE-002-program-installation.md) A～D 受控开发安装出口已完成：稳定身份与真实能力、专用应用凭据、免系统配对的加密 GATT、双槽 NOR／维护工作器、正式桌面生成／设备选择／下发／进度／取消／断线恢复／结果核验均实际通过；坏包、错误身份、重启与丢提交回执对账见[最终验收](tasks/DEVICE-002-direct-installation-acceptance.md)。421 Rust／78 UI、双端构建和严格检查通过。板卡现存 B 第 16 代 28 场景，RS485 禁用；云端认领／24 小时文件许可、生产密钥／安全启动、其他平台、长期压力和完整栈高水位仍为后续门槛。下一硬件增量接已安装包的运行控制与受控 DMX 输出，不重复系统配对实验。
 
-- [DEVICE-001](tasks/DEVICE-001-connection-workspace.md) 已完成 macOS 正式诊断连接工作台：独立原生 BLE／协议与中文面板，软件与实板搜索／取消／连接／保活／重连、主机停顿失效和重开通过。与工程编辑／安装／播放／授权解耦，原未保存用户窗口保留；下一步先定义稳定身份／能力和正式业务会话，再接传输、安装与运行模块。
+- [DEVICE-001](tasks/DEVICE-001-connection-workspace.md) 已完成 macOS 正式诊断连接工作台：独立原生 BLE／协议与中文面板，软件与实板搜索／取消／连接／保活／重连、主机停顿失效和重开通过。与工程编辑／安装／播放／授权解耦，原未保存用户窗口保留；后续 DEVICE-002 已完成稳定身份／业务会话及真实安装，运行控制和物理输出另行验收。
 
 - [PLAYER-003E](tasks/PLAYER-003E-device-runtime.md) 已完成独立运行层、节目选择／载入、实例与控制租约、断线继续和维护写门，实际目标板完整构建通过；继续正式设备连接和软件操作链，物理输出与生产授权仍各自验收。
 
