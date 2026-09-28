@@ -3,6 +3,9 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+mod endpoint;
+pub use endpoint::{ChannelError, Endpoint, Phase};
+
 use core::num::NonZeroU32;
 use stagemaster_install::{Installed, Installer, Storage};
 use stagemaster_transfer::{AuthorizedLink, Frame, Service};

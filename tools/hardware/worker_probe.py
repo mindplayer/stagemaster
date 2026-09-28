@@ -91,6 +91,17 @@ async def run(args):
             assert counters and all(w == "0" and e == "0" for w, e in counters), "same package was rewritten"
         result["nor_samples"] = [dict(writes=int(w), erases=int(e))
                                  for w, e in re.findall(r"writes=(\d+) erases=(\d+)", log)]
+        if args.expect_byte_channel:
+            channels = [dict(payload=int(p), requests=int(r), incoming_parts=int(i),
+                             outgoing_parts=int(o), endpoint_bytes=int(s))
+                        for p, r, i, o, s in re.findall(
+                            r"LOCAL BYTE CHANNEL payload=(\d+) requests=(\d+) incoming_parts=(\d+) outgoing_parts=(\d+) endpoint_bytes=(\d+)", log)]
+            expected = [20, 244] if args.expect_write or args.expect_existing else [20]
+            assert [channel["payload"] for channel in channels] == expected, "missing byte-channel run"
+            assert all(channel["requests"] > 0 and channel["incoming_parts"] >= channel["requests"]
+                       and channel["outgoing_parts"] >= channel["requests"]
+                       and channel["endpoint_bytes"] < 3000 for channel in channels)
+            result["local_byte_channels"] = channels
         if args.reference_replay:
             expected = re.findall(r"帧摘要 ([0-9a-f]{64})", args.reference_replay.read_text())
             actual = re.findall(r"LOCAL WORKER REPLAY index=(\d+) frames=400 digest=([0-9a-f]{64})", log)
@@ -135,5 +146,6 @@ if __name__ == "__main__":
     parser.add_argument("--expect-write", action="store_true")
     parser.add_argument("--expect-existing", action="store_true")
     parser.add_argument("--expect-readonly-recovery", action="store_true")
+    parser.add_argument("--expect-byte-channel", action="store_true")
     parser.add_argument("--reference-replay", type=Path)
     asyncio.run(run(parser.parse_args()))

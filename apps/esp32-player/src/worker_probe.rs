@@ -2,21 +2,127 @@
 use crate::installation::{COMPLETIONS, LIVE_EPOCH, READY, REQUESTS};
 use core::sync::atomic::Ordering;
 use embassy_time::{Duration, Timer, with_timeout};
-use stagemaster_install_worker::{Command, Epoch, Reply};
-use stagemaster_transfer::{Action, AuthorizedLink, Request, Response};
+use stagemaster_install_worker::{Command, Endpoint, Epoch};
+use stagemaster_transfer::{Action, Assembler, AuthorizedLink, Frame, Request, Response};
 
 #[cfg(feature = "worker-write-test")]
 static PACKAGE: &[u8] = include_bytes!(env!("STAGEMASTER_PROBE_PACKAGE"));
 
-async fn exchange(command: Command) -> Reply {
-    let epoch = command.epoch();
-    REQUESTS.send(command).await;
-    let completion = with_timeout(Duration::from_secs(30), COMPLETIONS.receive())
-        .await
+fn now() -> u64 {
+    embassy_time::Instant::now().as_millis()
+}
+
+// Exercises the production byte-channel rules through the actual cross-core queue.
+// Only this compile-time LOCAL harness supplies the public fixture grant. There
+// is still no GATT writer or authentication adapter using these credentials.
+struct LocalChannel {
+    endpoint: Endpoint,
+    payload: usize,
+    requests: u32,
+    incoming: u32,
+    outgoing: u32,
+}
+impl LocalChannel {
+    async fn open(epoch: Epoch, session: [u8; 16], payload: usize) -> Self {
+        let (endpoint, command) = Endpoint::open(
+            epoch,
+            AuthorizedLink {
+                principal: [0x5a; 16],
+                session,
+            },
+            payload,
+            now(),
+        )
         .unwrap();
-    assert_eq!(completion.epoch, epoch);
-    assert_eq!(crate::installation::live_epoch(), Some(epoch));
-    completion.result.unwrap()
+        let mut channel = Self {
+            endpoint,
+            payload,
+            requests: 0,
+            incoming: 0,
+            outgoing: 0,
+        };
+        channel.publish_epoch();
+        channel.dispatch(command).await;
+        channel
+    }
+
+    fn publish_epoch(&self) {
+        LIVE_EPOCH.store(
+            self.endpoint.live_epoch().map_or(0, Epoch::get),
+            Ordering::Release,
+        );
+    }
+
+    async fn dispatch(&mut self, command: Command) {
+        assert_eq!(Some(command.epoch()), self.endpoint.live_epoch());
+        if REQUESTS.try_send(command).is_err() {
+            self.endpoint.close();
+            self.publish_epoch();
+            panic!("local worker queue full");
+        }
+        loop {
+            let polled = self.endpoint.poll(now());
+            self.publish_epoch();
+            polled.unwrap();
+            if let Ok(completion) =
+                with_timeout(Duration::from_millis(100), COMPLETIONS.receive()).await
+            {
+                let completed = self.endpoint.complete(completion, now());
+                self.publish_epoch();
+                if completed.unwrap() {
+                    break;
+                }
+                // Obsolete completions are consumed, never left blocking the worker.
+            }
+        }
+    }
+
+    async fn exchange(&mut self, frame: &Frame) -> Frame {
+        let mut completion_received = false;
+        for bytes in frame.bytes().chunks(self.payload) {
+            self.incoming += 1;
+            let result = self.endpoint.receive(bytes, now());
+            self.publish_epoch();
+            if let Some(command) = result.unwrap() {
+                assert!(!completion_received);
+                self.dispatch(command).await;
+                completion_received = true;
+            }
+        }
+        assert!(completion_received);
+        let mut response = Assembler::new();
+        loop {
+            let ready = match self.endpoint.fragment(now()) {
+                Ok(Some(bytes)) => {
+                    self.outgoing += 1;
+                    response.push(bytes).unwrap()
+                }
+                Ok(None) => break,
+                Err(error) => {
+                    self.publish_epoch();
+                    panic!("local channel fragment failed: {}", error);
+                }
+            };
+            let result = self.endpoint.sent(now());
+            self.publish_epoch();
+            assert_eq!(result.unwrap(), ready);
+        }
+        self.requests += 1;
+        response.take().unwrap()
+    }
+
+    fn close(&mut self) {
+        self.endpoint.close();
+        self.publish_epoch();
+        esp_println::println!(
+            "LOCAL BYTE CHANNEL payload={} requests={} incoming_parts={} outgoing_parts={} endpoint_bytes={}",
+            self.payload,
+            self.requests,
+            self.incoming,
+            self.outgoing,
+            core::mem::size_of::<Endpoint>()
+        );
+    }
 }
 
 #[embassy_executor::task]
@@ -35,36 +141,24 @@ pub async fn run(boot: [u8; 16]) {
     // Allow a separate real host to connect and measure heartbeat latency.
     Timer::after_secs(45).await;
     let epoch = Epoch::new(1).unwrap();
-    LIVE_EPOCH.store(epoch.get(), Ordering::Release);
     let session = boot;
-    let reply = exchange(Command::Open {
-        epoch,
-        link: AuthorizedLink {
-            principal: [0x5a; 16],
-            session,
-        },
-    })
-    .await;
-    assert!(matches!(reply, Reply::Opened));
-    let reply = exchange(Command::Frame {
-        epoch,
-        frame: Request {
-            link: session,
-            id: 1,
-            action: Action::Status,
-        }
-        .encode()
-        .unwrap(),
-    })
-    .await;
-    let Reply::Frame(frame) = reply else {
-        panic!("expected status")
-    };
+    let mut channel = LocalChannel::open(epoch, session, 20).await;
+    let frame = channel
+        .exchange(
+            &Request {
+                link: session,
+                id: 1,
+                action: Action::Status,
+            }
+            .encode()
+            .unwrap(),
+        )
+        .await;
     let response = Response::decode(frame.bytes()).unwrap();
     assert!(response.result.is_ok());
     esp_println::println!("LOCAL WORKER PROBE status {:?}", response.state);
     // A fresh local epoch avoids sharing request counters with Upload.
-    LIVE_EPOCH.store(0, Ordering::Release);
+    channel.close();
     #[cfg(feature = "worker-write-test")]
     upload(boot).await;
     crate::installation::report();
@@ -80,28 +174,14 @@ async fn upload(mut session: [u8; 16]) {
     if session == [0; 16] {
         session[15] = 1;
     }
-    LIVE_EPOCH.store(epoch.get(), Ordering::Release);
-    assert!(matches!(
-        exchange(Command::Open {
-            epoch,
-            link: AuthorizedLink {
-                principal: [0x5a; 16],
-                session
-            },
-        })
-        .await,
-        Reply::Opened
-    ));
+    let mut channel = LocalChannel::open(epoch, session, 244).await;
     let mut upload = Upload::new(PACKAGE).unwrap();
     esp_println::println!("LOCAL WORKER WRITE TEST begin {:?}", upload.identity());
     upload.connect(session).unwrap();
     let start = esp_hal::time::Instant::now();
     while let Some(frame) = upload.outbound().unwrap().cloned() {
         let command = Request::decode(frame.bytes()).unwrap().action.command();
-        let reply = exchange(Command::Frame { epoch, frame }).await;
-        let Reply::Frame(frame) = reply else {
-            panic!("expected frame")
-        };
+        let frame = channel.exchange(&frame).await;
         upload.accept(frame.bytes()).unwrap();
         if command != stagemaster_transfer::Command::Write {
             esp_println::println!("LOCAL WORKER WRITE TEST command={:?}", command);
@@ -113,7 +193,7 @@ async fn upload(mut session: [u8; 16]) {
         upload.outcome(),
         start.elapsed().as_micros()
     );
-    LIVE_EPOCH.store(0, Ordering::Release);
+    channel.close();
 }
 
 // Runs only on the storage-owning core, once for a matching durable commit.
@@ -127,7 +207,7 @@ pub fn verify_reply<S: stagemaster_install::Storage>(
     S::Error: core::fmt::Debug,
 {
     use sha2::{Digest, Sha256};
-    let Ok(Reply::Frame(frame)) = &completion.result else {
+    let Ok(stagemaster_install_worker::Reply::Frame(frame)) = &completion.result else {
         return;
     };
     let response = Response::decode(frame.bytes()).unwrap();

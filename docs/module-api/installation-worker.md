@@ -2,6 +2,8 @@
 
 DEVICE-002C；依据 [ADR-037](../development/decisions/PRODUCT-ADR-037-installation-worker.md)。`crates/stagemaster-install-worker` 提供同步、无调度器依赖的 Rust 边界，具体存储 I/O 仍由既有 `Storage` 完成。它不解析工程、不持有蓝牙句柄、不负责认证或生产许可。
 
+无线回调到工作器之间的半包／单请求／回执分片与固定期限由独立 [Endpoint 字节通道](installation-byte-channel.md) 承接。它和工作器位于同一 crate，但各自拥有状态、没有互相调用 I/O；适配器负责连接两端及队列外撤销。
+
 ## 调用与所有权
 
 ```rust,ignore

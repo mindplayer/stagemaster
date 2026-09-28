@@ -132,3 +132,5 @@ PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/worker_probe.p
 `crates/stagemaster-project/examples/export_package.rs` 复用正式电脑编译器，输入工程、显式节目选择 JSON、新包路径；拒绝覆盖旧文件，无设备访问。可用于生成真实工程规模的验证包，不把填充随机数据当合法节目。
 
 工作器对操作耗时、物理 NOR 次数／耗时、调用前栈深度和分配器历史峰值做汇总；避免每块输出完整事务状态。SDK 串口打印本身使用临界区，过多日志会干扰无线时序。成功及失败的实测结果、当前限制见 [DEVICE-002C 验收记录](../../docs/development/tasks/DEVICE-002C-worker-acceptance.md)。
+
+当前本地探针的状态查询使用 20 字节片段、安装使用 244 字节片段，均通过正式 `Endpoint` 和实际跨核工作队列；监听脚本增加 `--expect-byte-channel` 可强制检查这两条路径及目标类型尺寸。这里只在板内传递节目片段，同时另测诊断 BLE；不能把它计作节目已通过蓝牙下发。正式认证与 GATT 接入仍是独立出口，见 [字节通道接口](../../docs/module-api/installation-byte-channel.md)。

@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-- [DEVICE-002](tasks/DEVICE-002-program-installation.md) 进行中：A 的稳定设备标识／真实能力已完成；B 的安全绑定待确认，受限会话未完成。C 按 [ADR-037](decisions/PRODUCT-ADR-037-installation-worker.md) 已实现独立存储工作器，并完成真实舞台包本地擦写、恢复与逐帧对照，保留压力断开记录；继续正式 GATT／维护状态集成、故障验收及 D 桌面安装闭环，不启用物理输出。
+- [DEVICE-002](tasks/DEVICE-002-program-installation.md) 进行中：A 的稳定设备标识／真实能力已完成；B 的安全绑定待确认，受限会话未完成。C 按 [ADR-037](decisions/PRODUCT-ADR-037-installation-worker.md)／[ADR-038](decisions/PRODUCT-ADR-038-installation-byte-channel.md) 已实现独立存储工作器和有界分片通道，完成真实舞台包本地擦写、恢复与逐帧对照，保留压力断开记录；继续同一主机连接的保活／安装 I/O 协调、正式 GATT／维护状态集成、故障验收及 D 桌面安装闭环，不启用物理输出。
 
 - [DEVICE-001](tasks/DEVICE-001-connection-workspace.md) 已完成 macOS 正式诊断连接工作台：独立原生 BLE／协议与中文面板，软件与实板搜索／取消／连接／保活／重连、主机停顿失效和重开通过。与工程编辑／安装／播放／授权解耦，原未保存用户窗口保留；下一步先定义稳定身份／能力和正式业务会话，再接传输、安装与运行模块。
 

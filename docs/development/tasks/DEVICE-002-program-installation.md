@@ -51,6 +51,10 @@ A 结果 `c8613c7`。B 的 [ADR-036](../decisions/PRODUCT-ADR-036-authenticated-
 
 299 Rust／工作区严格 Clippy 已通过，四个工作器保护用例含旧队列、协议错误、处理中撤销、丢完成回执重连对账。当前新增功能仍是受控本地工作任务探针，未接正式 GATT 安装、运行维护或 D 界面；B 的绑定确认仍待答复。物理输出始终禁止。成功样本和失败样本均保留，不用重试覆盖失败事实。
 
+## C 分片通道后续增量
+
+基线 `05cfeee`，结果为本次 `feat(device): bridge fragmented installs to isolated worker` 提交；[ADR-038](../decisions/PRODUCT-ADR-038-installation-byte-channel.md) 将半包、单请求背压、固定期限、旧完成和发送确认收敛到独立 `Endpoint`，接口见 [字节通道](../../module-api/installation-byte-channel.md)。新增 7 组保护测试，全工作区 306 Rust／严格检查通过；ESP32 本地探针接同一端点及真实双核队列，20／244 字节两条路径已经实测，端点 2,632 B。最新 28 场景包写入 B 第 8 代，11,200 帧一致、219 次诊断保活通过，最大往返 559.339 ms。已恢复只读 550,128 B 镜像、0 擦写／165 次保活通过；正式已认证 GATT 仍未接通。详细边界见 [通道验收](DEVICE-002C-channel-acceptance.md)。
+
 ## 范围与验收
 
 - 项目内源码、协议／固件、桌面宿主与组件、锁文件、测试、工具和文档。工程 JSON 与播放计划语义不因通信接入而改变。
