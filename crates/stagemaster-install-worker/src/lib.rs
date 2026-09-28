@@ -4,7 +4,9 @@
 #![forbid(unsafe_code)]
 
 mod endpoint;
+mod managed;
 pub use endpoint::{ChannelError, Endpoint, Phase};
+pub use managed::ManagedWorker;
 
 use core::num::NonZeroU32;
 use stagemaster_install::{Installed, Installer, Storage};
@@ -34,6 +36,7 @@ pub enum Error {
     Obsolete,
     NotOpen,
     Protocol(stagemaster_transfer::Error),
+    Maintenance(stagemaster_runtime::Code),
 }
 #[derive(Debug)]
 #[allow(clippy::large_enum_variant)] // Same bounded, allocation-free queue as Command.

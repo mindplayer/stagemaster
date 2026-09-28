@@ -134,3 +134,7 @@ PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/worker_probe.p
 工作器对操作耗时、物理 NOR 次数／耗时、调用前栈深度和分配器历史峰值做汇总；避免每块输出完整事务状态。SDK 串口打印本身使用临界区，过多日志会干扰无线时序。成功及失败的实测结果、当前限制见 [DEVICE-002C 验收记录](../../docs/development/tasks/DEVICE-002C-worker-acceptance.md)。
 
 当前本地探针的状态查询使用 20 字节片段、安装使用 244 字节片段，均通过正式 `Endpoint` 和实际跨核工作队列；监听脚本增加 `--expect-byte-channel` 可强制检查这两条路径及目标类型尺寸。这里只在板内传递节目片段，同时另测诊断 BLE；不能把它计作节目已通过蓝牙下发。正式认证与 GATT 接入仍是独立出口，见 [字节通道接口](../../docs/module-api/installation-byte-channel.md)。
+
+## 运行维护集成（DEVICE-002C）
+
+当前 worker-readiness／worker-write-test 均使用 ManagedWorker，通过 Runtime 的有效维护窗口执行每个存储命令。只读构建仍不写包；本地写测试增加真实目录绑定、运行态拒写和重新进入维护的断言。使用 `worker_probe.py --expect-maintenance-cycle` 验证这条额外路径；该选项应与明确构建／刷入的 worker-write-test 及原有包逐帧参考一起使用，不能在只读固件上假定会发生。机制与本轮数据见[维护验收](../../docs/development/tasks/DEVICE-002C-maintenance-acceptance.md)。GATT 正式安装仍须完成认证，GPIO21 始终禁用。

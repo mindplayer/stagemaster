@@ -2121,6 +2121,8 @@ name = "stagemaster-install-worker"
 version = "0.1.0"
 dependencies = [
  "stagemaster-install",
+ "stagemaster-package",
+ "stagemaster-runtime",
  "stagemaster-transfer",
 ]
 

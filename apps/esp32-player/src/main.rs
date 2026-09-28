@@ -66,6 +66,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
             peripherals.FROM_CPU_INTR1,
             peripherals.FLASH,
             identity.boot(),
+            &_output_disabled,
         );
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
     }

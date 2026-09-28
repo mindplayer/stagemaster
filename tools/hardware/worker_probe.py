@@ -76,6 +76,11 @@ async def run(args):
         log = "\n".join(line["text"] for line in lines)
         assert "panicked" not in log and "Backtrace" not in log
         assert "LOCAL WORKER PROBE PASS" in log, "local harness did not finish"
+        if args.expect_maintenance_cycle:
+            cycles = re.findall(r"INSTALL MAINTENANCE CYCLE PASS programs=(\d+) operation-write=denied selected=false output=false", log)
+            assert len(cycles) == 1 and int(cycles[0]) > 0, "maintenance cycle missing or duplicated"
+            result["maintenance_cycle"] = dict(programs=int(cycles[0]), operation_write_denied=True,
+                                               auto_selected=False, physical_output=False)
         if args.expect_write:
             assert "LOCAL WORKER WRITE TEST installed" in log
             counters = re.findall(r"writes=(\d+) erases=(\d+)", log)
@@ -147,5 +152,6 @@ if __name__ == "__main__":
     parser.add_argument("--expect-existing", action="store_true")
     parser.add_argument("--expect-readonly-recovery", action="store_true")
     parser.add_argument("--expect-byte-channel", action="store_true")
+    parser.add_argument("--expect-maintenance-cycle", action="store_true")
     parser.add_argument("--reference-replay", type=Path)
     asyncio.run(run(parser.parse_args()))

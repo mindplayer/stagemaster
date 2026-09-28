@@ -174,6 +174,12 @@ impl<S: Storage> Service<S> {
     pub fn snapshot(&self) -> Result<Installed<S::Snapshot>, stagemaster_install::Error<S::Error>> {
         self.installer.snapshot()
     }
+    /// Current transaction progress without storage I/O. Maintenance owners use it to
+    /// prevent leaving an incomplete, failed or uncertain transaction behind.
+    #[must_use]
+    pub fn progress(&self) -> Option<stagemaster_install::Progress> {
+        self.installer.progress()
+    }
 }
 fn remote_error<E>(error: &stagemaster_install::Error<E>) -> RemoteError {
     use stagemaster_install::Error as InstallError;

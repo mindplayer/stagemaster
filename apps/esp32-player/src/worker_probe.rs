@@ -1,4 +1,6 @@
 //! Compile-time local harness, not a wireless authorization or install endpoint.
+#[cfg(feature = "worker-write-test")]
+mod maintenance;
 use crate::installation::{COMPLETIONS, LIVE_EPOCH, READY, REQUESTS};
 use core::sync::atomic::Ordering;
 use embassy_time::{Duration, Timer, with_timeout};
@@ -199,8 +201,8 @@ async fn upload(mut session: [u8; 16]) {
 // Runs only on the storage-owning core, once for a matching durable commit.
 // Produces software frames in RAM. No physical output driver exists here.
 #[cfg(feature = "worker-write-test")]
-pub fn verify_reply<S: stagemaster_install::Storage>(
-    worker: &stagemaster_install_worker::Worker<S>,
+pub fn verify_reply<S: stagemaster_install::Storage, P: stagemaster_runtime::PlaybackPolicy>(
+    worker: &mut stagemaster_install_worker::ManagedWorker<S, P>,
     completion: &stagemaster_install_worker::Completion,
     replayed: &mut Option<stagemaster_install::Commit>,
 ) where
@@ -245,6 +247,7 @@ pub fn verify_reply<S: stagemaster_install::Storage>(
     }
     *replayed = Some(head);
     drop(installed);
+    maintenance::verify(worker);
     // This allocator is shared with live radio tasks on the other core. Two
     // immediate samples can differ by a transient BLE allocation. The host
     // checks retained heap after replay while heartbeats continue.

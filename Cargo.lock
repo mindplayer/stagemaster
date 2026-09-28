@@ -3774,6 +3774,7 @@ dependencies = [
  "stagemaster-install-store",
  "stagemaster-package",
  "stagemaster-project",
+ "stagemaster-runtime",
  "stagemaster-transfer",
  "tempfile",
 ]

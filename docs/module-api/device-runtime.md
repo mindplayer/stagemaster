@@ -102,3 +102,7 @@ bash tools/hardware/firmware.sh runtime-report
 ```
 
 第二条读取指定真实包，在项目 tmp 下用文件安装参考完成选择、载入、执行、暂停、继续、断开和停止，并与独立 Player 逐帧比较；没有物理输出驱动。既有桌面导出的三个节目各 400 帧通过。测试另覆盖场景／列表、循环、Finished、错误控制、恢复和维护；具体证据见[工单](../development/tasks/PLAYER-003E-device-runtime.md)。未刷机、无线控制、实板持续运行、真实 DMX或生产授权；这些是后续独立出口。
+
+## 安装任务承接
+
+DEVICE-002C 已由 [ManagedWorker](maintained-install-worker.md) 组合运行层和串行存储工作器，ESP32 的每条内部安装命令进入实际维护令牌闭包。结束维护需终结安装事务并重新验证最新目录；不会自动选择或播放。正式远程维护命令、物理输出静默确认和商业许可仍未实现。

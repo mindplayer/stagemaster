@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DEVICE-002C 维护集成：基线 `a35eab8`，结果为本次 `feat(device): enforce runtime maintenance around installation worker` 提交。依 [ADR-041](decisions/PRODUCT-ADR-041-maintained-install-worker.md) 用 ManagedWorker 将实际存储命令置于 Runtime 维护窗口，拒绝运行态写入、约束事务终结与读源释放；新增产品文件最多 128 行。347 Rust 全量、最终 19 定向、严格检查和 Xtensa 双镜像构建通过。实板 27 场景 A 第 9 代、10,800 帧一致，维护进出／拒写与 204 次保活通过；已恢复 552,656 B 只读镜像，零擦写／165 次保活通过，B 第 8 代保留。见[验收](tasks/DEVICE-002C-maintenance-acceptance.md)。用户 PID 44624 工程仍已保存；无配对或物理输出。完整目标未完成，下一关键步骤等待此前 Mac／ESP32 系统绑定确认，不能绕过认证补假闭环；见[全目标阻塞审查](tasks/DEVICE-002-blocking-audit.md)。
+
 DEVICE-002D 任务层增量：基线 `59224fd`，结果为本次 `feat(device): add independent installation tasks and desktop workflow` 提交。按 [ADR-040](decisions/PRODUCT-ADR-040-host-installation-task.md) 完成独立不可变包任务、已确认进度、取消／恢复／提交核验、会话间连续请求游标，以及正式中文安装面板与播放包入口；337 Rust 全量＋最终 41 定向（新增 2）、78 UI、严格检查、桌面构建和 Xtensa 检查通过。修复同连接新任务序号归零和包／工程门锁顺序风险，见[验收](tasks/DEVICE-002D-task-workflow.md)。新增产品文件最大 206 行，播放包结果已拆分；既有 Workbench 仅接线。原生实际包生成／过期／上下文／无权限禁用通过，本轮蓝牙搜索报告系统未就绪；B 绑定仍待确认，正式无线安装与维护集成未完成，goal 保持全范围。旧展示 PID 在本轮已不存在，最新主程序已打开圆弧工程；无固件或物理输出操作。
 
 DEVICE-002D 主机调度增量：基线 `fd92ca1`，结果为本次 `feat(device): coordinate installation I/O with connection heartbeats` 提交。依 [ADR-039](decisions/PRODUCT-ADR-039-host-install-io.md)，同一连接任务接入经授权的单消息入口，按片段穿插保活、固定期限、严格回执匹配及断线清理；现有上传器经软件适配实际完成文件双槽安装／重连核验。325 Rust、最终 36 项主机定向、严格 Clippy／fmt 和 ESP32 原生只读五次保活通过；见 [验收](tasks/DEVICE-002D-host-io-acceptance.md)。代码按职责拆分，新增产品文件均不超过 178 行，原服务文件从 403 行收敛至 232 行。原生安装权限继续为无，正式 GATT／系统绑定、维护状态和桌面进度／恢复仍未完成；goal 保持全范围，未启用物理输出。

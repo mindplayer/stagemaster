@@ -1,4 +1,5 @@
 //! Board-local owner of the install service. No GATT write path is connected here.
+mod runtime;
 use core::sync::atomic::{AtomicU8, AtomicU32, AtomicUsize, Ordering};
 use embassy_futures::select::{Either, select};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Channel};
@@ -6,7 +7,7 @@ use embassy_time::Timer;
 use esp_hal::{peripherals, system::Stack};
 use esp_rtos::embassy::Executor;
 use stagemaster_install::Installer;
-use stagemaster_install_worker::{Command, Completion, Epoch, Worker};
+use stagemaster_install_worker::{Command, Completion, Epoch, ManagedWorker};
 use stagemaster_nor_store::{Layout, NorDevice};
 use static_cell::{ConstStaticCell, StaticCell};
 
@@ -30,6 +31,7 @@ pub fn start(
     interrupt: peripherals::FROM_CPU_INTR1<'static>,
     flash: peripherals::FLASH<'static>,
     boot: [u8; 16],
+    _output_disabled: &crate::board::OutputDisabled,
 ) {
     static STACK: ConstStaticCell<Stack<STACK_BYTES>> = ConstStaticCell::new(Stack::new());
     static EXECUTOR: StaticCell<Executor> = StaticCell::new();
@@ -108,7 +110,18 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
             return false;
         }
     };
-    let mut worker = Worker::new(installer).unwrap();
+    let mut worker = ManagedWorker::new(
+        installer,
+        runtime::now(),
+        64 * 1024,
+        runtime::DisabledPlayback,
+    )
+    .unwrap();
+    // main retains OutputDisabled for this entire boot. There is no physical output
+    // task/queue in this firmware. Future output adapters must acknowledge real quiescence.
+    worker
+        .confirm_quiescent(worker.quiescence_request().unwrap(), runtime::now())
+        .unwrap();
     esp_println::println!(
         "INSTALL WORKER ready {:?}; worker={} command={} completion={} stack={} heap={}/{}; local-write-test={}",
         recovery,
@@ -131,7 +144,7 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
         };
         sample_stack();
         let start = esp_hal::time::Instant::now();
-        let completion = worker.process(command, live_epoch);
+        let completion = worker.process(command, runtime::now(), live_epoch);
         MAX_OPERATION_US.fetch_max(
             start.elapsed().as_micros().min(u64::from(u32::MAX)) as u32,
             Ordering::Relaxed,
@@ -143,7 +156,7 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
             report();
         }
         #[cfg(feature = "worker-write-test")]
-        crate::worker_probe::verify_reply(&worker, &completion, &mut replayed);
+        crate::worker_probe::verify_reply(&mut worker, &completion, &mut replayed);
         // The consumer must also check its epoch before notifying its peer.
         // A full queue yields this executor; it never blocks radio callbacks.
         COMPLETIONS.send(completion).await;
