@@ -31,6 +31,16 @@ A 结果 `c8613c7`。B 的 [ADR-036](../decisions/PRODUCT-ADR-036-authenticated-
 
 候选检查点：首次握手前 90 秒固定准入、无效请求不续期、首次有效握手后 6.035 秒断开已实板通过；原生 `Service<Ble>` 在该安全构建上仍通过描述／五次保活／断开清除。最新应用镜像 588,016 B，堆仍为 41,044／90,028 B。默认与安全 release／严格 Clippy／fmt 通过；保留预期 RWX 链接告警。没有完成密码配对，以上不能证明正向安全会话。工单保持 B 进行中，下一步处理已提出的绑定确认后验证配对；C 可先完成独立 Flash 工作调度的实现和预算，业务写入口仍保持关闭。
 
+## C 软件与首次实板断点（SHOWCASE-002 插入前）
+
+未提交实现包含 `stagemaster-install-worker`、[ADR-037](../decisions/PRODUCT-ADR-037-installation-worker.md)、[接口](../../module-api/installation-worker.md)、ESP32 第二核串行 Flash 工作任务和独立本地探针。队列携带连接代次，I/O 前后撤销核对，旧完成不进入新会话；不提供未认证的 GATT 写入口。4 项新测试通过，全量 299 Rust、fmt／严格 Clippy 通过，worker-readiness 和 worker-write-test release／严格检查通过。日志 `logs/device-002c-workspace-{tests,clippy}.log`。
+
+受控刷入 581,376 B 测试镜像并采用 `partitions-storage.csv`（OTA0/1 各 3 MiB，stmpkgs @ 0x610000／0x402000）后，核心 1 在 `esp-bootloader-esp-idf 0.6.0` 的 `partition_type()` 触发 `unreachable!()`：该版本 `as_flash_region()` 不支持项目自定义分区类型 0x40。此前仅构建／分区表往返没有发现这一缺陷。存储尚未创建，未开始节目擦除或写入；核心 0 诊断 BLE 继续运行，堆仍为 41,044／90,028 B。首轮探针最终按 panic 断言失败；失败报告仅保留串口／状态日志，未完成 RTT 汇总，不能宣传并发擦写验收。日志 `logs/device-002c-worker-first-install.log`。
+
+插入用户舞台建模请求前，已恢复原只读 security-readiness 镜像（588,016 B），显式沿用新分区表，刷写退出 0；日志 `logs/device-002c-restore-diagnostic.log`。该恢复只确认刷写完成，未重新宣称正向配对或安装能力。GPIO21 继续保持低电平，无真实 DMX、无 eFuse、无系统配对。
+
+下一步先评估官方通用 data 分区类型与独立有界 NOR 适配，任何分区契约调整先记架构决定，不能修改上游缓存或绕过分区校验。修复后重跑真实 Flash 写入／保活／资源／恢复测试，再接 B 已认证会话与 D UI。现有只读 worker 镜像仍含同样分区缺陷，不应再次刷入。
+
 ## 范围与验收
 
 - 项目内源码、协议／固件、桌面宿主与组件、锁文件、测试、工具和文档。工程 JSON 与播放计划语义不因通信接入而改变。
