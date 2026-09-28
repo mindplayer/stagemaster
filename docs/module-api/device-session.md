@@ -8,6 +8,8 @@ DEVICE-002B；实现 `crates/stagemaster-device-session`；依据 [ADR-047](../d
 
 [安全记录字节通道](secure-record-channel.md)已作为独立无堆适配实现并完成软件组合测试；双方生产依赖仍分离，仅由测试组合，不代表正式 GATT 已接通。
 
+后续[免配对 GATT 实板实验](../development/tasks/DEVICE-002-secure-gatt-acceptance.md)已完成真实握手、保活、消息与故障拒绝；生产授权及安装适配仍待实施。实验使用 USB 固定的启动期公钥，不代表云端认领。
+
 `SecretKey` 持有本端秘密，不提供 Debug／Serialize／Clone；密钥存储与生产配置另由凭据适配负责。`Context` 绑定稳定设备号、启动身份和连接随机号。`PeerProof` 只能由完成相互确认的通道取得，表示当前对端持有相应密钥，**不是安装授权或账号归属**；保存它的副本不会冻结有效期。
 
 ## 调用形状

@@ -12,10 +12,13 @@ pub(super) async fn serve<P: PacketPool>(
     description: &[u8; 96],
     snapshot: fn() -> [u8; 20],
     connected: &mut impl FnMut(bool),
+    #[cfg(feature = "secure-gatt-test")] secure_key: &stagemaster_device_session::SecretKey,
     #[cfg(feature = "binding-readiness")] binding: &mut crate::bindings::link::Link,
 ) {
     let description = stagemaster_device_info::Description::decode(description).unwrap();
     let session_id = description.session;
+    #[cfg(feature = "secure-gatt-test")]
+    let mut secure = super::secure_probe::Probe::new(description, conn.raw().att_mtu());
     #[cfg(feature = "installation-gatt")]
     let mut installation = super::installation::Channel::new(description);
     let mut session = Session::new(session_id, Instant::now().as_millis()).unwrap();
@@ -34,6 +37,8 @@ pub(super) async fn serve<P: PacketPool>(
         };
         #[cfg(not(feature = "security-readiness"))]
         let expired = session.poll(Instant::now().as_millis()).unwrap();
+        #[cfg(feature = "secure-gatt-test")]
+        let expired = expired && !secure.started();
         #[cfg(feature = "binding-readiness")]
         let expired = expired || binding.expired();
         if expired {
@@ -47,6 +52,13 @@ pub(super) async fn serve<P: PacketPool>(
             break;
         }
         let delay = 100;
+        #[cfg(feature = "secure-gatt-test")]
+        if !secure.tick(&server.secure_probe, conn).await {
+            conn.raw().disconnect();
+            break;
+        }
+        #[cfg(feature = "secure-gatt-test")]
+        let delay = if secure.sending() { 1 } else { delay };
         #[cfg(feature = "installation-gatt")]
         let delay = if installation.sending() { 1 } else { delay };
         let event = match select(conn.next(), Timer::after_millis(delay)).await {
@@ -122,6 +134,22 @@ pub(super) async fn serve<P: PacketPool>(
             GattConnectionEvent::Gatt { event } => {
                 let mut response = None;
                 let reply = match event {
+                    #[cfg(feature = "secure-gatt-test")]
+                    GattEvent::Write(event)
+                        if event.handle() == server.secure_probe.request.handle =>
+                    {
+                        let valid = server.secure_probe.response.should_notify(conn)
+                            && event.with_data(|offset, bytes| {
+                                offset == 0
+                                    && secure.receive(bytes, secure_key, conn.raw().att_mtu())
+                            });
+                        if valid {
+                            event.accept_unprocessed()
+                        } else {
+                            conn.raw().disconnect();
+                            event.reject(AttErrorCode::UNLIKELY_ERROR)
+                        }
+                    }
                     #[cfg(feature = "installation-gatt")]
                     GattEvent::Read(event)
                         if event.handle() == server.installation.receipt.handle =>

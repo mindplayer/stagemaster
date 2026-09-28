@@ -16,6 +16,8 @@ tokio = { version = "=1.53.1", features = ["rt", "sync", "time", "macros"] }
 uuid = "=1.26.1"
 
 [dev-dependencies]
+getrandom = "=0.3.4"
+stagemaster-device-session = { path = "../stagemaster-device-session" }
 stagemaster-install = { path = "../stagemaster-install" }
 stagemaster-install-store = { path = "../stagemaster-install-store" }
 stagemaster-package = { path = "../stagemaster-package" }

@@ -1,6 +1,6 @@
 # 安全记录字节通道
 
-DEVICE-002；`stagemaster-device-link::secure`，依据 [ADR-048](../development/decisions/PRODUCT-ADR-048-bounded-secure-record-framing.md)。此模块已实现无堆收发与故障保护；GATT 无线接入尚待实施。
+DEVICE-002；`stagemaster-device-link::secure`，依据 [ADR-048](../development/decisions/PRODUCT-ADR-048-bounded-secure-record-framing.md)。此模块已实现无堆收发与故障保护；[实验 GATT](../development/tasks/DEVICE-002-secure-gatt-acceptance.md)已实板通过，正式授权与安装适配仍待实施。
 
 `Sender`／`Receiver` 各属于一条物理连接的单一方向，独立持有序号、固定缓冲与期限，不依赖加密库、蓝牙 SDK、云端或安装模块。传递的是完整不透明握手／密文，不能凭 `Record` 授予权限。
 

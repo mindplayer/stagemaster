@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 session-readiness = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 security-readiness = ["trouble-host/security"]
 binding-readiness = ["security-readiness", "worker-readiness", "dep:stagemaster-device-auth"]

@@ -1,17 +1,37 @@
 //! GATT adapter for the diagnostic protocol. It owns no playback commands.
 #[cfg(feature = "installation-gatt")]
 mod installation;
+#[cfg(feature = "secure-gatt-test")]
+mod secure_probe;
 mod session;
+#[cfg(all(feature = "secure-gatt-test", feature = "security-readiness"))]
+compile_error!("安全 GATT 实验不得启用系统配对或绑定");
 use embassy_futures::join::join;
 #[cfg(feature = "binding-readiness")]
 use embassy_time::{Duration, Timer, with_timeout};
 use esp_println::println;
 use trouble_host::prelude::*;
 
-#[cfg(not(feature = "security-readiness"))]
+#[cfg(all(not(feature = "security-readiness"), not(feature = "secure-gatt-test")))]
 #[gatt_server]
 struct Server {
     link: LinkService,
+}
+
+#[cfg(feature = "secure-gatt-test")]
+#[gatt_server]
+struct Server {
+    link: LinkService,
+    secure_probe: SecureProbeService,
+}
+
+#[cfg(feature = "secure-gatt-test")]
+#[gatt_service(uuid = "f889ed90-0100-4e83-968e-799ab99558fa")]
+struct SecureProbeService {
+    #[characteristic(uuid = "f889ed92-0100-4e83-968e-799ab99558fa", write, write_without_response, value = [0; 244])]
+    request: [u8; 244],
+    #[characteristic(uuid = "f889ed93-0100-4e83-968e-799ab99558fa", notify, value = [0; 244])]
+    response: [u8; 244],
 }
 
 #[cfg(all(feature = "security-readiness", not(feature = "installation-gatt")))]
@@ -66,6 +86,8 @@ pub async fn run<C: Controller>(
     snapshot: fn() -> [u8; 20],
     mut connected: impl FnMut(bool),
 ) -> ! {
+    #[cfg(feature = "secure-gatt-test")]
+    let secure_key = secure_probe::key(&identity);
     #[cfg(feature = "binding-readiness")]
     let mut binding = crate::bindings::link::Link::start().await;
     let mut random = [0; 6];
@@ -195,6 +217,8 @@ pub async fn run<C: Controller>(
                     &description,
                     snapshot,
                     &mut connected,
+                    #[cfg(feature = "secure-gatt-test")]
+                    &secure_key,
                     #[cfg(feature = "binding-readiness")]
                     &mut binding,
                 )

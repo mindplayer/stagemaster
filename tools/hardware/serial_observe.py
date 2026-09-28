@@ -1,4 +1,7 @@
-"""Bounded USB log capture without reset. Pairing code is shown locally, not saved."""
+"""Bounded USB log capture; opening the port may reset a board via its USB driver.
+
+Pairing codes are shown locally, never saved. Inspect boot reasons in the capture.
+"""
 import argparse
 import re
 import time
@@ -41,4 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", required=True)
     parser.add_argument("--log", required=True)
     parser.add_argument("--seconds", type=int, choices=range(1, 601), default=180)
-    run(parser.parse_args())
+    try:
+        run(parser.parse_args())
+    except KeyboardInterrupt:
+        print("USB 观察已停止", flush=True)

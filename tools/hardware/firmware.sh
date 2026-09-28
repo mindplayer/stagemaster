@@ -8,6 +8,15 @@ export TMPDIR="$project_root/tmp"
 source "$project_root/tmp/esp-tools/export-esp.sh"
 firmware="$project_root/target/esp32-player/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe"
 case "$action" in
+  secure-gatt-build|secure-gatt-check)
+    export CARGO_TARGET_DIR="$project_root/target/esp32-secure-gatt"
+    cd "$project_root/apps/esp32-player"
+    if [[ "$action" == *-build ]]; then
+      cargo +esp build --release --features secure-gatt-test --locked --offline
+    else
+      cargo +esp clippy --release --features secure-gatt-test --locked --offline -- -D warnings
+    fi
+    ;;
   session-build|session-check)
     export CARGO_TARGET_DIR="$project_root/target/esp32-session"
     cd "$project_root/apps/esp32-player"
@@ -104,5 +113,5 @@ case "$action" in
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|session-build|session-check|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|binding-build|binding-check|binding-test-build|binding-test-check|installation-build|installation-check|installation-pair-build|installation-pair-check|installation-repair-build|installation-repair-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|secure-gatt-build|secure-gatt-check|session-build|session-check|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|binding-build|binding-check|binding-test-build|binding-test-check|installation-build|installation-check|installation-pair-build|installation-pair-check|installation-repair-build|installation-repair-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac

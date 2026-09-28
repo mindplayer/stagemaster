@@ -67,6 +67,8 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-devi
 
 ## 安全连接候选（DEVICE-002B）
 
+此节为历史 LESC 实验。当前产品方向不依赖系统配对；免配对应用层验证见下一节，不能把旧绑定记录当云端设备归属。
+
 `security-readiness` 仅加入要求 LE 已认证加密的只读探针；不包含安装、播放或输出。独立输出目录 `target/esp32-security-check/`。候选和实板发现见 [ADR-036](../../docs/development/decisions/PRODUCT-ADR-036-authenticated-device-session.md)。默认刷写命令仍只刷默认诊断构建，不会自动选择这个实验镜像。
 
 ```sh
@@ -77,6 +79,31 @@ bash tools/hardware/firmware.sh security-check
 受控刷入候选镜像后，`admission_probe.py` 不配对，只验首握手前固定期限和握手后正常过期。`secure_link_probe.py` 才会触发系统验证码流程，须已有当前设备配对确认，并由 USB 本地读取动态验证码；不会选固定密码或跳过失败。两者均使用项目 Python 环境及 `PYTHONDONTWRITEBYTECODE=1`，避免缓存写到源码目录。绑定目前仅在设备 RAM，持久化／撤销／业务权限和正向跨端验收未完成。
 
 macOS 正向配对及同启动重连已实测，见[验收](../../docs/development/tasks/DEVICE-002B-pairing-acceptance.md)。Bleak 2.1.1 公共 CoreBluetooth 读取不转发 timeout，内部默认 20 秒；实验通过独立 `secure_read.py` 使用同一原生 delegate 的 80 秒有界读取。升级依赖须核对该私有实验适配；正式产品不依赖它。临时配对码只在 USB 本地显示，持久日志必须脱敏；不要输出绑定密钥。
+
+## 免配对加密 GATT 实验（DEVICE-002）
+
+`secure-gatt-test` 是无节目访问／无安装权限的受控回送实验，和旧安全绑定特性互斥。实现及已知边界见[实板验收](../../docs/development/tasks/DEVICE-002-secure-gatt-acceptance.md)。不要把测试模式或启动期 USB 公钥固化成生产认领流程。
+
+```sh
+bash tools/hardware/firmware.sh secure-gatt-check
+bash tools/hardware/firmware.sh secure-gatt-build
+```
+
+沿现有受控刷机授权，显式选择 `target/esp32-secure-gatt/xtensa-esp32s3-none-elf/release/stagemaster-esp32-probe` 并保留 `partitions-storage.csv`；脚本不会自动刷入此镜像。先释放应用连接，USB 观察只记录一次新启动：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 TMPDIR="$PWD/tmp" tmp/ble-probe/bin/python tools/hardware/serial_observe.py --port /dev/cu.usbmodem2101 --log logs/device-002-secure-gatt-current.log --seconds 600
+```
+
+该串口驱动可能在打开时重启板卡，须以日志中的 boot reason 为准。在另一个终端从该次**受控 USB** 记录提取指定设备公钥，启动后不得复用其他启动的记录；文件不含私钥。当前板卡示例：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 tools/hardware/extract_session_trust.py --log logs/device-002-secure-gatt-current.log --output data/DEVICE-002/secure-probe-trust.json --device 534d4553503332533300288485569774
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-host --example secure_gatt_probe --locked --offline -- data/DEVICE-002/secure-probe-trust.json fast-all
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-host --example secure_gatt_probe --locked --offline -- data/DEVICE-002/secure-probe-trust.json stress
+```
+
+`all` 为逐片确认写基线；`fast-all` 为带平台背压的连续发送及故障组合；`stress` 为 128 轮不同内容的最大消息和保活。工具先核对当前描述、稳定标识、启动身份和只读能力，再验证公钥；实际定位由重新发现取得，不写死 macOS UUID。`small`／`small-fast` 只缩小主机发送片段，不表示实际协商 MTU 23。结束后停止 USB 观察、恢复只读镜像和用户应用连接；节目与真实输出不由本工具操作。
 
 ## NOR 存储准备（PLAYER-003D）
 
