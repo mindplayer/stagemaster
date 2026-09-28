@@ -84,3 +84,7 @@ D 主机通信增量已实施，基线 `fd92ca1`：同一连接任务协调保�
 ## B 绑定存储增量
 
 基线 `d8692f3`，独立 `stagemaster-device-auth` 已完成四主体档案、严格编码、提案式新增／撤销和可选 EKV 持久层；按 [ADR-042](../decisions/PRODUCT-ADR-042-device-binding-vault.md) 锁定配置，禁止自动格式化，发生不确定写入／底层读取错误后撤回档案可用性。352 项工作区测试、11 项定向（5 项重叠）、严格检查及 Xtensa 库级编译通过；完整故障模型和未完成项见[验收](DEVICE-002B-vault-acceptance.md)。没有分区表修改、刷机或物理输出，尚未把档案接到实板；下一步为连接准入／会话权限，再组合单一 Flash 执行器与真实 GATT。
+
+## B 连接权限核心增量
+
+基线 `0a713dd`，按 [ADR-043](../decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 完成独立 Authority，严格区分配对提案、持久结果与实时密钥证明；固定准入次数／期限、过期／降级／取消撤回和新旧连接隔离已验证。367 全量最终复核、28 auth 定向、严格检查及 Xtensa 库级编译通过；[验收](DEVICE-002B-authority-acceptance.md) 保留首次原文件存储测试偶发租约失败，尚不能认定根因消除。物理入口、真实凭据存储／栈和无线安装仍待集成；本轮未刷机。

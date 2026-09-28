@@ -1,6 +1,7 @@
 //! Device-owned binding records. No radio, UI, output or commercial-license authority.
 #![no_std]
 #![forbid(unsafe_code)]
+pub mod authority;
 mod binding;
 mod codec;
 #[cfg(feature = "persistence")]

@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DEVICE-002B 连接权限核心：基线 `0a713dd`，结果为本次 `feat(auth): gate live authority on bounded pairing and durable bonds` 提交。按 [ADR-043](decisions/PRODUCT-ADR-043-binding-admission-and-link-authority.md) 实现固定物理准入窗口／次数、连接代次、持久密钥恢复、保活／取消／撤销与提交后重连。28 项 auth 定向、367 项全工作区最终复核、严格检查和 Xtensa 库级编译通过；[验收](tasks/DEVICE-002B-authority-acceptance.md) 保留首次原存储测试偶发租约失败，独立和原命令复跑通过但根因待定位。尚未接板级存储／栈事件，没有刷机，不把核心通过当无线安装完成。用户新增状态灯需求已核对官方原理图，下一小增量让诊断连接时 RS485 绿灯常亮；真正 DMX 期间其亮灭由 UART 数据决定。
+
 DEVICE-002B 绑定存储增量：基线 `d8692f3`，结果为本次 `feat(auth): add bounded persistent device binding vault` 提交。按 [ADR-042](decisions/PRODUCT-ADR-042-device-binding-vault.md) 新增独立有界绑定档案及可选 EKV 原子存储，严格格式／配置、提交回读、撤销、秘密脱敏及 I/O 错误锁存。352 项工作区测试、11 项含持久化定向测试（其中 5 项与全量重叠）、严格检查及 Xtensa 库级编译通过；逐操作故障与多轮更新后损坏验证见[验收](tasks/DEVICE-002B-vault-acceptance.md)。新增产品文件最大 143 行。本轮没有刷机或修改分区，真实板卡仍为上一轮只读安全候选；持久绑定实板接入、连接权限与正式 GATT 安装仍待完成。配对确认已获授权，不重复询问。
 
 DEVICE-002B 配对进展（2026-09-29）：用户已明确确认当前 Mac／ESP32 测试配对，原确认阻塞解除。基线 `3baa1ce`，macOS 原生验证码配对报告已认证加密，同启动两次加密重连／保活通过；修复 Bleak 内部 20 秒读取期限遮蔽外层 80 秒的问题，见[正向验收](tasks/DEVICE-002B-pairing-acceptance.md)。正式应用重新搜索可见 StageMaster，自检／连接／33 次保活通过，原工程保持已保存。板卡当前为 590,400 B 只读安全候选，绑定仅在 RAM；正式业务认证、绑定持久化／撤销与无线节目安装仍待实施，无物理输出。下文配对未确认及旧固件描述为历史记录。

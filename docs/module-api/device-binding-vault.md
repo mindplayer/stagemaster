@@ -1,6 +1,6 @@
 # 设备绑定档案与持久存储
 
-DEVICE-002B；依据 [ADR-042](../development/decisions/PRODUCT-ADR-042-device-binding-vault.md)。当前实现是 `stagemaster-device-auth` 的绑定记录和可选 `persistence` 层；不是完整连接认证服务，尚未接 ESP32 蓝牙事件或正式无线安装。
+DEVICE-002B；依据 [ADR-042](../development/decisions/PRODUCT-ADR-042-device-binding-vault.md)。当前实现是 `stagemaster-device-auth` 的绑定记录和可选 `persistence` 层；连接权限核心已另见[实时权限模块](device-link-authority.md)，两者均尚未接 ESP32 蓝牙事件或正式无线安装。
 
 ## 数据与调用
 
@@ -32,4 +32,4 @@ store.commit(&proposal).await?;
 
 ## 验证与未接项
 
-完整证据见[绑定存储验收](../development/tasks/DEVICE-002B-vault-acceptance.md)。真实板卡仍运行上一轮只读安全候选；本轮没有修改分区表或刷机。Xtensa 库级编译不是完整固件链接、实板断电、绑定恢复或峰值预算的替代。下一步是物理准入／取消和连接级状态，再组合真实绑定存储及 GATT；不能由已存档的绑定直接产生 `AuthorizedLink`。
+完整证据见[绑定存储验收](../development/tasks/DEVICE-002B-vault-acceptance.md)。真实板卡仍运行上一轮只读安全候选；本轮没有修改分区表或刷机。Xtensa 库级编译不是完整固件链接、实板断电、绑定恢复或峰值预算的替代。物理准入／取消和连接级状态核心已补齐，下一步组合真实绑定存储及 GATT；不能由已存档的绑定直接产生 `AuthorizedLink`。
