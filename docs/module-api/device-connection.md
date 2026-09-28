@@ -1,6 +1,6 @@
 # 主机设备连接接口
 
-依据 [ADR-034](../development/decisions/PRODUCT-ADR-034-device-connection-workspace.md)；实现范围和验收状态见 [DEVICE-001](../development/tasks/DEVICE-001-connection-workspace.md)。macOS 原生 QA 已通过真实发现、连接、保活、主动重连和主机进程暂停后的过期恢复；更新界面产物后的原生补验仍待系统再次授权。不把组件测试或跨平台库的支持范围当实板证据。
+依据 [ADR-034](../development/decisions/PRODUCT-ADR-034-device-connection-workspace.md)；实现范围和验收状态见 [DEVICE-001](../development/tasks/DEVICE-001-connection-workspace.md)。macOS 原生 QA 已通过真实发现、搜索取消、连接、保活、主动重连、主机进程暂停后的过期恢复，以及最新构建退出重开后的新会话。不把组件测试、进程暂停或跨平台库的支持范围当整机睡眠／跨平台实测证据。
 
 ## 所有权和调用
 
