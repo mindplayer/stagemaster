@@ -6,6 +6,8 @@ DEVICE-002B；实现 `crates/stagemaster-device-session`；依据 [ADR-047](../d
 
 独立 no_std＋alloc Rust 模块，仅依赖选定的 Snow 密码原语、subtle、zeroize。安全随机源由宿主注入；BLE、文件、云端、安装任务和播放核心都在模块外。控制端必须预先取得可信设备公钥；广播里的公钥不能直接成为信任依据。
 
+[安全记录字节通道](secure-record-channel.md)已作为独立无堆适配实现并完成软件组合测试；双方生产依赖仍分离，仅由测试组合，不代表正式 GATT 已接通。
+
 `SecretKey` 持有本端秘密，不提供 Debug／Serialize／Clone；密钥存储与生产配置另由凭据适配负责。`Context` 绑定稳定设备号、启动身份和连接随机号。`PeerProof` 只能由完成相互确认的通道取得，表示当前对端持有相应密钥，**不是安装授权或账号归属**；保存它的副本不会冻结有效期。
 
 ## 调用形状

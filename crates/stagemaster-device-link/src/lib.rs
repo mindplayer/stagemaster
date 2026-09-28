@@ -4,6 +4,7 @@
 
 pub mod client;
 pub mod management;
+pub mod secure;
 
 pub const PACKET_BYTES: usize = 20;
 pub const PROTOCOL_VERSION: u8 = 1;

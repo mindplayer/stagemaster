@@ -3921,6 +3921,7 @@ dependencies = [
  "noise-protocol",
  "noise-rust-crypto",
  "snow",
+ "stagemaster-device-link",
  "subtle",
  "zeroize",
 ]
