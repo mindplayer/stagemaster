@@ -1,0 +1,19 @@
+[package]
+name = "stagemaster-device-auth"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+default = []
+persistence = ["dep:ekv", "dep:embassy-sync", "dep:embedded-storage"]
+
+[dependencies]
+zeroize = { version = "=1.9.0", default-features = false }
+ekv = { version = "=1.0.0", optional = true, default-features = false, features = ["crc", "page-size-4096", "align-4", "max-page-count-32", "max-chunk-size-256"] }
+embassy-sync = { version = "=0.6.2", optional = true }
+embedded-storage = { version = "=0.3.2", optional = true }
+
+[lints]
+workspace = true
