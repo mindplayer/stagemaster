@@ -14,7 +14,6 @@
 }
 .audio-header,
 .audio-transport,
-.audio-zoom,
 .audio-list-title {
   display: flex;
   align-items: center;
@@ -69,112 +68,10 @@
   color: #7fe6ce;
   margin-left: 8px;
 }
-.audio-zoom {
-  padding: 9px 12px;
-  justify-content: flex-end;
-  border-bottom: 1px solid #304651;
-  font-size: 12px;
-}
-.audio-zoom label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.audio-zoom input[type="checkbox"] {
-  width: auto;
-}
-.audio-zoom input[type="range"] {
-  width: 115px;
-  padding: 0;
-}
 .audio-timeline {
   border: 1px solid #304651;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
-  background: #11232d;
-}
-.audio-wave-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  position: relative;
-  touch-action: none;
-  height: 205px;
-  outline-offset: -2px;
-}
-.audio-wave-content {
-  height: 180px;
-  position: relative;
-}
-.audio-wave-content canvas {
-  position: sticky;
-  left: 0;
-  height: 180px;
-  display: block;
-  pointer-events: none;
-}
-.audio-playhead {
-  position: absolute;
-  inset: 25px auto 0 0;
-  width: 1px;
-  background: #fff1b6;
-  pointer-events: none;
-  will-change: transform;
-}
-.audio-playhead span {
-  position: absolute;
-  top: -7px;
-  left: -4px;
-  width: 9px;
-  height: 9px;
-  background: #fff1b6;
-  transform: rotate(45deg);
-}
-.workbench .audio-marker {
-  position: absolute;
-  top: 32px;
-  height: 148px;
-  width: 1px;
-  min-width: 1px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: #798aa0;
-  cursor: ew-resize;
-  overflow: visible;
-  touch-action: none;
-}
-.workbench .audio-marker.bound {
-  background: #f7b86b;
-}
-.workbench .audio-marker.selected {
-  background: #fff;
-}
-.audio-marker span {
-  position: absolute;
-  left: -4px;
-  top: 0;
-  display: block;
-  white-space: nowrap;
-  background: #30495c;
-  padding: 5px 9px;
-  max-width: 125px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 4px;
-  color: white;
-  font-size: 11px;
-}
-.audio-marker.bound span {
-  background: #825125;
-}
-.audio-marker.selected span {
-  outline: 2px solid #f2f6ff;
-}
-.audio-seek {
-  width: 100%;
-  height: 12px;
-  padding: 0;
-  accent-color: #56d1bb;
 }
 .audio-lower {
   display: grid;

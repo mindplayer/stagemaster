@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-002 已完成成熟波形组件增量（基线 `dda2052`，结果为本次 `feat(audio): integrate professional stereo waveform editing` 提交）：WaveSurfer 7.12.12 波形／时间刻度／全曲概览、10 ms 真实双声道包络、缩放／平移／显示幅度与原子卡点编辑，Rust 继续负责声音和灯光时间。425 Rust（默认特性）、83 UI、严格检查及桌面构建通过，真实 Volare 原生显示／播放和一小时容量验收通过，见 [AUDIO-002](tasks/AUDIO-002-professional-waveform.md)。自动拍子暂缓，拖动期间 Esc 的自动化组合尚未实测。用户已授权旧窗口不保存关闭，旧正式／连接／音频验收及其旧 UE 已关闭，仅保留“舞台大师波形验收”和独立已保存工程 `data/AUDIO-002/Volare-波形验收.project.json`，当前停止、全曲显示；这取代下文旧窗口保留说明。
+
 AUDIO-001 已完成本机音频卡点增量（基线 `79b584d`，结果为本次 `feat(audio): add native music and lighting beat editing` 提交）：独立 Rust 音频／资源适配、单轨波形／播放／定位／裁切、手动打点与场景绑定、拖动／精确输入／撤销、保存随附资源及缺失重定位。432 Rust、81 UI、78 格式、严格检查和桌面构建通过；真实 WAV／MP3／FLAC 输出、原生导入／保存重开／缺失恢复通过，见 [AUDIO-001](tasks/AUDIO-001-beat-editing.md) 和 [模块契约](../module-api/audio-editing.md)。音乐留主机，ESP32 不存音乐；自动节拍、多轨、跨设备同步及物理 DMX 仍未实现。两个用户原窗口及连接验收未保存内容保持；音频验收使用独立工程。用户随后要求真实音乐，已从 Nonesuch 下载《Volare》30 秒官方试听片段并导入；用户正在操作该窗口且未保存，请勿重载／覆盖。
 
 MEMORY-001 已完成首轮分层内存／存储保护（基线 `cebf87f`，结果 `79b584d`）：实板 8 MB PSRAM 整区自检通过，2 MB 固定读缓存／内部堆和实时栈隔离，擦写前失效与失败路径有保护。425 Rust／严格检查／固件及真实取消、续传、安装、坏包拒绝通过；内部堆稳定 41,132 B、峰值 48,548 B。当前 699,712 B 镜像、B 第 18 代／A 第 17 代；无 DMX 输出。详细限制及失败记录见 [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md)。用户已澄清音频需求是剪映式卡点，已按 AUDIO-001 独立增量实现；不要做设备页占位。用户连接验收窗口已有未保存修改，必须保留。
@@ -133,6 +135,7 @@ DEVICE-001 正式网页禁用、组件隐藏选择／迟到状态／故障与 11
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [AUDIO-002](tasks/AUDIO-002-professional-waveform.md) | done（专业波形） | 成熟组件、真实双声道、全曲导航／缩放与有界资源，自动节拍暂缓 |
 | [AUDIO-001](tasks/AUDIO-001-beat-editing.md) | done（本机单轨卡点） | 真实音乐／波形、手动打点／场景绑定、原子编辑／资源归档；跨设备同步后续 |
 | [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md) | done（首轮实板保护） | 8 MB PSRAM 自检、2 MB 固定缓存、内部实时内存隔离、真实安装恢复通过 |
 | [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) | done（软件传输闭环） | 有界封包／分片、权限注入边界、幂等回执、上传／重连／取消和真实文件重放通过；真实 GATT／设备认证及 Flash 后续 |

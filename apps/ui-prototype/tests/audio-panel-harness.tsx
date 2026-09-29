@@ -14,15 +14,18 @@ import type {
 import type { AudioTimeline, AudioPosition } from "../src/audio-types";
 import "../src/base.css";
 import "../src/workbench.css";
+const duration = new URLSearchParams(location.search).has("long")
+  ? 3_600_000
+  : 32000;
 const track: AudioTimeline = {
   asset: {
     digest: "ab".repeat(32),
     fileName: "节奏验收.wav",
     extension: "wav",
-    durationMs: 32000,
+    durationMs: duration,
   },
   inMs: 0,
-  outMs: 32000,
+  outMs: duration,
   markers: [
     {
       id: crypto.randomUUID(),
@@ -42,7 +45,7 @@ let position: AudioPosition = {
   volumePercent: 100,
   playing: false,
   positionMs: 0,
-  durationMs: 32000,
+  durationMs: duration,
   problem: null,
 };
 let anchor = performance.now();
@@ -52,11 +55,15 @@ const host: ApplicationHost = {
   audioPrepare: async () => ({
     asset: track.asset,
     waveform: {
-      durationMs: 32000,
-      bucketMs: 20,
-      peaks: Array.from(
-        { length: 1600 },
-        (_, i) => 0.12 + 0.7 * Math.exp(-(i % 25) / 3),
+      durationMs: duration,
+      bucketMs: 10,
+      channels: [0, 1].map((c) =>
+        Array.from(
+          { length: duration / 5 },
+          (_, i) =>
+            (i % 2 ? 1 : -1) *
+            (0.12 + (c ? 0.5 : 0.7) * Math.exp(-(Math.floor(i / 2) % 50) / 6)),
+        ),
       ),
     },
   }),
@@ -64,10 +71,10 @@ const host: ApplicationHost = {
   audio: async (_generation, command) => {
     if (position.playing) {
       position.positionMs = Math.min(
-        32000,
+        duration,
         position.positionMs + performance.now() - anchor,
       );
-      if (position.positionMs === 32000) position.playing = false;
+      if (position.positionMs === duration) position.playing = false;
     }
     anchor = performance.now();
     switch (command.kind) {

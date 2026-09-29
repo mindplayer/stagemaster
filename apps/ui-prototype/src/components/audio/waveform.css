@@ -1,0 +1,268 @@
+.audio-wave-editor {
+  background: #0e1922;
+}
+.audio-wave-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 8px 14px;
+  background: #192936;
+  border-bottom: 1px solid #2b414f;
+}
+.audio-wave-identity,
+.audio-wave-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+}
+.audio-wave-identity {
+  white-space: nowrap;
+}
+.audio-wave-identity > span:last-child {
+  color: #86a0b3;
+}
+.audio-track-number {
+  background: #204a49;
+  border-radius: 4px;
+  padding: 5px 7px;
+  font:
+    11px ui-monospace,
+    monospace;
+  color: #8de0c4;
+}
+.workbench .audio-wave-controls label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: #b2c4d0;
+}
+.workbench .audio-wave-controls input[type="checkbox"] {
+  width: auto;
+}
+.workbench .audio-wave-controls input[type="range"] {
+  width: 85px;
+  padding: 0;
+  accent-color: #68c3ae;
+}
+.workbench .audio-wave-controls select {
+  width: 68px;
+  min-width: 68px;
+  padding: 5px 20px 5px 8px;
+  font-size: 11px;
+}
+.workbench .audio-wave-controls button {
+  padding: 5px 10px;
+  min-height: 30px;
+  font-size: 11px;
+  border-radius: 5px;
+}
+.audio-wave-body {
+  position: relative;
+  background: repeating-linear-gradient(
+    to bottom,
+    #0e1922 0 77px,
+    #20303b 77px 78px,
+    #0e1922 78px 127px,
+    #293b48 127px 128px,
+    #0e1922 128px 177px,
+    #20303b 177px 178px,
+    #0e1922 178px 228px
+  );
+}
+.audio-wave-detail {
+  position: relative;
+  z-index: 0;
+}
+.audio-wave-ruler {
+  height: 28px;
+  overflow: hidden;
+  background: #14232e;
+  border-bottom: 1px solid #2b414f;
+}
+.audio-wave-detail ::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: #435a68 #111f29;
+}
+.audio-wave-interaction {
+  position: absolute;
+  z-index: 3;
+  inset: 0 0 14px;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: crosshair;
+  outline-offset: -2px;
+}
+.audio-channel-labels {
+  position: absolute;
+  inset: 28px auto 0 7px;
+  pointer-events: none;
+  z-index: 2;
+}
+.audio-channel-labels span {
+  display: block;
+  height: 100px;
+  padding-top: 12px;
+  font-size: 10px;
+  color: #a6c1cf;
+  text-shadow: 0 1px 4px #000;
+}
+.workbench .audio-wave-marker {
+  position: absolute;
+  top: 30px;
+  bottom: 0;
+  min-width: 14px;
+  width: 14px;
+  margin-left: -7px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.audio-wave-marker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: #839faf;
+}
+.audio-wave-marker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 2px;
+  width: 9px;
+  height: 10px;
+  background: #617e90;
+  clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+}
+.audio-wave-marker.bound::before,
+.audio-wave-marker.bound::after {
+  background: #eab06a;
+}
+.audio-wave-marker.selected::before,
+.audio-wave-marker.selected::after {
+  background: #fff1b6;
+}
+.audio-wave-marker span {
+  display: none;
+  position: absolute;
+  left: 9px;
+  top: 0;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 7px;
+  background: #263d4e;
+  border: 1px solid #506876;
+  border-radius: 3px;
+  color: #e2e9ed;
+  font-size: 10px;
+  text-align: left;
+}
+.audio-wave-marker.with-label span,
+.audio-wave-marker:hover span,
+.audio-wave-marker:focus span {
+  display: block;
+}
+.audio-wave-marker.bound span {
+  background: #493822;
+  border-color: #846038;
+}
+.audio-wave-marker.selected {
+  z-index: 3;
+}
+.audio-wave-marker.selected span {
+  border-color: #fff1b6;
+}
+.audio-wave-tooltip {
+  position: absolute;
+  bottom: 6px;
+  pointer-events: none;
+  border: 1px solid #5d7381;
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: #14232ef2;
+  color: #ecf7f9;
+  font:
+    11px ui-monospace,
+    monospace;
+}
+.audio-overview-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px 5px;
+  border-top: 1px solid #2b414f;
+  color: #809baa;
+  font-size: 10px;
+}
+.audio-overview-header output {
+  font:
+    10px ui-monospace,
+    monospace;
+}
+.audio-overview {
+  margin: 0 14px 10px;
+  border: 1px solid #344e5b;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+.audio-overview > div {
+  pointer-events: none;
+  min-height: 48px;
+}
+.audio-overview:active {
+  cursor: grabbing;
+}
+.audio-wave-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 7px 14px;
+  border-top: 1px solid #263b48;
+  font-size: 10px;
+  color: #839caa;
+}
+.audio-accessible-seek {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.audio-accessible-seek:focus {
+  position: static;
+  width: calc(100% - 28px);
+  height: 20px;
+  margin: 6px 14px;
+  opacity: 1;
+}
+.audio-wave-loading {
+  position: absolute;
+  inset: 30px 0 0;
+  display: grid;
+  place-content: center;
+  color: #8199aa;
+  pointer-events: none;
+}
+@media (max-width: 1150px) {
+  .audio-wave-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .audio-wave-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

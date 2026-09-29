@@ -7,13 +7,14 @@ use std::{
     time::Instant,
 };
 pub const MAX_DURATION_MS: u64 = 3_600_000;
-pub const BUCKET_MS: u64 = 20;
+pub const BUCKET_MS: u64 = 10;
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Waveform {
     pub duration_ms: u64,
     pub bucket_ms: u64,
-    pub peaks: Vec<f32>,
+    /// One interleaved min/max envelope per channel. Never decoded PCM.
+    pub channels: Vec<Vec<f32>>,
 }
 /// Stream decoded samples into bounded peak buckets, never retain the full PCM.
 /// # Errors
@@ -35,12 +36,17 @@ pub fn analyze(path: &Path, cancelled: &AtomicBool) -> Result<Waveform, String> 
     let per_second = u64::from(rate) * u64::from(channels);
     let samples_per_bucket = per_second * BUCKET_MS / 1000;
     let maximum = per_second * MAX_DURATION_MS / 1000;
-    let mut peaks = Vec::new();
-    peaks
-        .try_reserve_exact(180_000)
-        .map_err(|_| "波形缓存内存不足")?;
+    let mut envelopes = Vec::with_capacity(usize::from(channels));
+    for _ in 0..channels {
+        let mut envelope = Vec::new();
+        envelope
+            .try_reserve_exact(720_000)
+            .map_err(|_| "波形缓存内存不足")?;
+        envelopes.push(envelope);
+    }
     let mut count = 0_u64;
-    let mut peak = 0_f32;
+    let mut low = [f32::INFINITY; 2];
+    let mut high = [f32::NEG_INFINITY; 2];
     let begin = Instant::now();
     while let Some(sample) = source.next() {
         if count.is_multiple_of(samples_per_bucket) {
@@ -60,22 +66,35 @@ pub fn analyze(path: &Path, cancelled: &AtomicBool) -> Result<Waveform, String> 
         if !sample.is_finite() {
             return Err("音乐包含无效采样值".into());
         }
+        let channel = usize::try_from(count % u64::from(channels)).unwrap_or(0);
         count += 1;
-        peak = peak.max(sample.abs().min(1.0));
-        if count.is_multiple_of(samples_per_bucket) {
-            peaks.push(peak);
-            peak = 0.0;
+        low[channel] = low[channel].min(sample.clamp(-1.0, 1.0));
+        high[channel] = high[channel].max(sample.clamp(-1.0, 1.0));
+        // Bucket boundaries use source frames so 11.025/22.05 kHz never split a stereo frame.
+        if count.is_multiple_of(u64::from(channels))
+            && (count * 1000 / per_second) / BUCKET_MS > envelopes[0].len() as u64 / 2
+        {
+            for (channel, envelope) in envelopes.iter_mut().enumerate() {
+                envelope.extend([low[channel], high[channel]]);
+            }
+            low = [f32::INFINITY; 2];
+            high = [f32::NEG_INFINITY; 2];
         }
     }
     if count == 0 {
         return Err("音乐没有可播放的采样".into());
     }
-    if !count.is_multiple_of(samples_per_bucket) {
-        peaks.push(peak);
+    if !count.is_multiple_of(u64::from(channels)) {
+        return Err("音乐末尾的采样帧不完整".into());
+    }
+    if low[0].is_finite() {
+        for (channel, envelope) in envelopes.iter_mut().enumerate() {
+            envelope.extend([low[channel], high[channel]]);
+        }
     }
     Ok(Waveform {
         duration_ms: (count * 1000 / per_second).max(1),
         bucket_ms: BUCKET_MS,
-        peaks,
+        channels: envelopes,
     })
 }

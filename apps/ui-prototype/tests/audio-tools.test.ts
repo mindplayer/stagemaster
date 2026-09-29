@@ -48,3 +48,39 @@ test("无效时间不能进入卡点草稿", () => {
       validateMarker({ id: "new", name: "卡点", timeMs, sceneId: null }, track),
     );
 });
+
+import {
+  clipEnvelope,
+  viewTime,
+  zoomAround,
+} from "../src/components/audio/waveform-data.ts";
+test("waveform clipping preserves signed channels and rejects malformed or excessive envelopes", () => {
+  const wave = {
+    durationMs: 25,
+    bucketMs: 10,
+    channels: [
+      [-0.1, 0.2, -0.3, 0.4, -0.5, 0.6],
+      [-0.7, 0.8, -0.2, 0.3, -0.1, 0.2],
+    ],
+  };
+  const data = clipEnvelope(wave, 10, 25);
+  assert.equal(data.length, 2);
+  assert.equal(data[0].length, 4);
+  assert.ok(Math.abs(data[0][0] + 0.3) < 0.00001);
+  assert.ok(Math.abs(data[1][0] + 0.2) < 0.00001);
+  assert.throws(() => clipEnvelope(wave, 25, 25));
+  assert.throws(() => clipEnvelope({ ...wave, channels: [[NaN, 1]] }, 0, 10));
+  assert.throws(() => clipEnvelope({ ...wave, channels: [[-1, 2]] }, 0, 10));
+  assert.throws(() => clipEnvelope({ ...wave, channels: [[]] }, 0, 10));
+  assert.throws(() =>
+    clipEnvelope({ ...wave, channels: [new Array(720002).fill(0)] }, 0, 10),
+  );
+});
+test("zoom and pointer calculations keep the musical location under the pointer", () => {
+  assert.equal(
+    viewTime(250, 50, { start: 10000, end: 20000, width: 1000 }),
+    12000,
+  );
+  assert.equal(zoomAround(12000, 200, 200), 2200);
+  assert.equal(zoomAround(0, 200, 200), 0);
+});

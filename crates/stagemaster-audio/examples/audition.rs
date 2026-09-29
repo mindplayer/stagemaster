@@ -10,8 +10,11 @@ fn main() -> Result<(), String> {
     println!(
         "waveform duration={}ms buckets={} bytes={}",
         wave.duration_ms,
-        wave.peaks.len(),
-        wave.peaks.len() * 4
+        wave.channels[0].len() / 2,
+        wave.channels
+            .iter()
+            .map(|channel| channel.len() * 4)
+            .sum::<usize>()
     );
     let mut transport = Transport::default();
     transport.load(path, 500, wave.duration_ms - 500)?;

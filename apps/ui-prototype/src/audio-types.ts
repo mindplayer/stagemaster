@@ -19,7 +19,7 @@ export interface AudioTimeline {
 export interface AudioWaveform {
   durationMs: number;
   bucketMs: number;
-  peaks: number[];
+  channels: number[][];
 }
 export interface PreparedAudio {
   asset: AudioAsset;
