@@ -1,3 +1,4 @@
+import { auditAudioEditing } from './audio-audit.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -130,7 +131,8 @@ export function auditProject(p) {
   for (const page of p.surfaces?.pages ?? []) add('control', page.controls);
   unique(p.requires.map(x => x.key), '能力键');
   const declared = new Set(p.requires.map(x => `${x.key}@${x.version}`));
-  for (const [module, capability] of Object.entries({ lighting:'lighting.basic',media:'media.external',motion:'motion.external',io:'io.logic',stage:'stage.layout',monitoring:'monitoring',surfaces:'surface.mapping' })) if (p[module]) assert(declared.has(`${capability}@1`), `缺少模块能力声明：${capability}`);
+  auditAudioEditing(p, declared, add, get);
+  for (const [module, capability] of Object.entries({ lighting:'lighting.basic',media:'media.external',motion:'motion.external',io:'io.logic',stage:'stage.layout',monitoring:'monitoring',surfaces:'surface.mapping' })) if (p[module] && !(module === 'media' && p.media.audioEditing && p.media.systems.length === 0 && p.media.objects.length === 0)) assert(declared.has(`${capability}@1`), `缺少模块能力声明：${capability}`);
   if (p.stage && ['spaces','constructions','placements'].some(key => key in p.stage)) assert(declared.has('stage.spaces@1'), '缺少模块能力声明：stage.spaces');
   if (p.timelines.length) assert(declared.has('timeline.basic@1'), '缺少时间线能力声明');
   if (p.rules.length) assert(declared.has('automation.rules@1'), '缺少联动能力声明');
