@@ -1,4 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod audio;
 mod check;
 mod device;
 mod installation;
@@ -149,6 +150,11 @@ fn main() {
         .manage(devices)
         .manage(installation)
         .setup(|app| {
+            let data = recovery::directory(app)?
+                .parent()
+                .ok_or("缺少数据目录")?
+                .to_path_buf();
+            app.manage(audio::Service::new(data.join("audio")));
             app.manage(recovery::Service::new(recovery::directory(app)?));
             Ok(())
         })
@@ -202,6 +208,9 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             project_request,
+            audio::audio_request,
+            audio::prepare::audio_prepare,
+            audio::prepare::audio_cancel,
             preview_request,
             check::check_request,
             package::package_build,

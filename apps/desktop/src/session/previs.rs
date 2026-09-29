@@ -47,10 +47,7 @@ impl Session {
     }
     pub(crate) fn previs_frame(&mut self) -> Result<InputFrame, String> {
         let playback = if matches!(self.previs_source, Source::Playback) {
-            Some(
-                self.preview
-                    .render_output(self.content_version, self.preview.now())?,
-            )
+            Some(self.render_playback()?)
         } else {
             None
         };
@@ -80,19 +77,13 @@ impl Session {
         }
         let doc = self.document.as_ref().ok_or("请先打开工程")?;
         let view = doc.view();
-        match &self.previs_source {
+        match &self.previs_source.clone() {
             Source::Scene { scene_id }
                 if !view.scenes.iter().any(|scene| scene.id == *scene_id) =>
             {
                 return Err("原预演场景已删除，请重新选择".into());
             }
-            Source::Playback
-                if self
-                    .preview
-                    .render_output(self.content_version, self.preview.now())?
-                    .output
-                    .is_none() =>
-            {
+            Source::Playback if self.render_playback()?.output.is_none() => {
                 return Err("请先重新载入场景列表预览".into());
             }
             _ => {}

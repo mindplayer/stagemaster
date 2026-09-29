@@ -198,6 +198,11 @@ export function PackagePanel({
           清空选择
         </button>
       </div>
+      {project.audio && (
+        <p className="wb-package-caption">
+          设备包仅包含所选灯光场景／列表；音乐和音频卡点目前在电脑端试听，不随此包下发。
+        </p>
+      )}
       <p className="wb-package-caption">
         已选 {selected.length} / 64 项
         {selected.filter(

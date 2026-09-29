@@ -1,4 +1,8 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
+mod audio;
+pub use audio::{
+    AudioAsset, AudioEdit, AudioMarker, AudioTimeline, MAX_AUDIO_MARKERS, MAX_AUDIO_MS,
+};
 mod check;
 mod compilation;
 mod package;

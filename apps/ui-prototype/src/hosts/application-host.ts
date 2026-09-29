@@ -4,6 +4,11 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      audioPrepare: (generation, kind) =>
+        invoke("audio_prepare", { generation, kind }),
+      audioCancel: () => invoke("audio_cancel"),
+      audio: (generation, command) =>
+        invoke("audio_request", { generation, command }),
       installation: (request) => invoke("installation_request", { request }),
       startInstallation: (generation, token, epoch, deviceId) =>
         invoke("installation_start", { generation, token, epoch, deviceId }),
@@ -21,6 +26,13 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      audioPrepare: async () => {
+        throw new Error("请使用桌面应用导入本机音乐");
+      },
+      audioCancel: async () => {},
+      audio: async () => {
+        throw new Error("请使用桌面应用试听音乐");
+      },
       installation: async () => {
         throw new Error("请使用桌面应用管理设备节目安装");
       },

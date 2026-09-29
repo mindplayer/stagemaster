@@ -5,6 +5,7 @@ use serde_json::Value;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectView {
+    pub audio: Option<crate::AudioTimeline>,
     pub id: String,
     pub name: String,
     pub description: String,
@@ -113,6 +114,7 @@ pub struct StepView {
 pub(super) fn project(root: &Value) -> ProjectView {
     let lighting = &root["lighting"];
     ProjectView {
+        audio: crate::audio::read(root),
         stage: crate::stage::view(root),
         id: text(&root["project"], "id").into(),
         name: text(&root["project"], "name").into(),

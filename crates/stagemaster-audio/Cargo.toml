@@ -1,0 +1,15 @@
+[package]
+name = "stagemaster-audio"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+rodio = { version = "=0.22.2", default-features = false, features = ["playback", "symphonia-mp3", "symphonia-wav", "symphonia-flac", "symphonia-pcm"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+sha2 = "=0.10.9"
+tempfile = "=3.27.0"
+
+[lints]
+workspace = true

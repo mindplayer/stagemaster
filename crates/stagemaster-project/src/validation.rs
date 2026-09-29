@@ -37,6 +37,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     supported(root)?;
     unique_objects(root, &mut BTreeSet::new())?;
     crate::stage::validate(root)?;
+    crate::audio::validate(root)?;
     let Some(lighting) = root.get("lighting") else {
         return Ok(());
     };
@@ -110,7 +111,7 @@ fn supported(root: &Value) -> Result<(), String> {
             return Err(format!("当前版本尚不支持此工程中的 {key} 内容，工程未打开"));
         }
     }
-    for key in ["media", "motion", "io", "monitoring", "surfaces"] {
+    for key in ["motion", "io", "monitoring", "surfaces"] {
         if root.get(key).is_some() {
             return Err(format!("当前版本尚不支持此工程中的 {key} 模块，工程未打开"));
         }
@@ -118,6 +119,7 @@ fn supported(root: &Value) -> Result<(), String> {
     let mut capabilities = BTreeSet::new();
     for capability in array(root, "requires") {
         if ![
+            "media.audio-editing",
             "lighting.basic",
             "lighting.positioning",
             "lighting.effects.basic",

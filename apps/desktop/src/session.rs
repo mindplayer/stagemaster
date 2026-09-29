@@ -3,6 +3,7 @@ use stagemaster_project::{Document, EditCommand, ProjectView};
 use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogResult};
+mod audio;
 mod previs;
 
 #[derive(Default)]
@@ -15,6 +16,7 @@ pub(crate) struct Session {
     generation: u32,
     content_version: u64,
     preview: crate::preview::Preview,
+    audio: crate::audio::AudioPreview,
     previs_source: crate::previs::protocol::Source,
     previs_edit_allowed: bool,
     pub(crate) recovery: crate::recovery::Status,
@@ -92,6 +94,7 @@ impl Session {
                 scene_id,
             } => {
                 self.guard(generation)?;
+                self.audio.clear();
                 self.preview.load_scene(
                     self.document.as_ref().ok_or("请先打开工程")?,
                     self.content_version,
@@ -103,6 +106,7 @@ impl Session {
                 sequence_id,
             } => {
                 self.guard(generation)?;
+                self.audio.clear();
                 self.preview.load(
                     self.document.as_ref().ok_or("请先打开工程")?,
                     self.content_version,
@@ -163,6 +167,7 @@ impl Session {
         self.undo.clear();
         self.redo.clear();
         self.preview.clear();
+        self.audio.clear();
         self.previs_source = crate::previs::protocol::Source::default();
         self.previs_edit_allowed = false;
         self.content_version += 1;
@@ -225,6 +230,7 @@ impl Session {
                 self.undo.remove(0);
             }
             self.redo.clear();
+            self.audio.synchronize(&next);
             self.document = Some(next);
             self.previs_edit_allowed = false;
             self.content_version += 1;
@@ -240,10 +246,12 @@ impl Session {
             (&mut self.undo, &mut self.redo)
         };
         if let Some(mut next) = source.pop() {
+            self.audio.transport.pause();
             if let Some(current) = self.document.take() {
                 next.use_revision_from(&current);
                 destination.push(current);
             }
+            self.audio.synchronize(&next);
             self.document = Some(next);
             self.previs_edit_allowed = false;
             self.content_version += 1;
@@ -282,10 +290,19 @@ impl Session {
                 new_file = Some(selected);
             }
         }
+        let current_path = self.file.as_ref().map(|file| file.path().to_path_buf());
         let target = new_file
             .as_mut()
             .or(self.file.as_mut())
             .ok_or("没有保存位置")?;
+        if let Some(track) = document.audio_timeline() {
+            app.state::<crate::audio::Service>().resources.archive(
+                &track.asset.digest,
+                &track.asset.extension,
+                current_path.as_deref(),
+                target.path(),
+            )?;
+        }
         let receipt = target.save(document)?;
         self.saved = Some(receipt.document.clone());
         self.document = Some(receipt.document);

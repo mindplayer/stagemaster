@@ -1,3 +1,7 @@
+import {
+  AudioWorkspace,
+  type AudioHandle,
+} from "./components/audio/AudioWorkspace";
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
 import { DeviceTools } from "./components/devices/DeviceTools";
 import { startInstallationReason } from "./installation-tools";
@@ -74,7 +78,13 @@ const EMPTY: Snapshot = {
   recovery: { state: "clean", capturedAtMs: null, problem: null },
 };
 type Page =
-  "profiles" | "stage" | "fixtures" | "scenes" | "sequences" | "settings";
+  | "profiles"
+  | "stage"
+  | "fixtures"
+  | "scenes"
+  | "sequences"
+  | "settings"
+  | "audio";
 const blank = (): ProjectForm => ({
   kind: "info",
   id: "",
@@ -123,6 +133,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [patchDialog, setPatchDialog] = useState<"repatch" | "exchange" | null>(
     null,
   );
+  const audio = useRef<AudioHandle>(null);
+  const [audioPending, setAudioPending] = useState(false);
   const profiles = useRef<ProfileHandle>(null);
   const [profilePending, setProfilePending] = useState(false);
   const [sceneId, setSceneId] = useState("");
@@ -166,7 +178,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     parameterPending ||
     sequencePending ||
     stagePending ||
-    profilePending;
+    profilePending ||
+    audioPending;
   const dirty = snapshot.dirty || hasDrafts;
 
   function setForm(next: ProjectForm | null, changed = false) {
@@ -268,10 +281,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     commands.push(...(sequences.current?.collect() ?? []));
     commands.push(...(stage.current?.collect() ?? []));
     commands.push(...(profiles.current?.collect() ?? []));
+    commands.push(...(audio.current?.collect() ?? []));
     if (!commands.length) {
       sequences.current?.accept();
       stage.current?.accept();
       profiles.current?.accept();
+      audio.current?.accept();
       return;
     }
     if (commands.length > 256)
@@ -282,6 +297,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     sequences.current?.accept();
     stage.current?.accept();
     profiles.current?.accept();
+    audio.current?.accept();
     setParameterPending(false);
     setNotice("修改已应用");
     if (draft && pendingRef.current) {
@@ -835,6 +851,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               编排<span>{project.scenes.length}</span>
             </button>
             <button
+              className={page === "audio" ? "active" : ""}
+              aria-pressed={page === "audio"}
+              disabled={busy}
+              onClick={() => switchPage("audio")}
+            >
+              <ListNumbersIcon />
+              音频卡点<span>{project.audio?.markers.length ?? 0}</span>
+            </button>
+            <button
               className={page === "sequences" ? "active" : ""}
               aria-pressed={page === "sequences"}
               disabled={busy}
@@ -932,6 +957,41 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               });
               return ok ? current.current.project : null;
             }}
+          />
+          <AudioWorkspace
+            key={`audio:${project.id}`}
+            ref={audio}
+            project={project}
+            host={host}
+            generation={() => current.current.generation}
+            visible={page === "audio"}
+            busy={busy}
+            beforeChange={() => run(async () => {})}
+            onPending={(value) => {
+              setAudioPending(value);
+              if (!value) setError("");
+            }}
+            onEdit={async (command) => {
+              const ok = await run(async () => {
+                await edit(command);
+                setNotice("音频编排已更新，可撤销恢复");
+              });
+              return ok ? current.current.project : null;
+            }}
+            previs={
+              <PrevisPanel
+                host={host}
+                scenes={project.scenes}
+                busy={busy}
+                generation={() => current.current.generation}
+                run={(work) => run(work)}
+                selectedId=""
+                onSelect={async () => true}
+                allowPlacement={false}
+                onPrepareMove={async () => false}
+                onPlacement={async () => false}
+              />
+            }
           />
           <SequenceWorkspace
             key={project.id}
@@ -1306,8 +1366,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={positions}
                   project={project}
-                  fixtures={selected.map((id) =>
-                    project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map(
+                    (id) => project.fixtures.find((f) => f.id === id)!,
                   )}
                   scene={activeScene}
                   busy={busy}
@@ -1326,8 +1386,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
                   scene={activeScene}
-                  fixtures={selected.map((id) =>
-                    project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map(
+                    (id) => project.fixtures.find((f) => f.id === id)!,
                   )}
                   busy={busy}
                   onApply={() => {
@@ -1347,6 +1407,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 page={
                   page === "profiles" ||
                   page === "sequences" ||
+                  page === "audio" ||
                   page === "stage"
                     ? "scenes"
                     : page

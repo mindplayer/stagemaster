@@ -31,6 +31,7 @@ const fixture = (id: string, address: number, domainId = "a"): FixtureView => ({
 });
 const fixtures = [fixture("one", 1), fixture("two", 9)];
 const project: ProjectView = {
+  audio: null,
   id: "p",
   name: "p",
   description: "",

@@ -46,6 +46,9 @@ const unavailable = async () => {
   throw new Error("本组件验收不调用该接口");
 };
 const host: ApplicationHost = {
+  audio: async () => {throw new Error("此组件不调用音频");},
+  audioPrepare: async () => {throw new Error("此组件不调用音频");},
+  audioCancel: async () => {},
   kind: "desktop",
   device: unavailable,
   recovery: unavailable,

@@ -12,6 +12,7 @@ development-device-access = []
 tauri-build = { version = "=2.6.3", features = [] }
 
 [dependencies]
+stagemaster-audio = { path = "../../crates/stagemaster-audio" }
 stagemaster-device-host = { path = "../../crates/stagemaster-device-host" }
 stagemaster-device-upload = { path = "../../crates/stagemaster-device-upload" }
 axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }

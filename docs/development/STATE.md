@@ -1,6 +1,8 @@
 # 当前开发状态
 
-MEMORY-001 已完成首轮分层内存／存储保护（基线 `cebf87f`，结果为本次 `feat(memory): isolate PSRAM cache and validate board storage` 提交）：实板 8 MB PSRAM 整区自检通过，2 MB 固定读缓存／内部堆和实时栈隔离，擦写前失效与失败路径有保护。425 Rust／严格检查／固件及真实取消、续传、安装、坏包拒绝通过；内部堆稳定 41,132 B、峰值 48,548 B。当前 699,712 B 镜像、B 第 18 代／A 第 17 代；无 DMX 输出。详细限制及失败记录见 [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md)。用户已澄清音频需求是剪映式卡点，接下来 AUDIO-001 做真实音乐／波形／时间标记与灯光编排；不要做设备页占位。用户连接验收窗口已有未保存修改，必须保留。
+AUDIO-001 已完成本机音频卡点增量（基线 `79b584d`，结果为本次 `feat(audio): add native music and lighting beat editing` 提交）：独立 Rust 音频／资源适配、单轨波形／播放／定位／裁切、手动打点与场景绑定、拖动／精确输入／撤销、保存随附资源及缺失重定位。432 Rust、81 UI、78 格式、严格检查和桌面构建通过；真实 WAV／MP3／FLAC 输出、原生导入／保存重开／缺失恢复通过，见 [AUDIO-001](tasks/AUDIO-001-beat-editing.md) 和 [模块契约](../module-api/audio-editing.md)。音乐留主机，ESP32 不存音乐；自动节拍、多轨、跨设备同步及物理 DMX 仍未实现。两个用户原窗口及连接验收未保存内容保持；音频验收使用独立工程。用户随后要求真实音乐，已从 Nonesuch 下载《Volare》30 秒官方试听片段并导入；用户正在操作该窗口且未保存，请勿重载／覆盖。
+
+MEMORY-001 已完成首轮分层内存／存储保护（基线 `cebf87f`，结果 `79b584d`）：实板 8 MB PSRAM 整区自检通过，2 MB 固定读缓存／内部堆和实时栈隔离，擦写前失效与失败路径有保护。425 Rust／严格检查／固件及真实取消、续传、安装、坏包拒绝通过；内部堆稳定 41,132 B、峰值 48,548 B。当前 699,712 B 镜像、B 第 18 代／A 第 17 代；无 DMX 输出。详细限制及失败记录见 [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md)。用户已澄清音频需求是剪映式卡点，已按 AUDIO-001 独立增量实现；不要做设备页占位。用户连接验收窗口已有未保存修改，必须保留。
 
 PLAN-002 方向审查完成（2026-09-29；基线 `5e7f204`，结果为本次 `docs: plan tiered device memory and host audio synchronization` 提交）：用户要求充分利用板载内存，近期电脑／手机放音、ESP32 执行灯光，未来具备较大存储及音频输出能力的盒子本地放音（K11 型号尚未核验）。接受 [ADR-052](decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md)：SRAM／PSRAM 分层、目标能力与预算、可选音频执行端／按端资源部署、输出时间观测／提前调度／延迟校准和失联策略。后续先验证 PSRAM，再接现有包到 Runtime／受控输出，音频作为独立增量；见 [PLAN-002](tasks/PLAN-002-memory-audio-boundary.md)。本轮仅更新文档，未刷机、修改 JSON／GATT 或实现 PSRAM／音频／同步，现有安装成果及工程／UE 保持。
 
@@ -131,6 +133,8 @@ DEVICE-001 正式网页禁用、组件隐藏选择／迟到状态／故障与 11
 
 | 任务 | 状态 | 说明 |
 | --- | --- | --- |
+| [AUDIO-001](tasks/AUDIO-001-beat-editing.md) | done（本机单轨卡点） | 真实音乐／波形、手动打点／场景绑定、原子编辑／资源归档；跨设备同步后续 |
+| [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md) | done（首轮实板保护） | 8 MB PSRAM 自检、2 MB 固定缓存、内部实时内存隔离、真实安装恢复通过 |
 | [PLAYER-003C](tasks/PLAYER-003C-package-transfer.md) | done（软件传输闭环） | 有界封包／分片、权限注入边界、幂等回执、上传／重连／取消和真实文件重放通过；真实 GATT／设备认证及 Flash 后续 |
 | [PLAYER-003B](tasks/PLAYER-003B-package-installation.md) | done（软件安装事务） | 两槽提交／严格恢复、幂等块／取消／待确认、读源租约、逐点故障与文件重放通过；GATT／Flash／实际运行后续 |
 | [PROJECT-002](tasks/PROJECT-002-compact-project-capacity.md) | done（容量一致性） | 紧凑工程打开／编辑／保存／异常恢复与修订余量统一；7,002 场景原生验收通过 |

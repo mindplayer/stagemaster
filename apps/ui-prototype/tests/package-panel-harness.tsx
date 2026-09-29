@@ -10,6 +10,9 @@ const unavailable = async () => {
   throw new Error("本组件测试不调用该接口");
 };
 const host: ApplicationHost = {
+  audio: async () => {throw new Error("此组件不调用音频");},
+  audioPrepare: async () => {throw new Error("此组件不调用音频");},
+  audioCancel: async () => {},
   kind: "desktop",
   device: unavailable,
   installation: unavailable,
@@ -27,6 +30,7 @@ const host: ApplicationHost = {
   onCloseRequested: async () => () => {},
 };
 const project: ProjectView = {
+  audio: null,
   id: "test",
   name: "组件竞态测试",
   description: "",

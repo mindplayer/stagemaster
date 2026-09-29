@@ -187,6 +187,9 @@
           },
           "minItems": 0,
           "maxItems": 10000
+        },
+        "audioEditing": {
+          "$ref": "#/$defs/AudioEditing"
         }
       },
       "required": [
@@ -3059,6 +3062,106 @@
       "required": [
         "panDegrees",
         "tiltDegrees"
+      ],
+      "additionalProperties": false
+    },
+    "AudioEditing": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "$ref": "#/$defs/AudioAsset"
+        },
+        "inMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "outMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "markers": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/AudioMarker"
+          }
+        }
+      },
+      "required": [
+        "asset",
+        "inMs",
+        "outMs",
+        "markers"
+      ],
+      "additionalProperties": false
+    },
+    "AudioAsset": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "extension": {
+          "enum": [
+            "wav",
+            "mp3",
+            "flac"
+          ]
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        }
+      },
+      "required": [
+        "digest",
+        "fileName",
+        "extension",
+        "durationMs"
+      ],
+      "additionalProperties": false
+    },
+    "AudioMarker": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "timeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "sceneId": {
+          "anyOf": [
+            {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "timeMs",
+        "sceneId"
       ],
       "additionalProperties": false
     }

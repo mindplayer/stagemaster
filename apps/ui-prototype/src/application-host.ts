@@ -19,8 +19,10 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  EditOperation | { op: "batch"; commands: EditOperation[] };
+  | EditOperation
+  | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
+  | { op: "audio"; command: import("./audio-types").AudioEdit }
   | { op: "position"; command: PositionEdit }
   | { op: "fixture"; command: FixtureEdit }
   | { op: "effect"; command: EffectEdit }
@@ -84,6 +86,7 @@ export interface SceneView {
   }[];
 }
 export interface ProjectView {
+  audio: import("./audio-types").AudioTimeline | null;
   id: string;
   name: string;
   description: string;
@@ -115,6 +118,15 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  audioPrepare(
+    generation: number,
+    kind: "import" | "load" | "locate",
+  ): Promise<import("./audio-types").PreparedAudio | null>;
+  audioCancel(): Promise<void>;
+  audio(
+    generation: number,
+    command: import("./audio-types").AudioCommand,
+  ): Promise<import("./audio-types").AudioPosition>;
   installation(
     request: import("./installation-types").InstallationRequest,
   ): Promise<import("./installation-types").InstallationView>;
