@@ -10,7 +10,7 @@ use esp_hal::{peripherals, system::Stack};
 use esp_rtos::embassy::Executor;
 use stagemaster_install::Installer;
 use stagemaster_install_worker::{Command, Completion, Epoch, ManagedWorker};
-use stagemaster_nor_store::{Layout, NorDevice};
+use stagemaster_nor_store::{CachedNor, Layout, NorDevice};
 use static_cell::{ConstStaticCell, StaticCell};
 
 pub static REQUESTS: Channel<CriticalSectionRawMutex, Command, 1> = Channel::new();
@@ -33,6 +33,7 @@ pub fn start(
     interrupt: peripherals::FROM_CPU_INTR1<'static>,
     flash: peripherals::FLASH<'static>,
     boot: [u8; 16],
+    cache: &'static mut [u8],
     _output_disabled: &crate::board::OutputDisabled,
 ) {
     static STACK: ConstStaticCell<Stack<STACK_BYTES>> = ConstStaticCell::new(Stack::new());
@@ -41,7 +42,7 @@ pub fn start(
     STACK_TOP.store(stack.top() as usize, Ordering::Release);
     esp_rtos::start_second_core(cpu, interrupt, stack, move || {
         EXECUTOR.init(Executor::new()).run(|spawner| {
-            spawner.spawn(run(flash, boot).unwrap());
+            spawner.spawn(run(flash, boot, cache).unwrap());
         });
     });
 }
@@ -68,17 +69,22 @@ pub fn report() {
         esp_alloc::HEAP.stats().max_usage
     );
     crate::measured_nor::report();
+    crate::memory::report();
 }
 
 #[embassy_executor::task]
-async fn run(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) {
-    if !serve(peripheral, boot).await {
+async fn run(peripheral: peripherals::FLASH<'static>, boot: [u8; 16], cache: &'static mut [u8]) {
+    if !serve(peripheral, boot, cache).await {
         READY.store(2, Ordering::Release);
         esp_println::println!("INSTALL WORKER unavailable; wireless installation remains disabled");
     }
 }
 
-async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool {
+async fn serve(
+    peripheral: peripherals::FLASH<'static>,
+    boot: [u8; 16],
+    cache: &'static mut [u8],
+) -> bool {
     if esp_storage::flash_encryption() {
         esp_println::println!("INSTALL WORKER refuses encrypted development partition");
         return false;
@@ -111,6 +117,10 @@ async fn serve(peripheral: peripherals::FLASH<'static>, boot: [u8; 16]) -> bool 
     #[cfg(not(feature = "binding-readiness"))]
     let nor = region.as_nor_flash().unwrap();
     let nor = crate::measured_nor::MeasuredNor::new(nor);
+    let nor = match CachedNor::new(nor, cache) {
+        Ok(nor) => nor,
+        Err(_) => return false,
+    };
     let device = match NorDevice::new(nor, Layout::new(crate::package_layout::SLOT_BYTES).unwrap())
     {
         Ok(device) => device,

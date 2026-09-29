@@ -195,3 +195,7 @@ PYTHONDONTWRITEBYTECODE=1 tmp/ble-probe/bin/python tools/hardware/binding_probe.
 ```
 
 USB 观察器不开复位控制线，日志中的临时配对码脱敏；实时终端仍显示一次性码供本机配对，勿将其原始标准输出另存为日志。工具的最长运行时间有界。`--expiry` 验证已认证连接的重复保活不能延长租约，不能只把首次连接正常算作持久绑定验收。测试结束恢复普通镜像及用户原有应用连接。
+
+## 分层内存（MEMORY-001）
+
+工作器构建启用 esp-hal 八线 PSRAM，自检成功后仅使用 2 MiB 固定 NOR 读缓存；不加入内部默认堆。擦写前缓存失效、驱动读取缓冲仍在内部内存。PSRAM 初始化／自检失败回退原读取路径，日志区分实测总量与缓存占用。软件栈哨兵与原硬件保护同时启用；单点栈采样不等于完整高水位。实板验证与边界见 [MEMORY-001](../../docs/development/tasks/MEMORY-001-bounded-board-memory.md)。

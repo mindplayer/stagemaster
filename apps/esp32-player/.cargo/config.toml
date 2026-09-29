@@ -5,3 +5,6 @@ rustflags = ["-C", "link-arg=-Tlinkall.x", "-C", "force-frame-pointers"]
 
 [unstable]
 build-std = ["alloc", "core"]
+
+[env]
+ESP_RTOS_CONFIG_SW_TASK_OVERFLOW_DETECTION = "true"

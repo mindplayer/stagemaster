@@ -19,6 +19,8 @@ mod identity;
 mod installation;
 #[cfg(feature = "worker-readiness")]
 mod measured_nor;
+#[cfg(feature = "worker-readiness")]
+mod memory;
 #[cfg(feature = "storage-readiness")]
 mod package_layout;
 #[cfg(feature = "storage-readiness")]
@@ -43,6 +45,8 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
     let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
     esp_alloc::heap_allocator!(size: 128 * 1024);
+    #[cfg(feature = "worker-readiness")]
+    let cache = memory::initialize(peripherals.PSRAM);
     #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
     esp_println::println!("StageMaster DEVICE-002: authenticated installation, RS485 disabled");
     #[cfg(not(any(feature = "installation-gatt", feature = "application-gatt")))]
@@ -83,6 +87,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
             peripherals.FROM_CPU_INTR1,
             peripherals.FLASH,
             identity.boot(),
+            cache,
             &output_disabled,
         );
         #[cfg(not(any(feature = "binding-readiness", feature = "application-gatt")))]

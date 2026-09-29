@@ -3,11 +3,13 @@
 #![no_std]
 #![forbid(unsafe_code)]
 extern crate alloc;
+mod cache;
 mod io;
 mod metadata;
 mod store;
 
 use alloc::rc::Rc;
+pub use cache::{CACHE_BLOCK_BYTES, CacheError, CacheStats, CachedNor};
 use core::{
     cell::{Cell, RefCell},
     fmt,

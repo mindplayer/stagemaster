@@ -1,5 +1,7 @@
 # 当前开发状态
 
+MEMORY-001 已完成首轮分层内存／存储保护（基线 `cebf87f`，结果为本次 `feat(memory): isolate PSRAM cache and validate board storage` 提交）：实板 8 MB PSRAM 整区自检通过，2 MB 固定读缓存／内部堆和实时栈隔离，擦写前失效与失败路径有保护。425 Rust／严格检查／固件及真实取消、续传、安装、坏包拒绝通过；内部堆稳定 41,132 B、峰值 48,548 B。当前 699,712 B 镜像、B 第 18 代／A 第 17 代；无 DMX 输出。详细限制及失败记录见 [MEMORY-001](tasks/MEMORY-001-bounded-board-memory.md)。用户已澄清音频需求是剪映式卡点，接下来 AUDIO-001 做真实音乐／波形／时间标记与灯光编排；不要做设备页占位。用户连接验收窗口已有未保存修改，必须保留。
+
 PLAN-002 方向审查完成（2026-09-29；基线 `5e7f204`，结果为本次 `docs: plan tiered device memory and host audio synchronization` 提交）：用户要求充分利用板载内存，近期电脑／手机放音、ESP32 执行灯光，未来具备较大存储及音频输出能力的盒子本地放音（K11 型号尚未核验）。接受 [ADR-052](decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md)：SRAM／PSRAM 分层、目标能力与预算、可选音频执行端／按端资源部署、输出时间观测／提前调度／延迟校准和失联策略。后续先验证 PSRAM，再接现有包到 Runtime／受控输出，音频作为独立增量；见 [PLAN-002](tasks/PLAN-002-memory-audio-boundary.md)。本轮仅更新文档，未刷机、修改 JSON／GATT 或实现 PSRAM／音频／同步，现有安装成果及工程／UE 保持。
 
 DEVICE-002 完整开发安装出口已通过：本增量基线 `d2890d4`，结果为本次 `feat(device): deliver authenticated direct GATT installation` 提交；父任务基线 `0a0b7e7` 的 A～D 保持完整。依 [ADR-051](decisions/PRODUCT-ADR-051-development-gatt-installation.md)，专用开发凭据经 Noise／加密 GATT 接既有 Gateway、Endpoint、ManagedWorker、NOR 和正式桌面任务，正常流程不依赖系统配对。实际生成、选择设备、下发、已确认进度、取消、断线恢复、坏包拒绝、错误身份拒绝、重启恢复和丢提交回执对账通过，见[完整验收](tasks/DEVICE-002-direct-installation-acceptance.md)。421 Rust、78 UI、严格检查、固件和桌面构建通过；失败和资源限制保留。新产品文件最大 153 行。

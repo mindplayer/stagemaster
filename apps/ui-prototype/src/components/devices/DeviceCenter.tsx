@@ -367,7 +367,7 @@ export function DeviceCenter({
                   <dt>内部堆占用</dt>
                   <dd>
                     {diagnostics
-                      ? `${(diagnostics.heapUsed / 1024).toFixed(1)} / 128 KiB`
+                      ? `${(diagnostics.heapUsed / 1024).toFixed(1)} / ${((diagnostics.heapUsed + diagnostics.heapFree) / 1024).toFixed(1)} KiB`
                       : "—"}
                   </dd>
                 </div>

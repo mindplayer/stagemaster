@@ -3,6 +3,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use embedded_storage::nor_flash::{ErrorType, NorFlash, ReadNorFlash};
 
 static READ_US: AtomicU32 = AtomicU32::new(0);
+static READS: AtomicU32 = AtomicU32::new(0);
 static WRITE_US: AtomicU32 = AtomicU32::new(0);
 static ERASE_US: AtomicU32 = AtomicU32::new(0);
 static WRITES: AtomicU32 = AtomicU32::new(0);
@@ -32,6 +33,7 @@ impl<F: ReadNorFlash> ReadNorFlash for MeasuredNor<F> {
         crate::installation::sample_stack();
         let start = esp_hal::time::Instant::now();
         let result = self.0.read(offset, bytes);
+        READS.fetch_add(1, Ordering::Relaxed);
         record(start, &READ_US);
         result
     }
@@ -61,11 +63,12 @@ impl<F: NorFlash> NorFlash for MeasuredNor<F> {
 }
 pub fn report() {
     esp_println::println!(
-        "NOR max_read_us={} max_write_us={} max_erase_us={} writes={} erases={}",
+        "NOR max_read_us={} max_write_us={} max_erase_us={} writes={} erases={} reads={}",
         READ_US.load(Ordering::Relaxed),
         WRITE_US.load(Ordering::Relaxed),
         ERASE_US.load(Ordering::Relaxed),
         WRITES.load(Ordering::Relaxed),
-        ERASES.load(Ordering::Relaxed)
+        ERASES.load(Ordering::Relaxed),
+        READS.load(Ordering::Relaxed)
     );
 }
