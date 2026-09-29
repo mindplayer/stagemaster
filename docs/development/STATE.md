@@ -1,5 +1,7 @@
 # 当前开发状态
 
+PLAN-002 方向审查完成（2026-09-29；基线 `5e7f204`，结果为本次 `docs: plan tiered device memory and host audio synchronization` 提交）：用户要求充分利用板载内存，近期电脑／手机放音、ESP32 执行灯光，未来具备较大存储及音频输出能力的盒子本地放音（K11 型号尚未核验）。接受 [ADR-052](decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md)：SRAM／PSRAM 分层、目标能力与预算、可选音频执行端／按端资源部署、输出时间观测／提前调度／延迟校准和失联策略。后续先验证 PSRAM，再接现有包到 Runtime／受控输出，音频作为独立增量；见 [PLAN-002](tasks/PLAN-002-memory-audio-boundary.md)。本轮仅更新文档，未刷机、修改 JSON／GATT 或实现 PSRAM／音频／同步，现有安装成果及工程／UE 保持。
+
 DEVICE-002 完整开发安装出口已通过：本增量基线 `d2890d4`，结果为本次 `feat(device): deliver authenticated direct GATT installation` 提交；父任务基线 `0a0b7e7` 的 A～D 保持完整。依 [ADR-051](decisions/PRODUCT-ADR-051-development-gatt-installation.md)，专用开发凭据经 Noise／加密 GATT 接既有 Gateway、Endpoint、ManagedWorker、NOR 和正式桌面任务，正常流程不依赖系统配对。实际生成、选择设备、下发、已确认进度、取消、断线恢复、坏包拒绝、错误身份拒绝、重启恢复和丢提交回执对账通过，见[完整验收](tasks/DEVICE-002-direct-installation-acceptance.md)。421 Rust、78 UI、严格检查、固件和桌面构建通过；失败和资源限制保留。新产品文件最大 153 行。
 
 当前实板为 691,568 B 专用应用安装镜像，B 第 16 代 28 场景／110,772 B，A 第 15 代保留；GPIO21 禁用、无 DMX／灯具输出。最新独立“舞台大师连接验收”窗口已打开圆弧工程、连接设备并显示真实安装成功及摘要；原正式应用 PID 44624／工程仍已保存，保持断开避免竞争，UE 未操作。凭据及含私钥的固件产物留项目私有忽略目录。云端身份／归属／权限边界已明确，实际云端、24 小时文件许可、生产密钥保护／固件签名、其他平台及长期压力尚未完成；10 分钟开发连接许可不能当文件许可。后续硬件主线是安装包到运行／UART DMX 的受控输出验收，商业授权按 AUTH-001 独立推进，不再重做系统配对或纯回送实验。

@@ -6,6 +6,8 @@
 
 ## 已核对与尚待验证
 
+2026-09-29 内存核对：按默认 ESP32-S3R8 的[乐鑫规格](https://documentation.espressif.com/esp32_s3_datasheet_en.pdf)，内部 SRAM 为 512 KB、封装内 PSRAM 为 8 MB；PSRAM 在软件中按外部内存管理。当前固件只设 128 KiB 内部动态堆，其他内部空间还承载代码／静态数据／栈，未初始化 PSRAM。其实际容量／稳定性待实板验证，不能把 16 MB Flash 当运行内存，也不能把 128 KiB 当总 RAM。分层预算、未来宿主音频与容量档位方向见 [ADR-052](../development/decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md)。
+
 官方资料列出隔离 RS485、隔离电源、USB Type-C 和 16 MB Flash。原理图已下载并渲染阅读，确认收发器和方向控制路径；足以将此板选为一路 DMX 验证平台，不能据此认定整机已经符合 DMX512-A。[微雪产品文档](https://docs.waveshare.net/ESP32-S3-RS485-CAN/)
 
 | 项目 | 文档／原理图依据 | 本项目处理 |

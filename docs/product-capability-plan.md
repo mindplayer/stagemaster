@@ -1,6 +1,6 @@
 # 产品能力总表与成熟经验吸收规则
 
-更新：2026-09-24；PLAN-001，基线 `9638236`。这是持续维护的能力导航与缺口审查，不是完成清单或冻结的接口规范。实现证据看[实现状态](implementation-status.md)，当前顺序看[执行计划](development/execution-plan.md)。
+更新：2026-09-29；初始 PLAN-001，基线 `9638236`；PLAN-002 增补内存与宿主音频。这里只维护能力导航与缺口审查，不是完成清单或冻结的接口规范。实现证据看[实现状态](implementation-status.md)，当前顺序看[执行计划](development/execution-plan.md)。
 
 用户要求当前会话主动引入成熟软件的重要、必要能力，不只等待逐项提出需求。已有[控台研究](console-research/README.md)覆盖 22 个模块、304 条对照记录，另有界面、预演、媒体和硬件专项；本表将它们归到统一产品工作流，不另复制一套研究目录。
 
@@ -27,12 +27,12 @@
 | CAP-07 时间编排 | 无损片段裁切、吸附、波形／标记、节拍、自动化轨、片段／段落复用、时间码、独立同步组 | [M13](console-research/M13-timecode-audio.md)、[创作软件研究](ui-design/interaction-display-research.md) | 工程时间领域＋ClockRegistry／TransportCoordinator；编排时间线 | 原型交互与格式草案；先接真实工程／时间语义，音频参考逐步加入，正式媒体播放走 CAP-10 |
 | CAP-08 排练与预演 | 离线预览、盲编、从指定位置排练、二维／三维、组灯指向、视角收藏、外部控台输入、设备响应仿真 | [M14](console-research/M14-preview-3d.md)、[Depence](depence-r4-assessment.md)、S2 | PreviewService＋仿真＋独立渲染；编排画布、预演视图 | Rust 离线预览与空间／桥已实施；应用内 UE、双向单灯交互、播放联动与剖视已验收；UX-014 整批灯位同步通过，完整三维组变换后续；POSITION-001 已接通相交正交两轴档案、静态共同对焦和独立关节预演，连续目标轨迹待办；[官方资源库](previsualization-library.md)逐项记录边界 |
 | CAP-09 现场执行 | 当前／下一场景、节目单、执行器页、总控／速度控制、灯光熄灭、临时覆盖与归还、属性冻结、互斥／保护、重复触发处理 | [M09](console-research/M09-playback-mixing.md)、[M19](console-research/M19-live-show.md) | ControlGateway／RuntimeKernel／Mixer；现场工作区 | 仅静态合成原型及设计；首版选场景／执行／必要状态，复杂现场控制专业迭代 |
-| CAP-10 音视频与专项设备 | 外部播放器／媒体服务器控制、内容绑定、预备／执行、状态回读、监听／监看、投影／屏幕／摄像机／激光预演 | [多系统设计](audiovisual-stage-design.md) | ExternalCommandGateway／设备适配＋MonitorService；设备属性、编排轨、监看面板 | 仅接口与格式草案；按一种协议／一种设备闭环扩展，正式处理与输出由外部系统承担 |
+| CAP-10 音视频与专项设备 | 宿主基础音频／系统音箱路由、近似声光同步；外部播放器／媒体服务器控制、内容绑定、状态回读、监听／监看和专项设备预演 | [多系统设计](audiovisual-stage-design.md)、[ADR-052](development/decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md) | 独立宿主音频适配＋TransportCoordinator；ExternalCommandGateway／MonitorService；音频轨、播放输出组件、监看面板 | 设计，尚无音频播放实现；先真实文件／有线输出，再验蓝牙延迟、漂移与中断；专业混音／视频处理仍外部执行 |
 | CAP-11 互动与机构 | 传感器触发、条件／等待／超时、可复用动作组合、场次复位、手动接管、动作结果、机械控制器状态与联锁反馈 | [M15](console-research/M15-macros-automation.md)、[多领域格式](project-format/README.md)、[外部契约](module-api/external-contracts.ts) | 类型化事件／动作与外部网关；编排触发组件、设备诊断 | 格式示例；专项接入。电机运动闭环、限位和安全联锁由合适的现场控制器负责，不能当灯光渐变通道处理 |
 | CAP-12 操作面板 | 推子／旋钮／按键、翻页映射、软接管、灯环／小屏反馈、用户可配置的简化现场面板 | [硬件控制面](hardware-control-surfaces.md) | SurfaceCoordinator／ControlGateway；现场及面板配置 | 接口草案；首版盒子本地选择／执行，扩展翼与可配置面板后续，输入均走同一控制入口 |
 | CAP-13 工程资源交付 | 收集工程依赖、缺失素材重新定位、同内容去重、模板／局部导入、缩略图／波形缓存、交换包和依赖报告 | [M03](console-research/M03-show-files.md)、S3／S4／S5 | AssetService／PackageService／ProjectRepository；资源管理与工程菜单 | 正式 JSON 灯光子集；媒体与依赖闭合待实现。首个资源接入即补缺失处理，工程包与设备包分开 |
 | CAP-14 编辑与恢复 | 原子批量编辑、具名撤销、连续拖动单次提交、错误草稿保留、自动恢复、保存冲突、迁移与版本比较 | [风险 H08／H09](architecture-change-risk-review.md)、[UX-010](development/tasks/UX-010-editing-recovery.md) | ProjectService／ProjectRepository；所有工作区共用 | 正式原子事务／撤销／保存冲突；RECOVERY-001 已实现有效编辑检查点、活动会话保护与恢复为副本，输入草稿／多版本比较仍后续 |
-| CAP-15 编译与自主播放 | 依赖闭合、目标能力／空间预算、可重复构建、校验／安装／激活、传输中断、掉电保护、已安装／运行版本、离线本地控制 | [首版方案](development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md) | TargetService／BuildService／PlanManager／TransferService；设备与下发面板 | 设计；首版核心闭环，ESP32 仅支持声明的播放子集，ARM 按能力扩展 |
+| CAP-15 编译与自主播放 | 依赖闭合、目标能力／分层内存预算、可重复构建、校验／安装／激活、中断恢复、掉电保护、已安装／运行版本、离线本地控制 | [首版方案](development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)、[ADR-052](development/decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md) | TargetService／BuildService／PlanManager／TransferService＋板级内存适配；设备与下发面板 | DEVICE-002 已实测受控 GATT 安装；PSRAM／新容量档位、实际 DMX 输出和完整自主播放待验，既有包上限不因标称内存静默放宽 |
 | CAP-16 诊断与预检 | 工程错误定位、缺资源／不支持能力、输出来源／覆盖原因、原始通道值、端口故障、设备反馈新鲜度、触发记录、可导出的诊断包 | [M20](console-research/M20-maintenance-diagnostics.md)、S6 | 编译校验＋ObservationService；状态入口、问题列表、按需诊断 | 正式局部校验／核心贡献记录；首版明确阻断原因与真实设备状态，完整来源链和报告逐步扩展 |
 | CAP-17 云端与授权 | 工程／素材版本、发布与分发、权限、设备绑定、授权到期处理、同步冲突与离线副本 | [架构 C05](architecture-evolution-review.md)、[授权决定](development/decisions/PRODUCT-ADR-004-relayed-device-authorization.md) | Publication／Distribution、独立授权边界；项目／资源／设备管理 | 无云服务；AUTH-001 是相关商业交付门槛，协作／云盘后置，不进入输出时钟链 |
 | CAP-18 开放接入与跨端 | GDTF／MVR 等交换、Art-Net／sACN／RDM、OSC／MIDI 等协议适配、远程控制、网页／平板编辑、版本化扩展能力和兼容性报告 | [M16](console-research/M16-dmx-network.md)、[M17](console-research/M17-remotes-api.md)、[格式借鉴](development/decisions/PRODUCT-ADR-003-project-data-contract.md) | 导入导出适配、生成契约、宿主／传输；沿用四工作区 | 设计；现在保持接口可移植，协议按软硬件能力逐项验证，不承诺任意格式无损往返或现有板卡支持全部协议 |

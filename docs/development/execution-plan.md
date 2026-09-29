@@ -1,8 +1,10 @@
 # 当前执行计划
 
-更新：2026-09-28。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
+更新：2026-09-29。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
 
 ## 当前任务
+
+- [PLAN-002](tasks/PLAN-002-memory-audio-boundary.md) 已完成新增需求的方向审查：先用独立板级模块验证／接入 PSRAM 与分层资源报告，再推进既有运行／受控输出及必要的容量档位；宿主基础放音、时钟映射和有线／蓝牙声光同步按独立增量验收。依 [ADR-052](decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md) 更新旧外部音频边界，不把完整媒体系统设为首次 DMX 闭环的前置条件。当前仅文档完成，未开始这些实现。
 
 - 用户新增 [HW-003](tasks/HW-003-link-indicator.md)：诊断连接绿灯常亮／断开熄灭已刷入实板并经正常连接、超时和重连验证；应用已恢复连接，用户已确认实物绿灯常亮。此灯接 TXD1，DMX 期间自然随数据，独立状态闪烁须后续专用灯。DEVICE-002 主目标不变。
 - [DEVICE-002](tasks/DEVICE-002-program-installation.md) A～D 受控开发安装出口已完成：稳定身份与真实能力、专用应用凭据、免系统配对的加密 GATT、双槽 NOR／维护工作器、正式桌面生成／设备选择／下发／进度／取消／断线恢复／结果核验均实际通过；坏包、错误身份、重启与丢提交回执对账见[最终验收](tasks/DEVICE-002-direct-installation-acceptance.md)。421 Rust／78 UI、双端构建和严格检查通过。板卡现存 B 第 16 代 28 场景，RS485 禁用；云端认领／24 小时文件许可、生产密钥／安全启动、其他平台、长期压力和完整栈高水位仍为后续门槛。下一硬件增量接已安装包的运行控制与受控 DMX 输出，不重复系统配对实验。
