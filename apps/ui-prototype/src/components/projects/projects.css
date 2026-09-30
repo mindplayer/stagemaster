@@ -1,0 +1,139 @@
+.project-start {
+  flex: 1;
+  overflow: auto;
+  padding: clamp(24px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: center;
+}
+.project-start-intro {
+  text-align: center;
+  color: var(--wb-muted);
+}
+.project-start .project-start-intro h1 {
+  color: var(--wb-text);
+  margin: 12px 0 8px;
+}
+.project-start .project-start-intro p {
+  margin: 0 0 20px;
+}
+.project-start-intro > div {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.recent-projects {
+  width: min(100%, 850px);
+  min-width: 0;
+}
+.recent-projects header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.recent-projects h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.recent-projects input {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+.recent-projects ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.recent-projects li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--wb-border);
+  padding: 8px 0;
+}
+.recent-projects .recent-open {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  justify-content: flex-start;
+  background: transparent;
+  border-color: transparent;
+  padding: 9px;
+}
+.recent-projects .recent-open:hover:not(:disabled) {
+  background: var(--wb-panel);
+}
+.recent-open > svg {
+  flex-shrink: 0;
+  color: var(--wb-accent);
+}
+.recent-open > span {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+.recent-open strong,
+.recent-open small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.recent-open small {
+  font-weight: 400;
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.recent-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  font-size: 11px;
+  color: var(--wb-muted);
+}
+.recent-projects .recent-forget {
+  padding: 7px;
+  color: var(--wb-muted);
+}
+.recent-missing,
+.recent-error {
+  color: var(--wb-warning, #f1bc70);
+}
+.recent-error {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.recent-empty {
+  color: var(--wb-muted);
+  padding: 20px 0;
+}
+.wb-dialog.recent-dialog {
+  width: 880px;
+  max-height: 85vh;
+  overflow: auto;
+}
+.recent-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+@media (max-width: 700px) {
+  .recent-meta time {
+    display: none;
+  }
+  .project-start {
+    padding: 20px;
+  }
+}
+
+.recent-projects .recent-open:disabled {
+  opacity: 0.65;
+}

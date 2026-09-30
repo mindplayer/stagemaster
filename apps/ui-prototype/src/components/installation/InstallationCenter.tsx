@@ -41,10 +41,10 @@ export function InstallationCenter({
         disabled={!available}
         aria-expanded={open}
         aria-controls="installation-center"
-        aria-label={`节目安装：${label}`}
+        aria-label={`下发节目：${label}`}
         onClick={() => (open ? close() : setOpen(true))}
       >
-        安装{task ? ` · ${label}` : ""}
+        下发节目{task ? ` · ${label}` : ""}
       </button>
       {open && (
         <aside
@@ -61,7 +61,7 @@ export function InstallationCenter({
         >
           <header>
             <h2 id="installation-heading" tabIndex={-1} ref={heading}>
-              节目安装
+              下发节目
             </h2>
             <button onClick={close} aria-label="关闭安装面板">
               关闭
@@ -92,7 +92,7 @@ export function InstallationCenter({
             {task ? (
               <InstallationTask task={task} controller={controller} />
             ) : (
-              <p>在工程的“播放包”中选择节目，生成后安装到当前连接设备。</p>
+              <p>在工程的“播放包”中选择节目，生成后下发到当前连接设备。</p>
             )}
           </div>
           <footer>收起面板后继续处理；安装不会启动灯光输出。</footer>

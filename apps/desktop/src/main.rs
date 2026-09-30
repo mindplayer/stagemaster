@@ -7,6 +7,7 @@ mod lifecycle;
 mod package;
 mod preview;
 mod previs;
+mod recent;
 mod recovery;
 mod session;
 use serde::Deserialize;
@@ -25,6 +26,10 @@ enum Request {
     },
     Open {
         generation: u32,
+    },
+    OpenRecent {
+        generation: u32,
+        id: String,
     },
     Recover {
         generation: u32,
@@ -92,6 +97,7 @@ fn dispatch(
         Request::Snapshot => {}
         Request::New { generation } => session.create(app, generation)?,
         Request::Open { generation } => session.open(app, generation)?,
+        Request::OpenRecent { generation, id } => session.open_recent(app, generation, &id)?,
         Request::Recover {
             generation,
             id,
@@ -155,6 +161,7 @@ fn main() {
                 .ok_or("缺少数据目录")?
                 .to_path_buf();
             app.manage(audio::Service::new(data.join("audio")));
+            app.manage(recent::Service::new(data.join("navigation")));
             app.manage(recovery::Service::new(recovery::directory(app)?));
             Ok(())
         })
@@ -216,6 +223,7 @@ fn main() {
             package::package_build,
             package::package_export,
             recovery::recovery_request,
+            recent::recent_request,
             device::device_request,
             installation::installation_request,
             installation::installation_start,

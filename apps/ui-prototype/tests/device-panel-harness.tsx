@@ -40,6 +40,7 @@ const unsupported = async () => {
   throw new Error("此隔离组件不调用该接口");
 };
 const host: ApplicationHost = {
+  recent: async () => [],
   audio: async () => {throw new Error("此组件不调用音频");},
   audioPrepare: async () => {throw new Error("此组件不调用音频");},
   audioCancel: async () => {},

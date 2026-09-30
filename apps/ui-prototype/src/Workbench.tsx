@@ -16,7 +16,9 @@ import { StageViewTabs } from "./components/layout/StageViewTabs";
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
 import { useAudio } from "./components/audio/useAudio";
 import { AudioPreviewTransport } from "./components/audio/AudioPreviewTransport";
-import { DeviceTools } from "./components/devices/DeviceTools";
+import { ProjectHeader } from "./components/projects/ProjectHeader";
+import { ProjectStart } from "./components/projects/ProjectStart";
+import { RecentProjectsDialog } from "./components/projects/RecentProjectsDialog";
 import { startInstallationReason } from "./installation-tools";
 import { useInstallation } from "./components/installation/useInstallation";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
@@ -35,15 +37,7 @@ import {
 import { PatchDialog } from "./components/fixtures/PatchDialog";
 import { PatchMap } from "./components/fixtures/PatchMap";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  PlusIcon,
-  FolderOpenIcon,
-  FloppyDiskIcon,
-  ArrowCounterClockwiseIcon,
-  ArrowClockwiseIcon,
-  LightbulbIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import type {
   ApplicationHost,
   EditCommand,
@@ -142,6 +136,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     page === "audio",
   );
   const [showRecovery, setShowRecovery] = useState(false);
+  const [showRecent, setShowRecent] = useState(false);
   const [patchId, setPatchId] = useState("");
   const [patchSelection, setPatchSelection] = useState<string[]>([]);
   const [patchDialog, setPatchDialog] = useState<"repatch" | "exchange" | null>(
@@ -406,18 +401,26 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               : null,
     );
   }
-  function fileAction(kind: "new" | "open") {
-    void run(async () => {
+  async function fileAction(
+    kind: "new" | "open" | "openRecent",
+    id?: string,
+  ): Promise<boolean> {
+    let opened = false;
+    const ok = await run(async () => {
       const previousGeneration = current.current.generation;
-      const next = await request({
-        kind,
-        generation: current.current.generation,
-      });
+      const value: ProjectRequest =
+        kind === "openRecent"
+          ? { kind, generation: previousGeneration, id: id! }
+          : { kind, generation: previousGeneration };
+      const next = await request(value);
       if (next.project && next.generation !== previousGeneration) {
         resetWorkspace(next);
+        setShowRecent(false);
         setNotice(kind === "new" ? "已创建工程" : "已打开工程");
+        opened = true;
       }
     });
+    return ok && opened;
   }
   async function recover(entry: RecoveryEntry): Promise<boolean> {
     let recovered = false;
@@ -608,12 +611,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   }
   actions.current = {
     close: () => {
-      const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
+      const dialog = document.querySelector<HTMLDialogElement>(
+        "dialog[open]:not([data-navigation-dialog])",
+      );
       if (dialog) {
         dialog.querySelector<HTMLElement>("input,button")?.focus();
         setError("请先保存或取消当前编辑，再关闭窗口");
         return;
       }
+      setShowRecent(false);
       void run(async () => {
         await request({ kind: "close" });
       });
@@ -704,79 +710,41 @@ export function Workbench({ host }: { host: ApplicationHost }) {
 
   return (
     <main className="workbench">
-      <header className="workbench-header">
-        <div className="wb-brand">
-          <span className="wb-logo">
-            <LightbulbIcon weight="fill" size={22} />
-          </span>
-          舞台大师
+      <ProjectHeader
+        host={host}
+        snapshot={snapshot}
+        dirty={dirty}
+        busy={busy}
+        hasDrafts={hasDrafts}
+        installation={installation}
+        onNew={() => void fileAction("new")}
+        onOpen={() => void fileAction("open")}
+        onRecent={() => {
+          setError("");
+          setShowRecent(true);
+        }}
+        onRecover={() => {
+          setError("");
+          setShowRecovery(true);
+        }}
+        onHistory={history}
+        onSave={save}
+      />
+      {showRecent && (
+        <RecentProjectsDialog
+          host={host}
+          busy={busy}
+          error={error}
+          onOpen={(id) => fileAction("openRecent", id)}
+          onBrowse={() => void fileAction("open")}
+          onClose={() => setShowRecent(false)}
+        />
+      )}
+      {snapshot.recentProblem && (
+        <div className="wb-recovery-status warning" role="status">
+          最近工程记录未更新：{snapshot.recentProblem}
         </div>
-        {project && (
-          <div className="wb-project-title">
-            <strong>{project.name}</strong>
-            <span className={dirty ? "wb-unsaved" : ""}>
-              {dirty ? "未保存" : "已保存"}
-            </span>
-          </div>
-        )}
-        <div className="wb-file-actions">
-          <DeviceTools host={host} installation={installation} />
-          <button
-            title="新建工程（⌘N / Ctrl+N）"
-            disabled={busy || host.kind !== "desktop"}
-            onClick={() => fileAction("new")}
-          >
-            <PlusIcon />
-            新建
-          </button>
-          <button
-            title="打开工程（⌘O / Ctrl+O）"
-            disabled={busy || host.kind !== "desktop"}
-            onClick={() => fileAction("open")}
-          >
-            <FolderOpenIcon />
-            打开
-          </button>
-          <button
-            disabled={busy || host.kind !== "desktop"}
-            onClick={() => {
-              setError("");
-              setShowRecovery(true);
-            }}
-          >
-            恢复
-          </button>
-          <span className="wb-toolbar-separator" />
-          <button
-            aria-label="撤销"
-            title="撤销（⌘Z / Ctrl+Z）"
-            disabled={busy || (!snapshot.canUndo && !hasDrafts)}
-            onClick={() => history(false)}
-          >
-            <ArrowCounterClockwiseIcon />
-          </button>
-          <button
-            aria-label="重做"
-            title="重做（⇧⌘Z / Ctrl+Shift+Z）"
-            disabled={busy || !snapshot.canRedo || hasDrafts}
-            onClick={() => history(true)}
-          >
-            <ArrowClockwiseIcon />
-          </button>
-          <button disabled={busy || !project} onClick={() => save(true)}>
-            另存为
-          </button>
-          <button
-            className="wb-primary"
-            title="保存工程（⌘S / Ctrl+S）"
-            disabled={busy || !project || !dirty}
-            onClick={() => save()}
-          >
-            <FloppyDiskIcon />
-            保存
-          </button>
-        </div>
-      </header>
+      )}
       {project && (dirty || snapshot.recovery.problem) && (
         <div
           className={`wb-recovery-status${snapshot.recovery.problem ? " warning" : ""}`}
@@ -819,36 +787,14 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         </div>
       )}
       {!project ? (
-        <div className="wb-welcome">
-          <LightbulbIcon size={52} weight="duotone" />
-          <h1>开始编排</h1>
-          <p>
-            {host.kind === "browser"
-              ? "请使用桌面应用打开本地工程"
-              : "创建工程，或继续已有编排"}
-          </p>
-          <div>
-            <button
-              className="wb-primary"
-              disabled={host.kind !== "desktop" || busy}
-              onClick={() => fileAction("new")}
-            >
-              新建工程
-            </button>
-            <button
-              disabled={host.kind !== "desktop" || busy}
-              onClick={() => fileAction("open")}
-            >
-              打开工程
-            </button>
-            <button
-              disabled={host.kind !== "desktop" || busy}
-              onClick={() => setShowRecovery(true)}
-            >
-              恢复工程
-            </button>
-          </div>
-        </div>
+        <ProjectStart
+          host={host}
+          busy={busy}
+          onNew={() => void fileAction("new")}
+          onOpen={() => void fileAction("open")}
+          onRecover={() => setShowRecovery(true)}
+          onRecent={(id) => fileAction("openRecent", id)}
+        />
       ) : (
         <>
           <PerformanceLayout

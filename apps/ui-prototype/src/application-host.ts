@@ -19,8 +19,7 @@ import type {
   PreviewSnapshot,
 } from "./sequence-types";
 export type EditCommand =
-  | EditOperation
-  | { op: "batch"; commands: EditOperation[] };
+  EditOperation | { op: "batch"; commands: EditOperation[] };
 export type EditOperation =
   | { op: "audio"; command: import("./audio-types").AudioEdit }
   | { op: "position"; command: PositionEdit }
@@ -107,10 +106,12 @@ export interface Snapshot {
   canUndo: boolean;
   canRedo: boolean;
   recovery: import("./recovery-types").RecoveryStatus;
+  recentProblem?: string | null;
 }
 export type ProjectRequest =
   | { kind: "snapshot" | "close" }
   | { kind: "new" | "open"; generation: number }
+  | { kind: "openRecent"; generation: number; id: string }
   | { kind: "recover"; generation: number; id: string; token: string }
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
@@ -118,6 +119,9 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  recent(
+    request: import("./recent-types").RecentRequest,
+  ): Promise<import("./recent-types").RecentProject[]>;
   audioPrepare(
     generation: number,
     kind: "import" | "load" | "locate",
