@@ -1,82 +1,42 @@
 # 实现状态
 
-2026-09-29 最新增量：MEMORY-001 已完成实板分层内存保护，AUDIO-001 已接入[本机音乐与灯光卡点](module-api/audio-editing.md)，真实媒体导入／试听／波形／手动卡点／场景绑定、资源保存重开已验证。最新任务及硬件状态以 [STATE](development/STATE.md) 顶部为准；下方旧记录按各自日期保留，不代表当前全部能力。音频未下发 ESP32，真实 DMX／跨设备声光同步仍待验收。
+当前能力基线：2026-10-01，EFFECT-003 `ed240c4`。本表是当前能力与验证边界的入口；后续增量和当前窗口／实板状态看 [STATE](development/STATE.md)，历史过程看各工单。技术框架为 Rust 核心、Tauri 2＋React／TypeScript 界面；云端 Fastify＋PostgreSQL＋对象存储尚未实施。
 
-2026-09-28 PLAYER-003C 完成[播放包传输与上传协调](module-api/package-transfer.md)：独立有界协议、分片／原回执重试、按事务续传／取消、归属与权限注入边界；全量 241 Rust＋最终 17 项定向（新增 2）和最终 Xtensa 编译通过。真实导出包经内存链路及文件安装后逐帧一致；正式 GATT I/O、认证与 Flash 尚未接入。
+已有真实编辑、音频、内嵌预演及设备安装链路，仍是开发版。界面可操作、计划可编码、设备安装成功分别有证据；真实 RS485 输出仍禁用，不能据此宣称可交付演出。
 
-2026-09-28 PLAYER-003B 完成[播放包安装事务](module-api/package-installation.md)：no_std 安装状态机与文件参考适配、双槽提交／完整性恢复、幂等块／取消／待确认、稳定读源租约；全量 224 Rust＋最终 14 项定向（新增 2）、严格检查和 Xtensa 编译通过，逐点故障／进程退出与真实文件重放验收通过。尚未接 GATT 上传或设备 Flash，不是板级掉电证明。
-
-2026-09-28 PROJECT-002 修复[工程容量与编码](module-api/project-capacity.md)：完整紧凑内容、必要修订余量和有界排版回退统一用于打开／编辑／保存／恢复；212 Rust 及原生 7,002 场景保存重开／异常恢复通过。
-
-2026-09-28 PLAYER-003A 已接入[独立播放包](module-api/playback-package.md)：只读场景／列表编译、no_std 严格解码、逐节目装载、资源报告、同内核重放和真实桌面另存；设备安装、正式授权与现场输出尚未实现。
-既有代码缺陷核查：2026-09-10；架构与接口再评估及 G0 实施更新：2026-09-11；UI 原型更新：2026-09-21；工程格式草案更新：2026-09-23；真实工作台扩充：2026-09-28。技术框架为 Rust＋TypeScript、Tauri 2＋React；当前代码是 A0 静态语义验证原型，能完成一次内存求值和编码。已新增 Tauri／React 桌面工作台，接入独立 Rust 工程编辑与存储模块；DESKTOP-003 / PLAYER-001A 新增独立 Rust 有界列表执行与离线数值预览；PLAYER-002A 已接入 ESP32 诊断固件与 BLE GATT，尚无真实 DMX 发送。[架构审查](architecture-review.md)复现的问题中 R01、R02 已在 G0 修复并加入保护回归，R03–R09 仍待后续契约任务处理；[架构 v0.5](architecture.md)是设计补充，不是已实现能力。
-
-| 能力 | 状态 | 当前证据 | 下一步 |
-| --- | --- | --- | --- |
-| 开发方式 | 当前 Astra 会话直接负责规划、实现、验证和集成；G0 按调整后的范围结项 | [DEV-ADR-002](development/decisions/DEV-ADR-002-astra-direct.md)取消 Sol 委派并清理旧工具／试验；Git 基础、两个核心修复及保护回归保留 | 本会话规划 G1 契约与首批工单并直接实施 |
-| 核心语言复评 | 保留 Rust 主核心；无两种语言性能对测 | [Rust／C++26 复评](core-language-rust-vs-cpp.md)核查官方支持状态与本机工具链，TS 只作接口／客户端及云端业务 | 按同一实时预算验证核心；SDK／固件有具体约束再局部采用 C／C++ |
-| ESP32／ARM 独立场景播放盒 | ESP32-S3 诊断固件与共享内核已实测；RS485 禁止发送 | [PLAYER-002A](development/tasks/PLAYER-002-esp32-probe.md)：no_std 自检、512 属性负载、资源与 GATT 实板测试 | UART DMX／电气与时序、执行包、安装、UI 和本地面板；ARM 未验证 |
-| 主机编译、设备包与无线传输 | 工程编译、独立持久包、桌面导出、软件安装和传输协调已实现；GATT 仅有诊断连接 | [播放包](module-api/playback-package.md)、[安装事务](module-api/package-installation.md)、[传输](module-api/package-transfer.md)通过主机／故障／重放验证；[ADR-014](development/decisions/PRODUCT-ADR-014-device-link-probe.md)保留实板诊断连接证据 | Flash 适配／固件资源、真实 GATT 上传、身份与控制权及板级验收 |
-| 模块伪 API | 接口草案；无服务实现 | [方案 0.3](module-api/README.md)含 Rust 伪接口、TS 声明、调用样例和编译期反例；8 个 TS 文件的严格检查通过 | 固定首批契约并生成 Rust／TS 对应类型，逐模块实现与联调 |
-| AI 辅助编辑 | 独立 draft-1 伪接口；无模型或服务实现 | [AI-001](development/tasks/AI-001-assisted-editing-api.md)复用工程命令，分开模型窄工具与可信宿主；包括受限上下文、提案、应用／撤销、冲突及幂等对账 | 先用已存在场景的参数编辑验证运行权限／事务，再接可替换模型适配；不进入播放或输出路径 |
-| 外部音视频／设备控制与监看 | 资料研究与接口草案；无协议接入 | [专项设计](audiovisual-stage-design.md)及 external-contracts／external-examples 区分控制、反馈和监看，已纳入 TS 检查 | 验证一个外部播放器、一个媒体返回源与灯光模拟的闭环 |
-| 实体控台／双向控制面 | 产品目标与接口草案；无硬件或固件实现 | [硬件设计](hardware-control-surfaces.md)及 surface-contracts 定义输入、反馈、映射屏障与接管，已纳入 TS 检查 | 先虚拟输入，再验证已有设备；电动推子单独实测 |
-| 架构扩展审查 | 设计与契约修订；无运行实现 | [C01—C10 与验证门槛](architecture-evolution-review.md)，包含源码依赖复核、正反类型样例 | 以单域、虚拟推子和假外部设备验证替换边界 |
-| 空间／灯位编辑 | 正式桌面增量已实现 | PREVIS-001／UX-013 已接真实空间、尺寸建模与内嵌三维；[UX-014](development/tasks/UX-014-fixture-arrangement.md) 补灯位多选／框选／组拖动、直线／矩阵／圆弧、整体变换／对齐分布、灯序、统一历史及保存重开；[STAGE-001](development/tasks/STAGE-001-rigging-workflow.md) 已补桁架／灯杆、批量挂灯、关联变换／解除／删除、按支撑体选灯、测距及内嵌 UE 场地同步 | 复杂吊点、门洞／共享墙、观众区域与完整三维组变换；原生拖动取消与辅助功能继续补验 |
-| 摇头灯位置编排 | 相交正交两轴增量已实现 | [POSITION-001](development/tasks/POSITION-001-moving-head-workflow.md)：范围／反向／8/16 位映射、手工零偏、共同目标静态求解、轴角渐变和 UE 姿态；原子历史、保存重开和暂停一致性验证 | 持续目标跟随、轨迹约束、自动校准、非相交轴／多头、轮盘；真实 DMX 与精度实测 |
-| UE5 专业预演 | 应用内固定调光／RGB 和两轴姿态已实现，非完整商业预演交付 | [预演接口](module-api/previsualization.md)：UE 5.8.3 离屏画面、导航／双向选灯／拖动取消／历史／保存重开、列表渐变／暂停／继续／停止与故障隔离原生验收；122 项 Rust、33 项 UI、4 项 UE 通过 | 专业光学、帧率／延迟与规模预算、客户独立组件、完整摇头灯；Esc 持按及辅助功能恢复专项验收 |
-| 真实场地采集／重建 | 设计建议；无实现或实测 | [混合场景方案](venue-capture-design.md)定义高斯外观、几何、业务对象分层与修订 | 先导入小场地采集结果，验证尺度、重新布光与工具平台限制 |
-| Depence R4 对照／多设备预演 | 公开资料重点对照；无仿真实现 | [12 项对照与架构补充](depence-r4-assessment.md)，含独立预演、仿真生命周期和图纸职责；未加入 TS 检查 | 先验证灯光／视频场景，再按项目扩展专项模型 |
-| 归一化属性和类型化 ID | 原型 | 运行原型仍用 u16／u64；格式草案已定义 UUID 与类型化值，尚未转换接入 | 建立带类型值、离线身份、单位、物理范围和子灯地址 |
-| 有序灯组 | 正式桌面增量已实现 | DESKTOP-004：有序成员编辑、召回替换／追加／扣除、奇偶与反选、复制／历史／保存重开 | 二维／三维选择布局与高级选择工具 |
-| 编程器 | 已有基础实现 | 选择、字面量、预设调用、激活／释放分开 | 增加属性过滤、来源范围、撤销命令和多用户上下文 |
-| 预设 | 正式逐灯预设增量已实现 | DESKTOP-004：按属性记录、引用／独立值、三种更新模式、依赖查看与删除保护、解除引用；编译快照独立 | 通用共享／嵌套／配方与现场更新策略 |
-| 场景／Sequence 跟踪 | 静态基础求值；R01 已解决 | 顺序处理 Set／引用／Release；新增和替换场景均校验另一稳定 ID 的编号，6 项保护回归通过 | 补 Part、Block、场景 Only、MIB 和时间；其他约束按后续契约处理 |
-| 播放器 | 独立单列表执行增量已实现 | 毫秒延时／渐变／自动等待、暂停／跳转／循环／默认值释放、不可变计划及单路 DMX 编码预览；A0 多源容器独立保留 | 持久播放包、设备资源测量、模拟发送确认／故障、多源时间合成与完整时间线 |
-| 输出合成 | HTP／LTP 原型；R02 已解决 | HTP default 仅在无有效贡献时回退；8 项保护回归覆盖零值、权重、优先级和缩放；未知属性仍可被忽略 | 固定专业推杆／合成契约，编译前校验不支持属性；处理 R03、R07 |
-| 来源追踪 | 初步贡献记录 | 可见播放通道等来源；未保留场景／预设／效果链 | 编译 sourceMap、获胜／抑制／回退原因与帧关联 |
-| 灯具模式／DMX 配适 | 正式线性建档与配适增量已实现 | [FIXTURE-002](development/tasks/FIXTURE-002-profiles-patch.md)：工程灯库、调光／RGB 的 8/16 位映射、默认值、使用中保护、同属性换灯、有序批量改址、占用图；原生历史／保存重开与内嵌动态预演通过 | 跨工程个人库、GDTF/OFL 导入、多单元、功能分段、轮盘及运动校准；真实 DMX 独立验收 |
-| DMX 编码 | 8／16-bit 数据编码 | 一次快照生成 512-slot 通道负载，不是物理发送 | 中立数值帧、epoch／时序和真实输出适配器 |
-| 模拟逻辑链路 | 可运行 | demo 中两个灯具 Intensity 255、Blue 166 | 转为带虚拟时钟、状态和失败场景的验收工程 |
-| 声光电与互动机构工程格式 | 完整设计草案；最小灯光子集已接桌面 | [PROJECT-001A](project-format/README.md)：4 份 Schema、5 份示例、50 项测试；覆盖媒体、机构反馈、入口联动、面板及分层发布 | Rust 领域校验和依赖闭合；真实协议／动作状态机另行实现 |
-| 工程持久化 | 最小灯光子集已实现 | DESKTOP-001：严格读取、领域校验、原子编辑、修订、同目录替换保存、外部变更检查及保存重开 | 场景列表已接通；补时间线、迁移与崩溃恢复；文件系统及其他平台验收 |
-| 灯光动态效果 | 正式场景／列表增量已实现 | [EFFECT-001](development/tasks/EFFECT-001-basic-effects.md)：呼吸／追逐／双色、周期／相位／灯序、保存／历史、Rust Q16 求值及应用内三维；暂停、边界与迟到帧验证；[EFFECT-002](development/tasks/EFFECT-002-keyframes-reuse.md) 补 32 帧、三种过渡、独立复用与周期快捷调整 | 相对值、节拍／现场主控、摇头运动、像素；设备资源与实际输出验收 |
-| 时间线与音频参考 | 正式时间线与外部媒体执行未接通 | [UX-003](ui-design/interaction-prototype.md) 仍为内存参考原型；独立列表时间执行已由 DESKTOP-003 实现 | 将时间线接入真实工程、共享时钟及外部播放／监听闭环 |
-| Tauri／React 界面 | 本机原生工作台已接 Rust 工程模块 | [DESKTOP-001／002](ui-design/desktop-workbench.md)：批量配适、多灯共同属性／RGB、混合值、搜索选择、场景复制、原子撤销与保存重开；原型时间线回归保留 | 场景列表及独立预览已接通；补真实时间线／3D／设备输出 |
-| RS485／网络输出 | 未实现 | 仅有未实现的 `DmxSink` trait，接受／发送状态尚未细分 | 帧契约、输出所有权、队列与时序；再做设备测试 |
-| 云端服务 | 未实现 | Fastify＋PostgreSQL＋对象存储职责已确定 | 单机发布格式稳定后落地 |
-
-
-UX-015 已接通编排页三维同屏监看、当前场景跟随与显式播放监看，原生 20 次工作区切换恢复完整辅助树，并验证草稿保护／保存重开／窄窗口；核心和协议未变。见[工单](development/tasks/UX-015-editing-monitor.md)。
+| 能力 | 已实现与证据 | 仍未完成／验收边界 |
+| --- | --- | --- |
+| 工程编辑与持久化 | Rust 原子事务／撤销重做、严格读取、修订与保存冲突、[容量保护](module-api/project-capacity.md)、[崩溃恢复](module-api/project-recovery.md)、[最近工程](development/tasks/UX-024-recent-projects.md) | 未应用输入草稿恢复、版本迁移／比较、云端协作；其他平台需独立验收 |
+| 灯具定义与配适 | [FIXTURE-002](development/tasks/FIXTURE-002-profiles-patch.md)：工程内调光／RGB／双轴、8/16 位任意粗细映射、默认值、使用中模式保护、明确换灯、批量改址／占用图 | 功能区间、色盘／图案盘／频闪等完整语义、个人灯库、GDTF／OFL 导入、多单元和真实试灯 |
+| 灯组／预设与选择 | [资源模块](module-api/editing-library.md)、[中央平面选择](development/tasks/UX-026-scene-plan-selection.md)、[搜索面板](development/tasks/UX-027-searchable-resources.md)：有序选择、追加／扣除、预设引用／独立值、依赖与更新保护 | 通用共享预设、配方、完整克隆／跨能力换灯 |
+| 常规场景编排 | [编排流程](development/tasks/UX-018-scene-editing-flow.md)：亮度／颜色／位置属性、批量混合值、场景复制、显式对象／版本预演 | 专业编程器来源追踪、盲编、分部／阻断继承／仅当前更新、暗场预定位 |
+| 动态效果 | [效果模块](module-api/lighting-effects.md)：亮度／RGB 曲线、32 帧、三种过渡、灯序／相位；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 加入相对物理角度双轴运动；[固定属性编辑](development/tasks/UX-020-docked-effect-editing.md) 保持三维可见 | 连续世界目标轨迹、速度／加速度约束、现场速度主控／节拍、像素；当前正弦采用有界采样，详见契约 |
+| 摇头位置 | [POSITION-001](development/tasks/POSITION-001-moving-head-workflow.md)：独立两轴范围／反向、零偏、静态共同点、轴角渐变和关节预演 | 非相交轴／多头、自动校准、实灯精度／碰撞；相对运动不能等同持续目标跟随 |
+| 单列表执行 | [播放核心](module-api/sequence-preview.md)、[专注执行视图](development/tasks/UX-021-execution-view.md)：延时／渐变／自动等待、人工推进、跳转／暂停／循环、当前／下一步／选择分离与旧版本保护 | 多执行器现场混合、总控、临时覆盖／归还、完整剧本关联及人工／定时混合调度 |
+| 音乐与灯光卡点 | [音频模块](module-api/audio-editing.md)、[成熟波形](development/tasks/AUDIO-002-professional-waveform.md)、[灯光段落](development/tasks/UX-022-audio-lighting-lane.md)：真实音频、WaveSurfer、裁切／定位／手动标记／场景绑定、边界编辑和统一历史 | 自动拍子、多轨、重叠／跨场景渐变、跨设备时钟和有线／蓝牙延迟校准；音乐不存 ESP32 |
+| 舞台与场地 | [装配](development/tasks/STAGE-001-rigging-workflow.md)、[场地目录](development/tasks/UX-025-stage-organization.md)：空间／尺寸、桁架／挂灯、阵列／对齐、测距、显隐／搜索／精确输入及一次历史 | 座区／座椅复合业务对象、门洞／共享墙、复杂吊点、完整三维组变换 |
+| 程序内三维 | [PREVIS-002](development/tasks/PREVIS-002-single-workspace.md)：唯一 UE 视窗与共享播放进度、跨页保持；[UX-023](development/tasks/UX-023-previs-session-contention.md) 处理短时锁竞争 | 仍依赖本机 UnrealEditor；独立运行时打包、专业光学／轮盘模拟、规模／延迟预算和完整辅助功能 |
+| 工程检查与素材交付 | [检查](module-api/project-check.md)、[资源健康](development/tasks/UX-028-project-resource-health.md)：编译／配适定位、资源摘要、缓存／随附文件分别检查、缺失重定位与保存补齐 | 当前资源检查针对已接入音乐文件；完整多媒体依赖、导出图纸、运行来源诊断未实现 |
+| 编译／播放包／设备运行层 | [有界包](module-api/playback-package.md)、[安装](module-api/package-installation.md)、[传输](module-api/package-transfer.md)、[NOR](module-api/nor-package-store.md)、[运行模块](module-api/device-runtime.md) 已实施并通过相应故障／重放验证 | 正式设备运行控制、独立本地面板、物理输出及整链路长期压力仍待验；主机故障注入不是所有板级掉电证明 |
+| BLE 与实板存储 | [DEVICE-002 完整验收](development/tasks/DEVICE-002-direct-installation-acceptance.md)：免系统配对加密 GATT、身份／开发权限、下发／取消／续传／结果对账；[MEMORY-001](development/tasks/MEMORY-001-bounded-board-memory.md)：8 MB PSRAM 自检及 2 MB 有界缓存 | 现有开发凭据不等于生产身份、24 小时文件许可、安全启动；容量上限仍按目标预算校验 |
+| DMX 与首版播放盒 | 共享内核在 ESP32-S3 验证，支持单路 512 通道数据编码；实板安装已通过 | GPIO21／RS485 发送仍禁用；UART 时序、电气、运行到实灯及脱机操作闭环未通过。ARM／其他盒子尚未验证 |
+| 多源混合旧原型 | A0 的 HTP／LTP 与基础跟踪仍独立保留；G0 修复 R01／R02 并保留回归 | 不等同新单列表的完整专业合成器；[架构审查](architecture-review.md)中的 R03／R06／R09 等没有因新模块通过而自动关闭 |
+| 扩展方向 | [伪 API](module-api/README.md)、[AI 编辑](module-api/assisted-editing.md)、[音视频／机构](audiovisual-stage-design.md)、[实体控制面](hardware-control-surfaces.md)、[采集重建](venue-capture-design.md)已有设计 | 对应真实服务、外部协议、机械控制适配、硬件面板、采集导入尚未实施；没有以设计稿冒充运行接口 |
+| 云端／跨端 | 已明确共享 Rust 语义、TS 界面／云端和可替换宿主边界 | 云服务、生产授权、iPad／网页编辑与其他桌面平台尚未交付 |
 
 ## 验证命令
 
-CHECK-001 已实现只读工程检查服务与“工程”页问题导航：完整配适诊断、逐场景／列表编译、实际计划容量、错误优先／搜索／分页、草稿与版本过期保护。原生定位修复、撤销／保存重开、取消和检查期间编辑通过；设备执行包和安装仍未实现，界面明确分开状态。见[接口](module-api/project-check.md)及[验收](development/tasks/CHECK-001-project-check.md)。
+EFFECT-003 最近一次产品增量通过 443 项 Rust、125 项 UI、87 项格式检查、fmt／严格 Clippy／类型和桌面构建；实际保存重开、撤销／取消、行程拒绝与内嵌 UE 见[任务验收](development/tasks/EFFECT-003-relative-position-effects.md)。测试数量是该构建的记录，不是商业成熟度评分。当前 DOC-001 仅校对文档，不重跑无关产品测试。
 
-架构 v0.5 与接口 0.3 已按[完整目标再评估](architecture-evolution-review.md)修正独立操作会话、监看稳定键、外部动作同步组代次、单域编译／激活及工程／执行两类包，增加无节目启动和跨端交换的类型样例。C-A1—C-A10 均为待实现的运行验收；时钟／deadline、资源清单及兼容矩阵仍需原型细化。G0 只修改 R01／R02 的局部 Rust 语义和开发工作器，没有真实设备验证。
-
-```sh
-cargo fmt --all -- --check
-cargo check --workspace --all-targets --locked --offline
-cargo test --workspace --locked --offline
-cargo clippy --workspace --all-targets --locked --offline -- -D warnings
-cargo run -p stagemaster-engine-demo
-```
-
-G0 的 CORE-002 集成提交 `81ed816fff5d8a358d5e1ecf933057a148d02e8f` 已运行 fmt、离线 workspace 测试和严格 Clippy并通过。G0 时 workspace 为 24 项测试：原有 10 项，加 CORE-001 的 6 项场景唯一性保护回归及 CORE-002 的 8 项 HTP 回退保护回归。demo 与真实设备未在 G0 重跑，不能据此扩大能力声明。
-
-新增接口检查命令：
+项目使用本地离线依赖缓存；终端从根目录运行：
 
 ```sh
-npm exec --yes --package=typescript@5.9.3 -- tsc -p docs/module-api/tsconfig.json
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo fmt --all -- --check
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo test --workspace --locked --offline
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+npm --prefix apps/ui-prototype run check
+npm --prefix apps/ui-prototype run test
+npm --prefix apps/ui-prototype run desktop:build
 ```
 
-严格类型检查通过，并核查相关文档的本地链接与代码围栏。该检查只验证声明、调用样例和编译期错误反例，不证明业务服务、RPC、鉴权、时序或设备输出已实现。
-
-独立临时探针曾复现场景编号替换碰撞、HTP 非零默认下限、未知属性被忽略、运行中预设更新不传播、场景编号越界饱和行为。前两项现已由产品内保护回归验证修复；R03、R06、R09 仍保留。历史探针不计入当前 24 项测试，模拟运行也不代表现场实时性、完整确定性或商业可用性。
-
-DESKTOP-001 新增工程／存储／会话验收后，工作区共 43 项 Rust 测试；原有 24 项保护验收未改。桌面闭环覆盖新建、配适、场景属性、保存重开及正常退出保护。读取新模块的能力拒绝并不表示旧 A0 内核 R03–R09 已修复；尚无播放编译接入。
-
-DESKTOP-002：新增受限原子批次与场景复制，工作区共 48 项 Rust 测试；UI 21 项逻辑／交互测试、50 项格式检查、4 项 Sites 测试及类型／构建、fmt／严格 Clippy 通过。桌面验收与具体限制见 [工单](development/tasks/DESKTOP-002-editor-workflow.md)。仅编辑功能扩充，AI 运行服务、空间建模、时间线、播放与设备输出没有因此实现。
-
-DESKTOP-003 / PLAYER-001A：列表编辑、引用校验、主机编译、纯执行器及原生离线预览已实现，接口见 [sequence-preview](module-api/sequence-preview.md)。70 项 Rust、25 项 UI；具体完整验收与限制以[本轮工单](development/tasks/DESKTOP-003-sequence-preview.md)为准。
+格式与伪接口的验证说明分别见[工程格式](project-format/README.md)和[模块接口](module-api/README.md)。仅通过 Schema／类型检查不能证明服务、鉴权、实时性或物理输出已实现。设备相关构建、真实试验、失败记录与资源限制保留在对应工单，不以本机软件测试代替。

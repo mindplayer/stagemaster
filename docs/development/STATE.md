@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DOC-001 完成（基线 `ed240c4`，结果为本次 `docs: reconcile current capabilities and audit progress` 提交）：README、实现状态、能力计划、执行顺序和审核映射已对齐；178 个本地链接与 diff 检查通过，见[工单](tasks/DOC-001-current-capability-map.md)。以下按任务完成时刻保留历史，**当前能力统一看[实现状态](../implementation-status.md)**，不将历史“下一步”视为当前缺口。持续 goal active，接续 F02 通道功能与离散编排语义。窗口仍为 EFFECT-003 保存副本、内嵌 UE 暂停、设备断开。
+
 EFFECT-003 完成（基线 `f7f24ec`，结果为本次 `feat(effects): add relative physical moving-head shapes` 提交）：依 ADR-058 实现相对双轴运动、独立角度编辑及水平／垂直／圆形模板；443 Rust、125 UI、87 格式、fmt／严格检查、桌面与原生保存／撤销／取消／内嵌 UE 通过，见[验收](tasks/EFFECT-003-relative-position-effects.md)。真实工程验证机械行程拒绝并修复旧预演错误残留。当前已保存运动验收副本、唯一 UE 连接、暂停 83.964 秒；原 Volare 未改、设备断开。持续目标接续审核其余主干缺口。
 
 持续审核改进 goal 保持 active。用户明确“不要一轮一停”，当前会话连续实现、验证并集成。UX-020 固定效果属性、UX-021 专注执行视图、UX-022 音乐灯光段落已完成；UX-023 已处理预演短时状态竞争、UX-024 已补最近工程与下发入口，UX-025 场地管理与 UX-026 中央选灯已补，接续资源选择及问题定位，核心商业门槛继续保留。

@@ -1,58 +1,29 @@
 # stagemaster · 匀为舞台大师
 
-新项目工作目录：`/Users/sunqi/projects/stagemaster`。
+专业灯光编排、舞台预演与演出控制系统。能力对标 grandMA3／Avolites Titan，编排界面借鉴剪映式连续工作流。当前在 MacBook 开发，核心为 Rust，桌面为 Tauri 2＋React＋TypeScript；未来云端使用 Fastify＋PostgreSQL＋对象存储。
 
-本文件用于新会话交接，控台研究基线为 2026-09-11，产品能力规划与界面设计更新于 2026-09-24，工程格式草案更新于 2026-09-23。用户已确认技术框架：Tauri 2＋Rust＋TypeScript，界面采用 React＋Vite，服务器端采用 Fastify＋PostgreSQL，并配合对象存储。已完成方向梳理、技术选型、控台功能研究和 A0 第一条 Rust 静态语义验证链路。当前代码仍是原型；编号校验与默认值合成缺陷已修复，其他领域／运行边界仍待落实，尚不能视为完整控台内核。已新增 Tauri 桌面工作台：React 接入独立 Rust 工程模块，完成最小灯光编辑、事务保存和重开；原舞台画布／时间线交互代码保留待正式接入。已增加独立 Rust 场景列表执行器与桌面离线预览；真实设备输出和云端仍未实现。架构 v0.5 与模块伪 API 0.3 已按完整目标再评估，修正操作会话、持久身份、单域激活及云端交付包的边界；具体格式、行为默认值和性能仍需原型与设备验证。
+当前是具备真实编辑、音乐卡点、应用内 UE 和设备安装链路的开发版，**还不能作为完整商业控台交付**。RS485 物理 DMX 仍禁止发送，完整灯具功能、多执行器、跨设备声光同步和生产授权仍待实现／验收。首次目标仍为软件＋独立播放盒、一条可独立运行的 DMX 输出链。
 
-当前开发入口：
+## 当前入口
 
-- [设备连接工作台](docs/module-api/device-connection.md)：DEVICE-001 已完成 macOS 原生蓝牙搜索／连接／取消、独立保活与诊断状态，跨页面保持上下文。真实设备握手、重连、主机停顿失效及应用重开已验收；不包含设备安装或播放控制。
+更新至 2026-10-01、EFFECT-003（`ed240c4`）。[实现状态](docs/implementation-status.md)是当前能力与证据表；[开发状态](docs/development/STATE.md)记录最新工单、工作区和应用／硬件状态；历史过程见各工单。不要用早期研究文档的“尚未实现”替代当前结果。
 
-- [独立设备运行层](docs/module-api/device-runtime.md)：PLAYER-003E 接通节目选择／载入／执行、暂停／继续／停止、控制租约和维护互斥；断线继续和重复请求通过软件验收，ESP32 完整构建通过，实板运行仍待验证。
-- [独立安装工作器](docs/module-api/installation-worker.md)：DEVICE-002C 接入双核串行存储、过期队列／回执保护；真实舞台包本地安装、重启恢复、逐帧对照和资源测量已完成一轮，正式认证蓝牙安装与桌面下发仍在推进，压力失败和范围见验收记录。
-- [NOR 播放包存储与设备预算](docs/module-api/nor-package-store.md)：PLAYER-003D 接入双槽恢复、读源保护及 ESP32 完整驱动；DEVICE-002C 已补分区兼容、受控本地实板擦写和恢复。正式无线链路与物理断电仍需独立验收。
-- [播放包传输与上传协调](docs/module-api/package-transfer.md)：PLAYER-003C 接入有界分片、应用回执、续传／取消和事务归属；内存链路＋真实文件存储已验证，NOR 适配已补，正式蓝牙安装和实板验收继续推进。
-- [播放包安装事务](docs/module-api/package-installation.md)：PLAYER-003B 接入独立 Rust 状态机、双槽提交、断连续传／重复请求、异常恢复和旧读源保护；文件参考已验证，GATT 接入及实板验收继续推进。
-- [工程容量与恢复](docs/module-api/project-capacity.md)：PROJECT-002 修复紧凑工程能打开却可能无法保存的问题；完整内容保留，自动选择可读或紧凑 JSON，已验证 7,002 场景编辑、保存重开及异常恢复。
+- [独立产品审核](docs/product-audit-2026-10-01.md)：功能与体验差距、交付门槛及后续增量索引。
+- [当前执行计划](docs/development/execution-plan.md)、[产品能力规划](docs/product-capability-plan.md)：依赖和长期覆盖；规划不等于实现。
+- [正式四区域工作台](docs/development/tasks/UX-017-performance-workbench.md)：场景／执行步骤／音乐／场地／灯具／工程，共享事务和唯一预演。
+- [相对摇头效果](docs/module-api/lighting-effects.md)：亮度／颜色／关键帧，加水平／垂直／双轴圆形运动；物理角度、灯序、容量与机械行程检查。
+- [音乐卡点](docs/module-api/audio-editing.md)：真实文件播放、WaveSurfer 波形、手动卡点与场景绑定；[灯光段落编辑](docs/development/tasks/UX-022-audio-lighting-lane.md)和[资源健康检查](docs/development/tasks/UX-028-project-resource-health.md)已接通。
+- [灯具建档与配适](docs/module-api/fixture-authoring.md)、[摇头位置](docs/module-api/positioning.md)：调光／RGB／两轴、8/16 位、默认值／反向／零偏、共同点静态对焦；复杂通道功能待补。
+- [场地与挂灯](docs/development/tasks/STAGE-001-rigging-workflow.md)、[场地目录与显隐](docs/development/tasks/UX-025-stage-organization.md)、[中央选灯](docs/development/tasks/UX-026-scene-plan-selection.md)：真实空间、构件、支撑体、灯位与共享有序选择。
+- [唯一三维工作区](docs/development/tasks/PREVIS-002-single-workspace.md)：程序内 UE 画面与 Rust 播放联动；当前仍需本机 UE 开发环境，客户独立打包和专业光学未完成。
+- [执行工作区](docs/development/tasks/UX-021-execution-view.md)、[灯组预设](docs/module-api/editing-library.md)、[搜索选择](docs/development/tasks/UX-027-searchable-resources.md)：当前／下一／所选、跳转确认、单列表播放和可撤销资源编辑。
+- [设备安装验收](docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)：免系统配对的加密 GATT、保活、真实双槽安装与恢复；[分层内存保护](docs/development/tasks/MEMORY-001-bounded-board-memory.md)已实板验证，安装不等于现场播放。
+- [工程容量与持久化](docs/module-api/project-capacity.md)、[独立播放包](docs/module-api/playback-package.md)、[设备运行边界](docs/module-api/device-runtime.md)：工程编辑与受限端执行解耦，媒体不装入当前 ESP32。
+- [工程格式](docs/project-format/README.md)：严格 JSON 和能力声明；声光电全目标草案不代表所有字段已可执行。
+- [架构审查](docs/architecture-evolution-review.md)、[风险审查](docs/architecture-change-risk-review.md)、[模块伪 API](docs/module-api/README.md)：长期边界与尚待实现的调用方案；具体已实现能力以各模块契约为准。
+- [灯具定义设计](docs/ui-design/fixture-definition-design.md)、[控台研究资料库](docs/console-research/README.md)、[专业预演规划](docs/ue5-professional-previsualization.md)：保留成熟机制和适用边界，不重复技术选型。
 
-- [独立播放包](docs/module-api/playback-package.md)：PLAYER-003A 接入只读选择编译、逐节目装载、内存限额和原子导出；复用共享播放内核，支持场景／列表、效果／关键帧及粗细通道。当前为软件参考路径，设备安装、授权和真实 DMX 仍待实现。
-
-- [工程检查与定位修复](docs/module-api/project-check.md)：CHECK-001 已接真实 Rust 编译／计划容量与桌面问题导航，支持过期报告保护、搜索／分页和修复后重查；电脑预览通过不代表设备可发布。每日实现进度以 [当前状态](docs/development/STATE.md) 为准。
-
-- [产品能力总表与成熟经验吸收规则](docs/product-capability-plan.md)：2026-09-24 整合 21 个能力方向，主动补齐换灯复用、资源归档、排练隔离、诊断与现场交付等闭环，并新增 AI 编辑入口；列出模块、界面位置、真实状态及实施层次，不扩大首版门槛。
-- [AI 辅助灯光编辑接口](docs/module-api/assisted-editing.md)：共用工程命令，预留能力查询、修改提案、差异／隔离预演、范围内连续编辑与撤销；含可类型检查的调用例子，尚未接模型或实现服务。
-- [最新可交互组件工作台](docs/ui-design/component-workspace-design.md)：采用现代创作式界面，舞台与时间线为主，颜色／指向等组件按需展开，支持布置与灯具建档往返；交互已验证，尚未接入正式界面。[此前三张结构提案](docs/ui-design/modular-workspace-design.md)保留参考。
-- [灯具定义与个人灯库](docs/ui-design/fixture-definition-design.md)：可复用属性、硬件变体／模式、通道功能分段及建档工作流，借鉴 MA3／Titan／GDTF；已形成设计，尚未实现通用灯具编辑器或实灯测试台。
-- [当前 Mac 开发与未来 iPad 准备](docs/development/decisions/PRODUCT-ADR-008-ipad-primary-authoring.md)：用户目前没有 iPad，现阶段按 MacBook 设计、开发和验收；保留未来主力平板所需的共享核心、输入／布局和渲染适配空间，不前置移动开发。
-- [效果编辑界面重新定义](docs/ui-design/effect-editor-design.md)：当前优先任务；舞台选灯、曲线／灯具顺序与时间编排，含[三张布局候选](docs/ui-design/effect-editor-visuals.md)和 UE 空间视图边界；属于设计交付，未替换正式界面。
-- [桌面工作台](docs/ui-design/desktop-workbench.md)：DESKTOP-004 已补有序灯组、预设记录／引用／更新、依赖保护和属性复制，见[资源编辑接口](docs/module-api/editing-library.md)。DESKTOP-003 已补列表编辑、精确渐变／延时、自动跟随、循环、暂停／停止与真实 512 通道预览，见[运行模块接口](docs/module-api/sequence-preview.md)。DESKTOP-002 已接通组件式灯具／编排工作区、批量配适、多灯共同属性／RGB、搜索与选择保持、场景复制、原子撤销和真实 JSON 保存／重开；[后续迭代顺序](docs/development/desktop-iteration-plan.md)。
-
-- [开发方法](docs/development/README.md)：当前 Astra 会话直接负责规划、实现、验证和集成。新会话先读 [AGENTS.md](AGENTS.md) 和 [当前状态](docs/development/STATE.md)。
-- [当前执行计划](docs/development/execution-plan.md)：产品主线与任务流程；已取消 Sol／Qwen 委派，旧计划、工作器与试验副本已清理。
-- [首次软硬件交付](docs/development/decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md)：2026-09-21 确认软件＋独立播放盒，先用现有微雪 ESP32-S3-RS485-CAN 做 1 路 DMX；已核对板卡资料，并在 [PLAYER-002A](docs/development/tasks/PLAYER-002-esp32-probe.md) 实测共享播放内核与 GATT 连接；真实 DMX 输出未实现。
-- [工程、设备播放包与传输分工](docs/development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)：核查 MA／老虎的工程内容；主机编译、自包含播放包、闪存预算与有线／局域网／蓝牙取舍，已只读识别插入的乐鑫 USB 接口。
-- [工程数据标准与格式借鉴](docs/development/decisions/PRODUCT-ADR-003-project-data-contract.md)：2026-09-23 核对 JSON／YAML、OpenTimelineIO、GDTF／MVR；采用严格 JSON 正文方向，先验证最小工程标准与保存／重开，再接正式编译；字段草案见下方格式规范，最小灯光子集已由 Rust 实现读写，完整范围继续推进。
-- [声光电与密室机构 JSON 格式](docs/project-format/README.md)：`0.1.0-draft.1` 的三层文件、4 份 Schema、5 份示例及设计期检查；覆盖媒体控制／监看、传感器、机械轴与面板，50 项格式测试通过；最小灯光子集已接入 Rust，尚无真实设备输出。
-- [设备包中转与临时授权](docs/development/decisions/PRODUCT-ADR-004-relayed-device-authorization.md)：手机／电脑连接服务器并向离线设备下发加密播放包；手机无网时当前文件可生成 24 小时临时包，到期提示并收尾后禁止新播放；离线签发、可信时间和量产保护待实现验证。
-- [项目文件位置](docs/development/project-files.md)：工程文件和开发产物统一保存在本项目内，工作目录只保留现行版本与有效参考资料。
-- [舞台画布交互原型](docs/ui-design/interaction-prototype.md)：已按第一张视觉方向加入剪映式灯光时间线；支持片段编辑、预览、音乐参考和独立执行模拟。原型代码在 `apps/ui-prototype/` 保留，正式入口已切换到上述工程工作台；时间线待接入真实工程。
-- [交互与展示设计研究](docs/ui-design/interaction-display-research.md)：2026-09-21 对 7 个专业软件／工业 HMI 参考对象的研究，区分交互与展示原则，并给出 StageMaster 的任务验证方案；属于待原型验证的讨论稿。
-- [Rust／C++26 核心语言复评](docs/core-language-rust-vs-cpp.md)：原生核心约束、实时性、内存／并发、工具链及 SDK／固件边界；继续推荐 Rust 主核心。
-- [独立场景播放盒评估](docs/standalone-cue-player.md)：没有电脑时本地选场景播放；ESP32 受限播放器、ARM 完整播放器、语言复用与文件交付；实板诊断增量及限制见 PLAYER-002A。
-- [模块伪 API 方案](docs/module-api/README.md)：模块职责、类／接口的调用方式、Rust 构造依赖、跨端传输和完整调用样例；声明可做类型检查，服务尚未实现。
-- [完整目标架构再评估](docs/architecture-evolution-review.md)：10 项扩展约束、已修订接口、节点角色与原型验证门槛；当前最新审查入口。
-- [当前总结与架构审查](docs/architecture-review.md)：核查上次结论、已复现的问题和下一步优先级。
-- [架构变更风险审查](docs/architecture-change-risk-review.md)：硬件可移植性、现场绑定、代次作用域、控制权、数据兼容及 B01–B09 验收；防止后期修改牵动整个系统。
-- [架构设计 v0.5](docs/architecture.md)：状态所有权、领域模型、命令、编译激活、时间与输出、多端和云端契约；属于设计建议，尚未实现。
-- [多系统编排与监听／监看](docs/audiovisual-stage-design.md)：宿主基础放音与灯光同步、外部音频／媒体服务器／投影／激光的控制和监看；新增音频路线尚未实施。
-- [实体控台与双向硬件接口](docs/hardware-control-surfaces.md)：推子、编码器、按键、触摸、灯环、小屏和电动反馈；包含接管、翻页、控制权和重连规则。
-- [真实空间与 UE 预演开发](docs/development/tasks/PREVIS-001-real-stage-preview.md)：真实房间／构件／灯位的桌面编辑和保存已接通；独立 Rust 投影与[本机预演桥](docs/module-api/previsualization.md)接入 UE 5.8.3，在舞台大师内部实时显示。选灯／拖动／撤销／保存重开和列表播放联动已在 Mac 验收；专业光学、性能量化及客户独立安装包继续推进；[专业预演设计](docs/ue5-professional-previsualization.md)保留长期边界。
-- [真实场地采集与混合预演](docs/venue-capture-design.md)：高斯泼溅／网格采集、尺度校准、可受光区域和场地版本；属于设计建议，尚未重建或接入。
-- [Depence R4 对照与预演架构](docs/depence-r4-assessment.md)：12 项优势能力、独立预演模式、设备仿真层、场景／视频／图纸边界；公开资料研究与设计建议。
-- [StageMaster 产品蓝图](docs/product-blueprint.md)：定义取长补短后的产品原则、统一对象、现场数据流和落地阶段。
-- [实现状态](docs/implementation-status.md)：严格区分已经实现、仅有边界和尚未开始的能力。
-- `cargo run -p stagemaster-engine-demo`：运行一次静态求值与 DMX 数据编码演示，不发送真实信号。
-- [控台研究资料库](docs/console-research/README.md)：grandMA3／Titan 的 22 个模块及原始依据。
+开发前先读 [AGENTS.md](AGENTS.md)、[STATE](docs/development/STATE.md)和当前工单。当前会话直接规划、实现、验证、集成，不委派 Qwen／Sol；源码、文档、产物与日志全部放在本项目目录。开发方法和验证入口见 [开发说明](docs/development/README.md)。
 
 ## 用户已经明确的方向
 
@@ -66,8 +37,8 @@
 - 专业单机端应支持灯光师编程和现场操作所需的工作流程。客户只需少量简单操作、复杂效果提前编排的要求，适用于后续简化控制产品，不能用来限制当前专业单机端的能力。
 - 编排首个可用版本仍应认真考虑音频、波形图卡点、灯具编组和基础时间线；这些能力与专业控台基础工作流程一起确定优先级。
 - 首次交付把多个场景下放到盒子，让 DMX 播放稳定并独立运行；用户于 2026-09-26 要求优先 BLE GATT 直连，诊断连接已实测；USB 保留开发与恢复。未来 API、Web 与云端入口接入同一控制边界，不介入逐帧执行。
-- 用户提出利用手机／平板／电脑处理完整工程、选取片段无线下发，并要求独立评估。采用主机编译与盒子受限执行；节目在预算内可整场下发，不强制切片。当前先验证 GATT，后续按实际包大小和传输预算接文件下发；局域网仍可作为传输适配，不能把蓝牙或 16 MB 存储上限固定为整个产品的约束。
-- 没有电脑时，盒子仍需本地选择场景播放。用户现有微雪 ESP32-S3-RS485-CAN 已作为首台样机，先做 1 路；固件框架与容量待验证，本地面板另行实现。复杂节目后续采用 ARM64 Linux；不以 ESP32 上限限制专业单机，也不承诺任意原始工程直接装入 MCU。软件生成目标执行包，盒子校验并自主运行。
+- 用户提出利用手机／平板／电脑处理完整工程、选取片段无线下发，并要求独立评估。采用主机编译与盒子受限执行；节目在预算内可整场下发，不强制切片。当前 GATT 安装链已通过受控实板验收，后续仍按实际包大小和传输预算演进；局域网仍可作为传输适配，不能把蓝牙或 16 MB 存储上限固定为整个产品的约束。
+- 没有电脑时，盒子仍需本地选择场景播放。用户现有微雪 ESP32-S3-RS485-CAN 已作为首台样机，先做 1 路；固件框架与分层内存已有实板验证，本地面板和物理输出另行实现。复杂节目后续采用 ARM64 Linux；不以 ESP32 上限限制专业单机，也不承诺任意原始工程直接装入 MCU。软件生成目标执行包，盒子校验并自主运行。
 - 首先实现单机编排与控制。未来专业实体控台已是用户明确目标：电脑加扩展翼、一体控台和网络控制面共享核心与双向接口；具体面板、主板及固件分阶段选型验证。
 - 用户预计未来灯光编排主力是 iPad，但已明确当前没有 iPad，仍先在苹果笔记本上开发。现在做好 MacBook 桌面与键鼠／触控板体验，保持核心规则、工程格式、编辑命令、布局和宿主可复用；未来进入平板阶段再做触控／可选 Pencil 适配，不让未来设备成为当前开发前提。
 - 用户看重 Tauri 路线后续复用 Web 页面、远程控制灯具的价值。Web 控制作为明确的扩展方向：共享前端组件与控制契约，桌面宿主接口和浏览器网络接口分别适配，现场引擎负责播放与输出；网页本身不直接承担 RS485／DMX 输出。Tauri 主线现已确认，当前仍先完成单机，不提前实施云端服务。

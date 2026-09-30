@@ -140,4 +140,19 @@
 
 ## 实施跟踪（2026-10-01）
 
-[UX-018](development/tasks/UX-018-scene-editing-flow.md) 已实现 U01 的常用属性／位置分区、U02 的常驻灯组选取和效果操作密度、U04 的显式一键场景预演与对象／版本提示，并已通过本轮验收。此记录不改写上述受审版本的事实：固定预设快捷区、效果图形编辑、实时编辑预览及专用现场面仍待后续，其他缺口保持原优先级。
+下表对齐 EFFECT-003 `ed240c4`；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
+
+| 原问题 | 已实施与验证 | 剩余范围 |
+| --- | --- | --- |
+| U01／U02 | [UX-018](development/tasks/UX-018-scene-editing-flow.md) 属性／常驻灯组，[UX-019](development/tasks/UX-019-context-and-effect-curves.md) 预设／曲线，[UX-027](development/tasks/UX-027-searchable-resources.md) 资源搜索 | 完整光束／控制属性取决于 F02 |
+| U03 | [UX-020](development/tasks/UX-020-docked-effect-editing.md) 非模态草稿、取消／撤销；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 独立双轴角度与运动模板 | 目前显式应用／预演；现场主控、世界目标轨迹后续 |
+| U04 | UX-018 显式场景预演与对象／版本；[UX-023](development/tasks/UX-023-previs-session-contention.md) 短时锁竞争，EFFECT-003 修复旧预演错误残留 | 实际现场输出与编排源隔离仍须硬件验收 |
+| U05 | [UX-021](development/tasks/UX-021-execution-view.md) 当前／下一步／选择分离、执行面与跳转保护 | 多执行器、主控、临时覆盖与完整应急操作 |
+| U06 | [UX-022](development/tasks/UX-022-audio-lighting-lane.md) 真实灯光段落、共享边界和单次历史 | 完整片段移动／复制／锁定／局部循环、跨场景渐变与多轨 |
+| U07 | UX-019 从卡点预演、编辑关联场景和上下文返回 | 继续随片段和剧本能力验收 |
+| U08 | [UX-025](development/tasks/UX-025-stage-organization.md) 目录／显隐／搜索／显示精度 | 座区／座椅复合对象、锁定和完整三维组变换 |
+| U09／U10 | UX-018／020／021 收紧属性与执行密度，[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面与共享有序选择 | 更多任务布局、完整辅助功能与独立用户操作测试 |
+| U11 | [UX-024](development/tasks/UX-024-recent-projects.md) 最近工程及“下发节目”，[UX-028](development/tasks/UX-028-project-resource-health.md) 音乐健康与修复导航 | 多媒体资源扩展与其他平台验收 |
+| D01 | [DOC-001](development/tasks/DOC-001-current-capability-map.md) 当前表、README、能力导航／计划对齐 | 随每次能力变化维护，不再堆叠相互矛盾的当前表述 |
+| F02 | POSITION-001 与 EFFECT-003 已补物理两轴及相对运动 | 当前重点仍是完整灯具功能区间／轮盘／频闪与兼容性 |
+| F01 | 既有设备安装／内存保护有实板证据 | 真实 DMX、脱机执行、现场时序与灯具验收仍未关闭 |
