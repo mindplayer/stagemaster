@@ -17,6 +17,7 @@ export function useWaveSurfer(
   const ruler = useRef<HTMLDivElement>(null);
   const overview = useRef<HTMLDivElement>(null);
   const instance = useRef<WaveSurfer | null>(null);
+  const laneCursor = useRef<HTMLDivElement>(null);
   const preview = useRef<number | null>(null);
   const follow = useRef(true);
   const manualUntil = useRef(0);
@@ -117,6 +118,12 @@ export function useWaveSurfer(
               ? Math.min(120, Math.max(0, performance.now() - at))
               : 0),
       );
+      if (laneCursor.current) {
+        const x =
+          (time / duration) * wave.getWrapper().clientWidth - wave.getScroll();
+        laneCursor.current.style.transform = `translateX(${x}px)`;
+        laneCursor.current.hidden = x < 0 || x > wave.getWidth();
+      }
       if (time !== previous) {
         wave.setTime(time / 1000);
         previous = time;
@@ -186,6 +193,7 @@ export function useWaveSurfer(
     overview,
     instance,
     preview,
+    laneCursor,
     follow,
     viewport,
     zoom,

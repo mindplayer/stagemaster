@@ -14,6 +14,8 @@ PREVIS-002／ADR-055 将音频会话提升为工作台唯一所有者，音频�
 - 桌面 `audio_prepare(generation, import|load|locate)` 准备资源／波形，迟到工程代次拒绝。Import 只返回已准备资源，不直接编辑；界面随后通过同一工程命令添加，故可以撤销。Load／Locate 载入暂停的试听，不自动发声。
 - `audio_request(generation, command)`：Snapshot／Play／Pause／Stop／Seek `{positionMs}`／Volume `{percent}`；用户控制串行发出，轮询没有写权限。工程切换／音频范围改变会释放旧声源，普通卡点编辑保留音乐位置，撤销会暂停。正常场景列表载入清除音频试听，二者共用已有 UE 播放预览来源。
 
+UX-022 在同一波形视窗下投影灯光场景区间，纯节奏点不切段，最后一段延续至裁切末尾。单击选择卡点、双击仅定位；拖动共享边界更新该卡点时间，保持相邻绑定点顺序与毫秒唯一性，Esc 取消、释放一次提交，键盘 10 ms／Shift 1 s 微调。显示保持硬切语义，没有另建播放求值或改变持久格式。紧凑布局默认收起全曲导航，播放头复用同一宿主样本与动画回调。
+
 ## 持久数据与资源
 
 在既有草案格式添加能力 `media.audio-editing` v1。`media.systems`／`objects` 当前必须为空；可选 `media.audioEditing` 是受限的本机编排，不声称通用多轨 `timelines` 已执行。

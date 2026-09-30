@@ -287,6 +287,8 @@ export const AudioWorkspace = forwardRef<
                 />
                 <AudioWaveform
                   track={track}
+                  scenes={project.scenes}
+                  compact={sharedTransport}
                   waveform={audio.waveform}
                   sample={audio.playingSample}
                   selected={selected}

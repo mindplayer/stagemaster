@@ -1,3 +1,4 @@
+import type { SceneView } from "../../application-host";
 import { useMemo, useState, type RefObject } from "react";
 import type {
   AudioMarker,
@@ -12,6 +13,7 @@ import { WaveformMarkers } from "./WaveformMarkers";
 import "./waveform.css";
 export function AudioWaveform({
   track,
+  scenes,
   waveform,
   sample,
   selected,
@@ -22,6 +24,7 @@ export function AudioWaveform({
   onMove,
 }: {
   track: AudioTimeline;
+  scenes?: SceneView[];
   waveform: Wave | null;
   sample: RefObject<{ position: AudioPosition; at: number }>;
   selected: string;
@@ -50,7 +53,8 @@ export function AudioWaveform({
   const [snap, setSnap] = useState(true);
   const [follow, setFollow] = useState(true);
   const [gain, setGain] = useState("1");
-  const channelHeight = compact ? 60 : 100;
+  const channelHeight = compact ? 44 : 100;
+  const [showOverview, setShowOverview] = useState(!compact);
   const wave = useWaveSurfer(
     prepared.peaks,
     duration,
@@ -147,7 +151,7 @@ export function AudioWaveform({
       )}
       <div
         className="audio-wave-body"
-        style={{ minHeight: 28 + channels * channelHeight }}
+        style={{ minHeight: 28 + channels * channelHeight + (scenes ? 98 : 0) }}
       >
         <div ref={wave.ruler} className="audio-wave-ruler" aria-hidden="true" />
         <div
@@ -167,6 +171,8 @@ export function AudioWaveform({
         )}
         <WaveformMarkers
           track={track}
+          scenes={scenes}
+          laneCursor={wave.laneCursor}
           viewport={wave.viewport}
           selected={selected}
           disabled={blocked}
@@ -184,14 +190,21 @@ export function AudioWaveform({
         )}
       </div>
       <div className="audio-overview-header">
-        <span>全曲导航</span>
+        <button
+          aria-expanded={showOverview}
+          onClick={() => setShowOverview((v) => !v)}
+        >
+          {showOverview ? "收起全曲导航" : "全曲导航"}
+        </button>
         <output>
           {audioTime(Math.round(wave.viewport.start))} —{" "}
           {audioTime(Math.min(duration, Math.round(wave.viewport.end)))}
         </output>
       </div>
       <div
-        className="audio-overview"
+        className={`audio-overview${showOverview ? "" : " collapsed"}`}
+        inert={!showOverview}
+        aria-hidden={!showOverview}
         role="slider"
         tabIndex={0}
         aria-label="全曲导航位置"
@@ -221,10 +234,12 @@ export function AudioWaveform({
       >
         <div ref={wave.overview} aria-hidden="true" />
       </div>
-      <div className="audio-wave-footer">
-        <span>横向滚动平移 · Option / Ctrl 滚动缩放 · 左右键微调</span>
-        <span>显示幅度不改变音量</span>
-      </div>
+      {!compact && (
+        <div className="audio-wave-footer">
+          <span>横向滚动平移 · Option / Ctrl 滚动缩放 · 左右键微调</span>
+          <span>显示幅度不改变音量</span>
+        </div>
+      )}
       <input
         className="audio-accessible-seek"
         type="range"

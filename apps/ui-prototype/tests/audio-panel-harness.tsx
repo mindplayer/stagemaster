@@ -154,7 +154,8 @@ function Harness() {
         }
       }
     }
-    setHistory((h) => h.concat(current.current));
+    const previous = current.current;
+    setHistory((h) => h.concat(previous));
     current.current = next;
     setProject(next);
     setError("");

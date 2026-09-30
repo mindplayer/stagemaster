@@ -1,3 +1,6 @@
+import type { SceneView } from "../../application-host";
+import { AudioLightingLane } from "./AudioLightingLane";
+import { constrainBoundaryTime } from "./lighting-segments";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type {
   AudioMarker,
@@ -12,9 +15,12 @@ type Drag = {
   time: number;
   anchor: number;
   original: number;
+  boundary: boolean;
 };
 export function WaveformMarkers({
   track,
+  scenes,
+  laneCursor,
   viewport,
   selected,
   disabled,
@@ -28,6 +34,8 @@ export function WaveformMarkers({
   onPan,
 }: {
   track: AudioTimeline;
+  scenes?: SceneView[];
+  laneCursor: RefObject<HTMLDivElement | null>;
   viewport: WaveViewport;
   selected: string;
   disabled: boolean;
@@ -83,10 +91,23 @@ export function WaveformMarkers({
       viewport,
     );
   }
+  function dragTime(d: Drag, raw: number) {
+    const time = snapAudioTime(
+      d.marker ? d.original + raw - d.anchor : raw,
+      track,
+      snap,
+      d.marker?.id,
+      8 / pixels,
+    );
+    return d.boundary && d.marker
+      ? constrainBoundaryTime(track, d.marker.id, time)
+      : time;
+  }
   return (
     <div
       ref={surface}
       className="audio-wave-interaction"
+      data-lighting={!!scenes}
       tabIndex={0}
       aria-label="音乐波形：点击定位，左右键微调，Esc 取消拖动"
       onKeyDown={(e) => {
@@ -109,6 +130,8 @@ export function WaveformMarkers({
       }}
       onPointerDown={(e) => {
         if (disabled || e.button !== 0) return;
+        if ((e.target as HTMLElement).closest("[data-lighting-segment]"))
+          return;
         e.preventDefault();
         e.currentTarget.focus();
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -128,6 +151,7 @@ export function WaveformMarkers({
           time,
           original: time,
           anchor: raw,
+          boundary: button?.dataset.boundary === "true",
         };
         setDrag(active.current);
         preview.current = time;
@@ -138,13 +162,7 @@ export function WaveformMarkers({
         setHover(Math.max(0, Math.min(duration, raw)));
         const d = active.current;
         if (!d || d.pointer !== e.pointerId) return;
-        const time = snapAudioTime(
-          d.marker ? d.original + raw - d.anchor : raw,
-          track,
-          snap,
-          d.marker?.id,
-          8 / pixels,
-        );
+        const time = dragTime(d, raw);
         active.current = { ...d, time };
         setDrag(active.current);
         preview.current = time;
@@ -152,11 +170,12 @@ export function WaveformMarkers({
       onPointerUp={(e) => {
         const d = active.current;
         if (!d || d.pointer !== e.pointerId) return;
+        const time = dragTime(d, point(e.clientX));
         cancel();
         e.currentTarget.releasePointerCapture(e.pointerId);
         if (d.marker) {
-          if (d.time !== d.original) onMove({ ...d.marker, timeMs: d.time });
-        } else onSeek(d.time);
+          if (time !== d.original) onMove({ ...d.marker, timeMs: time });
+        } else onSeek(time);
       }}
       onPointerLeave={() => setHover(null)}
       onPointerCancel={cancel}
@@ -192,6 +211,28 @@ export function WaveformMarkers({
           </button>
         );
       })}
+      {scenes && (
+        <AudioLightingLane
+          track={
+            drag?.marker
+              ? {
+                  ...track,
+                  markers: track.markers.map((m) =>
+                    m.id === drag.marker!.id ? { ...m, timeMs: drag.time } : m,
+                  ),
+                }
+              : track
+          }
+          scenes={scenes}
+          viewport={viewport}
+          selected={selected}
+          disabled={disabled}
+          cursor={laneCursor}
+          onSelect={onSelect}
+          onSeek={onSeek}
+          onMove={onMove}
+        />
+      )}
       {(drag || hover !== null) && (
         <output
           className="audio-wave-tooltip"
