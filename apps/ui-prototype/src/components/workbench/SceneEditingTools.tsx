@@ -11,6 +11,7 @@ import type { RecallMode } from "../../library-tools";
 import { SceneEditorTools } from "../layout/SceneEditorTools";
 import { SceneSelectionBar } from "./SceneSelectionBar";
 import { FixtureBrowser } from "./FixtureBrowser";
+import type { OpenEffect } from "./useEffectSelection";
 import { EffectRack } from "./EffectRack";
 import { PreviewPanel } from "./PreviewPanel";
 import { QuickPresets } from "./QuickPresets";
@@ -37,7 +38,11 @@ export function SceneEditingTools({
   onAddScene,
   onAddFixtures,
   context,
+  onOpenEffect,
+  onToggleEffect,
 }: {
+  onOpenEffect: OpenEffect;
+  onToggleEffect(id: string, enabled: boolean): Promise<boolean>;
   context?: ReactNode;
   host: ApplicationHost;
   project: ProjectView;
@@ -134,6 +139,8 @@ export function SceneEditingTools({
             selected={selected}
             busy={busy}
             error={error}
+            onOpen={onOpenEffect}
+            onToggle={onToggleEffect}
             beforeChange={beforeChange}
             onEdit={(commands) => onEdit({ op: "batch", commands })}
           />

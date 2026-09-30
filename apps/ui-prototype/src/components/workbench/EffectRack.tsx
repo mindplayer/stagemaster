@@ -12,7 +12,7 @@ import {
   reuseEffect,
 } from "../../effect-tools";
 import { uniqueName } from "../../editor-tools";
-import { EffectEditor } from "./EffectEditor";
+import type { OpenEffect } from "./useEffectSelection";
 import { EffectReuseDialog } from "./EffectReuseDialog";
 import "./effects.css";
 
@@ -25,7 +25,11 @@ export function EffectRack({
   error,
   beforeChange,
   onEdit,
+  onOpen,
+  onToggle,
 }: {
+  onOpen: OpenEffect;
+  onToggle(id: string, enabled: boolean): Promise<boolean>;
   scene: SceneView;
   fixtures: FixtureView[];
   scenes: SceneView[];
@@ -36,15 +40,11 @@ export function EffectRack({
   onEdit(commands: EditOperation[]): Promise<boolean>;
 }) {
   const [importing, setImporting] = useState(false);
-  const [dialog, setDialog] = useState<{
-    effect: SceneEffect;
-    isNew: boolean;
-  } | null>(null);
   const selectedFixtures = selected.flatMap(
     (id) => fixtures.find((f) => f.id === id) ?? [],
   );
-  async function open(effect: SceneEffect, isNew: boolean) {
-    if (await beforeChange()) setDialog({ effect, isNew });
+  async function open(effect: SceneEffect, isNew: boolean, copyFrom?: string) {
+    if (await beforeChange()) onOpen(effect, isNew, copyFrom);
   }
   return (
     <section className="effect-rack" aria-label="场景动态效果">
@@ -112,18 +112,7 @@ export function EffectRack({
             <button
               disabled={busy}
               aria-pressed={effect.enabled}
-              onClick={() =>
-                void onEdit([
-                  {
-                    op: "effect",
-                    command: {
-                      kind: "put",
-                      sceneId: scene.id,
-                      effect: { ...effect, enabled: !effect.enabled },
-                    },
-                  },
-                ])
-              }
+              onClick={() => void onToggle(effect.id, !effect.enabled)}
             >
               {effect.enabled ? "已启用" : "已停用"}
             </button>
@@ -144,6 +133,7 @@ export function EffectRack({
                     ),
                   },
                   true,
+                  effect.id,
                 )
               }
             >
@@ -180,21 +170,8 @@ export function EffectRack({
               `${effect.name} 副本`,
               scene.effects.map((e) => e.name),
             );
-            setDialog({ effect: copy, isNew: true });
+            onOpen(copy, true);
           }}
-        />
-      )}
-      {dialog && (
-        <EffectEditor
-          effect={dialog.effect}
-          isNew={dialog.isNew}
-          sceneId={scene.id}
-          fixtures={fixtures}
-          selected={selected}
-          busy={busy}
-          error={error}
-          onCancel={() => setDialog(null)}
-          onApply={onEdit}
         />
       )}
     </section>

@@ -14,8 +14,13 @@ export function validateEditorForm(form: HTMLFormElement | null): void {
     else if (validity.badInput) error = `${label}需要填写数字`;
     else if (validity.rangeUnderflow || validity.rangeOverflow)
       error = `${label}应在 ${field.getAttribute("min")}–${field.getAttribute("max")} 之间`;
-    else if (validity.stepMismatch) error = `${label}需要填写整数`;
-    else if (validity.patternMismatch)
+    else if (validity.stepMismatch) {
+      const step = field.getAttribute("step") ?? "1";
+      error =
+        step === "1"
+          ? `${label}需要填写整数`
+          : `${label}请按 ${step} 的步长输入`;
+    } else if (validity.patternMismatch)
       error = `${label}请使用 #RRGGBB 格式，例如 #3979FF`;
     else if (!validity.valid) error = `请检查${label}`;
     if (error) {

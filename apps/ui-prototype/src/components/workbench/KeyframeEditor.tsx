@@ -23,9 +23,20 @@ export interface KeyframeHandle {
 }
 export const KeyframeEditor = forwardRef<
   KeyframeHandle,
-  { channels: EffectChannel[] }
->(function KeyframeEditor({ channels }, ref) {
-  const [frames, setFrames] = useState(() => frameDrafts(channels));
+  { channels: EffectChannel[]; onChange?(): void }
+>(function KeyframeEditor({ channels, onChange }, ref) {
+  const [frames, storeFrames] = useState(() => frameDrafts(channels));
+  function setFrames(
+    value: typeof frames | ((prev: typeof frames) => typeof frames),
+  ) {
+    onChange?.();
+    storeFrames(value);
+  }
+  const source = JSON.stringify(channels);
+  useEffect(() => {
+    storeFrames(frameDrafts(channels));
+    setActive((i) => Math.min(i, (channels[0]?.keyframes?.length ?? 1) - 1));
+  }, [source]);
   const [error, setError] = useState("");
   const [active, setActive] = useState(0);
   const [focusError, setFocusError] = useState<FrameInputError | null>(null);

@@ -1,3 +1,6 @@
+import { useEffectSelection } from "../src/components/workbench/useEffectSelection";
+import { EffectInspectorPane } from "../src/components/workbench/EffectInspectorPane";
+import type { EffectHandle } from "../src/components/workbench/EffectEditor";
 // Dev-only component regression surface. No file, device, audio or renderer access.
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -28,7 +31,7 @@ const fixtures: FixtureView[] = Array.from({ length: 24 }, (_, i) => ({
     defaultValue: 0,
   })),
 }));
-const project: ProjectView = {
+const initialProject: ProjectView = {
   id: "fixture",
   name: "隔离验收",
   description: "",
@@ -43,18 +46,16 @@ const project: ProjectView = {
       name: "亮度与颜色测试预设",
       usedByScenes: [],
       usedBySequences: [],
-      values: fixtures
-        .slice(0, 12)
-        .flatMap((f) =>
-          ["dimmer", "red"].map((attribute) => ({
-            fixtureId: f.id,
-            attribute,
-            value: 32768,
-            presetName: null,
-            presetId: null,
-            mode: "value" as const,
-          })),
-        ),
+      values: fixtures.slice(0, 12).flatMap((f) =>
+        ["dimmer", "red"].map((attribute) => ({
+          fixtureId: f.id,
+          attribute,
+          value: 32768,
+          presetName: null,
+          presetId: null,
+          mode: "value" as const,
+        })),
+      ),
     },
   ],
   sequences: [],
@@ -68,6 +69,12 @@ const host = {
   preview: async () => ({ epoch: 0, controlSerial: 0, loaded: null }),
 };
 function Harness() {
+  const [project, setProject] = useState(initialProject);
+  const current = useRef(project);
+  current.current = project;
+  const effectSelection = useEffectSelection(project, "scene");
+  const effects = useRef<EffectHandle>(null);
+  const [effectPending, setEffectPending] = useState(false);
   const [selected, setSelected] = useState(fixtures.map((f) => f.id));
   const [width, setWidth] = useState(1100);
   const [query, setQuery] = useState("");
@@ -77,7 +84,23 @@ function Harness() {
   const beforeChange = async () => {
     try {
       params.current?.collect();
+      const commands = effects.current?.collect() ?? [];
+      if (commands.length) {
+        const next = structuredClone(current.current);
+        for (const command of commands) {
+          if (command.op === "effect" && command.command.kind === "put") {
+            const effect = command.command.effect;
+            const list = next.scenes[0].effects;
+            const index = list.findIndex((e) => e.id === effect.id);
+            if (index < 0) list.push(effect);
+            else list[index] = effect;
+          }
+        }
+        current.current = next;
+        setProject(next);
+      }
       params.current?.accept();
+      effects.current?.accept();
       setReport("验证通过");
       return true;
     } catch (e) {
@@ -91,6 +114,7 @@ function Harness() {
         <button onClick={() => setWidth(1100)}>1100 像素</button>
         <button onClick={() => setWidth(820)}>820 像素</button>
         <output>{report}</output>
+        <span>{effectPending ? "效果草稿" : "效果已应用"}</span>
       </nav>
       <div
         className="performance-layout"
@@ -103,27 +127,40 @@ function Harness() {
       >
         <div>舞台区域（隔离测试无渲染器）</div>
         <div className="wb-properties" style={{ overflow: "auto" }}>
-          <SceneInspector
-            active
+          <EffectInspectorPane
+            selection={effectSelection.active}
+            editor={effects}
+            fixtures={fixtures}
+            selected={selected}
             busy={false}
-            hasPosition={false}
-            beforeChange={beforeChange}
-            light={
-              <ParameterPanel
-                key={selected.join(",")}
-                ref={params}
-                fixtures={fixtures.filter((f) => selected.includes(f.id))}
-                scene={project.scenes[0]}
-                busy={false}
-                onApply={() => void beforeChange()}
-                onPending={() => {}}
-              />
-            }
-            position={null}
-            scene={
-              <input aria-label="场景备注测试" defaultValue="保留上下文" />
-            }
-          />
+            error=""
+            onCancel={effectSelection.close}
+            onPending={setEffectPending}
+            onApply={beforeChange}
+            onPreview={beforeChange}
+          >
+            <SceneInspector
+              active
+              busy={false}
+              hasPosition={false}
+              beforeChange={beforeChange}
+              light={
+                <ParameterPanel
+                  key={selected.join(",")}
+                  ref={params}
+                  fixtures={fixtures.filter((f) => selected.includes(f.id))}
+                  scene={project.scenes[0]}
+                  busy={false}
+                  onApply={() => void beforeChange()}
+                  onPending={() => {}}
+                />
+              }
+              position={null}
+              scene={
+                <input aria-label="场景备注测试" defaultValue="保留上下文" />
+              }
+            />
+          </EffectInspectorPane>
         </div>
       </div>
       <div style={{ height: 320, minHeight: 320 }}>
@@ -153,6 +190,16 @@ function Harness() {
             return project;
           }}
           onView3d={() => {}}
+          onOpenEffect={(effect, isNew, copyFrom) =>
+            effectSelection.open(
+              current.current,
+              "scene",
+              effect,
+              isNew,
+              copyFrom,
+            )
+          }
+          onToggleEffect={async () => false}
           onAddScene={() => {}}
           onAddFixtures={() => {}}
         />

@@ -1,3 +1,5 @@
+import { useEffectWorkspace } from "./components/workbench/useEffectWorkspace";
+import { EffectInspectorPane } from "./components/workbench/EffectInspectorPane";
 import { useAudioSceneLink } from "./components/audio/useAudioSceneLink";
 import { AudioSceneReturn } from "./components/audio/AudioSceneReturn";
 import {
@@ -179,6 +181,16 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     selectAll: () => {},
   });
   const project = snapshot.project;
+  const effectWorkspace = useEffectWorkspace({
+    project,
+    sceneId,
+    host,
+    getProject: () => current.current.project,
+    run,
+    edit,
+    openPlayback: () => sharedPrevis.current?.openPlayback(),
+    clearError: () => setError(""),
+  });
   const audioSceneLink = useAudioSceneLink(
     project,
     () => current.current.project,
@@ -206,7 +218,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     sequencePending ||
     stagePending ||
     profilePending ||
-    audioPending;
+    audioPending ||
+    effectWorkspace.pending;
   const dirty = snapshot.dirty || hasDrafts;
 
   function setForm(next: ProjectForm | null, changed = false) {
@@ -309,6 +322,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     commands.push(...(stage.current?.collect() ?? []));
     commands.push(...(profiles.current?.collect() ?? []));
     commands.push(...(audio.current?.collect() ?? []));
+    commands.push(...(effectWorkspace.editor.current?.collect() ?? []));
     if (!commands.length) {
       sequences.current?.accept();
       stage.current?.accept();
@@ -325,6 +339,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     stage.current?.accept();
     profiles.current?.accept();
     audio.current?.accept();
+    effectWorkspace.editor.current?.accept();
     setParameterPending(false);
     setNotice("修改已应用");
     if (draft && pendingRef.current) {
@@ -423,6 +438,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     return ok && recovered;
   }
   function resetWorkspace(next: Snapshot) {
+    effectWorkspace.close();
     audioSceneLink.reset();
     if (next.project) {
       setPage(next.project.fixtures.length ? "scenes" : "fixtures");
@@ -733,14 +749,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <button
             aria-label="撤销"
             title="撤销（⌘Z / Ctrl+Z）"
-            disabled={
-              busy ||
-              (!snapshot.canUndo &&
-                !pending &&
-                !parameterPending &&
-                !positionPending &&
-                !sequencePending)
-            }
+            disabled={busy || (!snapshot.canUndo && !hasDrafts)}
             onClick={() => history(false)}
           >
             <ArrowCounterClockwiseIcon />
@@ -748,14 +757,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <button
             aria-label="重做"
             title="重做（⇧⌘Z / Ctrl+Shift+Z）"
-            disabled={
-              busy ||
-              !snapshot.canRedo ||
-              pending ||
-              positionPending ||
-              parameterPending ||
-              sequencePending
-            }
+            disabled={busy || !snapshot.canRedo || hasDrafts}
             onClick={() => history(true)}
           >
             <ArrowClockwiseIcon />
@@ -849,6 +851,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       ) : (
         <>
           <PerformanceLayout
+            revealInspector={effectWorkspace.active?.token}
             beforeChange={() => run(async () => {})}
             busy={busy}
             mode={page}
@@ -1245,6 +1248,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                           return ok ? current.current.project : null;
                         }}
                         onView3d={() => sharedPrevis.current?.openPlayback()}
+                        onOpenEffect={effectWorkspace.open}
+                        onToggleEffect={effectWorkspace.toggle}
                         onAddScene={addScene}
                         onAddFixtures={() => switchPage("fixtures")}
                       />
@@ -1272,14 +1277,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         host={host}
                         project={project}
                         generation={snapshot.generation}
-                        hasDrafts={
-                          pending ||
-                          parameterPending ||
-                          positionPending ||
-                          sequencePending ||
-                          stagePending ||
-                          profilePending
-                        }
+                        hasDrafts={hasDrafts}
                         visible={page === "settings"}
                         busy={busy}
                         capture={captureCheck}
@@ -1295,14 +1293,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         host={host}
                         projectId={project.id}
                         generation={snapshot.generation}
-                        hasDrafts={
-                          pending ||
-                          parameterPending ||
-                          positionPending ||
-                          sequencePending ||
-                          stagePending ||
-                          profilePending
-                        }
+                        hasDrafts={hasDrafts}
                         visible={page === "settings"}
                         busy={busy}
                         capture={captureCheck}
@@ -1317,103 +1308,121 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   passthrough={page !== "scenes"}
                 >
                   <div className="wb-properties">
-                    <SceneInspector
-                      active={page === "scenes" && !!activeScene}
+                    <EffectInspectorPane
+                      selection={
+                        page === "scenes" ? effectWorkspace.active : null
+                      }
+                      editor={effectWorkspace.editor}
+                      fixtures={project.fixtures}
+                      selected={selected}
                       busy={busy}
-                      beforeChange={() => run(async () => {})}
-                      hasPosition={selected.some(
-                        (id) =>
-                          project.fixtures.find((f) => f.id === id)
-                            ?.positioning,
-                      )}
-                      position={
-                        <>
-                          {page === "scenes" && activeScene && (
-                            <PositionPanel
-                              key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
-                              ref={positions}
-                              project={project}
-                              fixtures={selected.map((id) =>
-                                project.fixtures.find((f) => f.id === id)!,
-                              )}
-                              scene={activeScene}
+                      error={error}
+                      onCancel={effectWorkspace.close}
+                      onPending={effectWorkspace.setPending}
+                      onApply={effectWorkspace.apply}
+                      onPreview={effectWorkspace.preview}
+                    >
+                      <SceneInspector
+                        active={page === "scenes" && !!activeScene}
+                        busy={busy}
+                        beforeChange={() => run(async () => {})}
+                        hasPosition={selected.some(
+                          (id) =>
+                            project.fixtures.find((f) => f.id === id)
+                              ?.positioning,
+                        )}
+                        position={
+                          <>
+                            {page === "scenes" && activeScene && (
+                              <PositionPanel
+                                key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
+                                ref={positions}
+                                project={project}
+                                fixtures={selected.map((id) =>
+                                  project.fixtures.find((f) => f.id === id)!,
+                                )}
+                                scene={activeScene}
+                                busy={busy}
+                                onPending={(value) => {
+                                  setPositionPending(value);
+                                  if (!value) setError("");
+                                }}
+                                onApply={() => {
+                                  void run(async () => {});
+                                }}
+                                beforeChange={() => run(async () => {})}
+                              />
+                            )}
+                          </>
+                        }
+                        light={
+                          <>
+                            {page === "scenes" && activeScene && (
+                              <ParameterPanel
+                                key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
+                                ref={parameters}
+                                scene={activeScene}
+                                fixtures={selected.map((id) =>
+                                  project.fixtures.find((f) => f.id === id)!,
+                                )}
+                                busy={busy}
+                                onApply={() => {
+                                  void run(async () => {});
+                                }}
+                                onPending={(value) => {
+                                  setParameterPending(value);
+                                  if (!value) setError("");
+                                }}
+                              />
+                            )}
+                          </>
+                        }
+                        scene={
+                          <>
+                            <ProjectInspector
+                              form={form}
+                              htmlProjectForm={htmlProjectForm}
                               busy={busy}
-                              onPending={(value) => {
-                                setPositionPending(value);
-                                if (!value) setError("");
-                              }}
-                              onApply={() => {
-                                void run(async () => {});
-                              }}
-                              beforeChange={() => run(async () => {})}
-                            />
-                          )}
-                        </>
-                      }
-                      light={
-                        <>
-                          {page === "scenes" && activeScene && (
-                            <ParameterPanel
-                              key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
-                              ref={parameters}
-                              scene={activeScene}
-                              fixtures={selected.map((id) =>
-                                project.fixtures.find((f) => f.id === id)!,
-                              )}
-                              busy={busy}
-                              onApply={() => {
-                                void run(async () => {});
-                              }}
-                              onPending={(value) => {
-                                setParameterPending(value);
-                                if (!value) setError("");
-                              }}
-                            />
-                          )}
-                        </>
-                      }
-                      scene={
-                        <>
-                          <ProjectInspector
-                            form={form}
-                            htmlProjectForm={htmlProjectForm}
-                            busy={busy}
-                            pending={pending}
-                            page={
-                              page === "profiles" ||
-                              page === "sequences" ||
-                              page === "audio" ||
-                              page === "stage"
-                                ? "scenes"
-                                : page
-                            }
-                            project={project}
-                            activeFixture={
-                              page === "fixtures" ? activeFixture : undefined
-                            }
-                            onChange={(patch) => {
-                              if (formRef.current)
-                                setForm({ ...formRef.current, ...patch }, true);
-                            }}
-                            onApply={() => {
-                              if (formRef.current?.kind === "addFixture") {
-                                pendingRef.current = true;
-                                setPending(true);
+                              pending={pending}
+                              page={
+                                page === "profiles" ||
+                                page === "sequences" ||
+                                page === "audio" ||
+                                page === "stage"
+                                  ? "scenes"
+                                  : page
                               }
-                              void run(async () => {});
-                            }}
-                            onCancel={() => {
-                              restoreForm();
-                              setError("");
-                            }}
-                            onDelete={() => {
-                              setError("");
-                              setConfirmDelete(true);
-                            }}
-                          />
-                        </>
-                      }
-                    />
+                              project={project}
+                              activeFixture={
+                                page === "fixtures" ? activeFixture : undefined
+                              }
+                              onChange={(patch) => {
+                                if (formRef.current)
+                                  setForm(
+                                    { ...formRef.current, ...patch },
+                                    true,
+                                  );
+                              }}
+                              onApply={() => {
+                                if (formRef.current?.kind === "addFixture") {
+                                  pendingRef.current = true;
+                                  setPending(true);
+                                }
+                                void run(async () => {});
+                              }}
+                              onCancel={() => {
+                                restoreForm();
+                                setError("");
+                              }}
+                              onDelete={() => {
+                                setError("");
+                                setConfirmDelete(true);
+                              }}
+                            />
+                          </>
+                        }
+                      />
+                    </EffectInspectorPane>
                   </div>
                 </DockPane>
               </WorkspaceSurface>
@@ -1425,11 +1434,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 ? "正在处理…"
                 : error
                   ? "修改未完成"
-                  : pending ||
-                      positionPending ||
-                      parameterPending ||
-                      sequencePending ||
-                      profilePending
+                  : hasDrafts
                     ? "有待应用的修改"
                     : notice || (dirty ? "有未保存的修改" : "已保存")}
             </span>

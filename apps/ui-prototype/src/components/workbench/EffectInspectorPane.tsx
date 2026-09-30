@@ -1,0 +1,60 @@
+import type { ReactNode, Ref } from "react";
+import type { FixtureView } from "../../application-host";
+import { EffectEditor, type EffectHandle } from "./EffectEditor";
+import type { EffectSelection } from "./useEffectSelection";
+import { WorkspaceSurface } from "./WorkspaceSurface";
+
+export function EffectInspectorPane({
+  selection,
+  editor,
+  fixtures,
+  selected,
+  busy,
+  error,
+  onCancel,
+  onPending,
+  onApply,
+  onPreview,
+  children,
+}: {
+  selection: EffectSelection | null;
+  editor: Ref<EffectHandle>;
+  fixtures: FixtureView[];
+  selected: string[];
+  busy: boolean;
+  error: string;
+  onCancel(): void;
+  onPending(pending: boolean): void;
+  onApply(): Promise<boolean>;
+  onPreview(): Promise<boolean>;
+  children: ReactNode;
+}) {
+  return (
+    <>
+      {selection && (
+        <EffectEditor
+          key={selection.token}
+          ref={editor}
+          effect={selection.effect}
+          sceneId={selection.sceneId}
+          isNew={selection.isNew}
+          fixtures={fixtures}
+          selected={selected}
+          busy={busy}
+          error={error}
+          onCancel={onCancel}
+          onPending={onPending}
+          onApply={onApply}
+          onPreview={onPreview}
+        />
+      )}
+      <WorkspaceSurface
+        visible={!selection}
+        className="scene-base-inspector"
+        label="场景常用属性"
+      >
+        {children}
+      </WorkspaceSurface>
+    </>
+  );
+}

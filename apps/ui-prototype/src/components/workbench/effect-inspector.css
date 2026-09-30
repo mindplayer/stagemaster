@@ -1,0 +1,105 @@
+.effect-inspector {
+  min-width: 0;
+  padding: 14px;
+  color: var(--wb-text);
+}
+.effect-inspector > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.effect-inspector h2 {
+  margin: 0;
+  font-size: 14px;
+}
+.effect-inspector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--wb-panel, #16202b);
+  padding: 6px 0 10px;
+}
+.effect-inspector fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.effect-inspector label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+.effect-inspector input:not([type="checkbox"]),
+.effect-inspector select {
+  width: 100%;
+  min-width: 0;
+}
+.effect-inspector .effect-fields {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.effect-inspector .effect-colors {
+  grid-template-columns: 1fr 1fr;
+}
+.effect-inspector .effect-checks {
+  flex-direction: column;
+  gap: 8px;
+}
+.effect-inspector .effect-checks label {
+  flex-direction: row;
+  align-items: center;
+}
+.effect-inspector .effect-frame-values {
+  grid-template-columns: minmax(0, 1fr);
+}
+.effect-inspector .effect-frame-strip {
+  gap: 4px;
+}
+.workbench .effect-inspector button {
+  min-height: 28px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.effect-inspector .effect-frame-toolbar {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.effect-inspector .effect-frame {
+  padding: 10px;
+}
+.effect-inspector .keyframe-curve {
+  padding: 7px;
+}
+.effect-inspector .keyframe-curve svg {
+  height: 130px;
+}
+.effect-inspector .keyframe-curve header {
+  flex-wrap: wrap;
+}
+.effect-inspector .keyframe-curve header select {
+  width: auto;
+}
+.effect-inspector .effect-order ol {
+  max-height: 220px;
+  overflow: auto;
+  padding-left: 22px;
+}
+.effect-inspector .effect-add-fixtures {
+  max-height: 180px;
+  overflow: auto;
+}
+.effect-inspector .effect-frame p {
+  font-size: 11px;
+  color: var(--wb-muted);
+}
