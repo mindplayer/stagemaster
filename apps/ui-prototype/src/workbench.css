@@ -1325,49 +1325,6 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-.wb-content-monitored {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 16px;
-}
-.wb-content-monitored > .wb-content-heading {
-  flex-shrink: 0;
-  margin-bottom: 14px;
-}
-.wb-scene-monitor {
-  display: flex;
-  flex-shrink: 0;
-  height: clamp(320px, 43svh, 490px);
-  min-width: 0;
-  margin-bottom: 16px;
-  border: 1px solid var(--wb-border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.wb-scene-monitor .previs-viewport {
-  min-height: 150px;
-}
-.wb-scene-monitor .previs-workspace {
-  min-width: 0;
-}
-.wb-scene-monitor .previs-footer {
-  font-size: 10px;
-}
-.wb-content-monitored > .wb-editing-content {
-  overflow: auto;
-  min-height: 110px;
-  padding: 2px;
-}
-@media (max-width: 680px) {
-  .wb-content-monitored {
-    overflow: visible;
-  }
-  .wb-content-monitored > .wb-editing-content {
-    overflow: visible;
-  }
-}
-
 .wb-surface-slot {
   display: flex;
   flex: 1;

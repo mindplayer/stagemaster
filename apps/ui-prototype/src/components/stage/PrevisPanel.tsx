@@ -19,6 +19,7 @@ export function PrevisPanel({
   followCurrent = false,
   onFollowCurrent,
   allowPlacement = true,
+  contextKey,
   ...interactions
 }: {
   host: ApplicationHost;
@@ -30,12 +31,23 @@ export function PrevisPanel({
   followCurrent?: boolean;
   onFollowCurrent?(follow: boolean): void;
   allowPlacement?: boolean;
+  contextKey: string;
 } & PrevisInteractions) {
   const [status, setStatus] = useState<PrevisStatus | null>(null);
   const [problem, setProblem] = useState("");
   const revision = useRef(0);
   const commands = useRef({ run, generation });
   commands.current = { run, generation };
+  const follow = useRef({
+    followCurrent,
+    sceneId: currentScene?.id,
+    onFollowCurrent,
+  });
+  follow.current = {
+    followCurrent,
+    sceneId: currentScene?.id,
+    onFollowCurrent,
+  };
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
@@ -46,6 +58,12 @@ export function PrevisPanel({
         if (active && version === revision.current) {
           setStatus(next);
           setProblem("");
+          if (
+            follow.current.followCurrent &&
+            (next.source.kind !== "scene" ||
+              next.source.sceneId !== follow.current.sceneId)
+          )
+            follow.current.onFollowCurrent?.(false);
         }
       } catch (reason) {
         if (active && version === revision.current) setProblem(String(reason));
@@ -155,6 +173,7 @@ export function PrevisPanel({
         url={status?.viewerUrl ?? null}
         busy={busy}
         allowPlacement={allowPlacement}
+        contextKey={contextKey}
         {...interactions}
       />
     </div>

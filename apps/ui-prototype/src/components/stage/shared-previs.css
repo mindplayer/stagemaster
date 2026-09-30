@@ -1,0 +1,22 @@
+.wb-shared-previs {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--wb-border);
+  background: #101a23;
+}
+.wb-shared-previs > header {
+  display: flex;
+  padding: 5px 18px;
+}
+.wb-shared-previs .previs-workspace {
+  height: clamp(285px, 39vh, 390px);
+  padding: 0 18px 8px;
+}
+.wb-shared-previs .previs-viewport {
+  min-height: 130px;
+}
+.wb-shared-previs .wb-previs {
+  padding: 4px 0 8px;
+}
+.wb-shared-previs .previs-footer {
+  font-size: 11px;
+}

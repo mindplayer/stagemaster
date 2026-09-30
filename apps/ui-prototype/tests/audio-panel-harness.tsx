@@ -5,6 +5,7 @@ import {
   AudioWorkspace,
   type AudioHandle,
 } from "../src/components/audio/AudioWorkspace";
+import { useAudio } from "../src/components/audio/useAudio";
 import { applicationHost } from "../src/hosts/application-host";
 import type {
   ApplicationHost,
@@ -167,6 +168,7 @@ function Harness() {
       return false;
     }
   }
+  const session = useAudio(host, () => 1, project.audio, true);
   return (
     <main className="workbench">
       <header className="wb-top">
@@ -187,6 +189,7 @@ function Harness() {
       {error && <p role="alert">{error}</p>}
       <AudioWorkspace
         ref={handle}
+        session={session}
         project={project}
         host={host}
         generation={() => 1}
@@ -195,7 +198,6 @@ function Harness() {
         onEdit={async (command) => ((await flush()) ? edit(command) : null)}
         beforeChange={flush}
         onPending={() => {}}
-        previs={null}
       />
     </main>
   );

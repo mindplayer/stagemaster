@@ -161,15 +161,6 @@
   align-items: center;
   font-size: 13px;
 }
-.audio-previs {
-  min-height: 340px;
-}
-.audio-previs .previs-viewport {
-  min-height: 320px;
-}
-.audio-previs .previs-workspace {
-  height: 400px;
-}
 @media (max-width: 1150px) {
   .audio-shell {
     padding: 16px;

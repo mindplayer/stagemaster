@@ -18,15 +18,21 @@ export function useAudio(
   generation: () => number,
   track: AudioTimeline | null,
   visible: boolean,
+  projectId = "",
+  prepareVisible = visible,
 ) {
   const [position, setPosition] = useState(idle);
   const [waveform, setWaveform] = useState<AudioWaveform | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [problem, setProblem] = useState("");
   const epoch = useRef(0);
+  const preparedKey = useRef("");
+  const mediaKey = track
+    ? `${projectId}:${track.asset.digest}:${track.inMs}:${track.outMs}`
+    : `${projectId}:empty`;
   const commands = useRef(Promise.resolve());
-  const state = useRef({ generation, track });
-  state.current = { generation, track };
+  const state = useRef({ generation, track, mediaKey });
+  state.current = { generation, track, mediaKey };
   const playingSample = useRef({ position: idle, at: performance.now() });
   const mounted = useRef(true);
   useEffect(() => {
@@ -40,14 +46,31 @@ export function useAudio(
     setPosition(next);
     playingSample.current = { position: next, at: performance.now() };
   }
+  useEffect(() => {
+    epoch.current++;
+    preparedKey.current = "";
+    setPreparing(false);
+    setProblem("");
+    setWaveform(null);
+    accept(idle);
+  }, [mediaKey]);
   async function prepare(kind: "import" | "load" | "locate") {
     const version = ++epoch.current;
+    const loadingKey = mediaKey;
     setPreparing(true);
     setProblem("");
     try {
       const result = await host.audioPrepare(state.current.generation(), kind);
-      if (!mounted.current || version !== epoch.current) return null;
-      if (result) setWaveform(result.waveform);
+      if (
+        !mounted.current ||
+        version !== epoch.current ||
+        loadingKey !== state.current.mediaKey
+      )
+        return null;
+      if (result) {
+        setWaveform(result.waveform);
+        if (kind !== "import") preparedKey.current = loadingKey;
+      }
       return result;
     } catch (error) {
       if (mounted.current && version === epoch.current)
@@ -57,18 +80,36 @@ export function useAudio(
       if (mounted.current && version === epoch.current) setPreparing(false);
     }
   }
-  const key = track ? `${track.asset.digest}:${track.inMs}:${track.outMs}` : "";
   useEffect(() => {
-    if (!track) {
-      epoch.current++;
-      setWaveform(null);
-      accept(idle);
-      return;
+    let active = true;
+    if (!track) return;
+    async function restore() {
+      const version = epoch.current;
+      if (preparedKey.current === mediaKey) {
+        // A scene preview can release the audio owner while this page is hidden.
+        // Query the native transport before reusing the waveform; never reload a live voice.
+        try {
+          const next = await host.audio(state.current.generation(), {
+            kind: "snapshot",
+          });
+          if (!active || version !== epoch.current) return;
+          if (next.durationMs === track!.outMs - track!.inMs) {
+            accept(next);
+            return;
+          }
+        } catch {
+          /* Retry preparation to surface missing resources or stale ownership. */
+        }
+      }
+      if (active && version === epoch.current) void prepare("load");
     }
-    if (visible) void prepare("load");
-    // Loading is keyed to media identity/range, never to each marker edit.
+    if (prepareVisible) void restore();
+    return () => {
+      active = false;
+    };
+    // Reload only after identity/range changes or native ownership was released.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, visible]);
+  }, [mediaKey, prepareVisible]);
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
@@ -89,20 +130,28 @@ export function useAudio(
       active = false;
       clearTimeout(timer);
     };
-  }, [host, visible, !!track, preparing]);
+  }, [host, visible, mediaKey, preparing]);
   function command(command: AudioCommand) {
-    const queued = commands.current.then(() => send(command));
+    const targetGeneration = state.current.generation();
+    const targetKey = state.current.mediaKey;
+    const queued = commands.current.then(() => {
+      if (
+        targetKey === state.current.mediaKey &&
+        targetGeneration === state.current.generation()
+      )
+        return send(command, targetGeneration);
+    });
     commands.current = queued;
     return queued;
   }
-  async function send(command: AudioCommand) {
+  async function send(command: AudioCommand, targetGeneration: number) {
     const version = ++epoch.current;
     setProblem("");
     try {
-      const next = await host.audio(state.current.generation(), command);
+      const next = await host.audio(targetGeneration, command);
       if (mounted.current && version === epoch.current) accept(next);
     } catch (error) {
-      if (mounted.current)
+      if (mounted.current && version === epoch.current)
         setProblem(error instanceof Error ? error.message : String(error));
     }
   }

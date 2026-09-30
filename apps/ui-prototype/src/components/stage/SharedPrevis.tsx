@@ -1,0 +1,95 @@
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { CubeIcon } from "@phosphor-icons/react";
+import type { ApplicationHost, SceneView } from "../../application-host";
+import type { PrevisInteractions } from "../../previs-types";
+import { PrevisPanel } from "./PrevisPanel";
+import "./shared-previs.css";
+
+export interface SharedPrevisHandle {
+  openPlayback(): void;
+}
+
+/** The only renderer view in a workbench; workspace navigation never remounts it. */
+export const SharedPrevis = forwardRef<
+  SharedPrevisHandle,
+  {
+    host: ApplicationHost;
+    scenes: SceneView[];
+    currentScene?: SceneView;
+    contextKey: string;
+    allowPlacement: boolean;
+    busy: boolean;
+    transport?: ReactNode;
+    onVisibilityChange?(visible: boolean): void;
+    generation(): number;
+    run(work: () => Promise<void>): Promise<boolean>;
+  } & PrevisInteractions
+>(function SharedPrevis({ contextKey, ...props }, ref) {
+  const [visible, setVisible] = useState(false);
+  const [followCurrent, setFollowCurrent] = useState(false);
+  const currentContext = useRef(contextKey);
+  const contextChanged = currentContext.current !== contextKey;
+  useEffect(
+    () => props.onVisibilityChange?.(visible),
+    [visible, props.onVisibilityChange],
+  );
+  useEffect(() => {
+    currentContext.current = contextKey;
+    setFollowCurrent(false);
+  }, [contextKey]);
+
+  function open(playback = false) {
+    void props.run(async () => {
+      if (playback) {
+        await props.host.previs({
+          kind: "source",
+          generation: props.generation(),
+          source: { kind: "playback" },
+        });
+        setFollowCurrent(false);
+      }
+      const status = await props.host.previs({ kind: "status" });
+      if (!status.enabled) await props.host.previs({ kind: "enable" });
+      setVisible(true);
+    });
+  }
+  useImperativeHandle(ref, () => ({ openPlayback: () => open(true) }));
+
+  return (
+    <section
+      className={`wb-shared-previs${visible ? " expanded" : ""}`}
+      aria-label="公共三维预演"
+    >
+      <header>
+        <button
+          disabled={props.busy || props.host.kind !== "desktop"}
+          aria-expanded={visible}
+          onClick={() =>
+            visible ? void props.run(async () => setVisible(false)) : open()
+          }
+        >
+          <CubeIcon />
+          {visible ? "收起三维" : "三维预演"}
+        </button>
+      </header>
+      {visible && (
+        <>
+          <PrevisPanel
+            {...props}
+            contextKey={contextKey}
+            followCurrent={followCurrent && !contextChanged}
+            onFollowCurrent={setFollowCurrent}
+          />
+          {props.transport}
+        </>
+      )}
+    </section>
+  );
+});

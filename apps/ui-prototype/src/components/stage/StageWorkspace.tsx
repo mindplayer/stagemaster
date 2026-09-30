@@ -3,8 +3,8 @@ import { RigCreateDialog } from "./RigCreateDialog";
 import { RigAttachmentDialog } from "./RigAttachmentDialog";
 import type { RigShape } from "../../stage-types";
 import {
-  type ReactNode,
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -51,15 +51,13 @@ export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
   revealFixture(id: string): void;
+  selectFixture(id: string): Promise<boolean>;
 }
 export const StageWorkspace = forwardRef<
   StageHandle,
   {
     project: ProjectView;
-    previs: (selection: {
-      selectedId: string;
-      onSelect(id: string): Promise<boolean>;
-    }) => ReactNode;
+    onSelectedFixture(id: string): void;
     visible: boolean;
     busy: boolean;
     error: string;
@@ -68,11 +66,24 @@ export const StageWorkspace = forwardRef<
     onPending(value: boolean): void;
   }
 >(function StageWorkspace(
-  { project, previs, visible, busy, error, beforeChange, onEdit, onPending },
+  {
+    project,
+    onSelectedFixture,
+    visible,
+    busy,
+    error,
+    beforeChange,
+    onEdit,
+    onPending,
+  },
   ref,
 ) {
-  const [view, setView] = useState<"plan" | "three">("plan");
   const [selection, setSelection] = useState<StageSelection | null>(null);
+  const selectedFixture = selection?.kind === "placement" ? selection.id : "";
+  useEffect(
+    () => onSelectedFixture(selectedFixture),
+    [selectedFixture, onSelectedFixture],
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const selectedPlacements = project.stage.placements.filter((p) =>
     selectedIds.includes(p.fixtureId),
@@ -141,11 +152,19 @@ export const StageWorkspace = forwardRef<
   useImperativeHandle(ref, () => ({
     collect,
     accept: cancel,
+    async selectFixture(id) {
+      if (!(await beforeChange())) return false;
+      if (id && !project.stage.placements.some((p) => p.fixtureId === id))
+        return false;
+      setSelection(id ? { kind: "placement", id } : null);
+      setSelectedIds(id ? [id] : []);
+      cancel();
+      return true;
+    },
     revealFixture(id) {
       const placed = project.stage.placements.some((p) => p.fixtureId === id);
       setFixtureId(id);
       setQuery("");
-      setView("plan");
       setSelection(placed ? { kind: "placement", id } : null);
       setSelectedIds(placed ? [id] : []);
       setFocusRequest((n) => n + 1);
@@ -330,7 +349,6 @@ export const StageWorkspace = forwardRef<
     setCreation(null);
     setQuery("");
     cancel();
-    setView("plan");
     setFocusRequest((v) => v + 1);
   }
   async function placeFixture() {
@@ -506,42 +524,7 @@ export const StageWorkspace = forwardRef<
         </div>
       </aside>
       <div className="stage-center">
-        <div className="stage-view-tabs" aria-label="舞台视图">
-          <button
-            aria-pressed={view === "plan"}
-            onClick={() => setView("plan")}
-          >
-            平面布置
-          </button>
-          <button
-            aria-pressed={view === "three"}
-            onClick={() => {
-              void beforeChange().then((ok) => {
-                if (ok) setView("three");
-              });
-            }}
-          >
-            三维预演
-          </button>
-        </div>
-        {visible &&
-          view === "three" &&
-          previs({
-            selectedId: selection?.kind === "placement" ? selection.id : "",
-            onSelect: async (id) => {
-              if (!(await beforeChange())) return false;
-              if (
-                id &&
-                !project.stage.placements.some((p) => p.fixtureId === id)
-              )
-                return false;
-              setSelection(id ? { kind: "placement", id } : null);
-              setSelectedIds(id ? [id] : []);
-              cancel();
-              return true;
-            },
-          })}
-        <div className="stage-plan-container" hidden={view !== "plan"}>
+        <div className="stage-plan-container">
           <StageCanvas
             project={project}
             selection={selection}
@@ -579,12 +562,6 @@ export const StageWorkspace = forwardRef<
           <header>
             <h2>已选 {liveIds.length} 台灯具</h2>
           </header>
-          {view === "three" && (
-            <p className="wb-dim">
-              三维拖动当前灯具：
-              {project.fixtures.find((f) => f.id === selection.id)?.name}
-            </p>
-          )}
           <button
             className="wb-primary"
             disabled={busy}
@@ -708,7 +685,6 @@ export const StageWorkspace = forwardRef<
             });
             setSelectedIds([]);
             setQuery("");
-            setView("plan");
             setFocusRequest((v) => v + 1);
             cancel();
             return true;

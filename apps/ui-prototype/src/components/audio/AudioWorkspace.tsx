@@ -1,11 +1,5 @@
 import { AudioTransportBar } from "./AudioTransportBar";
-import {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type {
   ApplicationHost,
   EditCommand,
@@ -22,7 +16,7 @@ import { DeleteDialog } from "../workbench/DeleteDialog";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { AudioInspector, type AudioDraft } from "./AudioInspector";
 import { AudioWaveform } from "./AudioWaveform";
-import { useAudio } from "./useAudio";
+import type { useAudio } from "./useAudio";
 import "./audio.css";
 export interface AudioHandle {
   collect(): EditOperation[];
@@ -34,33 +28,31 @@ export const AudioWorkspace = forwardRef<
     project: ProjectView;
     host: ApplicationHost;
     generation: () => number;
+    session: ReturnType<typeof useAudio>;
     visible: boolean;
     busy: boolean;
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
     onPending(value: boolean): void;
-    previs: ReactNode;
   }
 >(function AudioWorkspace(
   {
     project,
     host,
     generation,
+    session: audio,
     visible,
     busy,
     onEdit,
     beforeChange,
     onPending,
-    previs,
   },
   ref,
 ) {
   const track = project.audio;
-  const audio = useAudio(host, generation, track, visible);
   const [selected, setSelected] = useState("");
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
-  const [show3d, setShow3d] = useState(false);
   const [draft, setDraft] = useState<AudioDraft | null>(null);
   const draftRef = useRef<AudioDraft | null>(null);
   const form = useRef<HTMLFormElement>(null);
@@ -222,13 +214,6 @@ export const AudioWorkspace = forwardRef<
                 导入音乐
               </button>
             )}
-            <button
-              disabled={blocked}
-              aria-pressed={show3d}
-              onClick={() => setShow3d(!show3d)}
-            >
-              三维预演
-            </button>
           </div>
         </header>
         {(problem || audio.problem || audio.position.problem) && (
@@ -332,7 +317,6 @@ export const AudioWorkspace = forwardRef<
             </div>
           </>
         )}
-        {show3d && <div className="audio-previs">{previs}</div>}
         {removeMusic && (
           <DeleteDialog
             name="音乐及全部卡点"

@@ -3,6 +3,8 @@ import {
   type AudioHandle,
 } from "./components/audio/AudioWorkspace";
 import { WorkspaceSurface } from "./components/workbench/WorkspaceSurface";
+import { useAudio } from "./components/audio/useAudio";
+import { AudioPreviewTransport } from "./components/audio/AudioPreviewTransport";
 import { DeviceTools } from "./components/devices/DeviceTools";
 import { startInstallationReason } from "./installation-tools";
 import { useInstallation } from "./components/installation/useInstallation";
@@ -64,7 +66,10 @@ import {
   type StageHandle,
 } from "./components/stage/StageWorkspace";
 import { ResourcePool } from "./components/workbench/ResourcePool";
-import { PrevisPanel } from "./components/stage/PrevisPanel";
+import {
+  SharedPrevis,
+  type SharedPrevisHandle,
+} from "./components/stage/SharedPrevis";
 import { EffectRack } from "./components/workbench/EffectRack";
 import { PreviewPanel } from "./components/workbench/PreviewPanel";
 
@@ -125,9 +130,18 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
-  const [showMonitor, setShowMonitor] = useState(false);
+  const sharedPrevis = useRef<SharedPrevisHandle>(null);
+  const [stageSelected, setStageSelected] = useState("");
+  const [monitorVisible, setMonitorVisible] = useState(false);
+  const audioSession = useAudio(
+    host,
+    () => current.current.generation,
+    snapshot.project?.audio ?? null,
+    page === "audio" || monitorVisible,
+    snapshot.project?.id ?? "",
+    page === "audio",
+  );
   const [showRecovery, setShowRecovery] = useState(false);
-  const [followScene, setFollowScene] = useState(true);
   const [patchId, setPatchId] = useState("");
   const [patchSelection, setPatchSelection] = useState<string[]>([]);
   const [patchDialog, setPatchDialog] = useState<"repatch" | "exchange" | null>(
@@ -398,8 +412,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   function resetWorkspace(next: Snapshot) {
     if (next.project) {
       setPage(next.project.fixtures.length ? "scenes" : "fixtures");
-      setShowMonitor(false);
-      setFollowScene(true);
+      setStageSelected("");
       setPatchId("");
       setPatchSelection([]);
       setProfilePending(false);
@@ -499,25 +512,6 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           break;
       }
       setNotice("已定位对象；修复后回到工程刷新结果");
-    });
-  }
-  function openSceneMonitor(playback = false) {
-    void run(async () => {
-      const scene = current.current.project?.scenes.find(
-        (s) => s.id === sceneId,
-      );
-      if (!scene) return;
-      await host.previs({
-        kind: "source",
-        generation: current.current.generation,
-        source: playback
-          ? { kind: "playback" }
-          : { kind: "scene", sceneId: scene.id },
-      });
-      const status = await host.previs({ kind: "status" });
-      if (!status.enabled) await host.previs({ kind: "enable" });
-      setFollowScene(!playback);
-      setShowMonitor(true);
     });
   }
   function addFixture() {
@@ -898,6 +892,57 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               舞台<span>{project.stage.spaces.length}</span>
             </button>
           </nav>
+          <SharedPrevis
+            key={`previs:${project.id}`}
+            ref={sharedPrevis}
+            onVisibilityChange={setMonitorVisible}
+            transport={
+              <AudioPreviewTransport
+                session={audioSession}
+                track={project.audio}
+                busy={busy}
+              />
+            }
+            host={host}
+            scenes={project.scenes}
+            currentScene={page === "scenes" ? activeScene : undefined}
+            contextKey={page}
+            allowPlacement={page === "stage"}
+            busy={busy}
+            generation={() => current.current.generation}
+            run={(work) => run(work)}
+            selectedId={
+              page === "stage"
+                ? stageSelected
+                : page === "scenes"
+                  ? (selected.at(-1) ?? "")
+                  : ""
+            }
+            onSelect={(id) => {
+              if (page === "stage")
+                return (
+                  stage.current?.selectFixture(id) ?? Promise.resolve(false)
+                );
+              if (page !== "scenes") return Promise.resolve(false);
+              return run(async () => {
+                if (
+                  id &&
+                  !current.current.project?.fixtures.some((f) => f.id === id)
+                )
+                  throw new Error("所选灯具已不存在");
+                setSelectedIds(id ? [id] : []);
+              });
+            }}
+            onPrepareMove={() => run(async () => {})}
+            onPlacement={(proposal, isActive) =>
+              run(async () => {
+                if (!isActive())
+                  throw new Error("三维编辑上下文已变化，灯位未修改");
+                await request({ kind: "previsPlacement", ...proposal });
+                setNotice("灯位已更新，可撤销恢复");
+              })
+            }
+          />
           <ProfileWorkspace
             key={`profiles:${project.id}`}
             ref={profiles}
@@ -922,25 +967,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <StageWorkspace
             key={`stage:${project.id}`}
             ref={stage}
-            previs={(selection) => (
-              <PrevisPanel
-                host={host}
-                scenes={project.scenes}
-                busy={busy}
-                {...selection}
-                onPrepareMove={() => run(async () => {})}
-                onPlacement={(proposal, isActive) =>
-                  run(async () => {
-                    if (!isActive())
-                      throw new Error("三维视窗已关闭，灯位未修改");
-                    await request({ kind: "previsPlacement", ...proposal });
-                    setNotice("灯位已更新，可撤销恢复");
-                  })
-                }
-                generation={() => current.current.generation}
-                run={(work) => run(work)}
-              />
-            )}
+            onSelectedFixture={setStageSelected}
             project={project}
             visible={page === "stage"}
             busy={busy}
@@ -961,6 +988,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           <AudioWorkspace
             key={`audio:${project.id}`}
             ref={audio}
+            session={audioSession}
             project={project}
             host={host}
             generation={() => current.current.generation}
@@ -978,20 +1006,6 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               });
               return ok ? current.current.project : null;
             }}
-            previs={
-              <PrevisPanel
-                host={host}
-                scenes={project.scenes}
-                busy={busy}
-                generation={() => current.current.generation}
-                run={(work) => run(work)}
-                selectedId=""
-                onSelect={async () => true}
-                allowPlacement={false}
-                onPrepareMove={async () => false}
-                onPlacement={async () => false}
-              />
-            }
           />
           <SequenceWorkspace
             key={project.id}
@@ -1040,9 +1054,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 onDuplicate={duplicateScene}
               />
             )}
-            <section
-              className={`wb-content ${page === "scenes" && showMonitor ? "wb-content-monitored" : ""}`}
-            >
+            <section className="wb-content">
               <div className="wb-content-heading">
                 <div>
                   <span className="wb-eyebrow">
@@ -1075,51 +1087,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     <span className="wb-dim">
                       {activeScene.values.length} 项记录
                     </span>
-                    <button
-                      disabled={busy}
-                      aria-expanded={showMonitor}
-                      onClick={() => {
-                        if (showMonitor)
-                          void run(async () => setShowMonitor(false));
-                        else openSceneMonitor();
-                      }}
-                    >
-                      <CubeIcon />
-                      {showMonitor ? "收起三维" : "显示三维"}
-                    </button>
                   </div>
                 )}
               </div>
-              {page === "scenes" && activeScene && showMonitor && (
-                <div className="wb-scene-monitor">
-                  <PrevisPanel
-                    host={host}
-                    scenes={project.scenes}
-                    busy={busy}
-                    currentScene={activeScene}
-                    followCurrent={followScene}
-                    onFollowCurrent={setFollowScene}
-                    generation={() => current.current.generation}
-                    run={(work) => run(work)}
-                    selectedId={selected.at(-1) ?? ""}
-                    onSelect={(id) =>
-                      run(async () => {
-                        if (
-                          id &&
-                          !current.current.project?.fixtures.some(
-                            (f) => f.id === id,
-                          )
-                        )
-                          throw new Error("所选灯具已不存在");
-                        setSelectedIds(id ? [id] : []);
-                      })
-                    }
-                    allowPlacement={false}
-                    onPrepareMove={async () => false}
-                    onPlacement={async () => false}
-                  />
-                </div>
-              )}
               <div className="wb-editing-content">
                 {page === "fixtures" && (
                   <>
@@ -1273,7 +1243,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                       busy={busy}
                       beforeAction={() => run(async () => {})}
                       visible={page === "scenes"}
-                      onView3d={() => openSceneMonitor(true)}
+                      onView3d={() => sharedPrevis.current?.openPlayback()}
                     />
                   </>
                 )}
@@ -1366,8 +1336,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={positions}
                   project={project}
-                  fixtures={selected.map(
-                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
                   )}
                   scene={activeScene}
                   busy={busy}
@@ -1386,8 +1356,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                   ref={parameters}
                   scene={activeScene}
-                  fixtures={selected.map(
-                    (id) => project.fixtures.find((f) => f.id === id)!,
+                  fixtures={selected.map((id) =>
+                    project.fixtures.find((f) => f.id === id)!,
                   )}
                   busy={busy}
                   onApply={() => {

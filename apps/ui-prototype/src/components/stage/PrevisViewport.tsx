@@ -2,17 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import type { PixelStreaming } from "@epicgames-ps/lib-pixelstreamingfrontend-ue5.8";
 import type { PrevisInteractions } from "../../previs-types";
 import { readPrevisMessage } from "../../previs-messages";
+import { PrevisInteractionScope } from "../../previs-interaction-scope";
 
 /** Video transport adapter only. The document and playback clock stay in Rust. */
 export function PrevisViewport({
   url,
   busy,
   allowPlacement = true,
+  contextKey,
   ...interactions
 }: {
   url: string | null;
   busy: boolean;
   allowPlacement?: boolean;
+  contextKey: string;
 } & PrevisInteractions) {
   const parent = useRef<HTMLDivElement>(null);
   const stream = useRef<PixelStreaming | null>(null);
@@ -29,6 +32,8 @@ export function PrevisViewport({
   callbacks.current = interactions;
   const canMove = useRef(allowPlacement);
   canMove.current = allowPlacement;
+  const scope = useRef(new PrevisInteractionScope());
+  scope.current.update(contextKey, allowPlacement);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     setPlaying(false);
@@ -100,11 +105,21 @@ export function PrevisViewport({
               const { generation, version, placement } = value;
               const epoch = connectionEpoch,
                 receivedAt = performance.now();
+              const permitted = scope.current.capture();
+              if (!permitted()) {
+                player.emitUIInteraction({
+                  action: "placementResult",
+                  requestId: value.requestId,
+                  accepted: false,
+                });
+                return;
+              }
               void callbacks.current
                 .onPlacement(
                   { generation, version, placement },
                   () =>
                     active &&
+                    permitted() &&
                     connectionEpoch === epoch &&
                     performance.now() - receivedAt < 2500,
                 )
@@ -175,6 +190,11 @@ export function PrevisViewport({
     };
   }, [url, retry]);
   useEffect(() => {
+    stream.current?.emitUIInteraction({ action: "cancel" });
+    stream.current?.emitUIInteraction({ action: "inspect" });
+    setViewState((state) => ({ ...state, move: false }));
+  }, [contextKey, allowPlacement]);
+  useEffect(() => {
     if (playing)
       stream.current?.emitUIInteraction({
         action: "select",
@@ -206,11 +226,13 @@ export function PrevisViewport({
             onClick={() => {
               const player = stream.current;
               if (viewState.move) view("inspect");
-              else
+              else {
+                const permitted = scope.current.capture();
                 void callbacks.current.onPrepareMove().then((ok) => {
-                  if (ok && player && player === stream.current)
+                  if (ok && permitted() && player && player === stream.current)
                     player.emitUIInteraction({ action: "move" });
                 });
+              }
             }}
           >
             移动灯位
