@@ -3,6 +3,7 @@ import type { PixelStreaming } from "@epicgames-ps/lib-pixelstreamingfrontend-ue
 import type { PrevisInteractions } from "../../previs-types";
 import { readPrevisMessage } from "../../previs-messages";
 import { PrevisInteractionScope } from "../../previs-interaction-scope";
+import { resumeVisibleVideo } from "./resume-visible-video";
 
 /** Video transport adapter only. The document and playback clock stay in Rust. */
 export function PrevisViewport({
@@ -168,8 +169,12 @@ export function PrevisViewport({
           };
           container.addEventListener("focusin", focus);
           container.addEventListener("focusout", blur);
+          const stopResume = resumeVisibleVideo(container, () =>
+            player.play(),
+          );
           player.connect();
           cleanup = () => {
+            stopResume();
             container.removeEventListener("focusin", focus);
             container.removeEventListener("focusout", blur);
             config.setFlagEnabled(Flags.KeyboardInput, false);

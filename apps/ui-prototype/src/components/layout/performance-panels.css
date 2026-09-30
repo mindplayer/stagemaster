@@ -1,0 +1,369 @@
+.performance-layout .wb-library,
+.performance-layout .stage-browser,
+.performance-layout .wb-properties,
+.performance-layout .stage-inspector {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+  border: 0;
+}
+.performance-layout .wb-library {
+  display: flex;
+  flex-direction: column;
+}
+.performance-layout .wb-library .wb-scene-list {
+  min-height: 0;
+  overflow: auto;
+}
+.performance-layout .wb-section-title {
+  margin-bottom: 12px;
+}
+.performance-layout .wb-content-heading {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.performance-layout .wb-content-heading h1 {
+  font-size: 15px;
+}
+.performance-layout .wb-content-heading .wb-eyebrow {
+  display: none;
+}
+.performance-layout .wb-shared-previs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+}
+.performance-layout .wb-shared-previs > header {
+  padding: 8px 12px;
+  min-height: 36px;
+  align-items: center;
+  gap: 12px;
+}
+.performance-layout .wb-shared-previs > header strong {
+  font-size: 12px;
+  color: var(--wb-muted);
+  font-weight: 500;
+}
+.performance-layout .wb-shared-previs .previs-workspace {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding: 0 12px 6px;
+}
+.performance-layout .wb-shared-previs .wb-previs {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 6px;
+}
+.performance-layout .wb-previs label {
+  font-size: 11px;
+  gap: 6px;
+}
+.performance-layout .wb-previs select {
+  width: 155px;
+  max-width: 100%;
+  font-size: 11px;
+  padding: 4px 6px;
+}
+.performance-layout .wb-previs button,
+.performance-layout .previs-tools button {
+  min-height: 26px;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+.performance-layout .previs-tools {
+  gap: 4px;
+  padding: 6px 0;
+  flex-wrap: wrap;
+}
+.performance-layout .previs-viewport {
+  min-height: 70px;
+}
+.performance-layout .previs-footer {
+  font-size: 10px;
+  gap: 6px;
+}
+.performance-layout .previs-footer > span:last-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.performance-layout .stage-center {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.performance-layout .stage-plan-container {
+  flex: 1;
+  min-height: 0;
+}
+.stage-view-switch {
+  display: flex;
+  gap: 3px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+.workbench .stage-view-switch button {
+  padding: 4px 9px;
+  min-height: 26px;
+  font-size: 11px;
+  border: 0;
+  background: none;
+  color: var(--wb-muted);
+}
+.workbench .stage-view-switch button[aria-pressed="true"] {
+  background: #243945;
+  color: var(--wb-accent);
+}
+.performance-layout .audio-preview-transport {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 12px 10px;
+}
+.performance-layout .audio-preview-controls {
+  gap: 5px;
+  width: 100%;
+}
+.performance-layout .audio-preview-controls output {
+  margin-left: auto;
+  min-width: 0;
+  font-size: 11px;
+}
+.performance-layout .audio-preview-controls button {
+  min-height: 26px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+.performance-layout .audio-preview-transport input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.performance-layout .audio-resources {
+  padding: 14px;
+  height: 100%;
+  overflow: auto;
+}
+.performance-layout .audio-header {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 12px;
+}
+.performance-layout .audio-header h2 {
+  font-size: 14px;
+}
+.performance-layout .audio-header .wb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.performance-layout .audio-header .wb-actions button {
+  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 7px;
+}
+.performance-layout .audio-header span {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.performance-layout .audio-markers {
+  padding: 14px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.performance-layout .audio-list-title {
+  display: block;
+}
+.performance-layout .audio-list-title input {
+  max-width: none;
+}
+.performance-layout .audio-marker-list {
+  max-height: none;
+  overflow: visible;
+}
+.workbench .performance-layout .audio-marker-list > button {
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 3px 6px;
+  padding: 8px;
+}
+.performance-layout .audio-marker-list strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.performance-layout .audio-marker-list span {
+  grid-column: 2;
+  font-size: 10px;
+}
+.performance-layout .audio-inspector {
+  height: 100%;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 14px;
+  background: var(--wb-panel);
+}
+.performance-layout .audio-sequencer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.performance-layout .audio-transport {
+  padding: 6px 14px;
+  gap: 12px;
+  border-bottom: 1px solid var(--wb-border);
+  flex-wrap: wrap;
+}
+.performance-layout .audio-transport strong {
+  font-size: 12px;
+  margin-right: auto;
+}
+.performance-layout .audio-transport button {
+  min-height: 28px;
+  padding: 4px 8px;
+}
+.performance-layout .audio-volume {
+  flex-direction: row;
+}
+.performance-layout .audio-wave-editor {
+  flex: 1;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: auto;
+}
+.performance-layout .audio-wave-toolbar {
+  min-height: 36px;
+  padding: 4px 14px;
+}
+.performance-layout .audio-wave-body {
+  background: #0e1922;
+}
+.performance-layout .audio-channel-labels span {
+  height: 60px;
+}
+.performance-layout .audio-overview-header {
+  padding: 3px 14px;
+}
+.performance-layout .audio-wave-footer {
+  padding: 3px 14px;
+}
+.editor-empty-properties {
+  display: grid;
+  place-content: center;
+  flex: 1;
+  padding: 18px;
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+.performance-layout .wb-sequence-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 28%);
+  grid-template-rows: auto auto auto minmax(60px, 1fr);
+  padding: 0;
+  gap: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.performance-layout .wb-sequence-content > :not(.wb-preview) {
+  grid-column: 1;
+}
+.performance-layout .wb-sequence-content > .wb-preview {
+  grid-column: 2;
+  grid-row: 1/-1;
+  overflow: auto;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid var(--wb-border);
+  border-radius: 0;
+  padding: 12px;
+}
+.performance-layout .wb-sequence-add,
+.performance-layout .wb-sequence-actions {
+  padding: 6px 14px;
+  margin: 0;
+  gap: 6px;
+}
+.performance-layout .wb-sequence-add select {
+  max-width: 330px;
+}
+.performance-layout .wb-sequence-actions input {
+  max-width: 330px;
+}
+.performance-layout .wb-steps {
+  min-height: 0;
+  overflow: auto;
+  padding: 0 14px 12px;
+}
+.performance-layout .wb-steps button {
+  padding: 7px 10px;
+}
+.performance-layout .wb-preview-heading h2 {
+  font-size: 13px;
+}
+.performance-layout .wb-preview-toolbar {
+  gap: 5px;
+}
+.performance-layout .wb-preview-toolbar button {
+  padding: 5px 7px;
+  min-height: 28px;
+  font-size: 11px;
+}
+.performance-layout .wb-preview-details {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--wb-muted);
+}
+.performance-layout .wb-preview-details > summary {
+  cursor: pointer;
+  padding: 5px 0;
+}
+.performance-layout .wb-content {
+  height: 100%;
+  padding: 0;
+  overflow: auto;
+}
+.performance-layout[data-mode="scenes"] .wb-content {
+  display: flex;
+  flex-direction: column;
+}
+.performance-layout .region-full .wb-layout {
+  height: 100%;
+}
+.performance-layout .region-full .wb-content {
+  padding: 20px;
+}
+.performance-layout .audio-error {
+  margin: 8px 0;
+}
+
+.performance-layout .wb-steps-region {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.performance-layout .wb-steps-region > .wb-dim {
+  padding: 6px 14px;
+}
+.performance-layout .wb-steps {
+  flex: 1;
+  max-height: none;
+}
+.workbench .performance-layout .wb-steps > button {
+  flex-shrink: 0;
+  min-height: 48px;
+  padding: 7px 10px;
+}
+.performance-layout .wb-library > .wb-section-title,
+.performance-layout .wb-library > input,
+.performance-layout .wb-library-actions {
+  flex-shrink: 0;
+}

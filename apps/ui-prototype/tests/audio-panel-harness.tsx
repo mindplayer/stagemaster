@@ -1,4 +1,7 @@
 // Isolated component acceptance. No device or physical audio output; native decoder/output has its own probe.
+import { PerformanceLayout } from "../src/components/layout/PerformanceLayout";
+import { DockPane } from "../src/components/layout/DockPane";
+import { AudioPreviewTransport } from "../src/components/audio/AudioPreviewTransport";
 import React, { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -187,18 +190,33 @@ function Harness() {
         </button>
       </header>
       {error && <p role="alert">{error}</p>}
-      <AudioWorkspace
-        ref={handle}
-        session={session}
-        project={project}
-        host={host}
-        generation={() => 1}
-        visible
-        busy={false}
-        onEdit={async (command) => ((await flush()) ? edit(command) : null)}
+      <PerformanceLayout
+        mode="audio"
+        toolbar={<span>工作台音乐编排验收</span>}
         beforeChange={flush}
-        onPending={() => {}}
-      />
+      >
+        <DockPane region="viewport">
+          <div style={{ flex: 1 }}>三维区域尺寸占位（隔离验收）</div>
+          <AudioPreviewTransport
+            session={session}
+            track={project.audio}
+            busy={false}
+          />
+        </DockPane>
+        <AudioWorkspace
+          sharedTransport
+          ref={handle}
+          session={session}
+          project={project}
+          host={host}
+          generation={() => 1}
+          visible
+          busy={false}
+          onEdit={async (command) => ((await flush()) ? edit(command) : null)}
+          beforeChange={flush}
+          onPending={() => {}}
+        />
+      </PerformanceLayout>
     </main>
   );
 }

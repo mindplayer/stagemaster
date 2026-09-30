@@ -1,0 +1,212 @@
+/* Layout owns space; docked editors continue to own their business state. */
+.editor-navigation {
+  display: flex;
+  align-items: center;
+  flex: none;
+  min-width: 0;
+  border-bottom: 1px solid var(--wb-border);
+  background: #111b24;
+}
+.editor-navigation .wb-nav {
+  border: 0;
+  padding: 0 12px;
+  gap: 14px;
+  overflow: auto;
+  flex: 1;
+}
+.workbench .editor-navigation .wb-nav button {
+  font-size: 12px;
+  padding: 11px 3px;
+  min-width: auto;
+}
+.editor-layout-actions {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+.workbench .editor-layout-actions button {
+  padding: 4px 8px;
+  min-height: 28px;
+  font-size: 11px;
+  background: none;
+  border-color: transparent;
+  color: var(--wb-muted);
+}
+.workbench .editor-layout-actions button[aria-pressed="true"] {
+  color: var(--wb-text);
+  background: #20313c;
+}
+.performance-layout {
+  position: relative;
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  grid-template-columns:
+    min(var(--library-width), 24vw) 5px minmax(0, 1fr)
+    5px min(var(--inspector-width), 28vw);
+  grid-template-rows: minmax(160px, 1fr) 5px min(var(--editor-height), 48%);
+  background: #0d151d;
+}
+.performance-layout[data-library="false"] {
+  grid-template-columns: 0 0 minmax(0, 1fr) 5px min(
+      var(--inspector-width),
+      28vw
+    );
+}
+.performance-layout[data-inspector="false"] {
+  grid-template-columns: min(var(--library-width), 24vw) 5px minmax(0, 1fr) 0 0;
+}
+.performance-layout[data-library="false"][data-inspector="false"] {
+  grid-template-columns: 0 0 minmax(0, 1fr) 0 0;
+}
+.performance-layout[data-lower="false"],
+.performance-layout[data-full="true"] {
+  grid-template-rows: minmax(0, 1fr);
+}
+.editor-region {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--wb-panel);
+}
+.editor-region[hidden] {
+  display: none;
+}
+.region-library {
+  grid-column: 1;
+  grid-row: 1;
+}
+.region-viewport {
+  grid-column: 3;
+  grid-row: 1;
+  background: #090f15;
+}
+/* Keep the live WebKit video in the same DOM/compositor tree across navigation. */
+.region-viewport[hidden] {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+.dock-target {
+  position: relative;
+}
+.dock-pane[data-parked="true"] {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.region-inspector {
+  grid-column: 5;
+  grid-row: 1;
+}
+.region-editor {
+  grid-column: 1/-1;
+  grid-row: 3;
+}
+.region-full {
+  grid-column: 1/-1;
+  grid-row: 1/-1;
+}
+.dock-target,
+.dock-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+.dock-inline:not([hidden]) {
+  display: contents;
+}
+.editor-module-roots {
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.editor-module-roots > .wb-surface-slot {
+  width: 0;
+  height: 0;
+}
+.panel-divider {
+  background: #22313d;
+  touch-action: none;
+  z-index: 2;
+  outline-offset: -2px;
+}
+.panel-divider:hover,
+.panel-divider:focus-visible {
+  background: var(--wb-accent);
+}
+.divider-library {
+  grid-column: 2;
+  grid-row: 1;
+  cursor: col-resize;
+}
+.divider-inspector {
+  grid-column: 4;
+  grid-row: 1;
+  cursor: col-resize;
+}
+.divider-editor {
+  grid-column: 1/-1;
+  grid-row: 2;
+  cursor: row-resize;
+}
+.workbench:has(.performance-layout) {
+  min-height: 500px;
+  overflow: hidden;
+}
+.workbench:has(.performance-layout) .workbench-header {
+  padding: 8px 14px;
+  gap: 16px;
+  min-height: 48px;
+}
+.workbench:has(.performance-layout) .wb-brand {
+  font-size: 14px;
+}
+.workbench:has(.performance-layout) .wb-logo {
+  width: 30px;
+  height: 30px;
+}
+.workbench:has(.performance-layout) .wb-file-actions {
+  gap: 6px;
+}
+.workbench:has(.performance-layout) .wb-file-actions button {
+  min-height: 30px;
+  padding: 5px 9px;
+}
+.workbench:has(.performance-layout) .wb-status {
+  min-height: 24px;
+  padding: 4px 12px;
+  font-size: 10px;
+}
+@media (max-width: 1100px) {
+  .editor-navigation .wb-nav {
+    gap: 8px;
+  }
+  .editor-navigation .wb-nav span {
+    display: none;
+  }
+  .workbench:has(.performance-layout) .workbench-header {
+    gap: 10px;
+  }
+  .workbench:has(.performance-layout) .wb-brand {
+    font-size: 0;
+    gap: 0;
+  }
+  .workbench:has(.performance-layout) .wb-file-actions {
+    gap: 3px;
+  }
+  .workbench:has(.performance-layout) .wb-file-actions button {
+    padding: 5px 6px;
+  }
+  .editor-layout-actions {
+    padding: 0 5px;
+  }
+}

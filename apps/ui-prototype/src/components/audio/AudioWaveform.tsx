@@ -16,6 +16,7 @@ export function AudioWaveform({
   sample,
   selected,
   disabled,
+  compact = false,
   onSeek,
   onSelect,
   onMove,
@@ -25,6 +26,7 @@ export function AudioWaveform({
   sample: RefObject<{ position: AudioPosition; at: number }>;
   selected: string;
   disabled: boolean;
+  compact?: boolean;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onMove(marker: AudioMarker): void;
@@ -48,7 +50,14 @@ export function AudioWaveform({
   const [snap, setSnap] = useState(true);
   const [follow, setFollow] = useState(true);
   const [gain, setGain] = useState("1");
-  const wave = useWaveSurfer(prepared.peaks, duration, sample, Number(gain));
+  const channelHeight = compact ? 60 : 100;
+  const wave = useWaveSurfer(
+    prepared.peaks,
+    duration,
+    sample,
+    Number(gain),
+    channelHeight,
+  );
   const channels = prepared.peaks?.length ?? 1;
   const blocked = disabled || !prepared.peaks;
   function overviewPoint(clientX: number, el: HTMLElement) {
@@ -138,7 +147,7 @@ export function AudioWaveform({
       )}
       <div
         className="audio-wave-body"
-        style={{ minHeight: 28 + channels * 100 }}
+        style={{ minHeight: 28 + channels * channelHeight }}
       >
         <div ref={wave.ruler} className="audio-wave-ruler" aria-hidden="true" />
         <div
@@ -148,8 +157,12 @@ export function AudioWaveform({
         />
         {prepared.peaks && (
           <div className="audio-channel-labels" aria-hidden="true">
-            <span>{channels === 2 ? "左" : "单"}</span>
-            {channels === 2 && <span>右</span>}
+            <span style={{ height: channelHeight }}>
+              {channels === 2 ? "左" : "单"}
+            </span>
+            {channels === 2 && (
+              <span style={{ height: channelHeight }}>右</span>
+            )}
           </div>
         )}
         <WaveformMarkers

@@ -1,3 +1,5 @@
+import { DockPane } from "../layout/DockPane";
+import { AudioMarkerList } from "./AudioMarkerList";
 import { AudioTransportBar } from "./AudioTransportBar";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type {
@@ -7,11 +9,7 @@ import type {
   ProjectView,
 } from "../../application-host";
 import type { AudioEdit, AudioMarker } from "../../audio-types";
-import {
-  audioMilliseconds,
-  audioTime,
-  validateMarker,
-} from "../../audio-tools";
+import { audioMilliseconds, validateMarker } from "../../audio-tools";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { AudioInspector, type AudioDraft } from "./AudioInspector";
@@ -30,6 +28,7 @@ export const AudioWorkspace = forwardRef<
     generation: () => number;
     session: ReturnType<typeof useAudio>;
     visible: boolean;
+    sharedTransport?: boolean;
     busy: boolean;
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
@@ -42,6 +41,7 @@ export const AudioWorkspace = forwardRef<
     generation,
     session: audio,
     visible,
+    sharedTransport = false,
     busy,
     onEdit,
     beforeChange,
@@ -184,139 +184,126 @@ export const AudioWorkspace = forwardRef<
           }
         }}
       >
-        <header className="audio-header">
-          <div>
-            <h2>音频卡点</h2>
-            <span>{track?.asset.fileName ?? "用音乐安排灯光节奏"}</span>
-          </div>
-          <div className="wb-actions">
-            {track ? (
-              <>
-                <button disabled={blocked} onClick={() => choose("")}>
-                  裁切范围
-                </button>
-                <button
-                  disabled={blocked}
-                  onClick={() => audio.prepare("locate")}
-                >
-                  重新定位音乐
-                </button>
-                <button disabled={blocked} onClick={() => setRemoveMusic(true)}>
-                  移除音乐
-                </button>
-              </>
-            ) : (
-              <button
-                className="primary"
-                disabled={blocked || host.kind !== "desktop"}
-                onClick={importMusic}
-              >
-                导入音乐
-              </button>
+        <DockPane region="library" visible={visible}>
+          <section className="audio-resources">
+            <header className="audio-header">
+              <div>
+                <h2>音乐与卡点</h2>
+                <span>{track?.asset.fileName ?? "用音乐安排灯光节奏"}</span>
+              </div>
+              <div className="wb-actions">
+                {track ? (
+                  <>
+                    <button disabled={blocked} onClick={() => choose("")}>
+                      裁切范围
+                    </button>
+                    <button
+                      disabled={blocked}
+                      onClick={() => audio.prepare("locate")}
+                    >
+                      重新定位音乐
+                    </button>
+                    <button
+                      disabled={blocked}
+                      onClick={() => setRemoveMusic(true)}
+                    >
+                      移除音乐
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="primary"
+                    disabled={blocked || host.kind !== "desktop"}
+                    onClick={importMusic}
+                  >
+                    导入音乐
+                  </button>
+                )}
+              </div>
+            </header>
+            {(problem || audio.problem || audio.position.problem) && (
+              <div role="alert" className="audio-error">
+                {problem || audio.problem || audio.position.problem}
+              </div>
             )}
-          </div>
-        </header>
-        {(problem || audio.problem || audio.position.problem) && (
-          <div role="alert" className="audio-error">
-            {problem || audio.problem || audio.position.problem}
-          </div>
-        )}
-        {audio.preparing && (
-          <div role="status" className="audio-progress">
-            正在准备音乐波形…
-            <button onClick={() => audio.cancel()}>取消准备</button>
-          </div>
-        )}
-        {!track ? (
-          <div className="audio-empty">
-            <strong>导入音乐，开始卡点</strong>
-            <p>
-              支持 WAV、MP3、FLAC。播放时按 M 添加卡点，再为卡点选择灯光场景。
-            </p>
-          </div>
-        ) : (
-          <>
-            <AudioTransportBar
-              position={audio.position}
-              command={audio.command}
-              ready={!!audio.waveform}
-              duration={track.outMs - track.inMs}
-              markerCount={track.markers.length}
-              blocked={blocked}
-              addMarker={addMarker}
-            />
-            <AudioWaveform
-              track={track}
-              waveform={audio.waveform}
-              sample={audio.playingSample}
-              selected={selected}
-              disabled={blocked || !!draft}
-              onSeek={seek}
-              onSelect={(id) => {
-                setSelected(id);
-                cancel();
-              }}
-              onMove={moveMarker}
-            />
-            <div className="audio-lower">
-              <section className="audio-markers">
-                <div className="audio-list-title">
-                  <h3>
-                    节奏与灯光 <small>{track.markers.length}</small>
-                  </h3>
-                  <input
-                    aria-label="搜索卡点"
-                    placeholder="搜索卡点或场景"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </div>
-                <div className="audio-marker-list">
-                  {track.markers
-                    .filter((m) =>
-                      `${m.name} ${project.scenes.find((s) => s.id === m.sceneId)?.name ?? ""}`
-                        .toLowerCase()
-                        .includes(query.toLowerCase()),
-                    )
-                    .map((m) => (
-                      <button
-                        key={m.id}
-                        className={selected === m.id ? "selected" : ""}
-                        disabled={blocked}
-                        onClick={() => choose(m.id)}
-                        onDoubleClick={() => seek(m.timeMs)}
-                      >
-                        <time>{audioTime(m.timeMs)}</time>
-                        <strong>{m.name}</strong>
-                        <span>
-                          {project.scenes.find((s) => s.id === m.sceneId)
-                            ?.name ?? "节奏标记"}
-                        </span>
-                      </button>
-                    ))}
-                  {!track.markers.length && (
-                    <p>点击波形定位，或边听边按 M 打点。</p>
-                  )}
-                </div>
-              </section>
-              <AudioInspector
+            {audio.preparing && (
+              <div role="status" className="audio-progress">
+                正在准备音乐波形…
+                <button onClick={() => audio.cancel()}>取消准备</button>
+              </div>
+            )}
+            {track && (
+              <AudioMarkerList
                 track={track}
-                marker={marker}
-                draft={draft}
                 scenes={project.scenes}
+                selected={selected}
+                query={query}
                 busy={blocked}
-                form={form}
-                onChange={change}
-                onApply={() => void beforeChange()}
-                onCancel={cancel}
-                onRemove={() => {
-                  if (marker)
-                    void edit({ kind: "removeMarker", id: marker.id });
-                }}
+                onQuery={setQuery}
+                onSelect={choose}
+                onSeek={seek}
               />
+            )}
+          </section>
+        </DockPane>
+        <DockPane region="editor" visible={visible}>
+          <section className="audio-sequencer">
+            {!track ? (
+              <div className="audio-empty">
+                <strong>尚未添加音乐</strong>
+                <p>导入音乐后，在这里查看波形和安排卡点。</p>
+              </div>
+            ) : (
+              <>
+                <AudioTransportBar
+                  position={audio.position}
+                  command={audio.command}
+                  ready={!!audio.waveform}
+                  duration={track.outMs - track.inMs}
+                  markerCount={track.markers.length}
+                  blocked={blocked}
+                  addMarker={addMarker}
+                  editingOnly={sharedTransport}
+                />
+                <AudioWaveform
+                  track={track}
+                  waveform={audio.waveform}
+                  sample={audio.playingSample}
+                  selected={selected}
+                  disabled={blocked || !!draft}
+                  onSeek={seek}
+                  onSelect={(id) => {
+                    setSelected(id);
+                    cancel();
+                  }}
+                  onMove={moveMarker}
+                />
+              </>
+            )}
+          </section>
+        </DockPane>
+        <DockPane region="inspector" visible={visible}>
+          {track ? (
+            <AudioInspector
+              track={track}
+              marker={marker}
+              draft={draft}
+              scenes={project.scenes}
+              busy={blocked}
+              form={form}
+              onChange={change}
+              onApply={() => void beforeChange()}
+              onCancel={cancel}
+              onRemove={() => {
+                if (marker) void edit({ kind: "removeMarker", id: marker.id });
+              }}
+            />
+          ) : (
+            <div className="editor-empty-properties">
+              选择音乐或卡点查看属性
             </div>
-          </>
-        )}
+          )}
+        </DockPane>
         {removeMusic && (
           <DeleteDialog
             name="音乐及全部卡点"

@@ -19,14 +19,9 @@ import type {
   StageObject,
   StageSelection,
 } from "../../stage-types";
-import {
-  bounds,
-  objectOutline,
-  selectedStage,
-  translated,
-} from "../../stage-tools";
+import { objectOutline, selectedStage, translated } from "../../stage-tools";
 import { selectInBox } from "../../placement-tools";
-type Camera = { x: number; y: number; width: number };
+import { usePlanCamera, fittedCamera, type Camera } from "./usePlanCamera";
 type Gesture = {
   pointer: number;
   clientX: number;
@@ -76,8 +71,6 @@ export function StageCanvas({
   onGesture(value: boolean): void;
 }) {
   const svg = useRef<SVGSVGElement>(null);
-  const [camera, setCamera] = useState<Camera>({ x: 4, y: 3, width: 20 });
-  const [ratio, setRatio] = useState(1.4);
   const [gesture, setGesture] = useState<Gesture | null>(null),
     active = useRef<Gesture | null>(null);
   const [snap, setSnap] = useState(true);
@@ -88,18 +81,7 @@ export function StageCanvas({
     from: [number, number];
     to: [number, number];
   } | null>(null);
-  const [labels, setLabels] = useState(true);
-  const height = camera.width / ratio;
-  useEffect(() => {
-    const el = svg.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry && entry.contentRect.height > 0)
-        setRatio(entry.contentRect.width / entry.contentRect.height);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const [labels, setLabels] = useState(project.fixtures.length <= 30);
   const allPoints: [number, number][] = [
     ...project.stage.spaces.flatMap((s) =>
       s.outlineMeters.map(
@@ -123,6 +105,12 @@ export function StageCanvas({
         ],
     ),
   ];
+  const { camera, setCamera, ratio } = usePlanCamera(
+    svg,
+    allPoints,
+    project.id,
+  );
+  const height = camera.width / ratio;
   const currentObject = preview ?? selectedStage(project.stage, selection);
   function fit(selected = false) {
     const groupPoints = project.stage.placements
@@ -153,20 +141,7 @@ export function StageCanvas({
                 ? rigOutline(currentObject.value.shape)
                 : []))
           : allPoints;
-    if (!points.length) {
-      setCamera({ x: 4, y: 3, width: 20 });
-      return;
-    }
-    const b = bounds(points);
-    setCamera({
-      x: (b.minX + b.maxX) / 2,
-      y: (b.minY + b.maxY) / 2,
-      width: Math.max(
-        8,
-        (b.maxX - b.minX) * 1.35,
-        (b.maxY - b.minY) * ratio * 1.35,
-      ),
-    });
+    setCamera(fittedCamera(points, ratio));
   }
   const lastFocus = useRef(0);
   useEffect(() => {

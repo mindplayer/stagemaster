@@ -1,3 +1,5 @@
+import { DockPane } from "../layout/DockPane";
+import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { RigCreateDialog } from "./RigCreateDialog";
 import { RigAttachmentDialog } from "./RigAttachmentDialog";
@@ -59,6 +61,8 @@ export const StageWorkspace = forwardRef<
     project: ProjectView;
     onSelectedFixture(id: string): void;
     visible: boolean;
+    canvasVisible?: boolean;
+    viewControls?: ReactNode;
     busy: boolean;
     error: string;
     beforeChange(): Promise<boolean>;
@@ -70,6 +74,8 @@ export const StageWorkspace = forwardRef<
     project,
     onSelectedFixture,
     visible,
+    canvasVisible = true,
+    viewControls,
     busy,
     error,
     beforeChange,
@@ -453,221 +459,234 @@ export const StageWorkspace = forwardRef<
       visible={visible}
       label="舞台工作区"
     >
-      <aside className="stage-browser">
-        <header>
-          <h2>场地</h2>
-          <span>{project.stage.spaces.length} 个空间</span>
-        </header>
-        <div className="stage-create">
-          <button disabled={busy} onClick={() => void create("space")}>
-            <HouseLineIcon />
-            新建空间
-          </button>
-          <button disabled={busy} onClick={() => void create("platform")}>
-            <CubeIcon />
-            新建舞台
-          </button>
-        </div>
-        <label className="stage-search">
-          <MagnifyingGlassIcon />
-          <input
-            aria-label="搜索场地对象"
-            placeholder="搜索空间、构件、灯具"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        <button disabled={busy} onClick={() => void createRig()}>
-          新建桁架／灯杆
-        </button>
-        <StageOutliner
-          project={project}
-          selection={selection}
-          selectedIds={liveIds}
-          query={query}
-          busy={busy}
-          onSelect={(target, additive) => void choose(target, additive)}
-        />
-        <div className="stage-place">
-          <button
-            disabled={busy || !project.fixtures.length}
-            onClick={() => void arrange(false)}
-          >
-            批量布灯
-          </button>
-          <label>
-            布置灯具
-            <select
-              aria-label="待布置灯具"
-              value={chosenFixture?.id ?? ""}
-              disabled={busy || !unplaced.length}
-              onChange={(e) => setFixtureId(e.target.value)}
-            >
-              {unplaced.length ? (
-                unplaced.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))
-              ) : (
-                <option value="">没有未布置的灯具</option>
-              )}
-            </select>
+      <DockPane region="library" visible={visible}>
+        <aside className="stage-browser">
+          <header>
+            <h2>场地</h2>
+            <span>{project.stage.spaces.length} 个空间</span>
+          </header>
+          <div className="stage-create">
+            <button disabled={busy} onClick={() => void create("space")}>
+              <HouseLineIcon />
+              新建空间
+            </button>
+            <button disabled={busy} onClick={() => void create("platform")}>
+              <CubeIcon />
+              新建舞台
+            </button>
+          </div>
+          <label className="stage-search">
+            <MagnifyingGlassIcon />
+            <input
+              aria-label="搜索场地对象"
+              placeholder="搜索空间、构件、灯具"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </label>
-          <button
-            disabled={busy || !chosenFixture}
-            onClick={() => void placeFixture()}
-          >
-            <PlusIcon />
-            放入场地
+          <button disabled={busy} onClick={() => void createRig()}>
+            新建桁架／灯杆
           </button>
-        </div>
-      </aside>
-      <div className="stage-center">
-        <div className="stage-plan-container">
-          <StageCanvas
+          <StageOutliner
             project={project}
             selection={selection}
             selectedIds={liveIds}
-            preview={draft}
-            focusRequest={focusRequest}
+            query={query}
             busy={busy}
-            pending={draft !== null}
-            onSelect={(target, additive, preserve) =>
-              void choose(target, additive, preserve)
-            }
-            onSelectPlacements={(ids, additive) =>
-              void choosePlacements(ids, additive)
-            }
-            onMovePlacements={(placements) => {
-              try {
-                void onEdit(placementBatch(placements));
-              } catch (reason) {
-                setLocalError((reason as Error).message);
-              }
-            }}
-            onArrange={() => void arrange(true)}
-            onMove={(value) => {
-              void edit(stageCommand(value));
-            }}
-            onGesture={(value) => {
-              moving.current = value;
-              onPending(value || draftRef.current !== null);
-            }}
+            onSelect={(target, additive) => void choose(target, additive)}
           />
-        </div>
-      </div>
-      {selection?.kind === "placement" && liveIds.length > 1 ? (
-        <aside className="stage-inspector stage-multi-inspector">
-          <header>
-            <h2>已选 {liveIds.length} 台灯具</h2>
-          </header>
-          <button
-            className="wb-primary"
-            disabled={busy}
-            onClick={() => void arrange(true)}
-          >
-            排列与精确调整
-          </button>
-          <div className="rig-member-actions">
+          <div className="stage-place">
             <button
-              disabled={
-                busy ||
-                !project.stage.constructions.some((c) => c.shape.kind === "rig")
-              }
-              onClick={() => void hang()}
+              disabled={busy || !project.fixtures.length}
+              onClick={() => void arrange(false)}
             >
-              挂接到支撑体
+              批量布灯
             </button>
+            <label>
+              布置灯具
+              <select
+                aria-label="待布置灯具"
+                value={chosenFixture?.id ?? ""}
+                disabled={busy || !unplaced.length}
+                onChange={(e) => setFixtureId(e.target.value)}
+              >
+                {unplaced.length ? (
+                  unplaced.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">没有未布置的灯具</option>
+                )}
+              </select>
+            </label>
             <button
-              disabled={
-                busy ||
-                !project.stage.attachments.some((a) =>
-                  liveIds.includes(a.fixtureId),
-                )
-              }
-              onClick={() => void detach(liveIds)}
+              disabled={busy || !chosenFixture}
+              onClick={() => void placeFixture()}
             >
-              解除挂接
+              <PlusIcon />
+              放入场地
             </button>
           </div>
-          <dl>
-            <dt>高度范围</dt>
-            <dd>
-              {decimal(
-                Math.min(
-                  ...selectedPlacements.map((p) => Number(p.positionMeters.z)),
-                ),
-              )}{" "}
-              –{" "}
-              {decimal(
-                Math.max(
-                  ...selectedPlacements.map((p) => Number(p.positionMeters.z)),
-                ),
-              )}{" "}
-              米
-            </dd>
-            <dt>所属空间</dt>
-            <dd>
-              {new Set(selectedPlacements.map((p) => p.spaceId)).size > 1
-                ? "多个空间"
-                : (project.stage.spaces.find(
-                    (s) => s.id === selectedPlacements[0]?.spaceId,
-                  )?.name ?? "未归属")}
-            </dd>
-          </dl>
-          <ol>
-            {liveIds.map((id) => (
-              <li key={id}>
-                {project.fixtures.find((f) => f.id === id)?.name}
-              </li>
-            ))}
-          </ol>
-          <button disabled={busy} onClick={() => void choosePlacements([])}>
-            清空选择
-          </button>
-          {(localError || error) && (
-            <p className="wb-library-error" role="alert">
-              {localError || error}
-            </p>
-          )}
         </aside>
-      ) : (
-        <StageInspector
-          object={object}
-          project={project}
-          pending={draft !== null}
-          busy={busy}
-          form={form}
-          error={localError || error}
-          onChange={(value) => {
-            draftRef.current = value;
-            setDraft(value);
-            onPending(true);
-            setLocalError("");
-          }}
-          onApply={() => {
-            void beforeChange();
-          }}
-          onCancel={cancel}
-          onDuplicate={() => void duplicate()}
-          onDelete={() => {
-            void beforeChange().then((ok) => {
-              if (ok) setDeleteTarget(object);
-            });
-          }}
-          onEnclose={() => void enclose()}
-          onHang={() => void hang()}
-          onSelectMounted={(id) =>
-            void choosePlacements(
-              project.stage.attachments
-                .filter((a) => a.constructionId === id)
-                .map((a) => a.fixtureId),
-            )
-          }
-          onDetach={(ids) => void detach(ids)}
-        />
-      )}
+      </DockPane>
+      <DockPane region="viewport" visible={visible && canvasVisible}>
+        <div className="stage-center">
+          {viewControls}
+          <div className="stage-plan-container">
+            <StageCanvas
+              project={project}
+              selection={selection}
+              selectedIds={liveIds}
+              preview={draft}
+              focusRequest={focusRequest}
+              busy={busy}
+              pending={draft !== null}
+              onSelect={(target, additive, preserve) =>
+                void choose(target, additive, preserve)
+              }
+              onSelectPlacements={(ids, additive) =>
+                void choosePlacements(ids, additive)
+              }
+              onMovePlacements={(placements) => {
+                try {
+                  void onEdit(placementBatch(placements));
+                } catch (reason) {
+                  setLocalError((reason as Error).message);
+                }
+              }}
+              onArrange={() => void arrange(true)}
+              onMove={(value) => {
+                void edit(stageCommand(value));
+              }}
+              onGesture={(value) => {
+                moving.current = value;
+                onPending(value || draftRef.current !== null);
+              }}
+            />
+          </div>
+        </div>
+      </DockPane>
+      <DockPane region="inspector" visible={visible}>
+        {selection?.kind === "placement" && liveIds.length > 1 ? (
+          <aside className="stage-inspector stage-multi-inspector">
+            <header>
+              <h2>已选 {liveIds.length} 台灯具</h2>
+            </header>
+            <button
+              className="wb-primary"
+              disabled={busy}
+              onClick={() => void arrange(true)}
+            >
+              排列与精确调整
+            </button>
+            <div className="rig-member-actions">
+              <button
+                disabled={
+                  busy ||
+                  !project.stage.constructions.some(
+                    (c) => c.shape.kind === "rig",
+                  )
+                }
+                onClick={() => void hang()}
+              >
+                挂接到支撑体
+              </button>
+              <button
+                disabled={
+                  busy ||
+                  !project.stage.attachments.some((a) =>
+                    liveIds.includes(a.fixtureId),
+                  )
+                }
+                onClick={() => void detach(liveIds)}
+              >
+                解除挂接
+              </button>
+            </div>
+            <dl>
+              <dt>高度范围</dt>
+              <dd>
+                {decimal(
+                  Math.min(
+                    ...selectedPlacements.map((p) =>
+                      Number(p.positionMeters.z),
+                    ),
+                  ),
+                )}{" "}
+                –{" "}
+                {decimal(
+                  Math.max(
+                    ...selectedPlacements.map((p) =>
+                      Number(p.positionMeters.z),
+                    ),
+                  ),
+                )}{" "}
+                米
+              </dd>
+              <dt>所属空间</dt>
+              <dd>
+                {new Set(selectedPlacements.map((p) => p.spaceId)).size > 1
+                  ? "多个空间"
+                  : (project.stage.spaces.find(
+                      (s) => s.id === selectedPlacements[0]?.spaceId,
+                    )?.name ?? "未归属")}
+              </dd>
+            </dl>
+            <ol>
+              {liveIds.map((id) => (
+                <li key={id}>
+                  {project.fixtures.find((f) => f.id === id)?.name}
+                </li>
+              ))}
+            </ol>
+            <button disabled={busy} onClick={() => void choosePlacements([])}>
+              清空选择
+            </button>
+            {(localError || error) && (
+              <p className="wb-library-error" role="alert">
+                {localError || error}
+              </p>
+            )}
+          </aside>
+        ) : (
+          <StageInspector
+            object={object}
+            project={project}
+            pending={draft !== null}
+            busy={busy}
+            form={form}
+            error={localError || error}
+            onChange={(value) => {
+              draftRef.current = value;
+              setDraft(value);
+              onPending(true);
+              setLocalError("");
+            }}
+            onApply={() => {
+              void beforeChange();
+            }}
+            onCancel={cancel}
+            onDuplicate={() => void duplicate()}
+            onDelete={() => {
+              void beforeChange().then((ok) => {
+                if (ok) setDeleteTarget(object);
+              });
+            }}
+            onEnclose={() => void enclose()}
+            onHang={() => void hang()}
+            onSelectMounted={(id) =>
+              void choosePlacements(
+                project.stage.attachments
+                  .filter((a) => a.constructionId === id)
+                  .map((a) => a.fixtureId),
+              )
+            }
+            onDetach={(ids) => void detach(ids)}
+          />
+        )}
+      </DockPane>
       {rigCreation && (
         <RigCreateDialog
           project={project}

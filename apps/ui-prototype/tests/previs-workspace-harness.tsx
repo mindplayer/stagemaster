@@ -1,4 +1,6 @@
 // Isolated ownership regression: no UE process, audio device, project file or physical output.
+import { PerformanceLayout } from "../src/components/layout/PerformanceLayout";
+import { DockPane } from "../src/components/layout/DockPane";
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -125,7 +127,7 @@ function Harness() {
           "切页不可重建视频节点",
         );
         ensure(
-          document.querySelectorAll("[aria-pressed]").length ===
+          document.querySelectorAll(".previs-tools [aria-pressed]").length ===
             (i % 2 ? 1 : 2),
           "仅舞台显示移动控件",
         );
@@ -193,26 +195,35 @@ function Harness() {
         当前页面：{page} · 加载次数：{loads} · 音乐位置：
         {audio.position.positionMs}
       </output>
-      <SharedPrevis
-        ref={panel}
-        transport={
-          <AudioPreviewTransport session={audio} track={track} busy={false} />
-        }
-        host={host}
-        scenes={[]}
-        contextKey={page}
-        allowPlacement={page === "stage"}
-        busy={false}
-        generation={() => 1}
-        run={async (work) => {
-          await work();
-          return true;
-        }}
-        selectedId=""
-        onSelect={async () => true}
-        onPrepareMove={async () => true}
-        onPlacement={async () => false}
-      />
+      <PerformanceLayout mode={page} toolbar={<span>隔离验收</span>}>
+        <DockPane region="viewport" keepConnected>
+          <SharedPrevis
+            fixed
+            ref={panel}
+            transport={
+              <AudioPreviewTransport
+                session={audio}
+                track={track}
+                busy={false}
+              />
+            }
+            host={host}
+            scenes={[]}
+            contextKey={page}
+            allowPlacement={page === "stage"}
+            busy={false}
+            generation={() => 1}
+            run={async (work) => {
+              await work();
+              return true;
+            }}
+            selectedId=""
+            onSelect={async () => true}
+            onPrepareMove={async () => true}
+            onPlacement={async () => false}
+          />
+        </DockPane>
+      </PerformanceLayout>
     </main>
   );
 }

@@ -11,6 +11,7 @@ export function useWaveSurfer(
   duration: number,
   sample: RefObject<{ position: AudioPosition; at: number }>,
   gain: number,
+  channelHeight = 100,
 ) {
   const detail = useRef<HTMLDivElement>(null);
   const ruler = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export function useWaveSurfer(
     });
     const wave = WaveSurfer.create({
       container: detail.current,
-      height: 100,
+      height: channelHeight,
       peaks,
       duration: duration / 1000,
       waveColor: "#67bbaa",
@@ -58,7 +59,7 @@ export function useWaveSurfer(
       autoCenter: false,
       normalize: false,
       splitChannels: peaks.map((_, i) => ({
-        height: 100,
+        height: channelHeight,
         waveColor: i ? "#6a9cc1" : "#67bbaa",
         progressColor: i ? "#b6d7f0" : "#acebd7",
       })),
@@ -142,7 +143,7 @@ export function useWaveSurfer(
       wave.destroy();
       instance.current = null;
     };
-  }, [peaks, duration]);
+  }, [peaks, duration, channelHeight]);
   useEffect(() => {
     instance.current?.setOptions({ barHeight: gain });
   }, [gain, peaks, duration]);

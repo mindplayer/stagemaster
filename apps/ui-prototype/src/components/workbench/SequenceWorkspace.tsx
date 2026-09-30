@@ -1,3 +1,5 @@
+import { SequenceStepList } from "./SequenceStepList";
+import { DockPane } from "../layout/DockPane";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
@@ -14,10 +16,9 @@ import type {
   EditOperation,
   ProjectView,
 } from "../../application-host";
-import type { SequenceEdit, SequenceView } from "../../sequence-types";
+import type { SequenceEdit } from "../../sequence-types";
 import { uniqueName } from "../../editor-tools";
 import {
-  seconds,
   sequenceDraft,
   sequenceCommands,
   SequenceInputError,
@@ -40,12 +41,23 @@ export const SequenceWorkspace = forwardRef<
     generation: number;
     busy: boolean;
     visible: boolean;
+    onView3d?(): void;
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
     onPending(value: boolean): void;
   }
 >(function SequenceWorkspace(
-  { project, host, generation, busy, visible, onEdit, beforeChange, onPending },
+  {
+    project,
+    host,
+    generation,
+    busy,
+    visible,
+    onView3d,
+    onEdit,
+    beforeChange,
+    onPending,
+  },
   ref,
 ) {
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
@@ -239,250 +251,222 @@ export const SequenceWorkspace = forwardRef<
       visible={visible}
       label="列表工作区"
     >
-      <aside className="wb-library">
-        <div className="wb-section-title">
-          <h2>
-            <ListNumbersIcon />
-            场景列表
-          </h2>
-          <span>{project.sequences.length}</span>
-        </div>
-        <input
-          aria-label="搜索列表"
-          placeholder="搜索列表"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className="wb-library-actions">
-          <button
-            disabled={busy || !project.scenes.length}
-            onClick={() => void addSequence()}
-          >
-            <PlusIcon />
-            新建列表
-          </button>
-          <button
-            aria-label="复制列表"
-            disabled={busy || !sequence}
-            onClick={() => void duplicateSequence()}
-          >
-            <CopyIcon />
-          </button>
-        </div>
-        <div className="wb-scene-list">
-          {lists.map((s) => (
-            <button
-              key={s.id}
-              aria-pressed={sequence?.id === s.id}
-              className={sequence?.id === s.id ? "active" : ""}
-              disabled={busy}
-              onClick={() => void chooseSequence(s.id)}
-            >
-              <div>
-                <strong>{s.name}</strong>
-                <small>
-                  {s.steps.length} 步 · {s.repeat === "loop" ? "循环" : "单次"}
-                </small>
-              </div>
-            </button>
-          ))}
-          {!lists.length && (
-            <p className="wb-dim">
-              {project.sequences.length
-                ? "未找到列表"
-                : project.scenes.length
-                  ? "尚未创建列表"
-                  : "请先在编排中创建场景"}
-            </p>
-          )}
-        </div>
-      </aside>
-      <section className="wb-sequence-content">
-        <div className="wb-content-heading">
-          <div>
-            <span className="wb-eyebrow">节目编排</span>
-            <h1>{sequence?.name ?? "场景列表"}</h1>
+      <DockPane region="library" visible={visible}>
+        <aside className="wb-library">
+          <div className="wb-section-title">
+            <h2>
+              <ListNumbersIcon />
+              场景列表
+            </h2>
+            <span>{project.sequences.length}</span>
           </div>
-          {sequence && (
+          <input
+            aria-label="搜索列表"
+            placeholder="搜索列表"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <div className="wb-library-actions">
             <button
-              aria-label="删除列表"
-              disabled={busy}
-              onClick={() => {
-                setLocalError("");
-                setDeleteTarget("sequence");
-              }}
+              disabled={busy || !project.scenes.length}
+              onClick={() => void addSequence()}
             >
-              <TrashIcon />
+              <PlusIcon />
+              新建列表
             </button>
-          )}
-        </div>
-        {sequence && (
-          <>
-            <div className="wb-sequence-add">
-              <select
-                aria-label="要加入的场景"
-                value={
-                  project.scenes.some((s) => s.id === addSceneId)
-                    ? addSceneId
-                    : (project.scenes[0]?.id ?? "")
-                }
-                onChange={(e) => setAddSceneId(e.target.value)}
+            <button
+              aria-label="复制列表"
+              disabled={busy || !sequence}
+              onClick={() => void duplicateSequence()}
+            >
+              <CopyIcon />
+            </button>
+          </div>
+          <div className="wb-scene-list">
+            {lists.map((s) => (
+              <button
+                key={s.id}
+                aria-pressed={sequence?.id === s.id}
+                className={sequence?.id === s.id ? "active" : ""}
                 disabled={busy}
+                onClick={() => void chooseSequence(s.id)}
               >
-                {project.scenes.map((s) => (
-                  <option value={s.id} key={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                disabled={busy || !project.scenes.length}
-                onClick={() => void insertStep()}
-              >
-                <PlusIcon />
-                加入步骤
+                <div>
+                  <strong>{s.name}</strong>
+                  <small>
+                    {s.steps.length} 步 ·{" "}
+                    {s.repeat === "loop" ? "循环" : "单次"}
+                  </small>
+                </div>
               </button>
+            ))}
+            {!lists.length && (
+              <p className="wb-dim">
+                {project.sequences.length
+                  ? "未找到列表"
+                  : project.scenes.length
+                    ? "尚未创建列表"
+                    : "请先在编排中创建场景"}
+              </p>
+            )}
+          </div>
+        </aside>
+      </DockPane>
+      <DockPane region="editor" visible={visible}>
+        <section className="wb-sequence-content">
+          <div className="wb-content-heading">
+            <div>
+              <span className="wb-eyebrow">节目编排</span>
+              <h1>{sequence?.name ?? "场景列表"}</h1>
             </div>
-            <div className="wb-sequence-actions">
-              <input
-                aria-label="搜索步骤"
-                placeholder="搜索编号、步骤或场景"
-                value={stepQuery}
-                onChange={(e) => setStepQuery(e.target.value)}
-              />
+            {sequence && (
               <button
-                aria-label="上移步骤"
-                disabled={busy || index <= 0}
-                onClick={() =>
-                  void edit({
-                    kind: "moveStep",
-                    id: sequence.id,
-                    stepId: step!.id,
-                    index: index - 1,
-                  })
-                }
-              >
-                <ArrowUpIcon />
-              </button>
-              <button
-                aria-label="下移步骤"
-                disabled={
-                  busy || index < 0 || index >= sequence.steps.length - 1
-                }
-                onClick={() =>
-                  void edit({
-                    kind: "moveStep",
-                    id: sequence.id,
-                    stepId: step!.id,
-                    index: index + 1,
-                  })
-                }
-              >
-                <ArrowDownIcon />
-              </button>
-              <button
-                aria-label="复制步骤"
-                disabled={busy || !step}
-                onClick={() => void duplicateStep()}
-              >
-                <CopyIcon />
-              </button>
-              <button
-                aria-label="删除步骤"
-                disabled={busy || !step || sequence.steps.length === 1}
-                title={
-                  sequence.steps.length === 1
-                    ? "列表至少保留一个步骤"
-                    : "删除步骤"
-                }
+                aria-label="删除列表"
+                disabled={busy}
                 onClick={() => {
                   setLocalError("");
-                  setDeleteTarget("step");
+                  setDeleteTarget("sequence");
                 }}
               >
                 <TrashIcon />
               </button>
-            </div>
-            {step && !steps.some((s) => s.id === step.id) && (
-              <p className="wb-dim">
-                当前选中“{step.name}”未匹配筛选。
-                <button onClick={() => setStepQuery("")}>清除筛选</button>
-              </p>
             )}
-            <div className="wb-steps" role="group" aria-label="列表步骤">
-              {steps.map((s) => (
-                <button
-                  aria-pressed={s.id === step?.id}
-                  key={s.id}
+          </div>
+          {sequence && (
+            <>
+              <div className="wb-sequence-add">
+                <select
+                  aria-label="要加入的场景"
+                  value={
+                    project.scenes.some((s) => s.id === addSceneId)
+                      ? addSceneId
+                      : (project.scenes[0]?.id ?? "")
+                  }
+                  onChange={(e) => setAddSceneId(e.target.value)}
                   disabled={busy}
-                  className={s.id === step?.id ? "active" : ""}
-                  onClick={() => void chooseStep(s.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                      e.preventDefault();
-                      const next =
-                        steps[
-                          steps.indexOf(s) + (e.key === "ArrowDown" ? 1 : -1)
-                        ];
-                      if (next)
-                        void chooseStep(next.id).then(
-                          (ok) =>
-                            ok &&
-                            document.getElementById(`step-${next.id}`)?.focus(),
-                        );
-                    }
-                  }}
-                  id={`step-${s.id}`}
                 >
-                  <span className="wb-step-number">{s.number}</span>
-                  <div>
-                    <strong>{s.name}</strong>
-                    <small>
-                      {project.scenes.find((c) => c.id === s.sceneId)?.name}
-                    </small>
-                  </div>
-                  <span className="wb-step-time">
-                    渐变 {seconds(s.fadeMs)} 秒
-                    <small>
-                      {s.delayMs ? `延时 ${seconds(s.delayMs)} 秒 · ` : ""}
-                      {s.waitMs === null
-                        ? "手动推进"
-                        : `等待 ${seconds(s.waitMs)} 秒后推进`}
-                    </small>
-                  </span>
+                  {project.scenes.map((s) => (
+                    <option value={s.id} key={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  disabled={busy || !project.scenes.length}
+                  onClick={() => void insertStep()}
+                >
+                  <PlusIcon />
+                  加入步骤
                 </button>
-              ))}
-              {!steps.length && <p className="wb-dim">未找到步骤</p>}
-            </div>
-          </>
-        )}
-        <PreviewPanel
-          host={host}
-          sequence={sequence}
-          stepId={step?.id ?? ""}
-          generation={generation}
-          busy={busy}
-          beforeAction={beforeChange}
-          visible={visible}
-        />
-      </section>
-      <aside className="wb-properties wb-sequence-properties">
-        {sequence && step && data && (
-          <SequenceInspector
-            form={form}
-            busy={busy}
-            index={index}
+              </div>
+              <div className="wb-sequence-actions">
+                <input
+                  aria-label="搜索步骤"
+                  placeholder="搜索编号、步骤或场景"
+                  value={stepQuery}
+                  onChange={(e) => setStepQuery(e.target.value)}
+                />
+                <button
+                  aria-label="上移步骤"
+                  disabled={busy || index <= 0}
+                  onClick={() =>
+                    void edit({
+                      kind: "moveStep",
+                      id: sequence.id,
+                      stepId: step!.id,
+                      index: index - 1,
+                    })
+                  }
+                >
+                  <ArrowUpIcon />
+                </button>
+                <button
+                  aria-label="下移步骤"
+                  disabled={
+                    busy || index < 0 || index >= sequence.steps.length - 1
+                  }
+                  onClick={() =>
+                    void edit({
+                      kind: "moveStep",
+                      id: sequence.id,
+                      stepId: step!.id,
+                      index: index + 1,
+                    })
+                  }
+                >
+                  <ArrowDownIcon />
+                </button>
+                <button
+                  aria-label="复制步骤"
+                  disabled={busy || !step}
+                  onClick={() => void duplicateStep()}
+                >
+                  <CopyIcon />
+                </button>
+                <button
+                  aria-label="删除步骤"
+                  disabled={busy || !step || sequence.steps.length === 1}
+                  title={
+                    sequence.steps.length === 1
+                      ? "列表至少保留一个步骤"
+                      : "删除步骤"
+                  }
+                  onClick={() => {
+                    setLocalError("");
+                    setDeleteTarget("step");
+                  }}
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+              <div className="wb-steps-region">
+                {step && !steps.some((s) => s.id === step.id) && (
+                  <p className="wb-dim">
+                    当前选中“{step.name}”未匹配筛选。
+                    <button onClick={() => setStepQuery("")}>清除筛选</button>
+                  </p>
+                )}
+                <SequenceStepList
+                  steps={steps}
+                  selectedId={step?.id ?? ""}
+                  scenes={project.scenes}
+                  busy={busy}
+                  onSelect={chooseStep}
+                />
+              </div>
+            </>
+          )}
+          <PreviewPanel
+            host={host}
             sequence={sequence}
-            project={project}
-            data={data}
-            pending={!!draft}
-            localError={localError}
-            change={change}
-            onApply={() => void beforeChange()}
-            onCancel={cancel}
+            stepId={step?.id ?? ""}
+            generation={generation}
+            busy={busy}
+            beforeAction={beforeChange}
+            visible={visible}
+            onView3d={onView3d}
           />
-        )}
-      </aside>
+        </section>
+      </DockPane>
+      <DockPane region="inspector" visible={visible}>
+        <aside className="wb-properties wb-sequence-properties">
+          {sequence && step && data && (
+            <SequenceInspector
+              form={form}
+              busy={busy}
+              index={index}
+              sequence={sequence}
+              project={project}
+              data={data}
+              pending={!!draft}
+              localError={localError}
+              change={change}
+              onApply={() => void beforeChange()}
+              onCancel={cancel}
+            />
+          )}
+        </aside>
+      </DockPane>
       {deleteTarget && (
         <DeleteDialog
           name={

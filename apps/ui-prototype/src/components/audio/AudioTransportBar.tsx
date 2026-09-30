@@ -8,6 +8,7 @@ export function AudioTransportBar({
   markerCount,
   blocked,
   addMarker,
+  editingOnly = false,
 }: {
   position: AudioPosition;
   command(value: AudioCommand): Promise<void>;
@@ -16,27 +17,33 @@ export function AudioTransportBar({
   markerCount: number;
   blocked: boolean;
   addMarker(): Promise<void>;
+  editingOnly?: boolean;
 }) {
   return (
     <div className="audio-transport">
-      <button
-        className="primary"
-        disabled={blocked || !ready}
-        onClick={() =>
-          command({
-            kind: position.playing ? "pause" : "play",
-          })
-        }
-      >
-        {position.playing ? "暂停" : "播放"}
-      </button>
-      <button disabled={blocked} onClick={() => command({ kind: "stop" })}>
-        停止
-      </button>
-      <output>
-        {audioTime(position.positionMs)}
-        <small> / {audioTime(duration)}</small>
-      </output>
+      {editingOnly && <strong>音乐时间线</strong>}
+      {!editingOnly && (
+        <>
+          <button
+            className="primary"
+            disabled={blocked || !ready}
+            onClick={() =>
+              command({
+                kind: position.playing ? "pause" : "play",
+              })
+            }
+          >
+            {position.playing ? "暂停" : "播放"}
+          </button>
+          <button disabled={blocked} onClick={() => command({ kind: "stop" })}>
+            停止
+          </button>
+          <output>
+            {audioTime(position.positionMs)}
+            <small> / {audioTime(duration)}</small>
+          </output>
+        </>
+      )}
       <button
         disabled={blocked || markerCount >= 512}
         onClick={() => void addMarker()}

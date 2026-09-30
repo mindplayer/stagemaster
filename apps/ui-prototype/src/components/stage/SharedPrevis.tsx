@@ -26,13 +26,18 @@ export const SharedPrevis = forwardRef<
     contextKey: string;
     allowPlacement: boolean;
     busy: boolean;
+    fixed?: boolean;
+    viewControls?: ReactNode;
     transport?: ReactNode;
     onVisibilityChange?(visible: boolean): void;
     generation(): number;
     run(work: () => Promise<void>): Promise<boolean>;
   } & PrevisInteractions
->(function SharedPrevis({ contextKey, ...props }, ref) {
-  const [visible, setVisible] = useState(false);
+>(function SharedPrevis(
+  { contextKey, fixed = false, viewControls, ...props },
+  ref,
+) {
+  const [visible, setVisible] = useState(fixed);
   const [followCurrent, setFollowCurrent] = useState(false);
   const currentContext = useRef(contextKey);
   const contextChanged = currentContext.current !== contextKey;
@@ -68,16 +73,23 @@ export const SharedPrevis = forwardRef<
       aria-label="公共三维预演"
     >
       <header>
-        <button
-          disabled={props.busy || props.host.kind !== "desktop"}
-          aria-expanded={visible}
-          onClick={() =>
-            visible ? void props.run(async () => setVisible(false)) : open()
-          }
-        >
-          <CubeIcon />
-          {visible ? "收起三维" : "三维预演"}
-        </button>
+        {viewControls}
+        {fixed ? (
+          viewControls ? null : (
+            <strong>三维舞台</strong>
+          )
+        ) : (
+          <button
+            disabled={props.busy || props.host.kind !== "desktop"}
+            aria-expanded={visible}
+            onClick={() =>
+              visible ? void props.run(async () => setVisible(false)) : open()
+            }
+          >
+            <CubeIcon />
+            {visible ? "收起三维" : "三维预演"}
+          </button>
+        )}
       </header>
       {visible && (
         <>

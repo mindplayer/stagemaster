@@ -1,0 +1,121 @@
+.scene-editor-tools {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 28%);
+  height: 100%;
+  min-height: 0;
+}
+.scene-tools-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.scene-tools-main > nav {
+  display: flex;
+  gap: 5px;
+  padding: 5px 14px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.workbench .scene-tools-main > nav button {
+  min-height: 26px;
+  padding: 4px 10px;
+  background: none;
+  border-color: transparent;
+  font-size: 11px;
+}
+.workbench .scene-tools-main > nav button[aria-pressed="true"] {
+  background: #203942;
+  color: var(--wb-accent);
+}
+.scene-tool-panel {
+  padding: 10px 14px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.scene-editor-tools > .wb-preview {
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 0;
+  border-left: 1px solid var(--wb-border);
+  border-radius: 0;
+}
+.performance-layout[data-mode="scenes"] .wb-editing-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.performance-layout[data-mode="scenes"] .wb-editing-content > .wb-surface-slot {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+}
+.scene-tool-panel .wb-fixture-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 7px;
+}
+.workbench .scene-tool-panel .wb-fixture-card {
+  min-height: 90px;
+  padding: 8px 10px;
+  gap: 3px;
+}
+.workbench .scene-tool-panel .wb-fixture-symbol {
+  display: none;
+}
+.scene-tool-panel .wb-fixture-card strong {
+  font-size: 11px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scene-tool-panel .wb-card-mode {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scene-tool-panel .wb-card-bottom {
+  padding-top: 4px;
+}
+.scene-tool-panel .wb-resource-pool {
+  padding: 0;
+  border: 0;
+}
+.scene-tool-panel .wb-effect-rack {
+  margin: 0;
+}
+.workbench .performance-layout .wb-scene-list > button {
+  flex-shrink: 0;
+  padding: 8px;
+}
+.performance-layout .wb-scene-list strong {
+  font-size: 11px;
+}
+.performance-layout .wb-scene-list small {
+  font-size: 10px;
+  margin-top: 2px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.performance-layout .wb-library > input {
+  margin-bottom: 6px;
+}
+.performance-layout .wb-empty.wb-compact {
+  min-height: 60px;
+  padding: 16px 10px;
+}
+.workbench .performance-layout .previs-tools {
+  gap: 4px;
+  padding: 5px 0;
+}
+.workbench .performance-layout .previs-tools button {
+  min-height: 26px;
+  padding: 4px 7px;
+}
