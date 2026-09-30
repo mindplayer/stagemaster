@@ -1,0 +1,72 @@
+.stage-plan-layers {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--wb-border);
+  padding-bottom: 10px;
+}
+.stage-plan-layers header {
+  font-size: 11px;
+}
+.stage-plan-layers header button {
+  font-size: 10px;
+  padding: 4px 6px;
+}
+.stage-plan-layers > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+}
+.stage-plan-layers > div button {
+  font-size: 10px;
+  padding: 5px 1px;
+}
+.stage-plan-layers small {
+  color: var(--wb-muted);
+  font-size: 10px;
+}
+.stage-objects .stage-room-row > .stage-object {
+  flex: 1;
+  min-width: 0;
+}
+.workbench .stage-visibility {
+  padding: 5px;
+  border-color: transparent;
+  background: transparent;
+  flex-shrink: 0;
+  color: var(--wb-muted);
+}
+.stage-type-group {
+  padding-left: 12px;
+}
+.workbench .stage-type-heading {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  padding: 7px 2px;
+}
+.stage-type-heading svg {
+  width: 12px;
+}
+.stage-type-heading[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+.stage-type-heading small {
+  margin-left: auto;
+}
+.stage-object.plan-hidden {
+  opacity: 0.6;
+}
+
+.workbench .stage-plan-layers > div button[aria-pressed="true"] {
+  background: #23403f;
+  border-color: #4f7975;
+  color: #b9e8dc;
+}
+.workbench .stage-plan-layers > div button[aria-pressed="false"] {
+  background: transparent;
+  border-style: dashed;
+  color: #8fa4b2;
+}

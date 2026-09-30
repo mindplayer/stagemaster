@@ -28,6 +28,8 @@
     "tests/device-panel-harness.tsx",
     "tests/scene-preview-action.test.ts",
     "tests/scene-editing-harness.tsx",
-    "tests/context-editing.test.ts"
+    "tests/context-editing.test.ts",
+    "tests/stage-organization.test.ts",
+    "tests/stage-organization-harness.tsx"
   ]
 }

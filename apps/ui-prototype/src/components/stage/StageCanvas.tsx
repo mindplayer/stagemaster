@@ -1,16 +1,16 @@
+import { planPreview } from "./plan-preview";
+import { planPoints, selectionPoints } from "./plan-focus";
+import { StagePlanObjects } from "./StagePlanObjects";
+import { StagePlanToolbar } from "./StagePlanToolbar";
 import {
-  rigOutline,
-  previewRigPlacement,
-  planeDistance,
-} from "../../rigging-tools";
+  ALL_VISIBLE,
+  visibleStage,
+  type PlanVisibility,
+} from "./stage-display";
+import { planeDistance } from "../../rigging-tools";
 import { StageMeasureOverlay } from "./StageMeasureOverlay";
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import {
-  ArrowsOutIcon,
-  MagnifyingGlassMinusIcon,
-  MagnifyingGlassPlusIcon,
-} from "@phosphor-icons/react";
 import { StageSelectionOverlay } from "./StageSelectionOverlay";
 import { resizedByHandle } from "../../stage-geometry";
 import type { ProjectView } from "../../application-host";
@@ -19,7 +19,7 @@ import type {
   StageObject,
   StageSelection,
 } from "../../stage-types";
-import { objectOutline, selectedStage, translated } from "../../stage-tools";
+import { selectedStage, translated } from "../../stage-tools";
 import { selectInBox } from "../../placement-tools";
 import { usePlanCamera, fittedCamera, type Camera } from "./usePlanCamera";
 type Gesture = {
@@ -39,6 +39,7 @@ type Gesture = {
 };
 export function StageCanvas({
   project,
+  visibility = ALL_VISIBLE,
   selection,
   selectedIds,
   preview,
@@ -53,6 +54,7 @@ export function StageCanvas({
   onGesture,
 }: {
   project: ProjectView;
+  visibility?: PlanVisibility;
   selection: StageSelection | null;
   selectedIds: string[];
   preview: StageObject | null;
@@ -82,65 +84,24 @@ export function StageCanvas({
     to: [number, number];
   } | null>(null);
   const [labels, setLabels] = useState(project.fixtures.length <= 30);
-  const allPoints: [number, number][] = [
-    ...project.stage.spaces.flatMap((s) =>
-      s.outlineMeters.map(
-        (p) => [Number(p[0]), Number(p[1])] as [number, number],
-      ),
-    ),
-    ...project.stage.constructions.flatMap((c) =>
-      c.shape.kind === "platform"
-        ? c.shape.outlineMeters.map(
-            (p) => [Number(p[0]), Number(p[1])] as [number, number],
-          )
-        : c.shape.kind === "rig"
-          ? rigOutline(c.shape)
-          : [],
-    ),
-    ...project.stage.placements.map(
-      (p) =>
-        [Number(p.positionMeters.x), Number(p.positionMeters.y)] as [
-          number,
-          number,
-        ],
-    ),
-  ];
+  const shown = visibleStage(project.stage, visibility);
+  useEffect(() => end(false), [visibility]);
+  const allPoints = planPoints(shown);
+  const visibleIds = selectedIds.filter((id) =>
+    shown.placements.some((p) => p.fixtureId === id),
+  );
   const { camera, setCamera, ratio } = usePlanCamera(
     svg,
     allPoints,
     project.id,
   );
   const height = camera.width / ratio;
-  const currentObject = preview ?? selectedStage(project.stage, selection);
+  const visibleObject = selectedStage(shown, selection);
+  const currentObject = visibleObject ? (preview ?? visibleObject) : null;
   function fit(selected = false) {
-    const groupPoints = project.stage.placements
-      .filter((p) => selectedIds.includes(p.fixtureId))
-      .map(
-        (p) =>
-          [Number(p.positionMeters.x), Number(p.positionMeters.y)] as [
-            number,
-            number,
-          ],
-      );
-    const points =
-      selected && groupPoints.length
-        ? groupPoints
-        : selected && currentObject
-          ? (objectOutline(currentObject)?.map(
-              (p) => [Number(p[0]), Number(p[1])] as [number, number],
-            ) ??
-            (currentObject.kind === "placement"
-              ? [
-                  [
-                    Number(currentObject.value.positionMeters.x),
-                    Number(currentObject.value.positionMeters.y),
-                  ] as [number, number],
-                ]
-              : currentObject.kind === "construction" &&
-                  currentObject.value.shape.kind === "rig"
-                ? rigOutline(currentObject.value.shape)
-                : []))
-          : allPoints;
+    const points = selected
+      ? (selectionPoints(shown, currentObject, visibleIds) ?? allPoints)
+      : allPoints;
     setCamera(fittedCamera(points, ratio));
   }
   const lastFocus = useRef(0);
@@ -190,9 +151,9 @@ export function StageCanvas({
       onSelect(target, additive, mode === "object" && !additive);
     const fixtures =
       mode === "object" && target?.kind === "placement"
-        ? project.stage.placements.filter((p) =>
-            selectedIds.includes(target.id)
-              ? selectedIds.includes(p.fixtureId)
+        ? shown.placements.filter((p) =>
+            visibleIds.includes(target.id)
+              ? visibleIds.includes(p.fixtureId)
               : p.fixtureId === target.id,
           )
         : [];
@@ -270,7 +231,7 @@ export function StageCanvas({
     if (g.mode === "box") {
       if (g.dx !== 0 || g.dy !== 0)
         onSelectPlacements(
-          selectInBox(project.stage.placements, g.origin, [
+          selectInBox(shown.placements, g.origin, [
             g.origin[0] + g.dx,
             g.origin[1] + g.dy,
           ]),
@@ -301,154 +262,42 @@ export function StageCanvas({
     }
   }
 
-  const identity = (object: StageObject) =>
-    object.kind === "placement" ? object.value.fixtureId : object.value.id;
-  const drawn = (object: StageObject): StageObject => {
-    if (
-      gesture?.fixtures.length &&
-      object.kind === "placement" &&
-      gesture.fixtures.some((p) => p.fixtureId === object.value.fixtureId)
-    )
-      return translated(object, gesture.dx, gesture.dy);
-    if (
-      gesture?.object &&
-      gesture.target?.id === identity(object) &&
-      gesture.target.kind === object.kind
-    )
-      return gesture.handle
-        ? resizedByHandle(object, gesture.handle, gesture.dx, gesture.dy)
-        : translated(object, gesture.dx, gesture.dy);
-    if (object.kind === "placement") {
-      const attachment = project.stage.attachments.find(
-        (a) => a.fixtureId === object.value.fixtureId,
-      );
-      const rig = project.stage.constructions.find(
-        (c) => c.id === attachment?.constructionId,
-      );
-      const candidate =
-        gesture?.object?.kind === "construction" &&
-        gesture.object.value.id === rig?.id
-          ? translated(gesture.object, gesture.dx, gesture.dy)
-          : preview?.kind === "construction" && preview.value.id === rig?.id
-            ? preview
-            : null;
-      if (
-        rig?.shape.kind === "rig" &&
-        candidate?.kind === "construction" &&
-        candidate.value.shape.kind === "rig"
-      )
-        return {
-          kind: "placement",
-          value: previewRigPlacement(
-            object.value,
-            rig.shape,
-            candidate.value.shape,
-          ),
-        };
-    }
-    return preview &&
-      preview.kind === object.kind &&
-      identity(preview) === identity(object)
-      ? preview
-      : object;
-  };
+  const drawn = planPreview(project.stage, preview, gesture);
   const isSelected = (kind: StageSelection["kind"], id: string) =>
     kind === "placement"
-      ? selectedIds.includes(id)
+      ? visibleIds.includes(id)
       : selection?.kind === kind && selection.id === id;
   const unit = camera.width / 100;
   const step =
     camera.width > 200 ? 10 : camera.width > 70 ? 5 : camera.width > 30 ? 2 : 1;
-  const outline = (object: StageObject) =>
-    objectOutline(drawn(object))!
-      .map((p) => `${p[0]},${-Number(p[1])}`)
-      .join(" ");
   return (
     <section className="stage-canvas-panel">
-      <div className="stage-canvas-toolbar">
-        <div className="stage-tool-switch" aria-label="布置工具">
-          {(
-            [
-              ["select", "选择"],
-              ["move", "移动"],
-              ["pan", "平移视图"],
-              ["measure", "测距"],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              aria-pressed={tool === key}
-              onClick={() => setTool(key)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <label className="stage-check">
-          <input
-            type="checkbox"
-            checked={snap}
-            onChange={(e) => setSnap(e.target.checked)}
-          />
-          吸附 0.1 米
-        </label>
-        <label className="stage-check">
-          <input
-            type="checkbox"
-            checked={labels}
-            onChange={(e) => setLabels(e.target.checked)}
-          />
-          名称
-        </label>
-        <button
-          disabled={busy || pending || !project.stage.placements.length}
-          onClick={() =>
-            onSelectPlacements(project.stage.placements.map((p) => p.fixtureId))
-          }
-        >
-          全选灯位
-        </button>
-        <button
-          disabled={busy || pending || !selectedIds.length}
-          onClick={onArrange}
-        >
-          排列所选 · {selectedIds.length}
-        </button>
-        {measurement && (
-          <button onClick={() => setMeasurement(null)}>清除测距</button>
-        )}
-        <span />
-        <button
-          aria-label="缩小场地"
-          onClick={() =>
-            setCamera((c) => ({
-              ...c,
-              width: Math.min(200000, c.width * 1.25),
-            }))
-          }
-        >
-          <MagnifyingGlassMinusIcon />
-        </button>
-        <button
-          aria-label="放大场地"
-          onClick={() =>
-            setCamera((c) => ({ ...c, width: Math.max(1, c.width / 1.25) }))
-          }
-        >
-          <MagnifyingGlassPlusIcon />
-        </button>
-        <button
-          aria-label="聚焦所选"
-          title="聚焦所选（F）"
-          disabled={!currentObject}
-          onClick={() => fit(true)}
-        >
-          聚焦所选
-        </button>
-        <button aria-label="查看全场" title="查看全场" onClick={() => fit()}>
-          <ArrowsOutIcon />
-        </button>
-      </div>
+      <StagePlanToolbar
+        tool={tool}
+        onTool={setTool}
+        snap={snap}
+        onSnap={setSnap}
+        labels={labels}
+        onLabels={setLabels}
+        disabled={busy || pending}
+        visibleCount={shown.placements.length}
+        selectedCount={visibleIds.length}
+        onSelectAll={() =>
+          onSelectPlacements(shown.placements.map((p) => p.fixtureId))
+        }
+        onArrange={onArrange}
+        measured={!!measurement}
+        onClearMeasure={() => setMeasurement(null)}
+        canFocus={!!currentObject}
+        onFocus={() => fit(true)}
+        onFit={() => fit()}
+        onZoom={(factor) =>
+          setCamera((c) => ({
+            ...c,
+            width: Math.max(1, Math.min(200000, c.width * factor)),
+          }))
+        }
+      />
       <svg
         ref={svg}
         className="stage-canvas"
@@ -480,16 +329,14 @@ export function StageCanvas({
           ) {
             e.preventDefault();
             e.stopPropagation();
-            onSelectPlacements(
-              project.stage.placements.map((p) => p.fixtureId),
-            );
+            onSelectPlacements(shown.placements.map((p) => p.fixtureId));
           }
           if (
             !busy &&
             !pending &&
             !active.current &&
             tool !== "measure" &&
-            selectedIds.length &&
+            visibleIds.length &&
             ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)
           ) {
             e.preventDefault();
@@ -504,8 +351,8 @@ export function StageCanvas({
               dy =
                 e.key === "ArrowDown" ? -step : e.key === "ArrowUp" ? step : 0;
             onMovePlacements(
-              project.stage.placements
-                .filter((p) => selectedIds.includes(p.fixtureId))
+              shown.placements
+                .filter((p) => visibleIds.includes(p.fixtureId))
                 .map(
                   (p) =>
                     (
@@ -556,135 +403,15 @@ export function StageCanvas({
           height={height}
           fill="url(#stage-grid)"
         />
-        {project.stage.spaces.map((space) => (
-          <g
-            key={space.id}
-            data-kind="space"
-            data-id={space.id}
-            className={isSelected("space", space.id) ? "is-selected" : ""}
-          >
-            <polygon
-              className="stage-room"
-              points={outline({ kind: "space", value: space })}
-              strokeWidth={unit * 0.14}
-            />
-            <text
-              className="stage-room-label"
-              x={
-                Math.min(
-                  ...objectOutline(drawn({ kind: "space", value: space }))!.map(
-                    (p) => Number(p[0]),
-                  ),
-                ) + unit
-              }
-              y={
-                -Math.max(
-                  ...objectOutline(drawn({ kind: "space", value: space }))!.map(
-                    (p) => Number(p[1]),
-                  ),
-                ) +
-                unit * 2
-              }
-              fontSize={unit * 1.15}
-            >
-              {space.name}
-            </text>
-          </g>
-        ))}
-        {project.stage.constructions
-          .filter((c) => c.shape.kind === "platform")
-          .map((c) => (
-            <g
-              key={c.id}
-              data-kind="construction"
-              data-id={c.id}
-              className={isSelected("construction", c.id) ? "is-selected" : ""}
-            >
-              <polygon
-                className="stage-platform"
-                points={outline({ kind: "construction", value: c })}
-                strokeWidth={unit * 0.15}
-              />
-              <title>{c.name}</title>
-            </g>
-          ))}
-        {project.stage.constructions
-          .filter((c) => c.shape.kind === "rig")
-          .map((c) => {
-            const item = drawn({ kind: "construction", value: c });
-            if (item.kind !== "construction" || item.value.shape.kind !== "rig")
-              return null;
-            const rig = item.value.shape;
-            return (
-              <g
-                key={c.id}
-                data-kind="construction"
-                data-id={c.id}
-                className={`stage-rig ${isSelected("construction", c.id) ? "is-selected" : ""}`}
-              >
-                <polygon
-                  points={rigOutline(rig)
-                    .map((p) => `${p[0]},${-p[1]}`)
-                    .join(" ")}
-                  strokeWidth={unit * 0.18}
-                />
-                {labels && (
-                  <text
-                    x={Number(rig.positionMeters.x)}
-                    y={
-                      -Number(rig.positionMeters.y) -
-                      Number(rig.widthMeters) / 2 -
-                      unit * 1.4
-                    }
-                    fontSize={unit}
-                    textAnchor="middle"
-                  >
-                    {c.name}
-                  </text>
-                )}
-                <title>
-                  {c.name} · {rig.lengthMeters} 米 · 标高 {rig.positionMeters.z}{" "}
-                  米
-                </title>
-              </g>
-            );
-          })}
-        {project.stage.placements.map((p) => {
-          const moved = drawn({ kind: "placement", value: p });
-          if (moved.kind !== "placement") return null;
-          return (
-            <g
-              key={p.fixtureId}
-              data-kind="placement"
-              data-id={p.fixtureId}
-              transform={`translate(${moved.value.positionMeters.x},${-Number(moved.value.positionMeters.y)})`}
-              className={`stage-light ${isSelected("placement", p.fixtureId) ? "is-selected" : ""}`}
-            >
-              <circle r={unit * 0.8} strokeWidth={unit * 0.16} />
-              <path
-                d={`M ${-unit * 0.4} 0 H ${unit * 0.4} M 0 ${-unit * 0.4} V ${unit * 0.4}`}
-                strokeWidth={unit * 0.13}
-              />
-              {labels && (
-                <text y={unit * 2} fontSize={unit * 0.95}>
-                  {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
-                </text>
-              )}
-              {isSelected("placement", p.fixtureId) && (
-                <text
-                  className="stage-selection-number"
-                  y={-unit * 1.4}
-                  fontSize={unit * 0.9}
-                >
-                  {selectedIds.indexOf(p.fixtureId) + 1}
-                </text>
-              )}
-              <title>
-                {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
-              </title>
-            </g>
-          );
-        })}
+        <StagePlanObjects
+          project={project}
+          stage={shown}
+          drawn={drawn}
+          isSelected={isSelected}
+          selectedIds={visibleIds}
+          unit={unit}
+          labels={labels}
+        />
         {gesture?.mode === "box" && (gesture.dx !== 0 || gesture.dy !== 0) && (
           <rect
             className="stage-marquee"
@@ -710,7 +437,7 @@ export function StageCanvas({
           }
           unit={unit}
         />
-        {tool === "move" && currentObject && selectedIds.length < 2 && (
+        {tool === "move" && currentObject && visibleIds.length < 2 && (
           <StageSelectionOverlay
             object={drawn(currentObject)}
             unit={unit}

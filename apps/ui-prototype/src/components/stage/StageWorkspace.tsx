@@ -1,3 +1,4 @@
+import { StageMultiInspector } from "./StageMultiInspector";
 import { DockPane } from "../layout/DockPane";
 import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
@@ -11,12 +12,6 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  PlusIcon,
-  HouseLineIcon,
-  CubeIcon,
-  MagnifyingGlassIcon,
-} from "@phosphor-icons/react";
 import type {
   EditCommand,
   EditOperation,
@@ -38,7 +33,13 @@ import { uniqueName } from "../../editor-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
 import { StageCreateDialog, type Creation } from "./StageCreateDialog";
-import { StageOutliner } from "./StageOutliner";
+import { StageLibraryPanel } from "./StageLibraryPanel";
+import {
+  ALL_VISIBLE,
+  visibleStage,
+  revealStageTarget,
+  type PlanVisibility,
+} from "./stage-display";
 import { StageInspector } from "./StageInspector";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import { ArrangementDialog } from "./ArrangementDialog";
@@ -85,6 +86,10 @@ export const StageWorkspace = forwardRef<
   ref,
 ) {
   const [selection, setSelection] = useState<StageSelection | null>(null);
+  const [planVisibility, setPlanVisibility] =
+    useState<PlanVisibility>(ALL_VISIBLE);
+  const projectRef = useRef(project);
+  projectRef.current = project;
   const selectedFixture = selection?.kind === "placement" ? selection.id : "";
   useEffect(
     () => onSelectedFixture(selectedFixture),
@@ -144,6 +149,37 @@ export const StageWorkspace = forwardRef<
     setLocalError("");
     onPending(moving.current);
   }
+  async function changePlanVisibility(next: PlanVisibility) {
+    if (!(await beforeChange())) return;
+    const shown = visibleStage(projectRef.current.stage, next);
+    const ids = liveIds.filter((id) =>
+      shown.placements.some((p) => p.fixtureId === id),
+    );
+    setSelectedIds(ids);
+    setSelection(
+      selection?.kind === "placement"
+        ? ids.length
+          ? { kind: "placement", id: ids.at(-1)! }
+          : null
+        : selectedStage(shown, selection)
+          ? selection
+          : null,
+    );
+    setPlanVisibility(next);
+    cancel();
+  }
+  function revealInPlan(target: StageSelection, source = projectRef.current) {
+    setPlanVisibility((old) => revealStageTarget(source.stage, old, target));
+  }
+  function revealPlacements(ids: string[], source = projectRef.current) {
+    setPlanVisibility((old) =>
+      ids.reduce(
+        (value, id) =>
+          revealStageTarget(source.stage, value, { kind: "placement", id }),
+        old,
+      ),
+    );
+  }
   function collect(): EditOperation[] {
     if (moving.current) throw new Error("请先完成拖动，或按 Esc 取消");
     if (!draftRef.current) return [];
@@ -162,6 +198,7 @@ export const StageWorkspace = forwardRef<
       if (!(await beforeChange())) return false;
       if (id && !project.stage.placements.some((p) => p.fixtureId === id))
         return false;
+      if (id) revealInPlan({ kind: "placement", id });
       setSelection(id ? { kind: "placement", id } : null);
       setSelectedIds(id ? [id] : []);
       cancel();
@@ -169,6 +206,7 @@ export const StageWorkspace = forwardRef<
     },
     revealFixture(id) {
       const placed = project.stage.placements.some((p) => p.fixtureId === id);
+      if (placed) revealInPlan({ kind: "placement", id });
       setFixtureId(id);
       setQuery("");
       setSelection(placed ? { kind: "placement", id } : null);
@@ -188,6 +226,7 @@ export const StageWorkspace = forwardRef<
     preserve = false,
   ) {
     if (await beforeChange()) {
+      revealInPlan(target);
       if (target.kind === "placement") {
         const next =
           preserve && liveIds.includes(target.id)
@@ -207,6 +246,7 @@ export const StageWorkspace = forwardRef<
   async function choosePlacements(ids: string[], additive = false) {
     if (!(await beforeChange())) return;
     const next = additive ? [...new Set([...liveIds, ...ids])] : ids;
+    revealPlacements(next);
     setSelectedIds(next);
     setSelection(next.length ? { kind: "placement", id: next.at(-1)! } : null);
     cancel();
@@ -244,6 +284,7 @@ export const StageWorkspace = forwardRef<
     const next = await onEdit(placementBatch(placements));
     if (!next) return false;
     const ids = placements.map((p) => p.fixtureId);
+    revealPlacements(ids, next);
     setSelectedIds(ids);
     setSelection({ kind: "placement", id: ids.at(-1)! });
     setQuery("");
@@ -351,6 +392,7 @@ export const StageWorkspace = forwardRef<
       command.op === "putSpace"
         ? { kind: "space", id: next.stage.spaces.at(-1)!.id }
         : { kind: "construction", id: next.stage.constructions.at(-1)!.id };
+    revealInPlan(target, next);
     setSelection(target);
     setCreation(null);
     setQuery("");
@@ -381,6 +423,7 @@ export const StageWorkspace = forwardRef<
       },
     });
     if (next) {
+      revealInPlan({ kind: "placement", id: chosenFixture.id }, next);
       setSelection({ kind: "placement", id: chosenFixture.id });
       setSelectedIds([chosenFixture.id]);
       cancel();
@@ -401,10 +444,12 @@ export const StageWorkspace = forwardRef<
       },
     });
     if (next) {
-      setSelection({
+      const target: StageSelection = {
         kind: "construction",
         id: next.stage.constructions.at(-1)!.id,
-      });
+      };
+      revealInPlan(target, next);
+      setSelection(target);
       cancel();
     }
   }
@@ -421,13 +466,15 @@ export const StageWorkspace = forwardRef<
       ),
     });
     if (next) {
-      setSelection({
+      const target: StageSelection = {
         kind: object.kind,
         id:
           object.kind === "space"
             ? next.stage.spaces.at(-1)!.id
             : next.stage.constructions.at(-1)!.id,
-      });
+      };
+      revealInPlan(target, next);
+      setSelection(target);
       setQuery("");
       cancel();
     }
@@ -460,76 +507,23 @@ export const StageWorkspace = forwardRef<
       label="舞台工作区"
     >
       <DockPane region="library" visible={visible}>
-        <aside className="stage-browser">
-          <header>
-            <h2>场地</h2>
-            <span>{project.stage.spaces.length} 个空间</span>
-          </header>
-          <div className="stage-create">
-            <button disabled={busy} onClick={() => void create("space")}>
-              <HouseLineIcon />
-              新建空间
-            </button>
-            <button disabled={busy} onClick={() => void create("platform")}>
-              <CubeIcon />
-              新建舞台
-            </button>
-          </div>
-          <label className="stage-search">
-            <MagnifyingGlassIcon />
-            <input
-              aria-label="搜索场地对象"
-              placeholder="搜索空间、构件、灯具"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </label>
-          <button disabled={busy} onClick={() => void createRig()}>
-            新建桁架／灯杆
-          </button>
-          <StageOutliner
-            project={project}
-            selection={selection}
-            selectedIds={liveIds}
-            query={query}
-            busy={busy}
-            onSelect={(target, additive) => void choose(target, additive)}
-          />
-          <div className="stage-place">
-            <button
-              disabled={busy || !project.fixtures.length}
-              onClick={() => void arrange(false)}
-            >
-              批量布灯
-            </button>
-            <label>
-              布置灯具
-              <select
-                aria-label="待布置灯具"
-                value={chosenFixture?.id ?? ""}
-                disabled={busy || !unplaced.length}
-                onChange={(e) => setFixtureId(e.target.value)}
-              >
-                {unplaced.length ? (
-                  unplaced.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">没有未布置的灯具</option>
-                )}
-              </select>
-            </label>
-            <button
-              disabled={busy || !chosenFixture}
-              onClick={() => void placeFixture()}
-            >
-              <PlusIcon />
-              放入场地
-            </button>
-          </div>
-        </aside>
+        <StageLibraryPanel
+          project={project}
+          busy={busy}
+          query={query}
+          onQuery={setQuery}
+          selection={selection}
+          selectedIds={liveIds}
+          visibility={planVisibility}
+          onVisibility={(next) => void changePlanVisibility(next)}
+          onSelect={(target, additive) => void choose(target, additive)}
+          onCreate={(kind) => void create(kind)}
+          onCreateRig={() => void createRig()}
+          onArrange={() => void arrange(false)}
+          onPlace={() => void placeFixture()}
+          fixtureId={fixtureId}
+          onFixtureId={setFixtureId}
+        />
       </DockPane>
       <DockPane region="viewport" visible={visible && canvasVisible}>
         <div className="stage-center">
@@ -537,6 +531,7 @@ export const StageWorkspace = forwardRef<
           <div className="stage-plan-container">
             <StageCanvas
               project={project}
+              visibility={planVisibility}
               selection={selection}
               selectedIds={liveIds}
               preview={draft}
@@ -570,86 +565,16 @@ export const StageWorkspace = forwardRef<
       </DockPane>
       <DockPane region="inspector" visible={visible}>
         {selection?.kind === "placement" && liveIds.length > 1 ? (
-          <aside className="stage-inspector stage-multi-inspector">
-            <header>
-              <h2>已选 {liveIds.length} 台灯具</h2>
-            </header>
-            <button
-              className="wb-primary"
-              disabled={busy}
-              onClick={() => void arrange(true)}
-            >
-              排列与精确调整
-            </button>
-            <div className="rig-member-actions">
-              <button
-                disabled={
-                  busy ||
-                  !project.stage.constructions.some(
-                    (c) => c.shape.kind === "rig",
-                  )
-                }
-                onClick={() => void hang()}
-              >
-                挂接到支撑体
-              </button>
-              <button
-                disabled={
-                  busy ||
-                  !project.stage.attachments.some((a) =>
-                    liveIds.includes(a.fixtureId),
-                  )
-                }
-                onClick={() => void detach(liveIds)}
-              >
-                解除挂接
-              </button>
-            </div>
-            <dl>
-              <dt>高度范围</dt>
-              <dd>
-                {decimal(
-                  Math.min(
-                    ...selectedPlacements.map((p) =>
-                      Number(p.positionMeters.z),
-                    ),
-                  ),
-                )}{" "}
-                –{" "}
-                {decimal(
-                  Math.max(
-                    ...selectedPlacements.map((p) =>
-                      Number(p.positionMeters.z),
-                    ),
-                  ),
-                )}{" "}
-                米
-              </dd>
-              <dt>所属空间</dt>
-              <dd>
-                {new Set(selectedPlacements.map((p) => p.spaceId)).size > 1
-                  ? "多个空间"
-                  : (project.stage.spaces.find(
-                      (s) => s.id === selectedPlacements[0]?.spaceId,
-                    )?.name ?? "未归属")}
-              </dd>
-            </dl>
-            <ol>
-              {liveIds.map((id) => (
-                <li key={id}>
-                  {project.fixtures.find((f) => f.id === id)?.name}
-                </li>
-              ))}
-            </ol>
-            <button disabled={busy} onClick={() => void choosePlacements([])}>
-              清空选择
-            </button>
-            {(localError || error) && (
-              <p className="wb-library-error" role="alert">
-                {localError || error}
-              </p>
-            )}
-          </aside>
+          <StageMultiInspector
+            project={project}
+            ids={liveIds}
+            busy={busy}
+            error={localError || error}
+            onArrange={() => void arrange(true)}
+            onHang={() => void hang()}
+            onDetach={() => void detach(liveIds)}
+            onClear={() => void choosePlacements([])}
+          />
         ) : (
           <StageInspector
             object={object}
@@ -698,10 +623,12 @@ export const StageWorkspace = forwardRef<
           onApply={async (command) => {
             const next = await edit(command);
             if (!next) return false;
-            setSelection({
+            const target: StageSelection = {
               kind: "construction",
               id: next.stage.constructions.at(-1)!.id,
-            });
+            };
+            revealInPlan(target, next);
+            setSelection(target);
             setSelectedIds([]);
             setQuery("");
             setFocusRequest((v) => v + 1);
@@ -722,6 +649,7 @@ export const StageWorkspace = forwardRef<
             const next = await edit(command);
             if (!next) return false;
             if (command.op === "attachFixtures") {
+              revealPlacements(command.fixtureIds, next);
               setSelectedIds(command.fixtureIds);
               setSelection({
                 kind: "placement",
