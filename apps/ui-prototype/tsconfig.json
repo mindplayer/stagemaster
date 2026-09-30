@@ -30,6 +30,8 @@
     "tests/scene-editing-harness.tsx",
     "tests/context-editing.test.ts",
     "tests/stage-organization.test.ts",
-    "tests/stage-organization-harness.tsx"
+    "tests/stage-organization-harness.tsx",
+    "tests/scene-plan-selection.test.ts",
+    "tests/scene-plan-harness.tsx"
   ]
 }

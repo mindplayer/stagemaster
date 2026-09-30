@@ -58,3 +58,9 @@
   color: var(--wb-muted);
   font-size: 12px;
 }
+
+/* The parked base inspector is a flex item; long selections must not set its minimum width. */
+.scene-base-inspector {
+  width: 100%;
+  min-width: 0;
+}

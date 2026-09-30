@@ -1,0 +1,152 @@
+.fixture-plan {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  background: #0b1118;
+}
+.fixture-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 10px;
+}
+.fixture-plan-header > span {
+  font-size: 11px;
+  color: var(--wb-muted);
+}
+.fixture-plan-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 12px 8px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.workbench .fixture-plan-toolbar button {
+  padding: 5px 7px;
+  font-size: 11px;
+  min-height: 28px;
+}
+.workbench .fixture-plan-toolbar > button[aria-pressed="true"] {
+  background: #23483c;
+  border-color: #60baa0;
+}
+.workbench .fixture-plan-toolbar > input {
+  width: 160px;
+  min-width: 100px;
+  padding: 6px 8px;
+  font-size: 11px;
+  flex: 1;
+}
+.workbench .fixture-plan-toolbar label {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+  font-size: 11px;
+}
+.fixture-plan-view {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 90px;
+  overflow: hidden;
+}
+.fixture-plan-view > .stage-canvas {
+  min-height: 0;
+}
+.fixture-plan-view .stage-canvas g[data-id] {
+  cursor: crosshair;
+}
+.fixture-plan-view .stage-room {
+  fill-opacity: 0.16;
+  stroke-opacity: 0.2;
+}
+.fixture-plan-view .stage-platform {
+  fill-opacity: 0.1;
+  stroke-opacity: 0.2;
+}
+.fixture-plan-view .stage-rig {
+  opacity: 0.4;
+}
+.fixture-plan-view .stage-light.is-selected circle {
+  fill: #286353;
+  stroke: #83f0cf;
+}
+.fixture-plan > footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  font-size: 10px;
+  color: var(--wb-muted);
+  border-top: 1px solid var(--wb-border);
+}
+.fixture-plan-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--wb-muted);
+  pointer-events: none;
+}
+.fixture-plan-overlap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: min(300px, calc(100% - 20px));
+  background: #16242e;
+  border: 1px solid #477666;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px #0009;
+}
+.fixture-pick-list {
+  padding: 8px 12px;
+  border-top: 1px solid var(--wb-border);
+}
+.fixture-pick-list header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.fixture-pick-list > div {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  max-height: 115px;
+  overflow: auto;
+}
+.workbench .fixture-pick-list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 6px 8px;
+  font-size: 11px;
+  max-width: 100%;
+}
+.workbench .fixture-pick-list button[aria-pressed="true"] {
+  background: #23483c;
+  border-color: #60baa0;
+}
+.fixture-pick-list button strong {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.fixture-pick-list button small {
+  font-size: 10px;
+  color: var(--wb-muted);
+}
+.fixture-plan-overlap .fixture-pick-list > div {
+  display: grid;
+  max-height: 190px;
+}

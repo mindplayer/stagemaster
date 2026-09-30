@@ -1,3 +1,4 @@
+import { WorkbenchViewport } from "./components/layout/WorkbenchViewport";
 import { useEffectWorkspace } from "./components/workbench/useEffectWorkspace";
 import { EffectInspectorPane } from "./components/workbench/EffectInspectorPane";
 import { useAudioSceneLink } from "./components/audio/useAudioSceneLink";
@@ -68,10 +69,7 @@ import {
   StageWorkspace,
   type StageHandle,
 } from "./components/stage/StageWorkspace";
-import {
-  SharedPrevis,
-  type SharedPrevisHandle,
-} from "./components/stage/SharedPrevis";
+import { type SharedPrevisHandle } from "./components/stage/SharedPrevis";
 
 const EMPTY: Snapshot = {
   generation: 0,
@@ -813,31 +811,31 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               />
             }
           >
-            <DockPane
-              region="viewport"
-              keepConnected
-              visible={
-                !["fixtures", "profiles", "settings"].includes(page) &&
-                (page !== "stage" || stageView === "three")
+            <WorkbenchViewport
+              key={`viewport:${project.id}`}
+              ref={sharedPrevis}
+              project={project}
+              page={page}
+              stageView={stageView}
+              onStageView={(value) => void run(async () => setStageView(value))}
+              query={fixtureQuery}
+              onlySelected={onlySelected}
+              selected={selected}
+              onQuery={setFixtureQuery}
+              onFilter={setOnlySelected}
+              onSelect={(ids) =>
+                run(async () => {
+                  if (current.current.project?.id !== project.id)
+                    throw new Error("工程已变化，请重新选择灯具");
+                  const valid = current.current.project.fixtures.map(
+                    (f) => f.id,
+                  );
+                  setSelectedIds(ids.filter((id) => valid.includes(id)));
+                })
               }
-            >
-              <SharedPrevis
-                key={`previs:${project.id}`}
-                ref={sharedPrevis}
-                fixed
-                viewControls={
-                  page === "stage" ? (
-                    <StageViewTabs
-                      value={stageView}
-                      busy={busy}
-                      onChange={(value) =>
-                        void run(async () => setStageView(value))
-                      }
-                    />
-                  ) : undefined
-                }
-                onVisibilityChange={setMonitorVisible}
-                transport={
+              preview={{
+                onVisibilityChange: setMonitorVisible,
+                transport: (
                   <AudioPreviewTransport
                     session={audioSession}
                     track={
@@ -847,23 +845,21 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                     }
                     busy={busy}
                   />
-                }
-                host={host}
-                scenes={project.scenes}
-                currentScene={page === "scenes" ? activeScene : undefined}
-                contextKey={page}
-                allowPlacement={page === "stage" && stageView === "three"}
-                busy={busy}
-                generation={() => current.current.generation}
-                run={(work) => run(work)}
-                selectedId={
+                ),
+                host,
+                scenes: project.scenes,
+                currentScene: page === "scenes" ? activeScene : undefined,
+                allowPlacement: page === "stage" && stageView === "three",
+                busy,
+                generation: () => current.current.generation,
+                run: (work) => run(work),
+                selectedId:
                   page === "stage"
                     ? stageSelected
                     : page === "scenes"
                       ? (selected.at(-1) ?? "")
-                      : ""
-                }
-                onSelect={(id) => {
+                      : "",
+                onSelect: (id) => {
                   if (page === "stage")
                     return (
                       stage.current?.selectFixture(id) ?? Promise.resolve(false)
@@ -879,18 +875,17 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                       throw new Error("所选灯具已不存在");
                     setSelectedIds(id ? [id] : []);
                   });
-                }}
-                onPrepareMove={() => run(async () => {})}
-                onPlacement={(proposal, isActive) =>
+                },
+                onPrepareMove: () => run(async () => {}),
+                onPlacement: (proposal, isActive) =>
                   run(async () => {
                     if (!isActive())
                       throw new Error("三维编辑上下文已变化，灯位未修改");
                     await request({ kind: "previsPlacement", ...proposal });
                     setNotice("灯位已更新，可撤销恢复");
-                  })
-                }
-              />
-            </DockPane>
+                  }),
+              }}
+            />
             <DockPane region="full" visible={page === "profiles"}>
               <ProfileWorkspace
                 key={`profiles:${project.id}`}

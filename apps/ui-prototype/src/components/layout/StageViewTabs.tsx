@@ -1,9 +1,11 @@
 export function StageViewTabs({
   value,
+  planLabel = "平面布置",
   busy,
   onChange,
 }: {
   value: "plan" | "three";
+  planLabel?: string;
   busy: boolean;
   onChange(value: "plan" | "three"): void;
 }) {
@@ -14,7 +16,7 @@ export function StageViewTabs({
         disabled={busy}
         onClick={() => onChange("plan")}
       >
-        平面布置
+        {planLabel}
       </button>
       <button
         aria-pressed={value === "three"}

@@ -29,12 +29,13 @@ export const SharedPrevis = forwardRef<
     fixed?: boolean;
     viewControls?: ReactNode;
     transport?: ReactNode;
+    onReveal?(): void;
     onVisibilityChange?(visible: boolean): void;
     generation(): number;
     run(work: () => Promise<void>): Promise<boolean>;
   } & PrevisInteractions
 >(function SharedPrevis(
-  { contextKey, fixed = false, viewControls, ...props },
+  { contextKey, fixed = false, viewControls, onReveal, ...props },
   ref,
 ) {
   const [visible, setVisible] = useState(fixed);
@@ -63,6 +64,7 @@ export const SharedPrevis = forwardRef<
       const status = await props.host.previs({ kind: "status" });
       if (!status.enabled) await props.host.previs({ kind: "enable" });
       setVisible(true);
+      onReveal?.();
     });
   }
   useImperativeHandle(ref, () => ({ openPlayback: () => open(true) }));
