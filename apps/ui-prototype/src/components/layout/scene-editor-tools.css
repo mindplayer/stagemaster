@@ -86,8 +86,27 @@
   padding: 0;
   border: 0;
 }
-.scene-tool-panel .wb-effect-rack {
+.scene-tool-panel .effect-rack {
   margin: 0;
+  padding: 0;
+  border: 0;
+}
+.scene-tool-panel .effect-templates {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.workbench .scene-tool-panel .effect-templates button {
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+.scene-tool-panel .effect-templates small {
+  display: none;
+}
+.scene-tool-panel .effect-list article {
+  padding: 8px 0;
+}
+.scene-tool-panel .effect-heading {
+  margin-bottom: 8px;
 }
 .workbench .performance-layout .wb-scene-list > button {
   flex-shrink: 0;

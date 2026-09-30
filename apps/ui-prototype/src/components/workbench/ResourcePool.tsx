@@ -16,18 +16,9 @@ import {
   PresetUsage,
   ValueTable,
 } from "./PresetEditor";
-import { LibraryDialog } from "./LibraryDialog";
+import type { ResourceDialog } from "./resource-dialog-types";
+import { ManageResource } from "./ManageResource";
 
-type Dialog =
-  | { kind: "group"; id?: string }
-  | { kind: "preset"; id?: string }
-  | { kind: "copyValues" }
-  | {
-      kind: "rename" | "duplicate" | "remove";
-      id: string;
-      resource: ResourceKind;
-      name: string;
-    };
 export function ResourcePool({
   project,
   scene,
@@ -38,7 +29,11 @@ export function ResourcePool({
   beforeChange,
   onEdit,
   onSelect,
+  recall,
+  onRecall,
 }: {
+  recall: RecallMode;
+  onRecall(value: RecallMode): void;
   project: ProjectView;
   scene?: SceneView;
   selected: string[];
@@ -53,9 +48,8 @@ export function ResourcePool({
   const [groupId, setGroupId] = useState("");
   const [presetId, setPresetId] = useState("");
   const [queries, setQueries] = useState({ group: "", preset: "" });
-  const [recall, setRecall] = useState<RecallMode>("replace");
   const [mask, setMask] = useState<string[] | null>(null);
-  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [dialog, setDialog] = useState<ResourceDialog | null>(null);
   const fixtures = selected.flatMap(
     (id) => project.fixtures.find((f) => f.id === id) ?? [],
   );
@@ -88,7 +82,7 @@ export function ResourcePool({
     }
     return true;
   }
-  async function open(next: Dialog) {
+  async function open(next: ResourceDialog) {
     if (await beforeChange()) setDialog(next);
   }
   function manage(kind: "rename" | "duplicate" | "remove") {
@@ -102,37 +96,6 @@ export function ResourcePool({
       aria-label="灯组与预设池"
     >
       <div className="wb-selection-tools">
-        <strong>已选 {selected.length} 台</strong>
-        <button
-          disabled={busy || selected.length < 2}
-          onClick={() => void onSelect([...selected].reverse())}
-        >
-          反转顺序
-        </button>
-        <button
-          disabled={busy || !selected.length}
-          onClick={() => void onSelect(selected.filter((_, i) => i % 2 === 0))}
-        >
-          取奇数位
-        </button>
-        <button
-          disabled={busy || selected.length < 2}
-          onClick={() => void onSelect(selected.filter((_, i) => i % 2 === 1))}
-        >
-          取偶数位
-        </button>
-        <button
-          disabled={busy || !project.fixtures.length}
-          onClick={() =>
-            void onSelect(
-              project.fixtures
-                .filter((f) => !selected.includes(f.id))
-                .map((f) => f.id),
-            )
-          }
-        >
-          反选全场
-        </button>
         <button
           disabled={busy || !scene || selected.length < 2}
           onClick={() => void open({ kind: "copyValues" })}
@@ -178,7 +141,7 @@ export function ResourcePool({
               <select
                 aria-label="灯组召回方式"
                 value={recall}
-                onChange={(e) => setRecall(e.target.value as RecallMode)}
+                onChange={(e) => onRecall(e.target.value as RecallMode)}
               >
                 <option value="replace">替换选择</option>
                 <option value="add">追加选择</option>
@@ -431,100 +394,5 @@ export function ResourcePool({
           />
         )}
     </section>
-  );
-}
-function ManageResource({
-  dialog,
-  project,
-  busy,
-  error,
-  onCancel,
-  onEdit,
-}: {
-  dialog: Extract<Dialog, { resource: ResourceKind }>;
-  project: ProjectView;
-  busy: boolean;
-  error: string;
-  onCancel(): void;
-  onEdit(command: LibraryEdit): Promise<boolean>;
-}) {
-  const label = dialog.resource === "group" ? "灯组" : "预设";
-  const [name, setName] = useState(
-    dialog.kind === "duplicate"
-      ? uniqueName(
-          `${dialog.name} 副本`,
-          (dialog.resource === "group" ? project.groups : project.presets).map(
-            (r) => r.name,
-          ),
-        )
-      : dialog.name,
-  );
-  const [keep, setKeep] = useState(false);
-  const preset =
-    dialog.resource === "preset"
-      ? project.presets.find((p) => p.id === dialog.id)
-      : undefined;
-  const title = `${dialog.kind === "remove" ? "删除" : dialog.kind === "duplicate" ? "复制" : "重命名"}${label}`;
-  return (
-    <LibraryDialog
-      title={title}
-      busy={busy}
-      error={error}
-      onCancel={onCancel}
-      submit={title}
-      onSubmit={() => {
-        if (dialog.kind === "remove")
-          return onEdit({
-            kind: "remove",
-            resource: dialog.resource,
-            id: dialog.id,
-            keepValues: keep,
-          });
-        if (!name.trim()) throw new Error(`请填写${label}名称`);
-        return onEdit(
-          dialog.kind === "duplicate"
-            ? {
-                kind: "duplicate",
-                resource: dialog.resource,
-                id: dialog.id,
-                name: name.trim(),
-              }
-            : { kind: "renamePreset", id: dialog.id, name: name.trim() },
-        );
-      }}
-    >
-      {dialog.kind !== "remove" ? (
-        <label>
-          {label}名称
-          <input
-            autoFocus
-            aria-label={`${label}名称`}
-            required
-            maxLength={256}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
-      ) : (
-        <>
-          <p>删除“{dialog.name}”</p>
-          {preset && (
-            <>
-              <PresetUsage preset={preset} />
-              {!!preset.usedByScenes.length && (
-                <label className="wb-check">
-                  <input
-                    type="checkbox"
-                    checked={keep}
-                    onChange={(e) => setKeep(e.target.checked)}
-                  />
-                  保留场景当前数值并删除预设
-                </label>
-              )}
-            </>
-          )}
-        </>
-      )}
-    </LibraryDialog>
   );
 }

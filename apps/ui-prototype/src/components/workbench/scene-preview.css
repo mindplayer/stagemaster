@@ -1,0 +1,12 @@
+.scene-preview-context {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  font-size: 11px;
+  color: var(--wb-muted);
+  overflow-wrap: anywhere;
+}
+.scene-preview-context strong {
+  font-weight: 500;
+  color: var(--wb-text);
+}

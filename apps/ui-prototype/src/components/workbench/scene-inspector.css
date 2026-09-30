@@ -1,0 +1,60 @@
+.performance-layout .wb-properties:has(.scene-inspector) {
+  padding: 0;
+}
+.scene-inspector {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.scene-inspector > nav {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--wb-panel);
+  border-bottom: 1px solid var(--wb-border);
+}
+.workbench .scene-inspector > nav button {
+  flex: 1;
+  border: 0;
+  background: none;
+  color: var(--wb-muted);
+  min-height: 30px;
+}
+.workbench .scene-inspector > nav button[aria-pressed="true"] {
+  background: #203942;
+  color: var(--wb-accent);
+}
+.scene-inspector-panel {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 14px;
+}
+.scene-inspector-panel .wb-parameters,
+.scene-inspector-panel .wb-inspector {
+  padding: 0;
+  border: 0;
+}
+.scene-inspector-panel .wb-target-names {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.scene-inspector-panel .wb-parameter {
+  padding: 12px 0;
+}
+.scene-inspector-panel .wb-color {
+  margin-top: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.position-readout-details > summary {
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--wb-muted);
+  font-size: 12px;
+}

@@ -38,7 +38,6 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowClockwiseIcon,
   LightbulbIcon,
-  StackIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import type {
@@ -55,6 +54,8 @@ import { ProjectInspector } from "./components/workbench/ProjectInspector";
 import type { ProjectForm } from "./components/workbench/ProjectInspector";
 import { FixtureBrowser } from "./components/workbench/FixtureBrowser";
 import { SceneLibrary } from "./components/workbench/SceneLibrary";
+import { SceneEditingTools } from "./components/workbench/SceneEditingTools";
+import { SceneInspector } from "./components/workbench/SceneInspector";
 import { ParameterPanel } from "./components/workbench/ParameterPanel";
 import type { ParameterHandle } from "./components/workbench/ParameterPanel";
 import { DeleteDialog } from "./components/workbench/DeleteDialog";
@@ -69,14 +70,10 @@ import {
   StageWorkspace,
   type StageHandle,
 } from "./components/stage/StageWorkspace";
-import { SceneEditorTools } from "./components/layout/SceneEditorTools";
-import { ResourcePool } from "./components/workbench/ResourcePool";
 import {
   SharedPrevis,
   type SharedPrevisHandle,
 } from "./components/stage/SharedPrevis";
-import { EffectRack } from "./components/workbench/EffectRack";
-import { PreviewPanel } from "./components/workbench/PreviewPanel";
 
 const EMPTY: Snapshot = {
   generation: 0,
@@ -1182,116 +1179,44 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                           />
                         </>
                       )}
-                      <SceneEditorTools
+                      <SceneEditingTools
+                        key={project.id}
+                        host={host}
+                        project={project}
+                        scene={activeScene}
+                        selected={selected}
+                        fixtureQuery={fixtureQuery}
+                        onlySelected={onlySelected}
+                        generation={snapshot.generation}
                         visible={page === "scenes"}
                         busy={busy}
+                        error={error}
                         beforeChange={() => run(async () => {})}
-                        fixtures={
-                          activeScene ? (
-                            <FixtureBrowser
-                              fixtures={project.fixtures}
-                              selected={selected}
-                              scene={activeScene}
-                              query={fixtureQuery}
-                              onlySelected={onlySelected}
-                              busy={busy}
-                              onQuery={setFixtureQuery}
-                              onFilter={setOnlySelected}
-                              onSelect={(ids) => {
-                                void run(async () => {
-                                  setSelectedIds(ids);
-                                });
-                              }}
-                            />
-                          ) : (
-                            <div className="wb-empty">
-                              <StackIcon size={40} />
-                              <h2>
-                                {project.scenes.length
-                                  ? "选择一个场景"
-                                  : "创建第一个场景"}
-                              </h2>
-                              {project.fixtures.length ? (
-                                <button
-                                  className="wb-primary"
-                                  disabled={busy}
-                                  onClick={addScene}
-                                >
-                                  新建场景
-                                </button>
-                              ) : (
-                                <button
-                                  disabled={busy}
-                                  onClick={() => switchPage("fixtures")}
-                                >
-                                  添加灯具
-                                </button>
-                              )}
-                            </div>
-                          )
+                        onQuery={setFixtureQuery}
+                        onFilter={setOnlySelected}
+                        onSelect={(ids) =>
+                          run(async () => {
+                            setSelectedIds(ids);
+                          })
                         }
-                        effects={
-                          activeScene && (
-                            <EffectRack
-                              key={activeScene.id}
-                              scene={activeScene}
-                              fixtures={project.fixtures}
-                              scenes={project.scenes}
-                              selected={selected}
-                              busy={busy}
-                              error={error}
-                              beforeChange={() => run(async () => {})}
-                              onEdit={(commands) =>
-                                run(async () => {
-                                  await edit({ op: "batch", commands });
-                                  setNotice(
-                                    "效果已更新，可撤销恢复；重新载入预览可查看变化",
-                                  );
-                                })
-                              }
-                            />
-                          )
+                        onEdit={(command) =>
+                          run(async () => {
+                            await edit(command);
+                            setNotice(
+                              "效果已更新，可撤销恢复；预演当前场景可查看变化",
+                            );
+                          })
                         }
-                        preview={
-                          activeScene && (
-                            <PreviewPanel
-                              host={host}
-                              scene={activeScene}
-                              stepId={activeScene.id}
-                              generation={snapshot.generation}
-                              busy={busy}
-                              beforeAction={() => run(async () => {})}
-                              visible={page === "scenes"}
-                              onView3d={() =>
-                                sharedPrevis.current?.openPlayback()
-                              }
-                            />
-                          )
-                        }
-                        resources={
-                          <ResourcePool
-                            key={project.id}
-                            project={project}
-                            scene={activeScene}
-                            selected={selected}
-                            busy={busy}
-                            error={error}
-                            visible={page === "scenes"}
-                            beforeChange={() => run(async () => {})}
-                            onEdit={async (command) => {
-                              const ok = await run(async () => {
-                                await edit({ op: "library", command });
-                                setNotice("资源已更新，可撤销恢复");
-                              });
-                              return ok ? current.current.project : null;
-                            }}
-                            onSelect={(ids) =>
-                              run(async () => {
-                                setSelectedIds(ids);
-                              })
-                            }
-                          />
-                        }
+                        onLibraryEdit={async (command) => {
+                          const ok = await run(async () => {
+                            await edit({ op: "library", command });
+                            setNotice("资源已更新，可撤销恢复");
+                          });
+                          return ok ? current.current.project : null;
+                        }}
+                        onView3d={() => sharedPrevis.current?.openPlayback()}
+                        onAddScene={addScene}
+                        onAddFixtures={() => switchPage("fixtures")}
                       />
                       {page === "settings" && (
                         <details className="wb-file-details">
@@ -1362,80 +1287,102 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   passthrough={page !== "scenes"}
                 >
                   <div className="wb-properties">
-                    {page === "scenes" && activeScene && (
-                      <PositionPanel
-                        key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
-                        ref={positions}
-                        project={project}
-                        fixtures={selected.map((id) =>
-                          project.fixtures.find((f) => f.id === id)!,
-                        )}
-                        scene={activeScene}
-                        busy={busy}
-                        onPending={(value) => {
-                          setPositionPending(value);
-                          if (!value) setError("");
-                        }}
-                        onApply={() => {
-                          void run(async () => {});
-                        }}
-                        beforeChange={() => run(async () => {})}
-                      />
-                    )}
-                    {page === "scenes" && activeScene && (
-                      <ParameterPanel
-                        key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
-                        ref={parameters}
-                        scene={activeScene}
-                        fixtures={selected.map((id) =>
-                          project.fixtures.find((f) => f.id === id)!,
-                        )}
-                        busy={busy}
-                        onApply={() => {
-                          void run(async () => {});
-                        }}
-                        onPending={(value) => {
-                          setParameterPending(value);
-                          if (!value) setError("");
-                        }}
-                      />
-                    )}
-                    <ProjectInspector
-                      form={form}
-                      htmlProjectForm={htmlProjectForm}
+                    <SceneInspector
+                      active={page === "scenes" && !!activeScene}
                       busy={busy}
-                      pending={pending}
-                      page={
-                        page === "profiles" ||
-                        page === "sequences" ||
-                        page === "audio" ||
-                        page === "stage"
-                          ? "scenes"
-                          : page
+                      beforeChange={() => run(async () => {})}
+                      hasPosition={selected.some(
+                        (id) =>
+                          project.fixtures.find((f) => f.id === id)
+                            ?.positioning,
+                      )}
+                      position={
+                        <>
+                          {page === "scenes" && activeScene && (
+                            <PositionPanel
+                              key={`position:${project.id}:${activeScene.id}:${selected.join(",")}`}
+                              ref={positions}
+                              project={project}
+                              fixtures={selected.map((id) =>
+                                project.fixtures.find((f) => f.id === id)!,
+                              )}
+                              scene={activeScene}
+                              busy={busy}
+                              onPending={(value) => {
+                                setPositionPending(value);
+                                if (!value) setError("");
+                              }}
+                              onApply={() => {
+                                void run(async () => {});
+                              }}
+                              beforeChange={() => run(async () => {})}
+                            />
+                          )}
+                        </>
                       }
-                      project={project}
-                      activeFixture={
-                        page === "fixtures" ? activeFixture : undefined
+                      light={
+                        <>
+                          {page === "scenes" && activeScene && (
+                            <ParameterPanel
+                              key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
+                              ref={parameters}
+                              scene={activeScene}
+                              fixtures={selected.map((id) =>
+                                project.fixtures.find((f) => f.id === id)!,
+                              )}
+                              busy={busy}
+                              onApply={() => {
+                                void run(async () => {});
+                              }}
+                              onPending={(value) => {
+                                setParameterPending(value);
+                                if (!value) setError("");
+                              }}
+                            />
+                          )}
+                        </>
                       }
-                      onChange={(patch) => {
-                        if (formRef.current)
-                          setForm({ ...formRef.current, ...patch }, true);
-                      }}
-                      onApply={() => {
-                        if (formRef.current?.kind === "addFixture") {
-                          pendingRef.current = true;
-                          setPending(true);
-                        }
-                        void run(async () => {});
-                      }}
-                      onCancel={() => {
-                        restoreForm();
-                        setError("");
-                      }}
-                      onDelete={() => {
-                        setError("");
-                        setConfirmDelete(true);
-                      }}
+                      scene={
+                        <>
+                          <ProjectInspector
+                            form={form}
+                            htmlProjectForm={htmlProjectForm}
+                            busy={busy}
+                            pending={pending}
+                            page={
+                              page === "profiles" ||
+                              page === "sequences" ||
+                              page === "audio" ||
+                              page === "stage"
+                                ? "scenes"
+                                : page
+                            }
+                            project={project}
+                            activeFixture={
+                              page === "fixtures" ? activeFixture : undefined
+                            }
+                            onChange={(patch) => {
+                              if (formRef.current)
+                                setForm({ ...formRef.current, ...patch }, true);
+                            }}
+                            onApply={() => {
+                              if (formRef.current?.kind === "addFixture") {
+                                pendingRef.current = true;
+                                setPending(true);
+                              }
+                              void run(async () => {});
+                            }}
+                            onCancel={() => {
+                              restoreForm();
+                              setError("");
+                            }}
+                            onDelete={() => {
+                              setError("");
+                              setConfirmDelete(true);
+                            }}
+                          />
+                        </>
+                      }
                     />
                   </div>
                 </DockPane>

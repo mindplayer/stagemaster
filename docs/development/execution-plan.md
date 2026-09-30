@@ -1,8 +1,10 @@
 # 当前执行计划
 
-更新：2026-09-29。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
+更新：2026-10-01。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准。
 
 ## 当前任务
+
+- [AUDIT-001](tasks/AUDIT-001-product-maturity.md) 已完成产品与体验独立审核；最新软件增量 [UX-018](tasks/UX-018-scene-editing-flow.md) 已完成常用属性、连续选灯／效果和显式场景预演衔接。下一软件重点为预设／效果工作流、图形化效果编辑及专业现场执行面，按[审核报告](../product-audit-2026-10-01.md)继续，不以布局改进替代完整灯具语义／物理输出验收；当前实际窗口与结果以 STATE 顶部为准。
 
 - [PLAN-002](tasks/PLAN-002-memory-audio-boundary.md) 已完成新增需求的方向审查：先用独立板级模块验证／接入 PSRAM 与分层资源报告，再推进既有运行／受控输出及必要的容量档位；宿主基础放音、时钟映射和有线／蓝牙声光同步按独立增量验收。依 [ADR-052](decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md) 更新旧外部音频边界，不把完整媒体系统设为首次 DMX 闭环的前置条件。当前仅文档完成，未开始这些实现。
 

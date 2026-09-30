@@ -1,0 +1,29 @@
+.scene-selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.scene-selection-bar > strong {
+  font-size: 11px;
+  min-width: 64px;
+}
+.workbench .scene-selection-bar select {
+  width: auto;
+  max-width: 200px;
+  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 6px;
+}
+.scene-selection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.workbench .scene-selection-actions button {
+  font-size: 10px;
+  padding: 4px 6px;
+  min-height: 26px;
+}

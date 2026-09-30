@@ -10,6 +10,7 @@ export function SceneEditorTools({
   effects,
   resources,
   preview,
+  selection,
 }: {
   visible: boolean;
   busy: boolean;
@@ -18,6 +19,7 @@ export function SceneEditorTools({
   effects: ReactNode;
   resources: ReactNode;
   preview: ReactNode;
+  selection: ReactNode;
 }) {
   const [tool, setTool] = useState("fixtures");
   const items = [
@@ -32,6 +34,7 @@ export function SceneEditorTools({
       label="场景编辑工具"
     >
       <div className="scene-tools-main">
+        {selection}
         <nav aria-label="场景工具">
           {items.map((item) => (
             <button
