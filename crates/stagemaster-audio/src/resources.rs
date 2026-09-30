@@ -38,6 +38,18 @@ impl Resources {
                     .into()
             })
     }
+    /// Inspect local playback and portable companion copies without changing them.
+    /// # Errors
+    /// Reject unsafe resource keys and cancellation. File failures are reported per copy.
+    pub fn inspect(
+        &self,
+        digest: &str,
+        extension: &str,
+        project: Option<&Path>,
+        cancelled: &AtomicBool,
+    ) -> Result<crate::ResourceHealth, String> {
+        crate::resource_health::inspect(&self.root, digest, extension, project, cancelled)
+    }
     /// Copy and hash through an internal fixed buffer. Publication is atomic, no source is overwritten.
     /// # Errors
     /// Reject excess files, cancellation, invalid keys, I/O failure or content mismatch.
@@ -115,7 +127,7 @@ pub fn verify(path: &Path, expected: &str, cancelled: &AtomicBool) -> Result<(),
     }
     Ok(())
 }
-fn key(digest: &str, extension: &str) -> Result<String, String> {
+pub(crate) fn key(digest: &str, extension: &str) -> Result<String, String> {
     if digest.len() != 64
         || !digest
             .bytes()
@@ -126,7 +138,7 @@ fn key(digest: &str, extension: &str) -> Result<String, String> {
     }
     Ok(format!("{digest}.{extension}"))
 }
-fn adjacent(project: &Path) -> PathBuf {
+pub(crate) fn adjacent(project: &Path) -> PathBuf {
     let mut path = project.as_os_str().to_os_string();
     path.push(".assets");
     PathBuf::from(path)

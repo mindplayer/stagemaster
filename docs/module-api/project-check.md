@@ -55,3 +55,11 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-proj
 ```
 
 标准输出为报告 JSON，标准错误为编译检查耗时；输入上限仍为 8 MiB。命令正常生成诊断即正常退出，调用者必须读取 desktopReady 才能判断工程是否通过；它不是设备部署命令。当前设备发布由宿主明确声明不可用，未来应由独立目标适配器提供资源、安装及实际执行证据。
+
+## UX-028：宿主音频资源完整性（ADR-057）
+
+响应附加 `audioResource: null | { fileName, resources: { local, companion, localSource } }`。每份文件状态为 `{state: "valid" | "missing" | "notSaved"}` 或 `{state: "invalid", message}`；本机来源为 `cache`／`companion`／null。核心 Document 报告与 JSON 不变。捕获路径与文档在同一锁内，实际文件检查在锁外；取消仍是放弃报告，已开始的校验自然完成。
+
+`Resources.inspect()` 采用现有播放缓存优先规则，独立验证工程旁同名 `.assets` 副本；SHA-256 使用现有 16 KiB 固定缓冲，每份上限 512 MiB，同路径不重复读取。检查不会写缓存／创建文件夹、解码音频、占用声卡或调用播放器。无音乐为 null，不作为故障；未保存工程的随附状态为 notSaved。文件系统可独立变化，报告只对检查时文件有效。
+
+UI 分别展示灯光编译、本机文件及随附文件；音乐入口沿同一 generation 和草稿保护导航到既有音乐页，该页仍沿用现有音频准备／重新定位流程。检查通过不等于音频设备或声光同步验收，设备包仍不含音频。检查中的“保存并补齐”入口即使工程未改也可调用既有归档流程；提交前再次核对 generation，之后旧报告过期，需要重查。

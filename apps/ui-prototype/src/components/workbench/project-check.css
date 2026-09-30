@@ -201,3 +201,57 @@
 .workbench .wb-check-actions select {
   width: auto;
 }
+
+.check-audio-resources {
+  margin: 0 0 24px;
+  padding: 14px;
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+}
+.check-audio-resources header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.check-audio-resources header p {
+  color: var(--wb-muted);
+  font-size: 12px;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.check-audio-copies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.check-audio-copies article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+  background: var(--wb-panel);
+  border-left: 3px solid #6a665a;
+}
+.check-audio-copies article[data-state="valid"] {
+  border-left-color: #508b75;
+}
+.check-audio-copies article[data-state="invalid"],
+.check-audio-copies article[data-state="missing"] {
+  border-left-color: #c6995b;
+}
+.check-audio-copies strong {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.check-audio-copies b {
+  font-size: 14px;
+}
+.check-audio-copies p {
+  font-size: 12px;
+  color: var(--wb-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

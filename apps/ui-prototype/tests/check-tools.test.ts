@@ -5,6 +5,7 @@ import type { ProjectCheck, CheckIssue } from "../src/check-types.ts";
 
 const check: ProjectCheck = {
   generation: 7,
+  audioResource: null,
   deviceRelease: "unavailable",
   report: {
     projectId: "工程 A",

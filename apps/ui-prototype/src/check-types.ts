@@ -1,5 +1,5 @@
 export type CheckLocation =
-  | { kind: "fixtures" | "scenes" }
+  | { kind: "fixtures" | "scenes" | "audio" }
   | { kind: "fixture" | "placement" | "scene" | "sequence"; id: string };
 export interface CheckIssue {
   code: string;
@@ -24,7 +24,19 @@ export interface ProgramCheck {
   status: "passed" | "failed" | "blocked";
   usage: PlanUsage | null;
 }
+export type ResourceFileHealth =
+  | { state: "valid" | "missing" | "notSaved" }
+  | { state: "invalid"; message: string };
+export interface AudioResourceCheck {
+  fileName: string;
+  resources: {
+    local: ResourceFileHealth;
+    companion: ResourceFileHealth;
+    localSource: "cache" | "companion" | null;
+  };
+}
 export interface ProjectCheck {
+  audioResource: AudioResourceCheck | null;
   generation: number;
   deviceRelease: "unavailable";
   report: {

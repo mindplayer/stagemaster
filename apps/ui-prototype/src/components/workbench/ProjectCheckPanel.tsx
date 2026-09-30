@@ -1,9 +1,7 @@
+import { CheckTargets } from "./CheckTargets";
+import { CheckAudioResources } from "./CheckAudioResources";
 import { useEffect, useRef, useState } from "react";
-import {
-  CheckCircleIcon,
-  WarningCircleIcon,
-  ArrowClockwiseIcon,
-} from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import type { ApplicationHost } from "../../application-host";
 import type {
   CheckLocation,
@@ -36,6 +34,7 @@ export function ProjectCheckPanel({
   busy,
   capture,
   onLocate,
+  onSaveResources,
 }: {
   host: ApplicationHost;
   projectId: string;
@@ -45,6 +44,7 @@ export function ProjectCheckPanel({
   busy: boolean;
   capture(): Promise<number | null>;
   onLocate(location: CheckLocation, generation: number): Promise<boolean>;
+  onSaveResources(generation: number): Promise<boolean>;
 }) {
   const [check, setCheck] = useState<ProjectCheck | null>(null);
   const [checking, setChecking] = useState(false);
@@ -112,7 +112,7 @@ export function ProjectCheckPanel({
       <div className="wb-check-heading">
         <div>
           <h2>工程检查</h2>
-          <p>检查配适、节目编译与播放计划容量</p>
+          <p>检查灯光编译、计划容量与音乐文件完整性</p>
         </div>
         <div className="wb-check-actions">
           {checking && (
@@ -150,39 +150,12 @@ export function ProjectCheckPanel({
       {cancelled && (
         <p role="status">本次结果已取消；已开始的后台计算结束后可重新检查。</p>
       )}
-      <div className="wb-check-targets" aria-live="polite">
-        <div className={current && report?.desktopReady ? "ready" : ""}>
-          <strong>
-            {current && report?.desktopReady ? (
-              <CheckCircleIcon />
-            ) : (
-              <WarningCircleIcon />
-            )}
-            电脑预览
-          </strong>
-          <b>
-            {!check
-              ? "尚未检查"
-              : !current
-                ? "报告已过期"
-                : report?.desktopReady
-                  ? "编译通过"
-                  : "需要修复"}
-          </b>
-          <span>
-            {!check
-              ? "按当前工程生成检查结果"
-              : !current
-                ? "工程或草稿已变化，请重新检查"
-                : `${errors} 项错误 · ${warnings} 项提醒`}
-          </span>
-        </div>
-        <div>
-          <strong>设备发布</strong>
-          <b>独立核验</b>
-          <span>生成播放包后，在节目安装中核验设备权限与安装结果</span>
-        </div>
-      </div>
+      <CheckTargets
+        check={check}
+        current={current}
+        errors={errors}
+        warnings={warnings}
+      />
       {check && report && (
         <>
           <p className="wb-check-caption">
@@ -190,6 +163,13 @@ export function ProjectCheckPanel({
             {current ? "当前工程" : "以下为历史结果，定位已停用"} ·{" "}
             {report.programs.length} 个节目
           </p>
+          <CheckAudioResources
+            resource={check.audioResource}
+            current={current}
+            disabled={busy || checking}
+            onLocate={() => void onLocate({ kind: "audio" }, check.generation)}
+            onSave={() => void onSaveResources(check.generation)}
+          />
           <div className="wb-check-heading">
             <h3>
               问题 <small>{errors + warnings}</small>

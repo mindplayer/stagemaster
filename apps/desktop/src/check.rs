@@ -12,7 +12,15 @@ pub(crate) struct Service(Mutex<()>);
 pub(crate) struct CheckResponse {
     generation: u32,
     report: CheckReport,
+    audio_resource: Option<AudioResourceCheck>,
     device_release: &'static str,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AudioResourceCheck {
+    file_name: String,
+    resources: stagemaster_audio::ResourceHealth,
 }
 
 #[tauri::command]
@@ -26,16 +34,33 @@ pub(crate) async fn check_request(
             .0
             .try_lock()
             .map_err(|_| "另一项工程检查正在结束，请稍后重试")?;
-        let document = {
+        let (document, source) = {
             let session = app.state::<crate::previs::SharedSession>();
-            session
-                .lock()
-                .map_err(|_| "工程会话发生错误，请重启应用")?
-                .check_snapshot(generation)?
+            let session = session.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
+            (
+                session.check_snapshot(generation)?,
+                session.export_source(generation)?,
+            )
         };
         // Deliberately outside the session lock: editing and preview polling remain available.
+        let audio_resource = document
+            .audio_timeline()
+            .map(|track| {
+                let resources = app.state::<crate::audio::Service>().resources.inspect(
+                    &track.asset.digest,
+                    &track.asset.extension,
+                    source.as_deref(),
+                    &std::sync::atomic::AtomicBool::new(false),
+                )?;
+                Ok::<_, String>(AudioResourceCheck {
+                    file_name: track.asset.file_name,
+                    resources,
+                })
+            })
+            .transpose()?;
         Ok(CheckResponse {
             generation,
+            audio_resource,
             report: document.check(),
             device_release: "unavailable",
         })

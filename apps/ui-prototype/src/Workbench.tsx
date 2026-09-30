@@ -466,8 +466,13 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       setSequencePending(false);
     }
   }
-  function save(saveAs = false) {
-    void run(async () => {
+  function save(saveAs = false, expectedGeneration?: number) {
+    return run(async () => {
+      if (
+        expectedGeneration !== undefined &&
+        current.current.generation !== expectedGeneration
+      )
+        throw new Error("结果已过期，请重新检查后补齐资源");
       const next = await request({
         kind: "save",
         generation: current.current.generation,
@@ -536,6 +541,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           setPage("sequences");
           setForm(null);
           sequences.current?.reveal(location.id);
+          break;
+        case "audio":
+          setPage("audio");
+          setForm(null);
           break;
         case "placement":
           setPage("stage");
@@ -1244,6 +1253,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         busy={busy}
                         capture={captureCheck}
                         onLocate={locateCheck}
+                        onSaveResources={(generation) =>
+                          save(false, generation)
+                        }
                       />
                     </div>
                   </section>
