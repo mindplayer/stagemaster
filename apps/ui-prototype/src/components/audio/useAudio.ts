@@ -6,6 +6,7 @@ import type {
   AudioTimeline,
   AudioWaveform,
 } from "../../audio-types";
+import { runAudioCommands } from "../../audio-command-sequence";
 const idle: AudioPosition = {
   volumePercent: 100,
   playing: false,
@@ -30,7 +31,7 @@ export function useAudio(
   const mediaKey = track
     ? `${projectId}:${track.asset.digest}:${track.inMs}:${track.outMs}`
     : `${projectId}:empty`;
-  const commands = useRef(Promise.resolve());
+  const commands = useRef<Promise<unknown>>(Promise.resolve());
   const state = useRef({ generation, track, mediaKey });
   state.current = { generation, track, mediaKey };
   const playingSample = useRef({ position: idle, at: performance.now() });
@@ -131,29 +132,42 @@ export function useAudio(
       clearTimeout(timer);
     };
   }, [host, visible, mediaKey, preparing]);
-  function command(command: AudioCommand) {
+  function enqueue(sequence: AudioCommand[]) {
     const targetGeneration = state.current.generation();
     const targetKey = state.current.mediaKey;
-    const queued = commands.current.then(() => {
-      if (
-        targetKey === state.current.mediaKey &&
-        targetGeneration === state.current.generation()
-      )
-        return send(command, targetGeneration);
-    });
+    const queued = commands.current.then(() =>
+      runAudioCommands(
+        sequence,
+        () =>
+          mounted.current &&
+          targetKey === state.current.mediaKey &&
+          targetGeneration === state.current.generation(),
+        (value) => send(value, targetGeneration),
+      ),
+    );
     commands.current = queued;
     return queued;
+  }
+  async function command(command: AudioCommand) {
+    await enqueue([command]);
+  }
+  function previewAt(positionMs: number) {
+    return enqueue([{ kind: "seek", positionMs }, { kind: "play" }]);
   }
   async function send(command: AudioCommand, targetGeneration: number) {
     const version = ++epoch.current;
     setProblem("");
     try {
       const next = await host.audio(targetGeneration, command);
-      if (mounted.current && version === epoch.current) accept(next);
+      if (mounted.current && version === epoch.current) {
+        accept(next);
+        return true;
+      }
     } catch (error) {
       if (mounted.current && version === epoch.current)
         setProblem(error instanceof Error ? error.message : String(error));
     }
+    return false;
   }
   return {
     position,
@@ -163,6 +177,7 @@ export function useAudio(
     problem,
     prepare,
     command,
+    previewAt,
     cancel: () => host.audioCancel(),
   };
 }

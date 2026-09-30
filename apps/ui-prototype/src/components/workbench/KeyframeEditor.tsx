@@ -17,6 +17,7 @@ import {
   readFrames,
   reorderFrames,
 } from "../../keyframe-tools";
+import { KeyframeCurve } from "./KeyframeCurve";
 export interface KeyframeHandle {
   collect(): EffectChannel[];
 }
@@ -65,6 +66,13 @@ export const KeyframeEditor = forwardRef<
   }
   return (
     <div className="effect-keyframes" ref={root}>
+      <KeyframeCurve
+        frames={frames}
+        attributes={attributes}
+        active={active}
+        onSelect={setActive}
+        onChange={setFrames}
+      />
       <div className="effect-frame-toolbar">
         <strong>
           关键帧 <small>{frames.length} / 32</small>

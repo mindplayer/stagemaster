@@ -27,6 +27,7 @@
     "tests/device-tools.test.ts",
     "tests/device-panel-harness.tsx",
     "tests/scene-preview-action.test.ts",
-    "tests/scene-editing-harness.tsx"
+    "tests/scene-editing-harness.tsx",
+    "tests/context-editing.test.ts"
   ]
 }

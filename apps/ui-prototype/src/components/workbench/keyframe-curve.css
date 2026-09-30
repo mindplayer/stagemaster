@@ -1,0 +1,75 @@
+.keyframe-curve {
+  background: #10202a;
+  border: 1px solid #344b59;
+  border-radius: 8px;
+  padding: 10px;
+}
+.keyframe-curve header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.keyframe-curve header span {
+  margin-left: auto;
+  color: #a5b7c2;
+}
+.keyframe-curve header select {
+  width: auto;
+  min-height: 26px;
+  padding: 2px 6px;
+}
+.keyframe-curve-plot {
+  position: relative;
+  padding-left: 20px;
+  margin-top: 8px;
+}
+.keyframe-curve svg {
+  width: 100%;
+  height: 164px;
+  overflow: visible;
+  touch-action: none;
+  user-select: none;
+}
+.curve-grid line {
+  stroke: #324550;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.keyframe-curve ellipse {
+  cursor: grab;
+  outline: none;
+}
+.keyframe-curve ellipse:focus {
+  stroke: white;
+  stroke-width: 3;
+}
+.keyframe-curve ellipse:active {
+  cursor: grabbing;
+}
+.curve-y-top,
+.curve-y-bottom {
+  position: absolute;
+  left: 0;
+  color: #9badb9;
+  font-size: 10px;
+}
+.curve-y-top {
+  top: 8px;
+}
+.curve-y-bottom {
+  bottom: 8px;
+}
+.curve-time-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 32px;
+  color: #a5b7c2;
+  font-size: 10px;
+}
+.keyframe-curve > small {
+  display: block;
+  margin-top: 8px;
+  color: #a5b7c2;
+  font-size: 11px;
+}

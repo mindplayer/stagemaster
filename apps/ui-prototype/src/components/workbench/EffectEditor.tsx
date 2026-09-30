@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import type { EditOperation, FixtureView } from "../../application-host";
 import type { SceneEffect } from "../../effect-types";
-import { effectCommands, reorderEffect } from "../../effect-tools";
+import { effectCommands } from "../../effect-tools";
 import { seconds, secondsToMs } from "../../sequence-tools";
 import { LibraryDialog } from "./LibraryDialog";
 import { KeyframeEditor, type KeyframeHandle } from "./KeyframeEditor";
 import { toKeyframes, valuePercent } from "../../keyframe-tools";
+
+import { EffectFixtureOrder } from "./EffectFixtureOrder";
 
 const labels = { dimmer: "亮度", red: "红", green: "绿", blue: "蓝" };
 export function EffectEditor({
@@ -38,7 +40,6 @@ export function EffectEditor({
     phase: String(effect.phaseDegrees),
     duty: String(effect.dutyPercent),
   });
-  const [query, setQuery] = useState("");
   const isColor = ["red", "green", "blue"].every((key) =>
     effect.channels.some((c) => c.attribute === key),
   );
@@ -364,86 +365,13 @@ export function EffectEditor({
           </label>
         )}
       </div>
-      <details className="effect-order">
-        <summary>灯具与顺序 · {draft.fixtureIds.length} 台</summary>
-        <button
-          type="button"
-          disabled={!selected.length}
-          onClick={() => change({ fixtureIds: [...selected] })}
-        >
-          采用当前选灯顺序
-        </button>
-        <ol>
-          {draft.fixtureIds.map((id, i) => (
-            <li key={id}>
-              <span>
-                {fixtures.find((f) => f.id === id)?.name ?? "灯具已删除"}
-              </span>
-              <button
-                type="button"
-                aria-label={`上移第 ${i + 1} 台灯具`}
-                disabled={i === 0}
-                onClick={() =>
-                  change({ fixtureIds: reorderEffect(draft.fixtureIds, i, -1) })
-                }
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                aria-label={`下移第 ${i + 1} 台灯具`}
-                disabled={i === draft.fixtureIds.length - 1}
-                onClick={() =>
-                  change({ fixtureIds: reorderEffect(draft.fixtureIds, i, 1) })
-                }
-              >
-                ↓
-              </button>
-              <button
-                type="button"
-                aria-label={`移除${fixtures.find((f) => f.id === id)?.name ?? "灯具"}`}
-                onClick={() =>
-                  change({
-                    fixtureIds: draft.fixtureIds.filter((f) => f !== id),
-                  })
-                }
-              >
-                移除
-              </button>
-            </li>
-          ))}
-        </ol>
-        <input
-          aria-label="搜索待添加灯具"
-          placeholder="搜索待添加灯具"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className="effect-add-fixtures">
-          {fixtures
-            .filter(
-              (f) =>
-                !draft.fixtureIds.includes(f.id) &&
-                f.name.toLowerCase().includes(query.trim().toLowerCase()),
-            )
-            .map((f) => (
-              <button
-                type="button"
-                key={f.id}
-                disabled={
-                  !draft.channels.every((c) =>
-                    f.attributes.some((a) => a.key === c.attribute),
-                  )
-                }
-                onClick={() =>
-                  change({ fixtureIds: [...draft.fixtureIds, f.id] })
-                }
-              >
-                添加 {f.name}
-              </button>
-            ))}
-        </div>
-      </details>
+      <EffectFixtureOrder
+        ids={draft.fixtureIds}
+        fixtures={fixtures}
+        selected={selected}
+        channels={draft.channels}
+        onChange={(fixtureIds) => change({ fixtureIds })}
+      />
     </LibraryDialog>
   );
 }

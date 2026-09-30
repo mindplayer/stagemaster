@@ -15,6 +15,7 @@ import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { AudioInspector, type AudioDraft } from "./AudioInspector";
 import { AudioWaveform } from "./AudioWaveform";
 import type { useAudio } from "./useAudio";
+import { useMarkerActions } from "./useMarkerActions";
 import "./audio.css";
 export interface AudioHandle {
   collect(): EditOperation[];
@@ -33,6 +34,8 @@ export const AudioWorkspace = forwardRef<
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
     onPending(value: boolean): void;
+    onEditScene?(markerId: string): Promise<boolean>;
+    onView3d?(): void;
   }
 >(function AudioWorkspace(
   {
@@ -46,6 +49,8 @@ export const AudioWorkspace = forwardRef<
     onEdit,
     beforeChange,
     onPending,
+    onEditScene,
+    onView3d,
   },
   ref,
 ) {
@@ -58,7 +63,16 @@ export const AudioWorkspace = forwardRef<
   const form = useRef<HTMLFormElement>(null);
   const [removeMusic, setRemoveMusic] = useState(false);
   const marker = track?.markers.find((m) => m.id === selected);
-  const blocked = busy || audio.preparing;
+  const markerActions = useMarkerActions({
+    project,
+    selected,
+    host,
+    generation,
+    audio,
+    beforeChange,
+    onView3d,
+  });
+  const blocked = busy || audio.preparing || markerActions.acting;
   function change(value: AudioDraft) {
     draftRef.current = value;
     setDraft(value);
@@ -221,9 +235,15 @@ export const AudioWorkspace = forwardRef<
                 )}
               </div>
             </header>
-            {(problem || audio.problem || audio.position.problem) && (
+            {(problem ||
+              markerActions.problem ||
+              audio.problem ||
+              audio.position.problem) && (
               <div role="alert" className="audio-error">
-                {problem || audio.problem || audio.position.problem}
+                {problem ||
+                  markerActions.problem ||
+                  audio.problem ||
+                  audio.position.problem}
               </div>
             )}
             {audio.preparing && (
@@ -291,6 +311,14 @@ export const AudioWorkspace = forwardRef<
               scenes={project.scenes}
               busy={blocked}
               form={form}
+              ready={
+                !!audio.waveform &&
+                audio.position.durationMs === track.outMs - track.inMs
+              }
+              onPreview={() => void markerActions.preview()}
+              onEditScene={() => {
+                if (marker) void onEditScene?.(marker.id);
+              }}
               onChange={change}
               onApply={() => void beforeChange()}
               onCancel={cancel}

@@ -1,0 +1,26 @@
+.quick-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 5px 14px;
+  border-bottom: 1px solid var(--wb-border);
+  min-width: 0;
+  font-size: 11px;
+}
+.workbench .quick-presets select,
+.workbench .quick-presets button {
+  min-height: 27px;
+  padding: 3px 7px;
+  font-size: 11px;
+  width: auto;
+}
+.quick-presets select:first-of-type {
+  flex: 1;
+  min-width: 100px;
+  max-width: 230px;
+}
+.quick-presets small {
+  color: var(--wb-muted);
+  white-space: nowrap;
+}

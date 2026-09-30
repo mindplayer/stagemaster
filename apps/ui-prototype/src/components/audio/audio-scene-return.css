@@ -1,0 +1,31 @@
+.audio-scene-return {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 14px;
+  background: #142e37;
+  font-size: 11px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.audio-scene-return span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audio-scene-return time {
+  color: #adbfcb;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.workbench .audio-scene-return button {
+  padding: 4px 8px;
+  min-height: 26px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.audio-marker-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}

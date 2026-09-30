@@ -37,7 +37,26 @@ const project: ProjectView = {
   domains: [],
   fixtures,
   scenes: [{ id: "scene", name: "场景", effects: [], values: [] }],
-  presets: [],
+  presets: [
+    {
+      id: "preset",
+      name: "亮度与颜色测试预设",
+      usedByScenes: [],
+      usedBySequences: [],
+      values: fixtures
+        .slice(0, 12)
+        .flatMap((f) =>
+          ["dimmer", "red"].map((attribute) => ({
+            fixtureId: f.id,
+            attribute,
+            value: 32768,
+            presetName: null,
+            presetId: null,
+            mode: "value" as const,
+          })),
+        ),
+    },
+  ],
   sequences: [],
   groups: [
     { id: "all", name: "全部摇头灯", fixtureIds: fixtures.map((f) => f.id) },
@@ -128,7 +147,11 @@ function Harness() {
             return true;
           }}
           onEdit={async () => false}
-          onLibraryEdit={async () => null}
+          onLibraryEdit={async (command) => {
+            if (!(await beforeChange())) return null;
+            setReport(JSON.stringify(command));
+            return project;
+          }}
           onView3d={() => {}}
           onAddScene={() => {}}
           onAddFixtures={() => {}}

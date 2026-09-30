@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { StackIcon } from "@phosphor-icons/react";
 import type {
   ApplicationHost,
@@ -13,6 +13,7 @@ import { SceneSelectionBar } from "./SceneSelectionBar";
 import { FixtureBrowser } from "./FixtureBrowser";
 import { EffectRack } from "./EffectRack";
 import { PreviewPanel } from "./PreviewPanel";
+import { QuickPresets } from "./QuickPresets";
 import { ResourcePool } from "./ResourcePool";
 
 export function SceneEditingTools({
@@ -35,7 +36,9 @@ export function SceneEditingTools({
   onView3d,
   onAddScene,
   onAddFixtures,
+  context,
 }: {
+  context?: ReactNode;
   host: ApplicationHost;
   project: ProjectView;
   scene?: SceneView;
@@ -56,19 +59,35 @@ export function SceneEditingTools({
   onAddScene(): void;
   onAddFixtures(): void;
 }) {
+  const [presetId, setPresetId] = useState("");
+  const [mask, setMask] = useState<string[] | null>(null);
   const [recall, setRecall] = useState<RecallMode>("replace");
   return (
     <SceneEditorTools
       visible={visible}
       selection={
-        <SceneSelectionBar
-          project={project}
-          selected={selected}
-          busy={busy}
-          recall={recall}
-          onRecall={setRecall}
-          onSelect={onSelect}
-        />
+        <>
+          {context}
+          <SceneSelectionBar
+            project={project}
+            selected={selected}
+            busy={busy}
+            recall={recall}
+            onRecall={setRecall}
+            onSelect={onSelect}
+          />
+          <QuickPresets
+            project={project}
+            scene={scene}
+            selected={selected}
+            busy={busy}
+            presetId={presetId}
+            mask={mask}
+            onPreset={setPresetId}
+            onMask={setMask}
+            onEdit={onLibraryEdit}
+          />
+        </>
       }
       busy={busy}
       beforeChange={beforeChange}
@@ -146,6 +165,10 @@ export function SceneEditingTools({
           beforeChange={beforeChange}
           recall={recall}
           onRecall={setRecall}
+          presetId={presetId}
+          onPreset={setPresetId}
+          mask={mask}
+          onMask={setMask}
           onEdit={onLibraryEdit}
           onSelect={onSelect}
         />

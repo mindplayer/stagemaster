@@ -1,3 +1,5 @@
+import { useAudioSceneLink } from "./components/audio/useAudioSceneLink";
+import { AudioSceneReturn } from "./components/audio/AudioSceneReturn";
 import {
   AudioWorkspace,
   type AudioHandle,
@@ -177,6 +179,21 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     selectAll: () => {},
   });
   const project = snapshot.project;
+  const audioSceneLink = useAudioSceneLink(
+    project,
+    () => current.current.project,
+    run,
+    (scene) => {
+      setSceneId(scene.id);
+      setSceneQuery("");
+      setForm(sceneForm(scene));
+      setPage("scenes");
+    },
+    () => {
+      setPage("audio");
+      restoreForm("audio");
+    },
+  );
   const selected = selectedIds.filter((id) =>
     project?.fixtures.some((f) => f.id === id),
   );
@@ -406,6 +423,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     return ok && recovered;
   }
   function resetWorkspace(next: Snapshot) {
+    audioSceneLink.reset();
     if (next.project) {
       setPage(next.project.fixtures.length ? "scenes" : "fixtures");
       setStageSelected("");
@@ -979,6 +997,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               key={`audio:${project.id}`}
               ref={audio}
               session={audioSession}
+              onEditScene={audioSceneLink.edit}
+              onView3d={() => sharedPrevis.current?.openPlayback()}
               sharedTransport
               project={project}
               host={host}
@@ -1180,6 +1200,16 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         </>
                       )}
                       <SceneEditingTools
+                        context={
+                          audioSceneLink.marker &&
+                          audioSceneLink.sceneId === activeScene?.id ? (
+                            <AudioSceneReturn
+                              marker={audioSceneLink.marker}
+                              busy={busy}
+                              onBack={() => void audioSceneLink.back()}
+                            />
+                          ) : null
+                        }
                         key={project.id}
                         host={host}
                         project={project}

@@ -31,7 +31,15 @@ export function ResourcePool({
   onSelect,
   recall,
   onRecall,
+  presetId,
+  onPreset,
+  mask,
+  onMask,
 }: {
+  presetId: string;
+  onPreset(id: string): void;
+  mask: string[] | null;
+  onMask(keys: string[] | null): void;
   recall: RecallMode;
   onRecall(value: RecallMode): void;
   project: ProjectView;
@@ -46,9 +54,7 @@ export function ResourcePool({
 }) {
   const [tab, setTab] = useState<ResourceKind>("group");
   const [groupId, setGroupId] = useState("");
-  const [presetId, setPresetId] = useState("");
   const [queries, setQueries] = useState({ group: "", preset: "" });
-  const [mask, setMask] = useState<string[] | null>(null);
   const [dialog, setDialog] = useState<ResourceDialog | null>(null);
   const fixtures = selected.flatMap(
     (id) => project.fixtures.find((f) => f.id === id) ?? [],
@@ -77,7 +83,7 @@ export function ResourcePool({
       setQueries((q) => ({ ...q, group: "" }));
     }
     if (createdPreset) {
-      setPresetId(next.presets.at(-1)?.id ?? "");
+      onPreset(next.presets.at(-1)?.id ?? "");
       setQueries((q) => ({ ...q, preset: "" }));
     }
     return true;
@@ -214,7 +220,7 @@ export function ResourcePool({
           <AttributeMask
             available={available}
             selected={attributes}
-            onChange={setMask}
+            onChange={onMask}
           />
           <div className="wb-resource-grid">
             {project.presets
@@ -225,7 +231,7 @@ export function ResourcePool({
                   aria-label={`选择预设 ${p.name}`}
                   aria-pressed={p.id === presetId}
                   className={p.id === presetId ? "selected" : ""}
-                  onClick={() => setPresetId(p.id)}
+                  onClick={() => onPreset(p.id)}
                 >
                   <span className="wb-resource-number">
                     {project.presets.indexOf(p) + 1}

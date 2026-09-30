@@ -24,7 +24,13 @@ export function AudioInspector({
   onApply,
   onCancel,
   onRemove,
+  ready,
+  onPreview,
+  onEditScene,
 }: {
+  ready: boolean;
+  onPreview(): void;
+  onEditScene(): void;
   track: AudioTimeline;
   marker?: AudioMarker;
   draft: AudioDraft | null;
@@ -103,7 +109,26 @@ export function AudioInspector({
               ))}
             </select>
           </label>
-          <p>到达此处切换到所选场景，动态效果从该点开始。</p>
+          <div className="audio-marker-actions">
+            <button
+              type="button"
+              className="primary"
+              disabled={busy || !ready}
+              onClick={onPreview}
+            >
+              从此卡点预演
+            </button>
+            <button
+              type="button"
+              disabled={busy || !scenes.some((s) => s.id === data.sceneId)}
+              onClick={onEditScene}
+            >
+              编辑关联场景
+            </button>
+          </div>
+          <p>
+            到达此处切换到所选场景，动态效果从该点开始。修改关联场景也会影响其他引用它的位置。
+          </p>
         </>
       ) : (
         <>
