@@ -1,5 +1,7 @@
 # 当前开发状态
 
+FIXTURE-003A 完成（基线 `1162f74`，结果为本次 `feat(playback): preserve discrete attributes across fades and packages` 提交）：依 ADR-059 增加离散属性延时后直接切换、动态冲突拒绝、包执行语义 2／旧包兼容和有界预算，Plan／执行／包构建／扫描职责拆分。455 Rust、fmt／严格检查、Xtensa 检查及旧包逐字节／新包逐帧通过，见[验收](tasks/FIXTURE-003A-discrete-playback.md)。核心基础已完成，当前工程／UI 尚未开放功能区间；持续接续 FIXTURE-003B。窗口和实板未操作，设备断开。
+
 DOC-001 完成（基线 `ed240c4`，结果为本次 `docs: reconcile current capabilities and audit progress` 提交）：README、实现状态、能力计划、执行顺序和审核映射已对齐；178 个本地链接与 diff 检查通过，见[工单](tasks/DOC-001-current-capability-map.md)。以下按任务完成时刻保留历史，**当前能力统一看[实现状态](../implementation-status.md)**，不将历史“下一步”视为当前缺口。持续 goal active，接续 F02 通道功能与离散编排语义。窗口仍为 EFFECT-003 保存副本、内嵌 UE 暂停、设备断开。
 
 EFFECT-003 完成（基线 `f7f24ec`，结果为本次 `feat(effects): add relative physical moving-head shapes` 提交）：依 ADR-058 实现相对双轴运动、独立角度编辑及水平／垂直／圆形模板；443 Rust、125 UI、87 格式、fmt／严格检查、桌面与原生保存／撤销／取消／内嵌 UE 通过，见[验收](tasks/EFFECT-003-relative-position-effects.md)。真实工程验证机械行程拒绝并修复旧预演错误残留。当前已保存运动验收副本、唯一 UE 连接、暂停 83.964 秒；原 Volare 未改、设备断开。持续目标接续审核其余主干缺口。

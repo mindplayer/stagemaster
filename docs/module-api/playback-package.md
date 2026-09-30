@@ -1,6 +1,6 @@
 # 独立播放包接口
 
-PLAYER-003A；ADR-028；格式／编译语义 1。`stagemaster-package` 是 `no_std + alloc`；不依赖工程 JSON、桌面、文件系统、蓝牙、授权或物理输出。
+PLAYER-003A／FIXTURE-003A；ADR-028／[ADR-059](../development/decisions/PRODUCT-ADR-059-discrete-playback-attributes.md)；容器 1，执行语义 1 或 2。`stagemaster-package` 是 `no_std + alloc`；不依赖工程 JSON、桌面、文件系统、蓝牙、授权或物理输出。
 
 ## 调用边界
 
@@ -40,7 +40,7 @@ program.output.render(player.values(), &mut slots)?; // 无分配，512 字节�
 - `PackageFile::select(path, source)`：仅 `.smpkg`，不接受当前工程路径／符号链接；覆盖目标必须已经是完整有效包，其他文件或损坏包用新文件名。
 - `PackageFile::save(bytes)`：独立校验全包，复用工程存储的稳定锁、前后基线比较、目录内临时文件、fsync、原子替换／不覆盖创建。成功后可返回目录同步提醒；不修改工程修订。
 
-软件参考包的生成、保存、检查不表示设备安装就绪；当前没有包签名或播放许可。执行端的 24 小时临时许可、到期结束本次节目后禁止新播放仍由独立授权协议实施。
+软件参考包的生成、保存、检查不表示设备安装就绪；当前没有包签名或播放许可。DEVICE-002 已完成专用开发身份下的真实 GATT 安装；物理输出另验收。执行端的 24 小时临时许可、到期结束本次节目后禁止新播放仍由独立授权协议实施。
 
 ## 字节格式 v1
 
@@ -51,7 +51,7 @@ program.output.render(player.values(), &mut slots)?; // 无分配，512 字节�
 | 0 | 8 | `STMPLAY\0` |
 | 8 | 2 | 容器版本 1 |
 | 10 | 2 | 头长度 64 |
-| 12 | 2 | 执行语义 1 |
+| 12 | 2 | 执行语义 1；有离散属性时为 2 |
 | 14 | 2 | 参考档位 1 |
 | 16 | 4 | 目录长度 |
 | 20 | 4 | 完整文件长度 |
@@ -61,7 +61,7 @@ program.output.render(player.values(), &mut slots)?; // 无分配，512 字节�
 
 后接定长 CBOR 目录数组：`[compiler, projectId16, revisionId16, snapshotDigest32, projectName, entries]`。
 
-- compiler 必须为 `stagemaster-lighting-1`。
+- compiler 与头部一致：语义 1 为 `stagemaster-lighting-1`，语义 2 为 `stagemaster-lighting-2`。
 - entry 为 `[kind, id16, name, offset, length, blockDigest32]`；kind 为 0 场景、1 列表。
 - offset 相对于所有节目块的起点；排序后必须从零连续，无空洞／重叠；块总长度必须正好覆盖文件尾。
 - id 和摘要为确切长度的 CBOR 字节串；字符串为有界 UTF-8 文本；无压缩。
@@ -74,6 +74,10 @@ program.output.render(player.values(), &mut slots)?; // 无分配，512 字节�
 - curve：0 平滑、1 三角、2 脉冲、3 关键帧。前三种 frames 必须为空。
 - frame：`[phaseU16, valueU16, transition]`；transition 0 保持、1 线性、2 平滑。
 - 标为单场景的节目必须一步、无循环、零延时／渐变、手动等待；仍可有持续效果。
+
+FIXTURE-003A 增补语义 2：带直接切换属性的块是 `[universe, mappings, defaults, repeat, steps, snapAttributes]`，末项为 1–512 个严格递增、在属性范围内的 u16 索引，不允许重复／空数组或与任何一步的动态效果属性冲突。旧五字段块仍可与新块共存于语义 2 包；语义 1 头部不允许新块。每属性延时后直接切换，其他属性照常渐变；暂停／跳转／释放详见[运行接口](sequence-preview.md)。
+
+`Archive::semantics()` 返回包所需执行语义。目标支持性由安装／发布上层核对；旧固件读取语义 2 头部会拒绝，不会当旧渐变计划执行。本次未升级实板，当前工程编辑仍生成语义 1；功能区间接入时再贯通目标兼容提示。新解码器支持旧包，旧参考包重建逐字节相同。新增 `Usage.snap_attributes`，预算增加 `2 × 索引数` 和一次分配余量 32 字节；空列表无新增堆分配。计划有效负载由 `snap_buffer_bytes()` 单列，不能漏算成仅 value／effect 字节。
 
 整数曲线、时间／跟踪解释或输出量化若产生行为变化，必须提升执行语义／编译器版本，旧解码器显式拒绝。
 

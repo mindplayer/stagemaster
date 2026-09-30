@@ -1,4 +1,5 @@
-use sha2::{Digest, Sha256};
+#[path = "support/raw_archive.rs"]
+mod raw_archive;
 use stagemaster_package::{
     Archive, Builder, Error, Kind, Mapping, Output, Program, ReadAt, Source, StepLabel,
     decode_program, encode_program,
@@ -191,12 +192,6 @@ fn single_load_reads_only_the_requested_block_and_rechecks_storage() {
     reader.bytes[offset] ^= 1;
     assert_eq!(archive.load(&reader, 1).unwrap_err(), Error::Integrity);
 }
-fn reseal(bytes: &mut [u8]) {
-    let mut h = Sha256::new();
-    h.update(&bytes[..32]);
-    h.update(&bytes[64..]);
-    bytes[32..64].copy_from_slice(&h.finalize());
-}
 #[test]
 fn valid_hash_does_not_bypass_versions_reserved_fields_or_directory_checks() {
     for index in [8, 10, 12, 14, 24, 26] {
@@ -257,49 +252,7 @@ fn reference_metadata_sizes_do_not_underestimate_this_target() {
 }
 
 // Build bytes independently of the product Builder, so valid hashes cannot hide parser errors.
-fn raw_archive(block: &[u8]) -> Vec<u8> {
-    let mut e = minicbor::Encoder::new(Vec::new());
-    e.array(6)
-        .unwrap()
-        .str(stagemaster_package::COMPILER)
-        .unwrap()
-        .bytes(&[1; 16])
-        .unwrap()
-        .bytes(&[2; 16])
-        .unwrap()
-        .bytes(&[3; 32])
-        .unwrap()
-        .str("独立编码")
-        .unwrap()
-        .array(1)
-        .unwrap()
-        .array(6)
-        .unwrap()
-        .u8(1)
-        .unwrap()
-        .bytes(&[4; 16])
-        .unwrap()
-        .str("节目")
-        .unwrap()
-        .u32(0)
-        .unwrap()
-        .u32(u32::try_from(block.len()).unwrap())
-        .unwrap()
-        .bytes(&Sha256::digest(block))
-        .unwrap();
-    let catalog = e.into_writer();
-    let mut bytes = vec![0; 64];
-    bytes[..8].copy_from_slice(b"STMPLAY\0");
-    bytes[8..16].copy_from_slice(&[1, 0, 64, 0, 1, 0, 1, 0]);
-    bytes[16..20].copy_from_slice(&u32::try_from(catalog.len()).unwrap().to_le_bytes());
-    let total = 64 + catalog.len() + block.len();
-    bytes[20..24].copy_from_slice(&u32::try_from(total).unwrap().to_le_bytes());
-    bytes[24] = 1;
-    bytes.extend(catalog);
-    bytes.extend_from_slice(block);
-    reseal(&mut bytes);
-    bytes
-}
+use raw_archive::{raw_archive, reseal};
 #[test]
 fn semantic_validation_cannot_be_bypassed_by_rehashing_the_entire_file() {
     let block = encode_program(&program()).unwrap();
@@ -354,12 +307,12 @@ fn semantic_validation_cannot_be_bypassed_by_rehashing_the_entire_file() {
         let mut invalid = block.clone();
         invalid[pos] = value;
         assert!(
-            Archive::open(raw_archive(&invalid).as_slice()).is_err(),
+            Archive::open(raw_archive(&invalid, 1).as_slice()).is_err(),
             "accepted mutation at {pos}"
         );
     }
     assert_eq!(
-        Archive::open(raw_archive(&block).as_slice())
+        Archive::open(raw_archive(&block, 1).as_slice())
             .unwrap()
             .entries()
             .len(),
@@ -369,7 +322,7 @@ fn semantic_validation_cannot_be_bypassed_by_rehashing_the_entire_file() {
     let huge = [
         0x85, 0x01, 0x9b, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
     ];
-    assert!(Archive::open(raw_archive(&huge).as_slice()).is_err());
+    assert!(Archive::open(raw_archive(&huge, 1).as_slice()).is_err());
 }
 #[test]
 fn bounded_random_input_never_panics_or_accepts_incomplete_structures() {

@@ -1,6 +1,6 @@
 # 实现状态
 
-当前能力基线：2026-10-01，EFFECT-003 `ed240c4`。本表是当前能力与验证边界的入口；后续增量和当前窗口／实板状态看 [STATE](development/STATE.md)，历史过程看各工单。技术框架为 Rust 核心、Tauri 2＋React／TypeScript 界面；云端 Fastify＋PostgreSQL＋对象存储尚未实施。
+当前界面能力基线：2026-10-01，EFFECT-003 `ed240c4`；随后 [FIXTURE-003A](development/tasks/FIXTURE-003A-discrete-playback.md) 已补离散执行／包兼容基础，工程／UI 接入继续。本表是当前能力与验证边界的入口；后续增量和当前窗口／实板状态看 [STATE](development/STATE.md)，历史过程看各工单。技术框架为 Rust 核心、Tauri 2＋React／TypeScript 界面；云端 Fastify＋PostgreSQL＋对象存储尚未实施。
 
 已有真实编辑、音频、内嵌预演及设备安装链路，仍是开发版。界面可操作、计划可编码、设备安装成功分别有证据；真实 RS485 输出仍禁用，不能据此宣称可交付演出。
 
@@ -17,7 +17,7 @@
 | 舞台与场地 | [装配](development/tasks/STAGE-001-rigging-workflow.md)、[场地目录](development/tasks/UX-025-stage-organization.md)：空间／尺寸、桁架／挂灯、阵列／对齐、测距、显隐／搜索／精确输入及一次历史 | 座区／座椅复合业务对象、门洞／共享墙、复杂吊点、完整三维组变换 |
 | 程序内三维 | [PREVIS-002](development/tasks/PREVIS-002-single-workspace.md)：唯一 UE 视窗与共享播放进度、跨页保持；[UX-023](development/tasks/UX-023-previs-session-contention.md) 处理短时锁竞争 | 仍依赖本机 UnrealEditor；独立运行时打包、专业光学／轮盘模拟、规模／延迟预算和完整辅助功能 |
 | 工程检查与素材交付 | [检查](module-api/project-check.md)、[资源健康](development/tasks/UX-028-project-resource-health.md)：编译／配适定位、资源摘要、缓存／随附文件分别检查、缺失重定位与保存补齐 | 当前资源检查针对已接入音乐文件；完整多媒体依赖、导出图纸、运行来源诊断未实现 |
-| 编译／播放包／设备运行层 | [有界包](module-api/playback-package.md)、[安装](module-api/package-installation.md)、[传输](module-api/package-transfer.md)、[NOR](module-api/nor-package-store.md)、[运行模块](module-api/device-runtime.md) 已实施并通过相应故障／重放验证 | 正式设备运行控制、独立本地面板、物理输出及整链路长期压力仍待验；主机故障注入不是所有板级掉电证明 |
+| 编译／播放包／设备运行层 | [有界包](module-api/playback-package.md)、[安装](module-api/package-installation.md)、[传输](module-api/package-transfer.md)、[NOR](module-api/nor-package-store.md)、[运行模块](module-api/device-runtime.md) 已实施并通过相应故障／重放验证；FIXTURE-003A 已补直接切换属性与执行语义 2 包，旧包仍兼容 | 正式设备运行控制、独立本地面板、物理输出及整链路长期压力仍待验；主机故障注入不是所有板级掉电证明 |
 | BLE 与实板存储 | [DEVICE-002 完整验收](development/tasks/DEVICE-002-direct-installation-acceptance.md)：免系统配对加密 GATT、身份／开发权限、下发／取消／续传／结果对账；[MEMORY-001](development/tasks/MEMORY-001-bounded-board-memory.md)：8 MB PSRAM 自检及 2 MB 有界缓存 | 现有开发凭据不等于生产身份、24 小时文件许可、安全启动；容量上限仍按目标预算校验 |
 | DMX 与首版播放盒 | 共享内核在 ESP32-S3 验证，支持单路 512 通道数据编码；实板安装已通过 | GPIO21／RS485 发送仍禁用；UART 时序、电气、运行到实灯及脱机操作闭环未通过。ARM／其他盒子尚未验证 |
 | 多源混合旧原型 | A0 的 HTP／LTP 与基础跟踪仍独立保留；G0 修复 R01／R02 并保留回归 | 不等同新单列表的完整专业合成器；[架构审查](architecture-review.md)中的 R03／R06／R09 等没有因新模块通过而自动关闭 |
@@ -26,7 +26,7 @@
 
 ## 验证命令
 
-EFFECT-003 最近一次产品增量通过 443 项 Rust、125 项 UI、87 项格式检查、fmt／严格 Clippy／类型和桌面构建；实际保存重开、撤销／取消、行程拒绝与内嵌 UE 见[任务验收](development/tasks/EFFECT-003-relative-position-effects.md)。测试数量是该构建的记录，不是商业成熟度评分。当前 DOC-001 仅校对文档，不重跑无关产品测试。
+EFFECT-003 最近一次产品增量通过 443 项 Rust、125 项 UI、87 项格式检查、fmt／严格 Clippy／类型和桌面构建；实际保存重开、撤销／取消、行程拒绝与内嵌 UE 见[任务验收](development/tasks/EFFECT-003-relative-position-effects.md)。测试数量是该构建的记录，不是商业成熟度评分。FIXTURE-003A 后续通过 455 Rust／fmt／严格检查与 Xtensa 检查，未更改 UI；界面证据仍沿用 EFFECT-003。
 
 项目使用本地离线依赖缓存；终端从根目录运行：
 

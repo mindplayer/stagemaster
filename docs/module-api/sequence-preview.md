@@ -34,6 +34,14 @@ let output = compiled.output.render(player.values())?;
 
 执行计划上限：512 属性、1024 步、262144 个 u16 目标值，每项时间最多 24 小时。`value_buffer_bytes()` 是目标／默认／当前／起点值数组的有效数据字节数，不包括元数据、分配器额外容量、宿主工程和 DMX／IPC 缓冲；PLAYER-002A 已测 ESP32-S3 上 2 步／512 属性的执行与堆占用，见[设备诊断接口](device-link-probe.md)；未验证全部上限容量，也未包含 DMX 发送预算。
 
+## 离散属性执行基础
+
+FIXTURE-003A／[ADR-059](../development/decisions/PRODUCT-ADR-059-discrete-playback-attributes.md) 增加 `Plan::with_snap_attributes(defaults, steps, repeat, effects, indices)`。严格递增的 u16 索引声明不可渐变的属性，普通构造函数默认空列表，原有行为不变；`snap_attributes()` 只读，`snap_buffer_bytes()` 返回索引有效存储字节。
+
+步骤延时内保留当前值，延时结束直接切到新目标；其他属性继续原渐变。暂停保持、恢复不重放，打断后新步骤延时内保留被打断时的值；零渐变、自动推进、跳转和循环采用同一规则。停止恢复各自默认值。离散属性与任何动态效果冲突会在计划构造／包扫描时拒绝，不能由曲线重新引入中间值；命名档位追逐待独立语义。
+
+此增量只提供纯内核和有界包的执行基础，当前 UI／工程编译尚未定义色盘／频闪功能区间；接入前不提供占位按钮，不自动触发固件更新或真实灯具。
+
 ## 桌面预览服务
 
 独立 `preview_request` 接口：snapshot；load（工程 generation、sequenceId）；loadScene（generation、sceneId）；control（预览 epoch、递增 serial、command）。根快照带 controlSerial，避免不同面板独立递增产生冲突。控制命令为 execute（stepId）、next、pause、resume、stop。UI 每次只保留一个监看请求，控制期间忽略此前发出的旧监看结果。

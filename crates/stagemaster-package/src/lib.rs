@@ -5,11 +5,14 @@
 #![forbid(unsafe_code)]
 extern crate alloc;
 mod archive;
+mod archive_builder;
 mod codec;
+mod effect_codec;
 mod program;
 
 use alloc::{string::String, vec::Vec};
-pub use archive::{Archive, Builder, Entry, ReadAt, Source};
+pub use archive::{Archive, Entry, ReadAt, Source};
+pub use archive_builder::Builder;
 use core::fmt;
 pub use program::{decode_program, encode_program};
 use stagemaster_playback::Plan;
@@ -23,6 +26,7 @@ pub const MAX_STEPS: usize = 128;
 pub const MAX_TEXT_BYTES: usize = 512;
 pub const PROFILE: &str = "reference-single-line-v1";
 pub const COMPILER: &str = "stagemaster-lighting-1";
+pub const SNAP_COMPILER: &str = "stagemaster-lighting-2";
 pub type Id = [u8; 16];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -156,6 +160,7 @@ pub struct Usage {
     pub attributes: usize,
     pub steps: usize,
     pub effect_channels: usize,
+    pub snap_attributes: usize,
     pub keyframes: usize,
     pub value_bytes: usize,
     pub resident_bytes: usize,

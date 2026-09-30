@@ -1,8 +1,8 @@
 use crate::{
     COMPILER, Error, Id, Kind, MAX_CATALOG_BYTES, MAX_LOADER_BYTES, MAX_PACKAGE_BYTES,
-    MAX_PROGRAM_BYTES, MAX_PROGRAMS, Program, Usage,
-    codec::{array, digest, encoder, end, id, read_text, text},
-    decode_program, encode_program, own,
+    MAX_PROGRAM_BYTES, MAX_PROGRAMS, Program, SNAP_COMPILER, Usage,
+    codec::{array, digest, end, id, read_text},
+    decode_program, own,
     program::scan,
     reserve,
 };
@@ -12,8 +12,8 @@ use alloc::{
 };
 use minicbor::Decoder;
 use sha2::{Digest, Sha256};
-const HEADER: usize = 64;
-const MAGIC: &[u8; 8] = b"STMPLAY\0";
+pub(super) const HEADER: usize = 64;
+pub(super) const MAGIC: &[u8; 8] = b"STMPLAY\0";
 
 /// A stable random-access snapshot. Adapters own files, flash partitions and error translation.
 pub trait ReadAt {
@@ -72,6 +72,7 @@ pub struct Archive {
     catalog_resident_bytes: usize,
     digest: [u8; 32],
     universe: u16,
+    semantics: u16,
 }
 impl Archive {
     /// Verify the complete package, then scan each program one at a time before accepting it.
@@ -84,7 +85,8 @@ impl Archive {
             return Err(Error::Integrity);
         }
         let bytes = read_block(reader, HEADER, catalog_length)?;
-        let mut archive = parse_catalog(&bytes, reader.len(), program_count, digest)?;
+        let semantics = u16::from_le_bytes([header[12], header[13]]);
+        let mut archive = parse_catalog(&bytes, reader.len(), program_count, digest, semantics)?;
         drop(bytes);
         let mut universe = None;
         for index in 0..archive.entries.len() {
@@ -95,6 +97,9 @@ impl Archive {
                     index,
                     message: e.to_string(),
                 })?;
+            if checked.semantics > semantics {
+                return Err(Error::Version);
+            }
             if universe.is_some_and(|value| value != checked.universe) {
                 return Err(Error::Invalid("各节目须使用同一输出线路"));
             }
@@ -106,6 +111,11 @@ impl Archive {
         }
         archive.universe = universe.ok_or(Error::Invalid("播放包没有节目"))?;
         Ok(archive)
+    }
+    /// Minimum execution semantics declared by this archive; target admission must check it.
+    #[must_use]
+    pub const fn semantics(&self) -> u16 {
+        self.semantics
     }
     #[must_use]
     pub const fn source(&self) -> &Source {
@@ -167,7 +177,10 @@ fn read_header<R: ReadAt + ?Sized>(reader: &R) -> Result<([u8; HEADER], usize, u
     if &h[..8] != MAGIC {
         return Err(Error::Invalid("文件标识不符"));
     }
-    if h[8..16] != [1, 0, 64, 0, 1, 0, 1, 0] {
+    if h[8..12] != [1, 0, 64, 0]
+        || h[14..16] != [1, 0]
+        || !matches!(u16::from_le_bytes([h[12], h[13]]), 1 | 2)
+    {
         return Err(Error::Version);
     }
     if h[26..32] != [0; 6] {
@@ -190,7 +203,10 @@ fn read_header<R: ReadAt + ?Sized>(reader: &R) -> Result<([u8; HEADER], usize, u
     }
     Ok((h, catalog, count))
 }
-fn hash_reader<R: ReadAt + ?Sized>(reader: &R, h: &[u8; HEADER]) -> Result<[u8; 32], Error> {
+pub(super) fn hash_reader<R: ReadAt + ?Sized>(
+    reader: &R,
+    h: &[u8; HEADER],
+) -> Result<[u8; 32], Error> {
     let mut hasher = Sha256::new();
     hasher.update(&h[..32]);
     let mut buffer = [0; 1024];
@@ -218,10 +234,17 @@ fn parse_catalog(
     total: usize,
     expected: usize,
     package_digest: [u8; 32],
+    semantics: u16,
 ) -> Result<Archive, Error> {
     let mut d = Decoder::new(bytes);
     array(&mut d, 6)?;
-    if read_text(&mut d)? != COMPILER {
+    if read_text(&mut d)?
+        != if semantics == 1 {
+            COMPILER
+        } else {
+            SNAP_COMPILER
+        }
+    {
         return Err(Error::Version);
     }
     let project_id = id(&mut d)?;
@@ -285,113 +308,9 @@ fn parse_catalog(
         catalog_resident_bytes: resident,
         digest: package_digest,
         universe: 0,
+        semantics,
     })
 }
-fn hash(bytes: &[u8]) -> [u8; 32] {
+pub(super) fn hash(bytes: &[u8]) -> [u8; 32] {
     Sha256::digest(bytes).into()
-}
-struct Encoded {
-    kind: Kind,
-    id: Id,
-    name: String,
-    bytes: Vec<u8>,
-}
-/// Host-side incremental builder. It retains encoded blocks, never all decoded plans.
-pub struct Builder {
-    source: Source,
-    programs: Vec<Encoded>,
-}
-impl Builder {
-    #[must_use]
-    pub const fn new(source: Source) -> Self {
-        Self {
-            source,
-            programs: Vec::new(),
-        }
-    }
-    /// Add a compiled program. Ordering is canonicalized when finishing.
-    /// # Errors
-    /// Rejects duplicate identities, excessive counts and invalid program data.
-    pub fn add(&mut self, kind: Kind, id: Id, name: &str, program: &Program) -> Result<(), Error> {
-        if self.programs.len() >= MAX_PROGRAMS {
-            return Err(Error::Limit("最多 64 个节目"));
-        }
-        if id == [0; 16] || self.programs.iter().any(|p| (p.kind, p.id) == (kind, id)) {
-            return Err(Error::Invalid("节目标识为空或重复"));
-        }
-        text(name)?;
-        let bytes = encode_program(program)?;
-        self.programs
-            .try_reserve(1)
-            .map_err(|_| Error::Allocation)?;
-        self.programs.push(Encoded {
-            kind,
-            id,
-            name: own(name)?,
-            bytes,
-        });
-        Ok(())
-    }
-    /// Finish deterministic bytes, then independently verify the entire archive.
-    /// # Errors
-    /// Rejects invalid source metadata, empty packages, total size, catalogues or loader budgets.
-    pub fn finish(mut self) -> Result<(Vec<u8>, Archive), Error> {
-        if self.programs.is_empty() {
-            return Err(Error::Invalid("请至少选择一个节目"));
-        }
-        self.programs.sort_unstable_by_key(|p| (p.kind, p.id));
-        let mut e = encoder(MAX_CATALOG_BYTES);
-        e.array(6)?
-            .str(COMPILER)?
-            .bytes(&self.source.project_id)?
-            .bytes(&self.source.revision_id)?
-            .bytes(&self.source.snapshot_digest)?
-            .str(text(&self.source.project_name)?)?
-            .array(self.programs.len() as u64)?;
-        let mut offset = 0_u32;
-        for p in &self.programs {
-            let length = u32::try_from(p.bytes.len()).map_err(|_| Error::Limit("节目大小"))?;
-            e.array(6)?
-                .u8(p.kind.code())?
-                .bytes(&p.id)?
-                .str(&p.name)?
-                .u32(offset)?
-                .u32(length)?
-                .bytes(&hash(&p.bytes))?;
-            offset += length;
-        }
-        let catalog = e.into_writer().bytes;
-        let total = HEADER + catalog.len() + offset as usize;
-        if total > MAX_PACKAGE_BYTES {
-            return Err(Error::Limit("完整包 2 MiB"));
-        }
-        let mut bytes = reserve(total)?;
-        bytes.resize(HEADER, 0);
-        bytes[..8].copy_from_slice(MAGIC);
-        bytes[8..16].copy_from_slice(&[1, 0, 64, 0, 1, 0, 1, 0]);
-        bytes[16..20].copy_from_slice(
-            &u32::try_from(catalog.len())
-                .map_err(|_| Error::Limit("目录大小"))?
-                .to_le_bytes(),
-        );
-        bytes[20..24].copy_from_slice(
-            &u32::try_from(total)
-                .map_err(|_| Error::Limit("包大小"))?
-                .to_le_bytes(),
-        );
-        bytes[24..26].copy_from_slice(
-            &u16::try_from(self.programs.len())
-                .map_err(|_| Error::Limit("节目数量"))?
-                .to_le_bytes(),
-        );
-        bytes.extend_from_slice(&catalog);
-        for p in self.programs {
-            bytes.extend_from_slice(&p.bytes);
-        }
-        let h = bytes[..HEADER].try_into().map_err(|_| Error::Read)?;
-        let digest = hash_reader(bytes.as_slice(), h)?;
-        bytes[32..64].copy_from_slice(&digest);
-        let archive = Archive::open(bytes.as_slice())?;
-        Ok((bytes, archive))
-    }
 }

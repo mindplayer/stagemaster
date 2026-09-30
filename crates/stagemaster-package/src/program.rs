@@ -1,12 +1,13 @@
+use crate::effect_codec::{read_effect, write_effect};
 use crate::{
     Error, MAX_LOADER_BYTES, MAX_PROGRAM_BYTES, MAX_STEPS, Mapping, Output, Program, StepLabel,
     Usage,
-    codec::{Encode, array, count, encoder, end, id, read_text, text, values, write_values},
+    codec::{array, count, encoder, end, id, read_text, text, values, write_values},
     occupy, own, reserve,
 };
 use alloc::vec::Vec;
 use minicbor::{Decoder, data::Type};
-use stagemaster_playback::{Curve, EffectChannel, Keyframe, MAX_TIME_MS, Plan, Step, Transition};
+use stagemaster_playback::{MAX_TIME_MS, Plan, Step};
 
 /// Encode a program into a bounded CBOR block and validate it using the independent decoder.
 /// # Errors
@@ -27,7 +28,8 @@ pub fn encode_program(program: &Program) -> Result<Vec<u8>, Error> {
         return Err(Error::Invalid("步骤标签数量"));
     }
     let mut e = encoder(MAX_PROGRAM_BYTES);
-    e.array(5)?
+    let snap = program.plan.snap_attributes();
+    e.array(if snap.is_empty() { 5 } else { 6 })?
         .u16(program.output.universe)?
         .array(program.output.mappings.len() as u64)?;
     for m in &program.output.mappings {
@@ -59,35 +61,15 @@ pub fn encode_program(program: &Program) -> Result<Vec<u8>, Error> {
             write_effect(&mut e, channel)?;
         }
     }
+    if !snap.is_empty() {
+        e.array(snap.len() as u64)?;
+        for &index in snap {
+            e.u16(index)?;
+        }
+    }
     let bytes = e.into_writer().bytes;
     scan(&bytes, 0)?;
     Ok(bytes)
-}
-fn write_effect(e: &mut Encode, c: &EffectChannel) -> Result<(), Error> {
-    let (kind, frames) = match &c.curve {
-        Curve::Smooth => (0, &[][..]),
-        Curve::Triangle => (1, &[][..]),
-        Curve::Pulse => (2, &[][..]),
-        Curve::Keyframes(frames) => (3, frames.as_slice()),
-    };
-    e.array(8)?
-        .u64(c.index as u64)?
-        .u16(c.low)?
-        .u16(c.high)?
-        .u32(c.period_ms)?
-        .u16(c.phase)?
-        .u8(c.duty_percent)?
-        .u8(kind)?
-        .array(frames.len() as u64)?;
-    for f in frames {
-        let transition = match f.transition {
-            Transition::Hold => 0,
-            Transition::Linear => 1,
-            Transition::Smooth => 2,
-        };
-        e.array(3)?.u16(f.phase)?.u16(f.value)?.u8(transition)?;
-    }
-    Ok(())
 }
 /// Scan before allocating the plan; catalogue memory must be included by archive callers.
 /// # Errors
@@ -101,6 +83,7 @@ pub(crate) struct Scanned {
     pub usage: Usage,
     pub universe: u16,
     pub held_scene: bool,
+    pub semantics: u16,
 }
 pub(crate) fn scan(bytes: &[u8], catalog_bytes: usize) -> Result<Scanned, Error> {
     if bytes.len() > MAX_PROGRAM_BYTES {
@@ -120,10 +103,10 @@ pub(crate) fn scan(bytes: &[u8], catalog_bytes: usize) -> Result<Scanned, Error>
     }
     Ok(result)
 }
-struct Accounting {
-    usage: Usage,
+pub(super) struct Accounting {
+    pub(super) usage: Usage,
     strings: usize,
-    allocations: usize,
+    pub(super) allocations: usize,
 }
 impl Accounting {
     fn new(attributes: usize, steps: usize) -> Self {
@@ -147,6 +130,7 @@ impl Accounting {
         // EffectChannel (<= 80), Keyframe (<= 8), Mapping (<= 8); allow 32 bytes per allocation.
         self.usage.resident_bytes = 512
             + self.usage.value_bytes
+            + self.usage.snap_attributes * 2
             + self.usage.steps * 144
             + self.usage.attributes * 8
             + self.usage.effect_channels * 80
@@ -165,7 +149,11 @@ fn duration(d: &mut Decoder<'_>) -> Result<u64, Error> {
 }
 fn parse(bytes: &[u8], build: bool) -> Result<(Scanned, Option<Program>), Error> {
     let mut d = Decoder::new(bytes);
-    array(&mut d, 5)?;
+    let semantics = match d.array()? {
+        Some(5) => 1,
+        Some(6) => 2,
+        _ => return Err(Error::Version),
+    };
     let (universe, attributes, mappings) = read_output(&mut d, build)?;
     let defaults = values(&mut d, attributes, build)?;
     let repeat = d.bool()?;
@@ -180,6 +168,7 @@ fn parse(bytes: &[u8], build: bool) -> Result<(Scanned, Option<Program>), Error>
     let mut ids = [[0; 16]; MAX_STEPS];
     let mut total_time = Some(0_u64);
     let mut held_scene = step_count == 1 && !repeat;
+    let mut effect_attributes = [0_u64; 8];
     for index in 0..step_count {
         array(&mut d, 8)?;
         let id = id(&mut d)?;
@@ -204,19 +193,13 @@ fn parse(bytes: &[u8], build: bool) -> Result<(Scanned, Option<Program>), Error>
             .zip(wait_ms)
             .map(|(total, wait)| total + delay_ms + fade_ms + wait);
         held_scene &= delay_ms == 0 && fade_ms == 0 && wait_ms.is_none();
-        let channel_count = count(&mut d, 128)?;
-        let mut occupied = [false; 512];
-        let mut channels = reserve(if build { channel_count } else { 0 })?;
-        if channel_count > 0 {
-            stats.allocations += 1;
-        }
-        stats.usage.effect_channels += channel_count;
-        for _ in 0..channel_count {
-            let channel = read_effect(&mut d, attributes, &mut occupied, &mut stats, build)?;
-            if let Some(channel) = channel {
-                channels.push(channel);
-            }
-        }
+        let channels = read_effects(
+            &mut d,
+            attributes,
+            &mut stats,
+            build,
+            &mut effect_attributes,
+        )?;
         if build {
             steps.push(Step {
                 target,
@@ -240,95 +223,29 @@ fn parse(bytes: &[u8], build: bool) -> Result<(Scanned, Option<Program>), Error>
     {
         return Err(Error::Limit("效果计划容量"));
     }
+    let snap = if semantics == 2 {
+        read_snap(&mut d, attributes, &effect_attributes, &mut stats, build)?
+    } else {
+        Vec::new()
+    };
     end(&d, bytes)?;
     let result = Scanned {
         usage: stats.finish(),
         universe,
         held_scene,
+        semantics,
     };
     let program = if build {
         Some(Program {
             output: Output { universe, mappings },
             labels,
-            plan: Plan::with_effects(defaults, steps, repeat, effects).map_err(Error::Plan)?,
+            plan: Plan::with_snap_attributes(defaults, steps, repeat, effects, snap)
+                .map_err(Error::Plan)?,
         })
     } else {
         None
     };
     Ok((result, program))
-}
-fn read_effect(
-    d: &mut Decoder<'_>,
-    attributes: usize,
-    occupied: &mut [bool; 512],
-    stats: &mut Accounting,
-    build: bool,
-) -> Result<Option<EffectChannel>, Error> {
-    array(d, 8)?;
-    let index = usize::from(d.u16()?);
-    if index >= attributes || occupied[index] {
-        return Err(Error::Invalid("效果属性越界或重复"));
-    }
-    occupied[index] = true;
-    let low = d.u16()?;
-    let high = d.u16()?;
-    let period_ms = d.u32()?;
-    let phase = d.u16()?;
-    let duty_percent = d.u8()?;
-    if !(100..=3_600_000).contains(&period_ms) || !(1..=99).contains(&duty_percent) {
-        return Err(Error::Invalid("效果周期或比例"));
-    }
-    let kind = d.u8()?;
-    if kind > 3 {
-        return Err(Error::Invalid("未知效果曲线"));
-    }
-    let n = count(d, 32)?;
-    if (kind == 3 && n < 2) || (kind != 3 && n != 0) {
-        return Err(Error::Invalid("关键帧数量与曲线类型不符"));
-    }
-    stats.usage.keyframes += n;
-    if n > 0 {
-        stats.allocations += 1;
-    }
-    let mut frames = reserve(if build { n } else { 0 })?;
-    let mut previous = None;
-    for _ in 0..n {
-        array(d, 3)?;
-        let phase = d.u16()?;
-        let value = d.u16()?;
-        if previous.map_or(phase != 0, |p| phase <= p) {
-            return Err(Error::Invalid("关键帧须从零开始严格递增"));
-        }
-        previous = Some(phase);
-        let transition = match d.u8()? {
-            0 => Transition::Hold,
-            1 => Transition::Linear,
-            2 => Transition::Smooth,
-            _ => return Err(Error::Invalid("未知关键帧过渡")),
-        };
-        if build {
-            frames.push(Keyframe {
-                phase,
-                value,
-                transition,
-            });
-        }
-    }
-    let curve = match kind {
-        0 => Curve::Smooth,
-        1 => Curve::Triangle,
-        2 => Curve::Pulse,
-        _ => Curve::Keyframes(frames),
-    };
-    Ok(build.then_some(EffectChannel {
-        index,
-        low,
-        high,
-        period_ms,
-        phase,
-        curve,
-        duty_percent,
-    }))
 }
 
 fn read_output(d: &mut Decoder<'_>, build: bool) -> Result<(u16, usize, Vec<Mapping>), Error> {
@@ -358,4 +275,64 @@ fn read_output(d: &mut Decoder<'_>, build: bool) -> Result<(u16, usize, Vec<Mapp
         }
     }
     Ok((universe, attributes, mappings))
+}
+
+fn read_snap(
+    d: &mut Decoder<'_>,
+    attributes: usize,
+    effect_attributes: &[u64; 8],
+    stats: &mut Accounting,
+    build: bool,
+) -> Result<Vec<u16>, Error> {
+    let n = count(d, attributes)?;
+    if n == 0 {
+        return Err(Error::Invalid("直接切换索引不能为空"));
+    }
+    let mut snap = reserve(if build { n } else { 0 })?;
+    stats.usage.snap_attributes = n;
+    stats.allocations += 1;
+    let mut previous = None;
+    for _ in 0..n {
+        let index = d.u16()?;
+        if usize::from(index) >= attributes || previous.is_some_and(|p| index <= p) {
+            return Err(Error::Invalid("直接切换索引越界、重复或未递增"));
+        }
+        let index_usize = usize::from(index);
+        if effect_attributes[index_usize / 64] & (1 << (index_usize % 64)) != 0 {
+            return Err(Error::Invalid("直接切换属性与动态效果冲突"));
+        }
+        previous = Some(index);
+        if build {
+            snap.push(index);
+        }
+    }
+    Ok(snap)
+}
+
+fn read_effects(
+    d: &mut Decoder<'_>,
+    attributes: usize,
+    stats: &mut Accounting,
+    build: bool,
+    effect_attributes: &mut [u64; 8],
+) -> Result<Vec<stagemaster_playback::EffectChannel>, Error> {
+    let channel_count = count(d, 128)?;
+    let mut occupied = [false; 512];
+    let mut channels = reserve(if build { channel_count } else { 0 })?;
+    if channel_count > 0 {
+        stats.allocations += 1;
+    }
+    stats.usage.effect_channels += channel_count;
+    for _ in 0..channel_count {
+        let channel = read_effect(d, attributes, &mut occupied, stats, build)?;
+        if let Some(channel) = channel {
+            channels.push(channel);
+        }
+    }
+    for (index, used) in occupied.into_iter().enumerate() {
+        if used {
+            effect_attributes[index / 64] |= 1 << (index % 64);
+        }
+    }
+    Ok(channels)
 }
