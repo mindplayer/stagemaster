@@ -1,3 +1,4 @@
+import { ResourcePicker } from "../resources/ResourcePicker";
 import { useState } from "react";
 import type { ProjectView, SceneView } from "../../application-host";
 import type { LibraryEdit } from "../../library-types";
@@ -47,19 +48,30 @@ export function QuickPresets({
   return (
     <section className="quick-presets" aria-label="快捷预设">
       <span>预设</span>
-      <select
-        aria-label="快捷预设"
+      <ResourcePicker
+        label="快捷预设"
+        placeholder="选择预设"
+        value={preset?.id}
         disabled={busy}
-        value={preset?.id ?? ""}
-        onChange={(e) => onPreset(e.target.value)}
-      >
-        <option value="">选择预设</option>
-        {project.presets.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
+        options={[
+          { id: "", label: "不选择预设" },
+          ...project.presets.map((p) => ({
+            id: p.id,
+            label: p.name,
+            detail: `${new Set(p.values.map((v) => v.fixtureId)).size} 台灯具 · ${p.values.length} 项属性`,
+            keywords: [
+              ...new Set(
+                p.values.map(
+                  (v) =>
+                    available.find((a) => a.key === v.attribute)?.label ??
+                    v.attribute,
+                ),
+              ),
+            ].join(" "),
+          })),
+        ]}
+        onSelect={onPreset}
+      />
       <select
         aria-label="快捷预设属性范围"
         disabled={busy}

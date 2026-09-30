@@ -1,3 +1,4 @@
+import { ResourcePicker } from "../resources/ResourcePicker";
 import "./scene-selection-bar.css";
 import type { ProjectView } from "../../application-host";
 import { recallGroup, type RecallMode } from "../../library-tools";
@@ -31,25 +32,22 @@ export function SceneSelectionBar({
       >
         已选 {selected.length} 台
       </strong>
-      <select
-        aria-label="快捷选择灯组"
-        value=""
-        disabled={busy || !project.groups.length}
-        onChange={(e) => {
-          const target = project.groups.find((g) => g.id === e.target.value);
+      <ResourcePicker
+        label="快捷选择灯组"
+        placeholder="选择灯组…"
+        value={group?.id}
+        disabled={busy}
+        options={project.groups.map((g) => ({
+          id: g.id,
+          label: g.name,
+          detail: `${g.fixtureIds.length} 台灯具`,
+        }))}
+        onSelect={(id) => {
+          const target = project.groups.find((g) => g.id === id);
           if (target)
             void onSelect(recallGroup(selected, target.fixtureIds, recall));
         }}
-      >
-        <option value="" disabled>
-          {group ? group.name : "选择灯组…"}
-        </option>
-        {project.groups.map((g) => (
-          <option key={g.id} value={g.id}>
-            {g.name} · {g.fixtureIds.length} 台
-          </option>
-        ))}
-      </select>
+      />
       <select
         aria-label="快捷灯组召回方式"
         value={recall}
