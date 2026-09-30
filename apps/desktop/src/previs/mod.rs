@@ -2,6 +2,7 @@
 pub(crate) mod protocol;
 mod renderer;
 mod server;
+mod session_access;
 
 use crate::session::Session;
 use protocol::{Request, Source};
@@ -63,17 +64,21 @@ pub(crate) async fn previs_request(
         Request::Source {
             generation,
             ref source,
-        } => shared
-            .try_lock()
-            .map_err(|_| "工程正在处理其他操作")?
-            .set_previs_source(generation, source.clone())?,
+        } => {
+            session_access::access(&shared, |session| {
+                session.set_previs_source(generation, source.clone())
+            })
+            .await?;
+        }
         Request::Editing {
             generation,
             allowed,
-        } => shared
-            .try_lock()
-            .map_err(|_| "工程正在处理其他操作")?
-            .set_previs_editing(generation, allowed)?,
+        } => {
+            session_access::access(&shared, |session| {
+                session.set_previs_editing(generation, allowed)
+            })
+            .await?;
+        }
         Request::Status | Request::Enable | Request::Disable => {}
     }
     let state = app.state::<Bridge>();
@@ -86,11 +91,11 @@ pub(crate) async fn previs_request(
                 .as_ref()
                 .is_none_or(|server| !server.status(Source::Defaults, Instant::now()).enabled) =>
         {
-            {
-                let mut session = shared.try_lock().map_err(|_| "工程正在处理其他操作")?;
+            session_access::access(&shared, |session| {
                 let generation = session.previs_revision().generation;
-                session.set_previs_editing(generation, false)?;
-            }
+                session.set_previs_editing(generation, false)
+            })
+            .await?;
             runtime.stop();
             let notify_app = app.clone();
             let server = server::Server::start(
@@ -111,10 +116,7 @@ pub(crate) async fn previs_request(
         }
         _ => {}
     }
-    let source = shared
-        .try_lock()
-        .map_err(|_| "工程正在处理其他操作")?
-        .previs_source();
+    let source = session_access::access(&shared, |session| Ok(session.previs_source())).await?;
     let mut status = runtime.server.as_ref().map_or(
         Status {
             enabled: false,
