@@ -1,5 +1,5 @@
 import "./scene-preview.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import {
   PlayIcon,
   PauseIcon,
@@ -8,14 +8,15 @@ import {
   SkipForwardIcon,
 } from "@phosphor-icons/react";
 import type { ApplicationHost, SceneView } from "../../application-host";
-import type {
-  PreviewCommand,
-  PreviewSnapshot,
-  SequenceView,
-} from "../../sequence-types";
+import type { SequenceView } from "../../sequence-types";
 import { seconds } from "../../sequence-tools";
 import { PreviewOutput } from "./PreviewOutput";
-import { startScenePreview } from "./scene-preview-action";
+import { usePreviewController } from "./usePreviewController";
+import { ExecutionPreview } from "./ExecutionPreview";
+import {
+  executionPosition,
+  type ExecutionPosition,
+} from "./execution-position";
 
 export function PreviewPanel({
   host,
@@ -27,6 +28,8 @@ export function PreviewPanel({
   beforeAction,
   visible,
   onView3d,
+  execution = false,
+  onPosition,
 }: {
   host: ApplicationHost;
   sequence?: SequenceView;
@@ -37,120 +40,39 @@ export function PreviewPanel({
   beforeAction(): Promise<boolean>;
   visible: boolean;
   onView3d?(): void;
+  execution?: boolean;
+  onPosition?(position: ExecutionPosition): void;
 }) {
-  const [snapshot, setSnapshot] = useState<PreviewSnapshot>({
-    epoch: 0,
-    controlSerial: 0,
-    loaded: null,
+  const controller = usePreviewController({
+    host,
+    sequence,
+    scene,
+    beforeAction,
+    visible,
+    onView3d,
   });
-  const [error, setError] = useState("");
-  const [working, setWorking] = useState(false);
-  const current = useRef(snapshot);
-  const controlBusy = useRef(false);
-  const epochRequest = useRef(0);
-  const alive = useRef(true);
-  const target = useRef(scene?.id);
-  target.current = visible ? scene?.id : undefined;
-  const publish = (value: PreviewSnapshot) => {
-    if (alive.current) {
-      current.current = value;
-      setSnapshot(value);
-    }
-  };
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-  useEffect(() => {
-    let disposed = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const poll = async () => {
-      const version = epochRequest.current;
-      if (!controlBusy.current) {
-        try {
-          const next = await host.preview({ kind: "snapshot" });
-          if (!disposed && version === epochRequest.current) publish(next);
-        } catch (reason) {
-          if (!disposed && version === epochRequest.current)
-            setError(String(reason));
-        }
-      }
-      if (!disposed) timer = setTimeout(poll, visible ? 80 : 500);
-    };
-    void poll();
-    return () => {
-      disposed = true;
-      clearTimeout(timer);
-    };
-  }, [host, visible]);
-  async function act(command: PreviewCommand | "load" | "startScene") {
-    if (controlBusy.current) return;
-    controlBusy.current = true;
-    epochRequest.current++;
-    setWorking(true);
-    setError("");
-    try {
-      // Stop/pause must remain available even when an unrelated editor draft is invalid.
-      if (
-        (typeof command === "string" ||
-          !["stop", "pause"].includes(command.kind)) &&
-        !(await beforeAction())
-      )
-        return;
-      // Flush can change the project generation, so obtain the host's authoritative snapshot.
-      if (command === "startScene" && scene) {
-        const result = await startScenePreview(
-          host,
-          scene.id,
-          () => alive.current && target.current === scene.id,
-        );
-        publish(result);
-        if (alive.current && target.current === scene.id) onView3d?.();
-      } else if (command === "load") {
-        if (!sequence && !scene) return;
-        const project = await host.request({ kind: "snapshot" });
-        publish(
-          await host.preview(
-            scene
-              ? {
-                  kind: "loadScene",
-                  generation: project.generation,
-                  sceneId: scene.id,
-                }
-              : {
-                  kind: "load",
-                  generation: project.generation,
-                  sequenceId: sequence!.id,
-                },
-          ),
-        );
-      } else if (typeof command !== "string") {
-        // Several views share one player. Read the current serial, never restart a local counter.
-        const latest = await host.preview({ kind: "snapshot" });
-        if (latest.epoch !== current.current.epoch) {
-          publish(latest);
-          throw new Error("预览内容已更换，请确认后重试");
-        }
-        publish(
-          await host.preview({
-            kind: "control",
-            epoch: current.current.epoch,
-            serial: latest.controlSerial + 1,
-            command,
-          }),
-        );
-      }
-    } catch (reason) {
-      if (alive.current)
-        setError(reason instanceof Error ? reason.message : String(reason));
-    } finally {
-      controlBusy.current = false;
-      if (alive.current) setWorking(false);
-    }
-  }
+  const { snapshot, error, working, act } = controller;
   const loaded = snapshot.loaded;
+  const position = executionPosition(loaded);
+  useEffect(() => {
+    onPosition?.(position);
+  }, [
+    position.sequenceId,
+    position.currentId,
+    position.nextId,
+    position.status,
+    position.stale,
+    onPosition,
+  ]);
+  if (execution)
+    return (
+      <ExecutionPreview
+        controller={controller}
+        sequence={sequence}
+        stepId={stepId}
+        busy={busy}
+      />
+    );
   const same =
     !!loaded &&
     (scene

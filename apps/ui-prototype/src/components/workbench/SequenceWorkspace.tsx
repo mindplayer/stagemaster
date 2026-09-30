@@ -1,15 +1,12 @@
+import { SequenceLibrary } from "./SequenceLibrary";
+import { SequenceEditToolbar } from "./SequenceEditToolbar";
+import { executionPosition } from "./execution-position";
+import "./execution-view.css";
 import { SequenceStepList } from "./SequenceStepList";
 import { DockPane } from "../layout/DockPane";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import {
-  PlusIcon,
-  CopyIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  TrashIcon,
-  ListNumbersIcon,
-} from "@phosphor-icons/react";
+import { TrashIcon } from "@phosphor-icons/react";
 import type {
   ApplicationHost,
   EditCommand,
@@ -42,6 +39,8 @@ export const SequenceWorkspace = forwardRef<
     busy: boolean;
     visible: boolean;
     onView3d?(): void;
+    execution: boolean;
+    onExecution(value: boolean): void;
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
     onPending(value: boolean): void;
@@ -54,12 +53,15 @@ export const SequenceWorkspace = forwardRef<
     busy,
     visible,
     onView3d,
+    execution,
+    onExecution,
     onEdit,
     beforeChange,
     onPending,
   },
   ref,
 ) {
+  const [position, setPosition] = useState(() => executionPosition(null));
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
   const [stepId, setStepId] = useState(
     project.sequences[0]?.steps[0]?.id ?? "",
@@ -252,74 +254,51 @@ export const SequenceWorkspace = forwardRef<
       label="列表工作区"
     >
       <DockPane region="library" visible={visible}>
-        <aside className="wb-library">
-          <div className="wb-section-title">
-            <h2>
-              <ListNumbersIcon />
-              场景列表
-            </h2>
-            <span>{project.sequences.length}</span>
-          </div>
-          <input
-            aria-label="搜索列表"
-            placeholder="搜索列表"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <div className="wb-library-actions">
-            <button
-              disabled={busy || !project.scenes.length}
-              onClick={() => void addSequence()}
-            >
-              <PlusIcon />
-              新建列表
-            </button>
-            <button
-              aria-label="复制列表"
-              disabled={busy || !sequence}
-              onClick={() => void duplicateSequence()}
-            >
-              <CopyIcon />
-            </button>
-          </div>
-          <div className="wb-scene-list">
-            {lists.map((s) => (
-              <button
-                key={s.id}
-                aria-pressed={sequence?.id === s.id}
-                className={sequence?.id === s.id ? "active" : ""}
-                disabled={busy}
-                onClick={() => void chooseSequence(s.id)}
-              >
-                <div>
-                  <strong>{s.name}</strong>
-                  <small>
-                    {s.steps.length} 步 ·{" "}
-                    {s.repeat === "loop" ? "循环" : "单次"}
-                  </small>
-                </div>
-              </button>
-            ))}
-            {!lists.length && (
-              <p className="wb-dim">
-                {project.sequences.length
-                  ? "未找到列表"
-                  : project.scenes.length
-                    ? "尚未创建列表"
-                    : "请先在编排中创建场景"}
-              </p>
-            )}
-          </div>
-        </aside>
+        <SequenceLibrary
+          lists={lists}
+          count={project.sequences.length}
+          selectedId={sequence?.id}
+          hasScenes={!!project.scenes.length}
+          query={query}
+          setQuery={setQuery}
+          busy={busy}
+          onAdd={() => void addSequence()}
+          onDuplicate={() => void duplicateSequence()}
+          onSelect={(id) => void chooseSequence(id)}
+        />
       </DockPane>
-      <DockPane region="editor" visible={visible}>
-        <section className="wb-sequence-content">
+      <DockPane region={execution ? "full" : "editor"} visible={visible}>
+        <section className="wb-sequence-content" data-execution={execution}>
           <div className="wb-content-heading">
             <div>
               <span className="wb-eyebrow">节目编排</span>
               <h1>{sequence?.name ?? "场景列表"}</h1>
             </div>
-            {sequence && (
+            <div
+              className="execution-view-switch"
+              role="group"
+              aria-label="列表工作方式"
+            >
+              <button
+                disabled={busy}
+                aria-pressed={!execution}
+                onClick={() =>
+                  void beforeChange().then((ok) => ok && onExecution(false))
+                }
+              >
+                步骤编排
+              </button>
+              <button
+                disabled={busy}
+                aria-pressed={execution}
+                onClick={() =>
+                  void beforeChange().then((ok) => ok && onExecution(true))
+                }
+              >
+                执行视图
+              </button>
+            </div>
+            {sequence && !execution && (
               <button
                 aria-label="删除列表"
                 disabled={busy}
@@ -332,93 +311,77 @@ export const SequenceWorkspace = forwardRef<
               </button>
             )}
           </div>
+          {execution && (
+            <div className="execution-list-picker">
+              <label htmlFor="execution-list">执行列表</label>
+              <select
+                id="execution-list"
+                disabled={busy}
+                value={sequence?.id ?? ""}
+                onChange={(e) => void chooseSequence(e.target.value)}
+              >
+                {project.sequences.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <span className="wb-dim">{sequence?.steps.length ?? 0} 步</span>
+            </div>
+          )}
           {sequence && (
             <>
-              <div className="wb-sequence-add">
-                <select
-                  aria-label="要加入的场景"
-                  value={
-                    project.scenes.some((s) => s.id === addSceneId)
-                      ? addSceneId
-                      : (project.scenes[0]?.id ?? "")
-                  }
-                  onChange={(e) => setAddSceneId(e.target.value)}
-                  disabled={busy}
-                >
-                  {project.scenes.map((s) => (
-                    <option value={s.id} key={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  disabled={busy || !project.scenes.length}
-                  onClick={() => void insertStep()}
-                >
-                  <PlusIcon />
-                  加入步骤
-                </button>
-              </div>
-              <div className="wb-sequence-actions">
-                <input
-                  aria-label="搜索步骤"
-                  placeholder="搜索编号、步骤或场景"
-                  value={stepQuery}
-                  onChange={(e) => setStepQuery(e.target.value)}
-                />
-                <button
-                  aria-label="上移步骤"
-                  disabled={busy || index <= 0}
-                  onClick={() =>
+              {execution ? (
+                <div className="execution-search">
+                  <input
+                    aria-label="搜索步骤"
+                    placeholder="搜索编号、步骤或场景"
+                    value={stepQuery}
+                    onChange={(e) => setStepQuery(e.target.value)}
+                  />
+                  <button
+                    disabled={
+                      !position.currentId || position.sequenceId !== sequence.id
+                    }
+                    onClick={() => {
+                      setStepQuery("");
+                      requestAnimationFrame(() =>
+                        document
+                          .getElementById(`step-${position.currentId}`)
+                          ?.scrollIntoView({ block: "center" }),
+                      );
+                    }}
+                  >
+                    定位当前
+                  </button>
+                </div>
+              ) : (
+                <SequenceEditToolbar
+                  scenes={project.scenes}
+                  busy={busy}
+                  addSceneId={addSceneId}
+                  setAddSceneId={setAddSceneId}
+                  stepQuery={stepQuery}
+                  setStepQuery={setStepQuery}
+                  index={index}
+                  stepCount={sequence.steps.length}
+                  hasStep={!!step}
+                  onInsert={() => void insertStep()}
+                  onDuplicate={() => void duplicateStep()}
+                  onMove={(index) =>
                     void edit({
                       kind: "moveStep",
                       id: sequence.id,
                       stepId: step!.id,
-                      index: index - 1,
+                      index,
                     })
                   }
-                >
-                  <ArrowUpIcon />
-                </button>
-                <button
-                  aria-label="下移步骤"
-                  disabled={
-                    busy || index < 0 || index >= sequence.steps.length - 1
-                  }
-                  onClick={() =>
-                    void edit({
-                      kind: "moveStep",
-                      id: sequence.id,
-                      stepId: step!.id,
-                      index: index + 1,
-                    })
-                  }
-                >
-                  <ArrowDownIcon />
-                </button>
-                <button
-                  aria-label="复制步骤"
-                  disabled={busy || !step}
-                  onClick={() => void duplicateStep()}
-                >
-                  <CopyIcon />
-                </button>
-                <button
-                  aria-label="删除步骤"
-                  disabled={busy || !step || sequence.steps.length === 1}
-                  title={
-                    sequence.steps.length === 1
-                      ? "列表至少保留一个步骤"
-                      : "删除步骤"
-                  }
-                  onClick={() => {
+                  onDelete={() => {
                     setLocalError("");
                     setDeleteTarget("step");
                   }}
-                >
-                  <TrashIcon />
-                </button>
-              </div>
+                />
+              )}
               <div className="wb-steps-region">
                 {step && !steps.some((s) => s.id === step.id) && (
                   <p className="wb-dim">
@@ -432,6 +395,9 @@ export const SequenceWorkspace = forwardRef<
                   scenes={project.scenes}
                   busy={busy}
                   onSelect={chooseStep}
+                  position={
+                    position.sequenceId === sequence.id ? position : undefined
+                  }
                 />
               </div>
             </>
@@ -445,10 +411,12 @@ export const SequenceWorkspace = forwardRef<
             beforeAction={beforeChange}
             visible={visible}
             onView3d={onView3d}
+            execution={execution}
+            onPosition={setPosition}
           />
         </section>
       </DockPane>
-      <DockPane region="inspector" visible={visible}>
+      <DockPane region="inspector" visible={visible && !execution}>
         <aside className="wb-properties wb-sequence-properties">
           {sequence && step && data && (
             <SequenceInspector

@@ -93,7 +93,7 @@ export function PerformanceLayout({
     if (!layout[side] || !beforeChange || (await beforeChange()))
       setLayout((v) => ({ ...v, [side]: !v[side] }));
   }
-  const full = ["fixtures", "profiles", "settings"].includes(mode);
+  const full = ["fixtures", "profiles", "settings", "execution"].includes(mode);
   const lower = ["scenes", "sequences", "audio"].includes(mode);
   return (
     <DockContext.Provider value={targets}>
@@ -162,7 +162,7 @@ export function PerformanceLayout({
         />
         <Target
           region="full"
-          label="管理工作区"
+          label={mode === "execution" ? "执行工作区" : "管理工作区"}
           target={targets.full}
           visible={full}
         />

@@ -1,3 +1,4 @@
+import type { ExecutionPosition } from "./execution-position";
 import type { ProjectView } from "../../application-host";
 import type { SequenceView } from "../../sequence-types";
 import { seconds } from "../../sequence-tools";
@@ -7,7 +8,9 @@ export function SequenceStepList({
   scenes,
   busy,
   onSelect,
+  position,
 }: {
+  position?: ExecutionPosition;
   steps: SequenceView["steps"];
   selectedId: string;
   scenes: ProjectView["scenes"];
@@ -22,6 +25,8 @@ export function SequenceStepList({
           key={s.id}
           disabled={busy}
           className={s.id === selectedId ? "active" : ""}
+          data-running={position?.currentId === s.id}
+          data-next={position?.nextId === s.id && position?.currentId !== s.id}
           onClick={() => void onSelect(s.id)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -37,6 +42,19 @@ export function SequenceStepList({
           }}
           id={`step-${s.id}`}
         >
+          {position && (
+            <span className="execution-row-state">
+              {position.currentId === s.id
+                ? position.status === "paused"
+                  ? "已暂停"
+                  : position.status === "finished"
+                    ? "已结束"
+                    : "当前"
+                : position.nextId === s.id
+                  ? "下一步"
+                  : ""}
+            </span>
+          )}
           <span className="wb-step-number">{s.number}</span>
           <div>
             <strong>{s.name}</strong>

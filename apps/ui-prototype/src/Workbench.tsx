@@ -169,6 +169,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const sequences = useRef<SequenceHandle>(null);
   const stage = useRef<StageHandle>(null);
   const [stagePending, setStagePending] = useState(false);
+  const [sequenceExecution, setSequenceExecution] = useState(false);
   const [sequencePending, setSequencePending] = useState(false);
   const htmlProjectForm = useRef<HTMLFormElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -854,7 +855,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             revealInspector={effectWorkspace.active?.token}
             beforeChange={() => run(async () => {})}
             busy={busy}
-            mode={page}
+            mode={
+              page === "sequences" && sequenceExecution ? "execution" : page
+            }
             toolbar={
               <WorkbenchNavigation
                 page={page}
@@ -1025,6 +1028,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               key={project.id}
               ref={sequences}
               onView3d={() => sharedPrevis.current?.openPlayback()}
+              execution={sequenceExecution}
+              onExecution={setSequenceExecution}
               project={project}
               host={host}
               generation={snapshot.generation}
