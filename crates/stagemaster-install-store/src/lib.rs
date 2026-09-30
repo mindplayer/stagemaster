@@ -8,19 +8,22 @@ use std::{
     sync::Mutex,
 };
 use tempfile::NamedTempFile;
+mod lease;
+use lease::Lease;
 
 pub struct FileStore {
     root: PathBuf,
-    _writer: File,
     stage: Option<Stage>,
     #[cfg(test)]
     fault: std::rc::Rc<std::cell::RefCell<Fault>>,
+    // Dropped last, after staged temporary files and slot leases are released.
+    _writer: Lease,
 }
 struct Stage {
     slot: Slot,
     bytes: usize,
-    _lease: File,
     temp: Option<NamedTempFile>,
+    _lease: Lease,
 }
 impl FileStore {
     /// Open a dedicated install directory, holding its writer lock until this store is dropped.
@@ -33,9 +36,7 @@ impl FileStore {
             return Err(io::Error::other("安装目录不能是符号链接或非目录"));
         }
         let root = root.canonicalize()?;
-        let writer = lock_file(&root.join("installer.lock"))?;
-        writer
-            .try_lock()
+        let writer = Lease::exclusive(lock_file(&root.join("installer.lock"))?)
             .map_err(|_| io::Error::other("此安装目录正在被另一个进程使用"))?;
         // Only this module's interrupted temporary writes in its dedicated directory.
         for entry in fs::read_dir(&root)? {
@@ -166,9 +167,7 @@ impl Storage for FileStore {
             return Err(io::Error::other("暂存忙或容量超限"));
         }
         self.point("prepare:before")?;
-        let lease = self.pin(slot)?;
-        lease
-            .try_lock()
+        let lease = Lease::exclusive(self.pin(slot)?)
             .map_err(|_| io::Error::other("备用槽仍被运行读源占用，请先释放该读源"))?;
         self.point("prepare:lease")?;
         regular_or_missing(&self.payload(slot))?;
@@ -279,10 +278,8 @@ impl Storage for FileStore {
         self.stage = None;
     }
     fn snapshot(&self, slot: Slot) -> io::Result<FileSnapshot> {
-        let lease = self.pin(slot)?;
-        lease
-            .try_lock_shared()
-            .map_err(|_| io::Error::other("此槽正在接收新包"))?;
+        let lease =
+            Lease::shared(self.pin(slot)?).map_err(|_| io::Error::other("此槽正在接收新包"))?;
         let file = regular_file(&self.payload(slot))?;
         let length = usize::try_from(file.metadata()?.len())
             .map_err(|_| io::Error::other("载荷大小超限"))?;
@@ -295,7 +292,7 @@ impl Storage for FileStore {
 }
 pub struct FileSnapshot {
     file: Mutex<File>,
-    _lease: File,
+    _lease: Lease,
     length: usize,
 }
 impl ReadAt for FileSnapshot {
@@ -331,3 +328,6 @@ struct Fault {
 }
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod lock_tests;

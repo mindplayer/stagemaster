@@ -6,7 +6,7 @@ use stagemaster_project::{Document, EditCommand, PackageSelection, ValueMode};
 use std::{cell::RefCell, rc::Rc};
 
 type Engine = Installer<FileStore>;
-fn dir() -> tempfile::TempDir {
+pub(super) fn dir() -> tempfile::TempDir {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tmp");
     fs::create_dir_all(&root).unwrap();
     tempfile::tempdir_in(root).unwrap()
