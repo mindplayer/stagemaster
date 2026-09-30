@@ -76,8 +76,10 @@ export function EffectFixtureOrder({
               type="button"
               key={f.id}
               disabled={
-                !channels.every((c) =>
-                  f.attributes.some((a) => a.key === c.attribute),
+                !channels.every(
+                  (c) =>
+                    (c.amplitudeDegrees === undefined || !!f.positioning) &&
+                    f.attributes.some((a) => a.key === c.attribute),
                 )
               }
               onClick={() => onChange([...ids, f.id])}

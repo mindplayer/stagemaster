@@ -227,7 +227,8 @@ impl Document {
                     stagemaster_playback::MAX_KEYFRAMES
                 ));
             }
-            let channels = crate::effects::compile(&scene.effects, &targets)?;
+            let channels = crate::effect_compile::compile(root, &scene.effects, &targets, &target)
+                .map_err(|reason| format!("场景“{}”：{reason}", scene.name))?;
             effect_count += channels.len();
             if effect_count > stagemaster_playback::MAX_EFFECT_CHANNELS {
                 return Err(format!(

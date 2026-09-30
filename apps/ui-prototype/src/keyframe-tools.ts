@@ -9,6 +9,8 @@ export const attributeLabels: Record<EffectAttribute, string> = {
   red: "红",
   green: "绿",
   blue: "蓝",
+  pan: "水平",
+  tilt: "垂直",
 };
 export interface FrameDraft {
   position: string;
@@ -19,6 +21,8 @@ export interface FrameDraft {
 export const valuePercent = (value: number) =>
   String(Number(((value * 100) / 65535).toFixed(4)));
 export function toKeyframes(effect: SceneEffect): SceneEffect {
+  if (effect.waveform === "position")
+    throw new Error("相对位置效果须在运动属性中编辑");
   if (effect.waveform === "keyframes") return structuredClone(effect);
   const pulse = effect.waveform === "pulse";
   if (
@@ -32,7 +36,12 @@ export function toKeyframes(effect: SceneEffect): SceneEffect {
     ...effect,
     waveform: "keyframes",
     channels: effect.channels.map((channel) => {
-      if (channel.keyframes) throw new Error("效果数据与变化方式不符");
+      if (
+        channel.keyframes ||
+        channel.low === undefined ||
+        channel.high === undefined
+      )
+        throw new Error("效果数据与变化方式不符");
       return {
         attribute: channel.attribute,
         keyframes: [

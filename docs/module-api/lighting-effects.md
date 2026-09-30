@@ -1,6 +1,6 @@
 # 已实现：场景动态灯光效果
 
-EFFECT-001／002 / [ADR-021](../development/decisions/PRODUCT-ADR-021-lighting-effects.md)、[ADR-022](../development/decisions/PRODUCT-ADR-022-effect-keyframes.md)，2026-09-27。本文是当前产品契约，区别于主目录中的远程服务伪接口。
+EFFECT-001／002／003 / [ADR-021](../development/decisions/PRODUCT-ADR-021-lighting-effects.md)、[ADR-022](../development/decisions/PRODUCT-ADR-022-effect-keyframes.md)，2026-09-27。本文是当前产品契约，区别于主目录中的远程服务伪接口。
 
 ## 调用与状态归属
 
@@ -24,9 +24,9 @@ TS 编辑契约在 `apps/ui-prototype/src/effect-types.ts`，Rust 对应 `crates
 | --- | --- |
 | id、name、enabled | UUID、非空名称、启用状态；停用仍保留引用和参数 |
 | fixtureIds | 1–512 个互不重复的灯具 UUID，数组顺序就是效果灯序 |
-| channels | 1–4 个互不重复的属性；基本曲线用 low／high，关键帧用 keyframes，互斥；仅 dimmer／red／green／blue |
+| channels | 1–4 个互不重复的属性；基本曲线用 low／high，关键帧用 keyframes，互斥；基本／关键帧仅 dimmer／red／green／blue，位置模式仅 pan／tilt |
 | periodMs | 一个完整往返／脉冲周期，整数 100–3600000 毫秒 |
-| waveform | smooth：平滑往返；triangle：线性往返；pulse：亮段与低段切换；keyframes：逐帧循环 |
+| waveform | smooth：平滑往返；triangle：线性往返；pulse：亮段与低段切换；keyframes：逐帧循环；position：相对双轴运动 |
 | spreadDegrees | 0–360 整数；按 i/N 展开，360 度时首尾不重合 |
 | phaseDegrees | 0–359 整数，整体起始滞后 |
 | reverse | 反转灯序的相位分布，安装位置不变 |
@@ -52,6 +52,15 @@ TS 编辑契约在 `apps/ui-prototype/src/effect-types.ts`，Rust 对应 `crates
 
 三维选择“跟随播放预览”消费同一 Rust 输出，编排页“三维监看”可直接切入；直接选择有动态效果的场景时，入口明确标为“静态值”。渲染器不保存效果、拥有时钟或输出硬件命令。
 
-`Plan` 全部效果属性累计最多 16384，单步骤最多 512；关键帧累计最多 131072 点，编译时逐步核算并提前拒绝。`effect_buffer_bytes()` / 桌面 `effectBufferBytes` 统计效果结构（含内联曲线信息）与关键帧数组，不包含外层 Vec 头及分配器额外容量。逐帧求值不分配。当前没有设备持久包协议，不可以直接把 Rust 内存布局写进 ESP32 文件。
+`Plan` 全部效果属性累计最多 16384，单步骤最多 512；关键帧累计最多 131072 点，编译时逐步核算并提前拒绝。`effect_buffer_bytes()` / 桌面 `effectBufferBytes` 统计效果结构（含内联曲线信息）与关键帧数组，不包含外层 Vec 头及分配器额外容量。逐帧求值不分配。设备包经既有独立 package 编码，不能直接写入 Rust 内存布局。相对位置先生成同一关键帧计划，不增加设备端运动求解器。
 
-验收与限制见[基础效果](../development/tasks/EFFECT-001-basic-effects.md)和[关键帧与复用](../development/tasks/EFFECT-002-keyframes-reuse.md)工单。相对效果、效果跟踪、节拍主控、随机、运动及像素不是本能力的隐含支持项。
+验收与限制见[基础效果](../development/tasks/EFFECT-001-basic-effects.md)和[关键帧与复用](../development/tasks/EFFECT-002-keyframes-reuse.md)工单。EFFECT-003 的相对位置如下；其他属性的相对效果、效果跨步骤跟踪、节拍主控、随机、世界轨迹及像素仍非隐含支持项。
+
+
+## 相对位置扩展（EFFECT-003）
+
+见 [ADR-058](../development/decisions/PRODUCT-ADR-058-relative-position-effects.md)。`waveform: "position"` 额外要求 `lighting.effects.position@1`；每轴 `{attribute: "pan" | "tilt", amplitudeDegrees: Decimal, offsetDegrees: Decimal, phaseDegrees: 0..359}`。幅度 0..3600°、偏移 ±3600°，相位正值沿用滞后语义；不能混用范围或作者关键帧。具备有效两轴模型的灯具才能使用，轴可独立启用。
+
+中心取该步骤静态目标解码角度加偏移；静态目标已解析字面值、预设、隔离／跟踪与释放。连续中心 ± 幅度必须处于机械范围，编译失败定位场景／效果／灯具／轴，不裁剪。编译生成每轴 32 点等距正弦的线性循环曲线，轴相位加到既有整体／灯序相位；沿用单调时钟、渐变、暂停和执行包。静态跟踪不继承动态终帧。
+
+`PositionEffectEditor` 只维护角度参数和有序灯具，复用效果草稿原子应用／撤销与唯一预演。三种模板：水平摆动、垂直摆动、双轴圆形；双轴圆形两轴等幅且滞后相差 90°，属于轴角度空间，不保证舞台投影为圆。不自动改变亮度或静态位置；幅度 0 仍占用该轴且输出中心，取消该轴或停用效果才释放占用。结构和兼容性在事务中校验，依赖执行上下文的机械行程在编译／工程检查时校验。

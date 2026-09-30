@@ -1,6 +1,13 @@
 import type { FixtureView, EditOperation } from "./application-host";
 import type { SceneEffect } from "./effect-types";
-export type EffectTemplate = "breathe" | "chase" | "color" | "multicolor";
+import {
+  createPositionEffect,
+  isPositionTemplate,
+  positionTemplates,
+} from "./position-effect-tools.ts";
+import type { PositionEffectTemplate } from "./position-effect-tools.ts";
+export type EffectTemplate =
+  "breathe" | "chase" | "color" | "multicolor" | PositionEffectTemplate;
 export const effectTemplates: {
   key: EffectTemplate;
   name: string;
@@ -10,8 +17,20 @@ export const effectTemplates: {
   { key: "chase", name: "亮度追逐", detail: "依次点亮 · 按选灯顺序" },
   { key: "color", name: "双色循环", detail: "两色渐变 · 可展开灯序" },
   { key: "multicolor", name: "多色关键帧", detail: "逐帧调色 · 自由过渡" },
+  ...positionTemplates,
 ];
 export function supportsEffect(fixtures: FixtureView[], kind: EffectTemplate) {
+  if (isPositionTemplate(kind))
+    return (
+      fixtures.length > 0 &&
+      fixtures.every(
+        (f) =>
+          f.positioning &&
+          ["pan", "tilt"].every((key) =>
+            f.attributes.some((a) => a.key === key),
+          ),
+      )
+    );
   const keys =
     kind === "color" || kind === "multicolor"
       ? ["red", "green", "blue"]
@@ -29,6 +48,8 @@ export function createEffect(
   id: string,
   fixtureIds: string[],
 ): SceneEffect {
+  if (isPositionTemplate(kind))
+    return createPositionEffect(kind, id, fixtureIds);
   if (kind === "multicolor") {
     const base = createEffect("color", id, fixtureIds);
     return {
@@ -88,6 +109,7 @@ export function effectCommands(
     const fixture = fixtures.find((f) => f.id === id);
     if (
       !fixture ||
+      (effect.waveform === "position" && !fixture.positioning) ||
       effect.channels.some(
         (c) => !fixture.attributes.some((a) => a.key === c.attribute),
       )

@@ -181,9 +181,15 @@ export function auditProject(p) {
     for (const effect of effects) {
       unique(effect.channels.map(c => c.attribute), '效果属性');
       const keyed = effect.waveform === 'keyframes';
+      const motion = effect.waveform === 'position';
+      if (motion) assert(declared.has('lighting.effects.position@1'), '缺少位置效果能力声明');
       if (keyed) assert(declared.has('lighting.effects.keyframes@1'), '缺少关键帧效果能力声明');
       let timing;
       for (const channel of effect.channels) {
+        assert(motion === (channel.amplitudeDegrees !== undefined), '位置效果与属性参数不一致');
+        if (motion) {
+          assert(Number(channel.amplitudeDegrees) >= 0 && Number(channel.amplitudeDegrees) <= 3600 && Math.abs(Number(channel.offsetDegrees)) <= 3600, '位置效果角度超出范围');
+        }
         assert(keyed === Array.isArray(channel.keyframes), '变化方式与关键帧不一致');
         if (keyed) {
           const frames = channel.keyframes;
@@ -194,6 +200,7 @@ export function auditProject(p) {
         }
       }
       for (const fixtureId of effect.fixtureIds) for (const channel of effect.channels) {
+        if (motion) assert(get(get(fixtureId, 'fixture').profileId, 'profile').positioning, '位置效果需要两轴运动模型');
         assert(attr({fixtureId, attribute:channel.attribute}).valueType.kind === 'normalized', '效果仅支持归一化属性');
         if (effect.enabled) activeTargets.push(`${fixtureId}/${channel.attribute}`);
       }

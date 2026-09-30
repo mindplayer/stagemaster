@@ -154,3 +154,62 @@ test("effect reuse deep copies curves, keeps source intact and checks replacemen
   assert.equal(source.channels[0].keyframes![0].value, 0);
   assert.throws(() => effectCommands("s", copy, fixtures, false), /dim/);
 });
+
+import {
+  positionAxisDrafts,
+  readPositionAxes,
+} from "../src/position-effect-tools.ts";
+test("position templates require physical models and preserve independent ordered authoring data", () => {
+  const moving = fixture("moving", ["dimmer", "pan", "tilt"]);
+  assert.equal(supportsEffect([moving], "circle"), false);
+  moving.positioning = {
+    kind: "intersectingOrthogonal",
+    pan: { minDegrees: "-270", maxDegrees: "270", reversed: true },
+    tilt: { minDegrees: "-135", maxDegrees: "135", reversed: false },
+  };
+  assert.equal(supportsEffect([moving], "circle"), true);
+  assert.equal(supportsEffect([moving, fixtures[0]], "panSweep"), false);
+  const ids = ["moving"];
+  const circle = createEffect("circle", "motion", ids);
+  ids.push("rgb");
+  assert.deepEqual(circle.fixtureIds, ["moving"]);
+  assert.deepEqual(
+    circle.channels.map((c) => c.phaseDegrees),
+    [0, 90],
+  );
+  const operations = effectCommands("s", circle, [moving], false);
+  assert.equal(operations.length, 1); // Motion never changes static position or illumination.
+  assert.throws(() => toKeyframes(circle), /运动属性/);
+  const copy = reuseEffect(circle, "copy");
+  copy.channels[0].amplitudeDegrees = "1";
+  assert.equal(circle.channels[0].amplitudeDegrees, "15");
+  assert.equal(copy.enabled, false);
+  for (const kind of ["panSweep", "tiltSweep", "circle"] as const) {
+    const channels = createEffect(kind, "m", ["moving"]).channels;
+    assert.deepEqual(readPositionAxes(positionAxisDrafts(channels)), channels);
+  }
+});
+test("motion angle input canonicalizes decimals and rejects invalid axes without changing drafts", () => {
+  const axes = positionAxisDrafts(
+    createEffect("circle", "m", ["moving"]).channels,
+  );
+  axes[0].amplitude = "30.000000";
+  axes[0].offset = "-0.000000";
+  axes[1].amplitude = "0.000001";
+  assert.equal(readPositionAxes(axes)[0].amplitudeDegrees, "30");
+  assert.equal(readPositionAxes(axes)[0].offsetDegrees, "0");
+  assert.equal(readPositionAxes(axes)[1].amplitudeDegrees, "0.000001");
+  assert.equal(axes[0].amplitude, "30.000000");
+  for (const bad of ["", "-1", "3601", "NaN", "1e2", "0.0000001"]) {
+    assert.throws(
+      () => readPositionAxes([{ ...axes[0], amplitude: bad }]),
+      /水平幅度/,
+    );
+  }
+  assert.throws(
+    () => readPositionAxes([{ ...axes[0], phase: "360" }]),
+    /水平相位/,
+  );
+  assert.throws(() => readPositionAxes([]), /运动轴/);
+  assert.throws(() => readPositionAxes([axes[0], axes[0]]), /运动轴/);
+});

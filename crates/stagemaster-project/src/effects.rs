@@ -26,6 +26,7 @@ pub enum Waveform {
     Triangle,
     Pulse,
     Keyframes,
+    Position,
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(untagged, deny_unknown_fields)]
@@ -34,6 +35,15 @@ pub enum EffectValues {
         attribute: String,
         low: u16,
         high: u16,
+    },
+    Position {
+        attribute: String,
+        #[serde(rename = "amplitudeDegrees")]
+        amplitude_degrees: String,
+        #[serde(rename = "offsetDegrees")]
+        offset_degrees: String,
+        #[serde(rename = "phaseDegrees")]
+        phase_degrees: u16,
     },
     Keyframes {
         attribute: String,
@@ -55,15 +65,17 @@ pub enum Transition {
     Smooth,
 }
 impl EffectValues {
-    fn attribute(&self) -> &str {
+    pub(super) fn attribute(&self) -> &str {
         match self {
-            Self::Range { attribute, .. } | Self::Keyframes { attribute, .. } => attribute,
+            Self::Range { attribute, .. }
+            | Self::Keyframes { attribute, .. }
+            | Self::Position { attribute, .. } => attribute,
         }
     }
-    fn frames(&self) -> Option<&[EffectKeyframe]> {
+    pub(super) fn frames(&self) -> Option<&[EffectKeyframe]> {
         match self {
             Self::Keyframes { keyframes, .. } => Some(keyframes),
-            Self::Range { .. } => None,
+            Self::Range { .. } | Self::Position { .. } => None,
         }
     }
 }
@@ -107,6 +119,8 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
             for key in [
                 Some("lighting.effects.basic"),
                 is_keyframes.then_some("lighting.effects.keyframes"),
+                matches!(effect.waveform, Waveform::Position)
+                    .then_some("lighting.effects.position"),
             ]
             .into_iter()
             .flatten()
@@ -148,6 +162,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         let mut occupied = BTreeSet::new();
         for effect in read(scene) {
             validate_keyframes(root, &effect)?;
+            crate::position_effect::validate(root, &effect)?;
             for fixture in &effect.fixture_ids {
                 for channel in &effect.channels {
                     editing::validate_target(root, fixture, channel.attribute())
@@ -176,75 +191,6 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     Ok(())
 }
 
-pub(super) fn compile(
-    effects: &[SceneEffect],
-    targets: &[(String, String)],
-) -> Result<Vec<stagemaster_playback::EffectChannel>, String> {
-    let mut compiled = Vec::new();
-    for effect in effects.iter().filter(|e| e.enabled) {
-        let count = u64::try_from(effect.fixture_ids.len()).map_err(|_| "效果灯具超限")?;
-        for (index, fixture) in effect.fixture_ids.iter().enumerate() {
-            let order = if effect.reverse {
-                effect.fixture_ids.len() - 1 - index
-            } else {
-                index
-            };
-            let order = u64::try_from(order).map_err(|_| "效果灯具超限")?;
-            let phase = (u64::from(effect.phase_degrees) * 65_536 / 360
-                + u64::from(effect.spread_degrees) * order * 65_536 / (360 * count))
-                % 65_536;
-            for channel in &effect.channels {
-                compiled.push(stagemaster_playback::EffectChannel {
-                    index: targets
-                        .iter()
-                        .position(|(id, key)| id == fixture && key == channel.attribute())
-                        .ok_or("效果属性未纳入计划")?,
-                    low: match channel {
-                        EffectValues::Range { low, .. } => *low,
-                        EffectValues::Keyframes { .. } => 0,
-                    },
-                    high: match channel {
-                        EffectValues::Range { high, .. } => *high,
-                        EffectValues::Keyframes { .. } => 0,
-                    },
-                    period_ms: effect.period_ms,
-                    phase: u16::try_from(phase).expect("phase is within one turn"),
-                    curve: match effect.waveform {
-                        Waveform::Smooth => stagemaster_playback::Curve::Smooth,
-                        Waveform::Triangle => stagemaster_playback::Curve::Triangle,
-                        Waveform::Pulse => stagemaster_playback::Curve::Pulse,
-                        Waveform::Keyframes => stagemaster_playback::Curve::Keyframes(
-                            channel
-                                .frames()
-                                .ok_or("关键帧缺失")?
-                                .iter()
-                                .map(|frame| stagemaster_playback::Keyframe {
-                                    phase: u16::try_from(
-                                        (u32::from(frame.position) * 65_536).div_ceil(10_000),
-                                    )
-                                    .expect("validated position"),
-                                    value: frame.value,
-                                    transition: match frame.transition {
-                                        Transition::Hold => stagemaster_playback::Transition::Hold,
-                                        Transition::Linear => {
-                                            stagemaster_playback::Transition::Linear
-                                        }
-                                        Transition::Smooth => {
-                                            stagemaster_playback::Transition::Smooth
-                                        }
-                                    },
-                                })
-                                .collect(),
-                        ),
-                    },
-                    duty_percent: effect.duty_percent,
-                });
-            }
-        }
-    }
-    Ok(compiled)
-}
-
 pub(super) fn keyframe_count(effects: &[SceneEffect]) -> usize {
     effects
         .iter()
@@ -254,8 +200,10 @@ pub(super) fn keyframe_count(effects: &[SceneEffect]) -> usize {
                 * effect
                     .channels
                     .iter()
-                    .filter_map(EffectValues::frames)
-                    .map(<[EffectKeyframe]>::len)
+                    .map(|channel| match channel {
+                        EffectValues::Position { .. } => crate::position_effect::SAMPLES,
+                        _ => channel.frames().map_or(0, <[EffectKeyframe]>::len),
+                    })
                     .sum::<usize>()
         })
         .sum()

@@ -135,3 +135,15 @@ invalid('摇头灯档案必须声明能力',withPosition,p=>{p.requires=p.requir
 invalid('物理行程不可倒置',withPosition,p=>{p.lighting.profiles[0].positioning.pan.maxDegrees='-280';},/物理范围/);
 invalid('两轴不能丢失位置通道',withPosition,p=>{p.lighting.profiles[0].channels=p.lighting.profiles[0].channels.filter(c=>c.attribute!=='pan');},/位置属性/);
 invalid('手工轴零偏有界',withPosition,p=>{p.lighting.fixtures[0].zeroCorrection.panDegrees='361';},/零偏/);
+
+const withPositionEffect = () => {
+  const p = withPosition();
+  p.requires.push({key:'lighting.effects.basic',version:1},{key:'lighting.effects.position',version:1});
+  p.lighting.scenes[0].effects=[{...withEffect().lighting.scenes[0].effects[0],waveform:'position',channels:[{attribute:'pan',amplitudeDegrees:'30',offsetDegrees:'0',phaseDegrees:0},{attribute:'tilt',amplitudeDegrees:'15',offsetDegrees:'-3',phaseDegrees:90}]}];
+  return p;
+};
+test('相对双轴效果严格格式与物理模型引用有效',()=>auditProject(withPositionEffect()));
+invalid('位置效果必须声明专用能力',withPositionEffect,p=>{p.requires=p.requires.filter(c=>c.key!=='lighting.effects.position')},/位置效果能力/);
+invalid('位置效果不能混入范围通道',withPositionEffect,p=>{p.lighting.scenes[0].effects[0].channels[0]={attribute:'dimmer',low:0,high:65535}},/位置效果与属性/);
+invalid('位置幅度不能为负数',withPositionEffect,p=>{p.lighting.scenes[0].effects[0].channels[0].amplitudeDegrees='-1'},/角度超出/);
+invalid('位置效果不能缺少灯具物理模型',withPositionEffect,p=>{delete p.lighting.profiles[0].positioning;delete p.lighting.fixtures[0].zeroCorrection},/两轴运动模型/);

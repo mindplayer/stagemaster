@@ -189,7 +189,10 @@ pub(super) fn require(root: &mut Value) {
             .push(json!({"key":"lighting.positioning","version":1}));
     }
 }
-fn fixture_profile<'a>(root: &'a Value, id: &str) -> Result<(&'a Value, &'a Value), String> {
+pub(super) fn fixture_profile<'a>(
+    root: &'a Value,
+    id: &str,
+) -> Result<(&'a Value, &'a Value), String> {
     let f = array(&root["lighting"], "fixtures")
         .iter()
         .find(|f| f["id"] == id)
@@ -200,7 +203,7 @@ fn fixture_profile<'a>(root: &'a Value, id: &str) -> Result<(&'a Value, &'a Valu
         .ok_or("档案不存在")?;
     Ok((f, p))
 }
-fn fine(p: &Value, key: &str) -> bool {
+pub(super) fn fine(p: &Value, key: &str) -> bool {
     array(p, "channels")
         .iter()
         .any(|c| c["attribute"] == key && c["encoding"] == "u16-be")

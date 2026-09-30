@@ -17,7 +17,7 @@ import { toKeyframes, valuePercent } from "../../keyframe-tools";
 import { EffectTiming } from "./EffectTiming";
 import { EffectFixtureOrder } from "./EffectFixtureOrder";
 
-const labels = { dimmer: "亮度", red: "红", green: "绿", blue: "蓝" };
+import { attributeLabels as labels } from "../../keyframe-tools";
 export interface EffectHandle {
   collect(): EditOperation[];
   accept(): void;

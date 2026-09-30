@@ -2880,7 +2880,8 @@
             "smooth",
             "triangle",
             "pulse",
-            "keyframes"
+            "keyframes",
+            "position"
           ]
         },
         "dutyPercent": {
@@ -2971,6 +2972,35 @@
                 "required": [
                   "attribute",
                   "keyframes"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "attribute": {
+                    "enum": [
+                      "pan",
+                      "tilt"
+                    ]
+                  },
+                  "amplitudeDegrees": {
+                    "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                  },
+                  "offsetDegrees": {
+                    "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                  },
+                  "phaseDegrees": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 359
+                  }
+                },
+                "required": [
+                  "attribute",
+                  "amplitudeDegrees",
+                  "offsetDegrees",
+                  "phaseDegrees"
                 ],
                 "additionalProperties": false
               }

@@ -12,10 +12,12 @@ pub use check::{
 };
 pub use package::{PackageBuild, PackageIssue, PackageProgram, PackageReport, PackageSelection};
 mod editing;
+mod effect_compile;
 mod effects;
 mod encoding;
 mod fixture;
 mod position;
+mod position_effect;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
 pub use fixture::{FixtureEdit, ProfileChannel, ProfileDefinition, Repatch};
 pub use position::{FixtureZero, PositionAxis, PositionEdit, PositionModel};

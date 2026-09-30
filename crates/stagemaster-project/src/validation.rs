@@ -124,6 +124,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "lighting.positioning",
             "lighting.effects.basic",
             "lighting.effects.keyframes",
+            "lighting.effects.position",
             "stage.layout",
             "stage.spaces",
             "stage.rigging",

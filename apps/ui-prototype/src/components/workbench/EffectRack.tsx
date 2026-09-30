@@ -15,6 +15,7 @@ import { uniqueName } from "../../editor-tools";
 import type { OpenEffect } from "./useEffectSelection";
 import { EffectReuseDialog } from "./EffectReuseDialog";
 import "./effects.css";
+import { isPositionTemplate } from "../../position-effect-tools";
 
 export function EffectRack({
   scene,
@@ -76,7 +77,7 @@ export function EffectRack({
             title={
               supportsEffect(selectedFixtures, t.key)
                 ? t.detail
-                : `请选择全部支持${t.key === "color" || t.key === "multicolor" ? "RGB" : "亮度"}的灯具`
+                : `请选择全部支持${isPositionTemplate(t.key) ? "两轴运动模型" : t.key === "color" || t.key === "multicolor" ? "RGB" : "亮度"}的灯具`
             }
             onClick={() => {
               const effect = createEffect(t.key, crypto.randomUUID(), selected);
@@ -104,6 +105,7 @@ export function EffectRack({
                   ? "同步"
                   : `展开 ${effect.spreadDegrees}°`}
                 {effect.reverse ? " · 反向" : ""}
+                {effect.waveform === "position" && " · 相对位置"}
                 {effect.waveform === "keyframes"
                   ? ` · ${effect.channels[0].keyframes?.length} 帧`
                   : ""}

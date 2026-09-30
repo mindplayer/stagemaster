@@ -1,5 +1,7 @@
 # 当前开发状态
 
+EFFECT-003 完成（基线 `f7f24ec`，结果为本次 `feat(effects): add relative physical moving-head shapes` 提交）：依 ADR-058 实现相对双轴运动、独立角度编辑及水平／垂直／圆形模板；443 Rust、125 UI、87 格式、fmt／严格检查、桌面与原生保存／撤销／取消／内嵌 UE 通过，见[验收](tasks/EFFECT-003-relative-position-effects.md)。真实工程验证机械行程拒绝并修复旧预演错误残留。当前已保存运动验收副本、唯一 UE 连接、暂停 83.964 秒；原 Volare 未改、设备断开。持续目标接续审核其余主干缺口。
+
 持续审核改进 goal 保持 active。用户明确“不要一轮一停”，当前会话连续实现、验证并集成。UX-020 固定效果属性、UX-021 专注执行视图、UX-022 音乐灯光段落已完成；UX-023 已处理预演短时状态竞争、UX-024 已补最近工程与下发入口，UX-025 场地管理与 UX-026 中央选灯已补，接续资源选择及问题定位，核心商业门槛继续保留。
 
 UX-028 完成（基线 `396de3b`，结果为本次 `feat(check): inspect portable audio resource integrity` 提交）：依 ADR-057 增加只读本机／随附音乐完整性、恢复导航与“保存并补齐”。437 Rust、123 UI、类型、fmt／严格检查、桌面以及原生缺失／损坏恢复、报告过期、播放与暂停位置保持通过，见[验收](tasks/UX-028-project-resource-health.md)。验收素材及副本在 `data/UX-028/`；原 Volare 未改、设备断开，持续接续摇头灯双轴效果与模板。

@@ -13,6 +13,8 @@ const colors = {
   red: "#ff8d92",
   green: "#83d699",
   blue: "#83b8ff",
+  pan: "#d5a4ff",
+  tilt: "#ffc67d",
 };
 export function KeyframeCurve({
   frames,

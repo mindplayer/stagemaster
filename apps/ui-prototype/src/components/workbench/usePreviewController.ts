@@ -31,6 +31,7 @@ export function usePreviewController({
     loaded: null,
   });
   const [error, setError] = useState("");
+  const errorSource = useRef<"poll" | "command" | null>(null);
   const [working, setWorking] = useState(false);
   const current = useRef(snapshot);
   const controlBusy = useRef(false);
@@ -40,6 +41,15 @@ export function usePreviewController({
   target.current = visible ? scene?.id : undefined;
   const publish = (value: PreviewSnapshot) => {
     if (alive.current) {
+      // Another workspace may successfully replace a failed preview. Keep command
+      // errors during ordinary polls, but never attach them to a new player epoch.
+      if (
+        errorSource.current === "poll" ||
+        value.epoch !== current.current.epoch
+      ) {
+        errorSource.current = null;
+        setError("");
+      }
       current.current = value;
       setSnapshot(value);
     }
@@ -60,8 +70,10 @@ export function usePreviewController({
           const next = await host.preview({ kind: "snapshot" });
           if (!disposed && version === epochRequest.current) publish(next);
         } catch (reason) {
-          if (!disposed && version === epochRequest.current)
+          if (!disposed && version === epochRequest.current) {
+            errorSource.current = "poll";
             setError(String(reason));
+          }
         }
       }
       if (!disposed) timer = setTimeout(poll, visible ? 80 : 500);
@@ -77,6 +89,7 @@ export function usePreviewController({
     controlBusy.current = true;
     epochRequest.current++;
     setWorking(true);
+    errorSource.current = null;
     setError("");
     try {
       // Stop/pause must remain available even when an unrelated editor draft is invalid.
@@ -130,8 +143,10 @@ export function usePreviewController({
         );
       }
     } catch (reason) {
-      if (alive.current)
+      if (alive.current) {
+        errorSource.current = "command";
         setError(reason instanceof Error ? reason.message : String(reason));
+      }
     } finally {
       controlBusy.current = false;
       if (alive.current) setWorking(false);

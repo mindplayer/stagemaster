@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from "react";
 import type { FixtureView } from "../../application-host";
 import { EffectEditor, type EffectHandle } from "./EffectEditor";
+import { PositionEffectEditor } from "./PositionEffectEditor";
 import type { EffectSelection } from "./useEffectSelection";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 
@@ -29,10 +30,14 @@ export function EffectInspectorPane({
   onPreview(): Promise<boolean>;
   children: ReactNode;
 }) {
+  const Editor =
+    selection?.effect.waveform === "position"
+      ? PositionEffectEditor
+      : EffectEditor;
   return (
     <>
       {selection && (
-        <EffectEditor
+        <Editor
           key={selection.token}
           ref={editor}
           effect={selection.effect}
