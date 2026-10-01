@@ -17,6 +17,8 @@ pub struct AudioLightingClip {
     pub locked: bool,
     #[serde(default, skip_serializing_if = "crate::audio_clip_offset::is_zero")]
     pub effect_offset_ms: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub entry_fade: Option<crate::ClipEntryFade>,
     #[serde(
         default = "crate::audio_clip_state::enabled_default",
         skip_serializing_if = "crate::audio_clip_state::is_enabled"
@@ -131,23 +133,6 @@ impl Document {
         if !clip.enabled {
             return Err("此灯光片段已停用".into());
         }
-        let previous = clips
-            .iter()
-            .find(|c| c.enabled && c.end_ms == clip.start_ms);
-        let mut compiled = self.compile_audio_entry(
-            &clip.scene_id,
-            clip.fade_ms,
-            previous.map(|p| {
-                (
-                    p.scene_id.as_str(),
-                    p.end_ms - p.start_ms,
-                    p.effect_offset_ms,
-                )
-            }),
-        )?;
-        compiled.plan = compiled
-            .plan
-            .with_effect_time_offset(clip.effect_offset_ms)?;
-        Ok(compiled)
+        self.compile_clip(clips, clip)
     }
 }

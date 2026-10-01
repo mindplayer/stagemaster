@@ -148,15 +148,16 @@ impl Player {
         for effect in &self.plan.effects[index] {
             self.values[effect.index] = effect.sample(elapsed, self.plan.effect_time_offset_ms);
         }
-        if elapsed < step.fade_ms {
+        let fade_elapsed = elapsed.saturating_add(self.plan.entry_fade_offset_ms);
+        if fade_elapsed < step.fade_ms {
             let mut snap = self.plan.snap_attributes.iter().peekable();
             for (index, (value, from)) in self.values.iter_mut().zip(&self.from).enumerate() {
                 if snap.peek().is_some_and(|&&i| usize::from(i) == index) {
                     snap.next();
                     continue;
                 }
-                let weighted =
-                    u64::from(*from) * (step.fade_ms - elapsed) + u64::from(*value) * elapsed;
+                let weighted = u64::from(*from) * (step.fade_ms - fade_elapsed)
+                    + u64::from(*value) * fade_elapsed;
                 *value = u16::try_from((weighted + step.fade_ms / 2) / step.fade_ms)
                     .expect("bounded interpolation");
             }

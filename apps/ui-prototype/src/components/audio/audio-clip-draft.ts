@@ -6,11 +6,13 @@ import type {
 import { audioMilliseconds } from "../../audio-tools.ts";
 import { trimmedEffectOffset } from "./clip-trim-tools.ts";
 import { AudioDraftError } from "./audio-draft-error.ts";
+import { entryFadePreview } from "./clip-fade-tools.ts";
 export interface ClipDraft {
   kind: "clip";
   id: string | null;
   copy: boolean;
   preserveProgress?: boolean;
+  preserveEntry?: boolean;
   name: string;
   sceneId: string;
   start: string;
@@ -94,13 +96,26 @@ export function collectClipDraft(
         ? { effectOffsetMs: source.effectOffsetMs }
         : {}),
       ...(source?.enabled === false ? { enabled: false } : {}),
+      ...(source?.entryFade ? { entryFade: source.entryFade } : {}),
     };
     const preserving = !!d.preserveProgress && !!source && !d.copy;
     const offset = preserving
       ? trimmedEffectOffset(source, startMs)
       : clip.effectOffsetMs;
+    const fade = source
+      ? entryFadePreview(
+          source,
+          clip,
+          preserving,
+          preserving && !!d.preserveEntry,
+        )
+      : null;
     validateClip(
-      { ...clip, effectOffsetMs: offset },
+      {
+        ...clip,
+        effectOffsetMs: offset,
+        fadeMs: fade?.visibleMs ?? clip.fadeMs,
+      },
       track,
       d.copy ? "" : clip.id,
     );
@@ -108,7 +123,11 @@ export function collectClipDraft(
       return { kind: "copyLightingClip", id: source.id, startMs };
     if (d.id)
       return {
-        kind: preserving ? "trimLightingClip" : "putLightingClip",
+        kind: preserving
+          ? d.preserveEntry
+            ? "sliceLightingClip"
+            : "trimLightingClip"
+          : "putLightingClip",
         clip,
       };
     if (track.lightingClips.length >= 512)

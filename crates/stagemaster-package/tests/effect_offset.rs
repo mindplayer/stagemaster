@@ -31,6 +31,16 @@ fn program() -> Program {
 fn unsupported_offsets_cannot_be_silently_lost_in_existing_device_packages() {
     let mut p = program();
     let old = encode_program(&p).unwrap();
+    p.plan = p.plan.with_entry_fade_offset(0).unwrap();
+    assert_eq!(encode_program(&p).unwrap(), old);
+    p.plan = p.plan.with_entry_fade_offset(237).unwrap();
+    assert!(
+        encode_program(&p)
+            .unwrap_err()
+            .to_string()
+            .contains("渐变时间偏移")
+    );
+    p.plan = p.plan.with_entry_fade_offset(0).unwrap();
     p.plan = p.plan.with_effect_time_offset(0).unwrap();
     assert_eq!(encode_program(&p).unwrap(), old);
     p.plan = p.plan.with_effect_time_offset(333).unwrap();

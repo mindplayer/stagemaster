@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { AudioLightingClip } from "../../audio-types";
+import { AudioClipEntryFade } from "./AudioClipEntryFade";
 import {
   clipSplitLimits,
   splitClipCommand,
@@ -18,6 +19,7 @@ export function AudioClipSplit({
 }) {
   const input = useRef<HTMLInputElement>(null);
   const focusPending = useRef(false);
+  const failureFocus = useRef<HTMLElement | null>(null);
   const limits = clipSplitLimits(clip);
   const initial = (Math.floor((limits.min + limits.max) / 2) / 1000).toFixed(3);
   const [value, setValue] = useState(initial),
@@ -27,17 +29,27 @@ export function AudioClipSplit({
   useEffect(() => {
     if (!working && focusPending.current) {
       focusPending.current = false;
-      input.current?.focus();
+      (failureFocus.current?.isConnected
+        ? failureFocus.current
+        : input.current
+      )?.focus();
     }
   }, [working, problem, value]);
-  async function run(kind: "split" | "position" | "reset") {
+  async function run(kind: "split" | "position" | "reset" | "resetEntry") {
     if (blocked) return;
     setProblem("");
+    failureFocus.current =
+      kind === "resetEntry" && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : input.current;
     setWorking(true);
     try {
       if (kind === "position") {
         setValue(((await actions.readPosition()) / 1000).toFixed(3));
         focusPending.current = true;
+      } else if (kind === "resetEntry") {
+        if (!(await actions.resetEntryFade()))
+          throw new Error("未能重新计算渐变，请检查工程提示");
       } else if (kind === "reset") {
         if (!(await actions.resetOffset()))
           throw new Error("未能重置效果起点，请检查工程提示");
@@ -58,6 +70,13 @@ export function AudioClipSplit({
   }
   return (
     <section className="audio-clip-split" aria-label="片段分割与效果起点">
+      {clip.entryFade && (
+        <AudioClipEntryFade
+          fade={clip.entryFade}
+          disabled={blocked}
+          onReset={() => void run("resetEntry")}
+        />
+      )}
       <p>效果起点：{((clip.effectOffsetMs ?? 0) / 1000).toFixed(3)} 秒</p>
       {!!clip.effectOffsetMs && (
         <button
@@ -68,6 +87,7 @@ export function AudioClipSplit({
           重置效果起点
         </button>
       )}
+      {problem && <p role="alert">{problem}</p>}
       <details>
         <summary>分割片段</summary>
         <label>
@@ -99,10 +119,9 @@ export function AudioClipSplit({
         </label>
         <small>
           {limits.min > limits.max
-            ? "进入渐变覆盖全段，暂时没有可分割的位置。"
-            : `可分割范围 ${(limits.min / 1000).toFixed(3)} — ${(limits.max / 1000).toFixed(3)} 秒；右段保留动态效果进度。`}
+            ? "片段不足 2 毫秒，没有可分割的位置。"
+            : `可分割范围 ${(limits.min / 1000).toFixed(3)} — ${(limits.max / 1000).toFixed(3)} 秒；保留原渐变与动态效果进度。`}
         </small>
-        {problem && <p role="alert">{problem}</p>}
         <div className="wb-actions">
           <button
             type="button"

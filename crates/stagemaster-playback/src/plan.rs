@@ -27,6 +27,7 @@ pub struct Plan {
     pub(super) effects: Vec<Vec<EffectChannel>>,
     pub(super) snap_attributes: Vec<u16>,
     pub(super) effect_time_offset_ms: u64,
+    pub(super) entry_fade_offset_ms: u64,
 }
 impl Plan {
     /// Validate an in-memory plan. This is not a persistent/device wire format.
@@ -135,6 +136,7 @@ impl Plan {
             effects,
             snap_attributes,
             effect_time_offset_ms: 0,
+            entry_fade_offset_ms: 0,
         })
     }
     /// Offset only the dynamic source clock of an isolated held scene.
@@ -156,6 +158,26 @@ impl Plan {
     #[must_use]
     pub const fn effect_time_offset_ms(&self) -> u64 {
         self.effect_time_offset_ms
+    }
+    /// Preserve the original interpolation weights when slicing a held scene's entry fade.
+    /// This clock is independent of the dynamic effect source clock.
+    /// # Errors
+    /// Rejects out-of-range offsets, delayed, automatic or multi-step plans.
+    pub fn with_entry_fade_offset(mut self, offset_ms: u64) -> Result<Self, String> {
+        if offset_ms > MAX_TIME_MS
+            || self.steps.len() != 1
+            || self.repeat
+            || self.steps[0].delay_ms != 0
+            || self.steps[0].wait_ms.is_some()
+        {
+            return Err("渐变时间偏移仅支持单个无延时的手动保持场景，最大 86400 秒".into());
+        }
+        self.entry_fade_offset_ms = offset_ms;
+        Ok(self)
+    }
+    #[must_use]
+    pub const fn entry_fade_offset_ms(&self) -> u64 {
+        self.entry_fade_offset_ms
     }
     #[must_use]
     pub fn snap_attributes(&self) -> &[u16] {

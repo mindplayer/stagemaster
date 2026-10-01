@@ -1,6 +1,9 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
 mod audio;
+mod audio_clip_compile;
 mod audio_clip_edit;
+mod audio_clip_fade;
+pub use audio_clip_fade::{ClipEntryFade, ClipFadeValue};
 mod audio_clips;
 pub use audio_clips::{AudioLightingClip, AudioLightingRef, MAX_LIGHTING_CLIPS};
 mod audio_clip_group;

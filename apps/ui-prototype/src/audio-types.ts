@@ -21,6 +21,12 @@ export interface AudioLightingClip {
   locked: boolean;
   enabled?: boolean;
   effectOffsetMs?: number;
+  entryFade?: ClipEntryFade;
+}
+export interface ClipEntryFade {
+  durationMs: number;
+  offsetMs: number;
+  from: Array<{ fixtureId: string; attribute: string; value: number }>;
 }
 export interface AudioTimeline {
   asset: AudioAsset;
@@ -70,6 +76,8 @@ export type AudioEdit =
     }
   | { kind: "splitLightingClip"; id: string; timeMs: number }
   | { kind: "resetLightingClipEffectOffset"; id: string }
+  | { kind: "resetLightingClipEntryFade"; id: string }
+  | { kind: "sliceLightingClip"; clip: AudioLightingClip }
   | { kind: "convertLightingClips" }
   | {
       kind: "addLightingClip";

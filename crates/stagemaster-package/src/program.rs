@@ -13,6 +13,9 @@ use stagemaster_playback::{MAX_TIME_MS, Plan, Step};
 /// # Errors
 /// Rejects invalid labels, mappings, dimensions, encoded size and reference memory limits.
 pub fn encode_program(program: &Program) -> Result<Vec<u8>, Error> {
+    if program.plan.entry_fade_offset_ms() != 0 {
+        return Err(Error::Invalid("当前设备包不支持片段渐变时间偏移"));
+    }
     if program.plan.effect_time_offset_ms() != 0 {
         return Err(Error::Invalid("当前设备包不支持片段效果时间偏移"));
     }

@@ -101,7 +101,7 @@ export function AudioClipInspector({
           aria-label="片段灯光场景"
           required
           value={data.sceneId}
-          disabled={blocked || data.copy}
+          disabled={blocked || data.copy || !!data.preserveEntry}
           onChange={(e) => onChange({ ...data, sceneId: e.target.value })}
         >
           <option value="">选择场景</option>
@@ -142,17 +142,29 @@ export function AudioClipInspector({
                   ).toFixed(3)
                 : data[key]
             }
-            disabled={blocked || (data.copy && key !== "start")}
+            disabled={
+              blocked ||
+              (data.copy && key !== "start") ||
+              (!!data.preserveEntry && key === "fade")
+            }
             onChange={(e) => onChange({ ...data, [key]: e.target.value })}
           />
         </label>
       ))}
+      {clip?.entryFade &&
+        !data.preserveEntry &&
+        (Number(data.fade) !== clip.fadeMs / 1000 ||
+          data.sceneId !== clip.sceneId) && (
+          <small>修改场景或渐变时长后，将重新计算进入渐变。</small>
+        )}
       <p>
         {data.copy
           ? "复制保留原片段时长、渐变和启停状态，副本解除锁定。"
           : locked
             ? "已锁定位置与内容，解锁后可修改。"
-            : "单轨片段不能重叠，进入渐变不能超过新片段长度。"}
+            : data.preserveEntry || clip?.entryFade
+              ? "单轨片段不能重叠；保留的渐变随截取范围调整。"
+              : "单轨片段不能重叠，进入渐变不能超过新片段长度。"}
       </p>
       <div className="wb-actions">
         <button type="submit" className="primary" disabled={blocked || !dirty}>
@@ -201,7 +213,7 @@ export function AudioClipInspector({
         />
       )}
       <small>
-        空隙使用灯具默认值；相邻片段从前段边界状态渐变。场景修改会影响所有引用位置。
+        空隙使用灯具默认值。普通渐变从相邻前段的边界状态开始；保留原渐变的片段沿用已记录的起始值。
       </small>
     </form>
   );

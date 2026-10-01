@@ -84,6 +84,12 @@ pub enum AudioEdit {
         id: String,
         time_ms: u64,
     },
+    ResetLightingClipEntryFade {
+        id: String,
+    },
+    SliceLightingClip {
+        clip: crate::AudioLightingClip,
+    },
     ResetLightingClipEffectOffset {
         id: String,
     },
@@ -136,6 +142,7 @@ fn clear(root: &mut Value) -> Result<(), String> {
                 && r["key"] != crate::audio_clips::CAPABILITY
                 && r["key"] != crate::audio_clip_state::CAPABILITY
                 && r["key"] != crate::audio_clip_offset::CAPABILITY
+                && r["key"] != crate::audio_clip_fade::CAPABILITY
         });
     Ok(())
 }
@@ -168,7 +175,13 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             crate::audio_clip_edit::apply(&mut track, command)?;
         }
         AudioEdit::SplitLightingClip { id, time_ms } => {
-            crate::audio_clip_split::split(&mut track, &id, time_ms)?;
+            crate::audio_clip_split::split(root, &mut track, &id, time_ms)?;
+        }
+        AudioEdit::SliceLightingClip { clip } => {
+            crate::audio_clip_edit::slice(root, &mut track, clip)?;
+        }
+        AudioEdit::ResetLightingClipEntryFade { id } => {
+            crate::audio_clip_split::reset_entry(&mut track, &id)?;
         }
         AudioEdit::ResetLightingClipEffectOffset { id } => {
             crate::audio_clip_split::reset(&mut track, &id)?;
@@ -201,6 +214,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             track.markers.remove(index);
         }
     }
+    write_track(root, &track)
+}
+fn write_track(root: &mut Value, track: &AudioTimeline) -> Result<(), String> {
     if track.markers.iter().any(|marker| marker.fade_ms > 0)
         && !array(root, "requires")
             .iter()
@@ -221,8 +237,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             .ok_or("能力列表无效")?
             .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
     }
-    crate::audio_clip_state::declare_if_needed(root, &track)?;
-    crate::audio_clip_offset::declare_if_needed(root, &track)?;
+    crate::audio_clip_fade::declare_if_needed(root, track)?;
+    crate::audio_clip_state::declare_if_needed(root, track)?;
+    crate::audio_clip_offset::declare_if_needed(root, track)?;
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
     if !array(root, "requires")
         .iter()
@@ -237,6 +254,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
+        crate::audio_clip_fade::validate(root, None)?;
         crate::audio_clip_state::validate(root, None)?;
         crate::audio_clip_offset::validate(root, None)?;
         return if array(root, "requires")
@@ -293,6 +311,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     }
     crate::audio_lighting::validate(root, &track)?;
     crate::audio_clips::validate(root, &track)?;
+    crate::audio_clip_fade::validate(root, Some(&track))?;
     crate::audio_clip_state::validate(root, Some(&track))?;
     crate::audio_clip_offset::validate(root, Some(&track))?;
     Ok(())

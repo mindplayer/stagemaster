@@ -21,19 +21,22 @@ export function moveLightingClip(
   const length = original.endMs - original.startMs;
   const origin = mode === "end" ? original.endMs : original.startMs;
   const offset = original.effectOffsetMs ?? 0;
-  const sourceEndLimit = original.startMs + 3_600_000 - offset;
+  const fadeOffset = original.entryFade?.offsetMs ?? offset;
+  const minimumLength = original.entryFade ? 1 : Math.max(1, original.fadeMs);
+  const sourceEndLimit =
+    original.startMs + 3_600_000 - Math.max(offset, fadeOffset);
   const min =
     mode === "end"
-      ? original.startMs + Math.max(1, original.fadeMs)
+      ? original.startMs + minimumLength
       : mode === "start"
-        ? Math.max(previous, original.startMs - offset)
+        ? Math.max(previous, original.startMs - Math.min(offset, fadeOffset))
         : previous;
   const max =
     mode === "end"
       ? Math.min(next, sourceEndLimit)
       : mode === "move"
         ? next - length
-        : original.endMs - Math.max(1, original.fadeMs);
+        : original.endMs - minimumLength;
   let value = Math.max(min, Math.min(max, origin + Math.round(delta)));
   if (snap) {
     const targets = [

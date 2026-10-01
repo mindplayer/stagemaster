@@ -69,11 +69,11 @@ fn repeated_split_copy_move_disable_and_reset_preserve_explicit_source_time() {
     assert_ne!(sample(&d, 6410), sample(&before, 2743));
 }
 #[test]
-fn invalid_boundaries_entry_fade_capacity_and_locks_are_atomic() {
+fn invalid_boundaries_capacity_and_locks_are_atomic() {
     let mut d = fixture();
     let first = clips(&d)[0].id.clone();
     let before = d.clone();
-    for time in [0, 499, 4000, 10000, u64::MAX] {
+    for time in [0, 4000, 10000, u64::MAX] {
         assert!(split(&mut d, &first, time).is_err());
         assert_eq!(d, before);
     }

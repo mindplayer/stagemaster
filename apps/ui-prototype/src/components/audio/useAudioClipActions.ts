@@ -92,6 +92,10 @@ export function useAudioClipActions({
       id: clip.id,
     }));
   }
+  async function resetEntryFade() {
+    if (!clip || !(await beforeChange())) return false;
+    return !!(await edit({ kind: "resetLightingClipEntryFade", id: clip.id }));
+  }
   async function remove() {
     if (!removing) return;
     if (await edit({ kind: "removeLightingClip", id: removing.id })) {
@@ -100,7 +104,7 @@ export function useAudioClipActions({
     }
   }
   return {
-    splitActions: { split, resetOffset, readPosition },
+    splitActions: { split, resetOffset, resetEntryFade, readPosition },
     clip,
     add,
     copy,

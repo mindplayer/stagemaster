@@ -1,3 +1,4 @@
+import { entryFadePreview } from "./clip-fade-tools";
 import { trimmedEffectOffset } from "./clip-trim-tools";
 import { useClipGroupDrag } from "./useClipGroupDrag";
 import { AudioClipLaneHeader } from "./AudioClipLaneHeader";
@@ -252,6 +253,14 @@ export function AudioClipLane({
               else if (group) marquee.begin(e, c.id);
               else moving.begin(e, c, mode);
             };
+            const fadeMs =
+              moving.draft?.clip.id === c.id
+                ? (entryFadePreview(
+                    moving.draft.clip,
+                    c,
+                    moving.draft.mode !== "move",
+                  )?.visibleMs ?? c.fadeMs)
+                : c.fadeMs;
             const label =
               scenes.find((s) => s.id === c.sceneId)?.name ?? c.name;
             return (
@@ -288,19 +297,15 @@ export function AudioClipLane({
                   <small>{c.enabled === false ? "灯具默认值" : label}</small>
                 </button>
                 {c.enabled !== false &&
-                  c.fadeMs > 0 &&
-                  c.startMs + c.fadeMs > viewport.start && (
+                  fadeMs > 0 &&
+                  c.startMs + fadeMs > viewport.start && (
                     <span
                       className="audio-lighting-fade"
                       aria-hidden="true"
                       style={{
                         width: Math.max(
                           0,
-                          (Math.min(
-                            c.endMs,
-                            c.startMs + c.fadeMs,
-                            viewport.end,
-                          ) -
+                          (Math.min(c.endMs, c.startMs + fadeMs, viewport.end) -
                             Math.max(c.startMs, viewport.start)) *
                             pixels,
                         ),

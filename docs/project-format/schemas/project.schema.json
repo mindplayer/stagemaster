@@ -3481,6 +3481,9 @@
           "minimum": 0,
           "maximum": 3600000,
           "default": 0
+        },
+        "entryFade": {
+          "$ref": "#/$defs/ClipEntryFade"
         }
       },
       "required": [
@@ -3823,6 +3826,55 @@
       "required": [
         "kind",
         "keyframes"
+      ],
+      "additionalProperties": false
+    },
+    "ClipEntryFade": {
+      "type": "object",
+      "properties": {
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "offsetMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "from": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "properties": {
+              "fixtureId": {
+                "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+              },
+              "attribute": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              }
+            },
+            "required": [
+              "fixtureId",
+              "attribute",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "durationMs",
+        "offsetMs",
+        "from"
       ],
       "additionalProperties": false
     }

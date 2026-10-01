@@ -109,3 +109,13 @@ AUDIO-012：独立片段／整组／框选手势共享边缘滚动，视窗平�
 ## 多片段统一进入渐变
 
 [AUDIO-015／ADR-083](../development/decisions/PRODUCT-ADR-083-lighting-clip-group-fade.md) 增加 `editLightingClips {ids, action:{kind:"fade", fadeMs}}`。复用 1–512 个唯一身份与原子事务，所有选中片段均须存在且未锁定，渐变不得超过任一片段长度；0 为直接切换。包括停用片段，但不改变启停、位置、场景来源、效果起点或格式。混合值须显式输入，草稿固定身份并接共享收集／取消／保存；筛选不改变范围。目标移动输入／删除确认未结束时不打开另一种编辑。
+
+## 保留历史进入渐变的分割和内部截取
+
+[AUDIO-018／ADR-093](../development/decisions/PRODUCT-ADR-093-preserved-clip-entry-fades.md)：`entryFade {durationMs,offsetMs,from:[{fixtureId,attribute,value}]}` 保存原边界连续属性与原混合时间；须 `media.audio-clip-fade@1`，每片段 512 项／全轨 32768 项，原时基加可见长度最多一小时。值为归一化 u16，按灯具身份／属性绑定，离散功能不进入快照。fadeMs 等于实际可见的剩余渐变长度；缺省仍为原边界渐变。
+
+`splitLightingClip` 允许渐变内任意内部毫秒；左右共用同内容历史起始值，右段累加两种源时间，原总长保持，因此不以分割点重新取整插值。`sliceLightingClip {clip}` 首次捕获历史渐变再截取；不得同时改目标场景或渐变时长。已有保留渐变的片段使用 trimLightingClip 时同时调整渐变及效果源时间；旧无快照片段 trim 继续遵循 ADR-077。所有命令仍原子校验，调用方必须传原始偏移／快照，由核心计算新值。
+
+普通 put 改名／移动保留快照，改变目标场景或 fadeMs 则重新设置渐变；批量 Fade 与 `resetLightingClipEntryFade {id}` 显式移除历史起始值；锁定时拒绝。效果起点重置不暗改渐变起点。复制、启停、保存及历史均保留快照。缺失快照引用的灯具／属性会拒绝，不静默丢失；新增属性使用当前档案默认值。历史起始值不随原前段修改，目标场景仍实时引用。
+
+Rust Player 的 `Plan::with_entry_fade_offset` 仅接受无延时单步骤保持计划；动态时钟和混合时钟分别偏移，共用原求值／直接切换规则。后段采样前段真实末端，历史渐变不形成递归场景链。普通设备包拒绝非零渐变偏移；未改变设备协议或自动开放物理输出。界面接入与原生验收状态以工单为准。

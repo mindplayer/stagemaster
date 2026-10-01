@@ -35,7 +35,7 @@ fn split_is_one_history_entry_with_atomic_failure_and_reset_noop() {
     session
         .edit(
             generation,
-            command(json!({"kind":"splitLightingClip","id":id,"timeMs":1333})),
+            command(json!({"kind":"splitLightingClip","id":id,"timeMs":233})),
         )
         .unwrap();
     assert_eq!(session.undo.len(), 1);
@@ -47,7 +47,7 @@ fn split_is_one_history_entry_with_atomic_failure_and_reset_noop() {
         session
             .edit(
                 generation,
-                command(json!({"kind":"splitLightingClip","id":id,"timeMs":499}))
+                command(json!({"kind":"splitLightingClip","id":id,"timeMs":0}))
             )
             .is_err()
     );

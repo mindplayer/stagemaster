@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-018 完成（基线 `2aba0fd`，结果为本次 `feat(audio): preserve entry fades across clip splits and slices` 提交）：渐变中分割、完整内部截取、有界连续属性快照与独立渐变时钟、显式重新计算及源范围保护；678 Rust／291 UI／160 格式、类型／严格检查／Xtensa 检查／桌面及原生取消／越界焦点／历史／保存重开通过，见[工单](tasks/AUDIO-018-preserved-entry-fades.md)／[ADR-093](decisions/PRODUCT-ADR-093-preserved-clip-entry-fades.md)。独立副本 25 片段已保存，原工程未改，音乐 0、UE 关闭、设备未连。持续 goal active；多轨、双动态交叉、正式演出循环及真实输出仍后续。
+
 LIBRARY-003 完成（基线 `9eacc42`，结果为本次 `feat(effects): reuse authored intensity keyframe templates` 提交）：既有关键帧亮度效果可导出／复用，严格格式 2 与来源能力，复用原求值器；668 Rust、287 UI、146 格式、类型／严格检查／桌面及原生取消／历史／精确值／保存重开通过，见[工单](tasks/LIBRARY-003-keyframe-templates.md)／[ADR-092](decisions/PRODUCT-ADR-092-keyframe-effect-templates.md)。当前独立副本已保存，原 19 场景不变、新增一场景，播放未载入、UE 关闭、设备未连接。持续 goal active，云目录、其他属性模板与真实新增灯型仍后续。
 
 LIBRARY-002 完成（核心 `029b60d`；桌面基线同此，结果为本次 `feat(desktop): import and export reviewed effect templates` 提交）：独立亮度模板、Rust 审阅／绑定、来源与版本保护，正式动态效果区导入／导出／审阅贯通。664 Rust 全量＋最终 3 桌面专项、287 UI、类型／严格检查／fmt／桌面通过；原生取消、冲突、一次历史、参数修改／来源独立、保存重开及两个不同工程 80／3 台灯具复用通过，见[工单](tasks/LIBRARY-002-local-intensity-templates.md)／[ADR-091](decisions/PRODUCT-ADR-091-local-intensity-templates.md)。当前完整舞台副本已保存，播放未载入、UE 关闭、设备未连接。持续 goal active；云端目录、其他配方与更多真实灯型仍后续，不声称已实现。

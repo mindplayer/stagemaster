@@ -48,6 +48,18 @@ pub struct AttributeOutput {
     pub function: Option<crate::FunctionOutput>,
 }
 impl CompiledOutput {
+    pub(super) fn attribute_bindings(&self) -> impl Iterator<Item = (&str, &str, usize, bool)> {
+        self.bindings.iter().flat_map(|fixture| {
+            fixture.attributes.iter().map(move |attribute| {
+                (
+                    fixture.id.as_str(),
+                    attribute.key.as_str(),
+                    attribute.index,
+                    attribute.functions.is_some(),
+                )
+            })
+        })
+    }
     /// Lower the validated patch in the exact playback attribute order.
     /// # Errors
     /// Rejects an internally inconsistent compilation result.

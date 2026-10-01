@@ -54,6 +54,7 @@ pub(super) fn apply(
             }
             for clip in clips.iter_mut().filter(|c| selected.contains(&c.id)) {
                 clip.fade_ms = fade_ms;
+                clip.entry_fade = None;
             }
             return Ok(());
         }
