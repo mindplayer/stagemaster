@@ -1,3 +1,4 @@
+import type { ClipLaneSelection } from "./clip-selection";
 import { AudioClipLane } from "./AudioClipLane";
 import type { SceneView } from "../../application-host";
 import { AudioLightingLane } from "./AudioLightingLane";
@@ -31,6 +32,7 @@ export function WaveformMarkers({
   preview,
   onMove,
   onClipMove,
+  clipSelection,
   onSeek,
   onSelect,
   onZoom,
@@ -47,6 +49,7 @@ export function WaveformMarkers({
   preview: RefObject<number | null>;
   onMove(marker: AudioMarker): void;
   onClipMove?(clip: AudioLightingClip): void;
+  clipSelection?: ClipLaneSelection;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onZoom(factor: number, x: number): void;
@@ -217,6 +220,7 @@ export function WaveformMarkers({
       })}
       {scenes && track.lightingClips && onClipMove ? (
         <AudioClipLane
+          clipSelection={clipSelection}
           track={track}
           scenes={scenes}
           viewport={viewport}

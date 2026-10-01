@@ -1,17 +1,13 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useLightingClipDrag } from "./useLightingClipDrag";
+import { useClipMarquee } from "./useClipMarquee";
+import { clipsInRange, type ClipLaneSelection } from "./clip-selection";
+import { useRef, type RefObject } from "react";
 import type { AudioLightingClip, AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
 import type { WaveViewport } from "./waveform-data";
 import { audioTime } from "../../audio-tools";
 import { moveLightingClip, type ClipMotion } from "./clip-motion";
 import "./lighting-lane.css";
-type Drag = {
-  pointer: number;
-  clip: AudioLightingClip;
-  mode: ClipMotion;
-  x: number;
-  next: AudioLightingClip;
-};
 export function AudioClipLane({
   track,
   scenes,
@@ -23,7 +19,9 @@ export function AudioClipLane({
   onSelect,
   onSeek,
   onMove,
+  clipSelection,
 }: {
+  clipSelection?: ClipLaneSelection;
   track: AudioTimeline;
   scenes: SceneView[];
   viewport: WaveViewport;
@@ -35,34 +33,41 @@ export function AudioClipLane({
   onSeek(time: number): void;
   onMove(clip: AudioLightingClip): void;
 }) {
-  const surface = useRef<HTMLDivElement>(null),
-    active = useRef<Drag | null>(null);
-  const [drag, setDrag] = useState<Drag | null>(null);
-  const pixels = viewport.width / Math.max(1, viewport.end - viewport.start);
-  function cancel() {
-    active.current = null;
-    setDrag(null);
-  }
-  useEffect(() => {
-    cancel();
-  }, [track, disabled]);
-  useEffect(() => {
-    window.addEventListener("blur", cancel);
-    return () => window.removeEventListener("blur", cancel);
-  }, []);
-  function proposal(d: Drag, x: number) {
-    return moveLightingClip(
-      track,
-      d.clip,
-      d.mode,
-      (x - d.x) / pixels,
-      snap,
-      8 / pixels,
-    );
-  }
-  const clips = (track.lightingClips ?? []).map((c) =>
-    drag?.clip.id === c.id ? drag.next : c,
+  const surface = useRef<HTMLDivElement>(null);
+  const group = !!clipSelection?.active;
+  const moving = useLightingClipDrag(
+    surface,
+    track,
+    viewport,
+    disabled || group,
+    snap,
+    onSelect,
+    onMove,
   );
+  const marquee = useClipMarquee(
+    surface,
+    viewport,
+    clipSelection,
+    disabled,
+    track,
+  );
+  const pixels = viewport.width / Math.max(1, viewport.end - viewport.start);
+  const clips = (track.lightingClips ?? []).map((c) =>
+    moving.draft?.clip.id === c.id ? moving.draft.next : c,
+  );
+  const box = marquee.draft?.moved ? marquee.draft : null;
+  const selectionIds = box
+    ? [
+        ...(box.append ? (clipSelection?.ids ?? []) : []),
+        ...clipsInRange(clips, box.start, box.end),
+      ]
+    : (clipSelection?.ids ?? []);
+  const chosen = (id: string) =>
+    group ? selectionIds.includes(id) : selected === id;
+  function cancel() {
+    moving.cancel();
+    marquee.cancel();
+  }
   const duration = track.outMs - track.inMs;
   const gaps = clips.reduce<Array<{ start: number; end: number }>>(
     (out, c, i) => {
@@ -84,13 +89,29 @@ export function AudioClipLane({
   const visible = (start: number, end: number) =>
     end > viewport.start && start < viewport.end;
   function key(e: React.KeyboardEvent, c: AudioLightingClip, mode: ClipMotion) {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      e.preventDefault();
-      cancel();
+    if (disabled) return;
+    if (group) {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        e.stopPropagation();
+        const rendered = clips.filter((c) => visible(c.startMs, c.endMs));
+        const next =
+          rendered[
+            rendered.findIndex((item) => item.id === c.id) +
+              (e.key === "ArrowLeft" ? -1 : 1)
+          ];
+        if (next) {
+          surface.current
+            ?.querySelector<HTMLButtonElement>(
+              `[data-lighting-segment="${next.id}"]`,
+            )
+            ?.focus();
+          if (e.shiftKey) clipSelection?.onPick(next.id, true);
+        }
+      }
       return;
     }
-    if (disabled || c.locked) return;
+    if (c.locked) return;
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       e.stopPropagation();
@@ -112,6 +133,8 @@ export function AudioClipLane({
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.stopPropagation();
+          e.preventDefault();
+          if (!marquee.draft && group && !disabled) clipSelection?.onClear();
           cancel();
         }
       }}
@@ -119,26 +142,32 @@ export function AudioClipLane({
       <header>
         <strong>灯光片段</strong>
         <span>{clips.length} 段</span>
-        <span>拖动移动 · 两端调整长度 · 空隙为默认值</span>
+        {clipSelection && (
+          <button
+            type="button"
+            aria-label="时间线片段多选"
+            aria-pressed={group}
+            disabled={disabled}
+            onClick={clipSelection.onMode}
+          >
+            多选{group ? ` · ${clipSelection.ids.length}` : ""}
+          </button>
+        )}
+        <span>
+          {group
+            ? "单击增减 · Shift 连选／追加框选 · Esc 取消"
+            : "拖动移动 · 两端调整长度 · 空隙为默认值"}
+        </span>
       </header>
       <div
         className="audio-lighting-clips"
         ref={surface}
-        onPointerMove={(e) => {
-          const d = active.current;
-          if (!d || d.pointer !== e.pointerId) return;
-          active.current = { ...d, next: proposal(d, e.clientX) };
-          setDrag(active.current);
+        data-selecting={group}
+        onPointerDown={(e) => {
+          if (group) marquee.begin(e);
         }}
-        onPointerUp={(e) => {
-          const d = active.current;
-          if (!d || d.pointer !== e.pointerId) return;
-          const next = proposal(d, e.clientX);
-          cancel();
-          e.currentTarget.releasePointerCapture(e.pointerId);
-          if (next.startMs !== d.clip.startMs || next.endMs !== d.clip.endMs)
-            onMove(next);
-        }}
+        onPointerMove={group ? marquee.move : moving.move}
+        onPointerUp={group ? marquee.end : moving.end}
         onPointerCancel={cancel}
         onLostPointerCapture={cancel}
       >
@@ -157,39 +186,33 @@ export function AudioClipLane({
           .filter((c) => visible(c.startMs, c.endMs))
           .map((c) => {
             const begin = (e: React.PointerEvent, mode: ClipMotion) => {
-              e.stopPropagation();
-              if (disabled || e.button !== 0) return;
-              onSelect(c.id);
-              if (c.locked) return;
-              e.preventDefault();
-              (e.currentTarget as HTMLElement).focus();
-              surface.current?.setPointerCapture(e.pointerId);
-              active.current = {
-                pointer: e.pointerId,
-                clip: c,
-                mode,
-                x: e.clientX,
-                next: c,
-              };
-              setDrag(active.current);
+              if (group) marquee.begin(e, c.id);
+              else moving.begin(e, c, mode);
             };
             const label =
               scenes.find((s) => s.id === c.sceneId)?.name ?? c.name;
             return (
               <div
                 key={c.id}
-                className={`audio-lighting-clip ${selected === c.id ? "selected" : ""} ${c.locked ? "locked" : ""} ${c.enabled === false ? "inactive" : ""}`}
+                className={`audio-lighting-clip ${chosen(c.id) ? "selected" : ""} ${c.locked ? "locked" : ""} ${c.enabled === false ? "inactive" : ""}`}
                 style={style(c.startMs, c.endMs)}
               >
                 <button
                   data-lighting-segment={c.id}
                   className="audio-lighting-select"
-                  aria-pressed={selected === c.id}
+                  aria-pressed={chosen(c.id)}
                   aria-label={`${c.name}，${audioTime(c.startMs)} — ${audioTime(c.endMs)}${c.locked ? "，已锁定" : ""}${c.enabled === false ? "，已停用，灯具默认值" : ""}`}
                   disabled={disabled}
                   onPointerDown={(e) => begin(e, "move")}
-                  onClick={() => onSelect(c.id)}
-                  onDoubleClick={() => onSeek(c.startMs)}
+                  onClick={(e) => {
+                    if (group) {
+                      if (e.detail === 0)
+                        clipSelection?.onPick(c.id, e.shiftKey);
+                    } else onSelect(c.id);
+                  }}
+                  onDoubleClick={() => {
+                    if (!group) onSeek(c.startMs);
+                  }}
                   onKeyDown={(e) => key(e, c, "move")}
                 >
                   <strong>
@@ -219,25 +242,36 @@ export function AudioClipLane({
                       }}
                     />
                   )}
-                {(["start", "end"] as const).map(
-                  (mode) =>
-                    (mode === "start"
-                      ? c.startMs >= viewport.start
-                      : c.endMs <= viewport.end) && (
-                      <button
-                        key={mode}
-                        className={`audio-lighting-boundary ${mode === "end" ? "end" : ""}`}
-                        disabled={disabled || c.locked}
-                        aria-label={`调整${c.name}的${mode === "start" ? "开始" : "结束"}时间`}
-                        title="左右键调整 10 毫秒，Shift 调整 1 秒"
-                        onPointerDown={(e) => begin(e, mode)}
-                        onKeyDown={(e) => key(e, c, mode)}
-                      />
-                    ),
-                )}
+                {!group &&
+                  (["start", "end"] as const).map(
+                    (mode) =>
+                      (mode === "start"
+                        ? c.startMs >= viewport.start
+                        : c.endMs <= viewport.end) && (
+                        <button
+                          key={mode}
+                          className={`audio-lighting-boundary ${mode === "end" ? "end" : ""}`}
+                          disabled={disabled || c.locked}
+                          aria-label={`调整${c.name}的${mode === "start" ? "开始" : "结束"}时间`}
+                          title="左右键调整 10 毫秒，Shift 调整 1 秒"
+                          onPointerDown={(e) => begin(e, mode)}
+                          onKeyDown={(e) => key(e, c, mode)}
+                        />
+                      ),
+                  )}
               </div>
             );
           })}
+        {box && (
+          <div
+            className="audio-clip-marquee"
+            aria-hidden="true"
+            style={style(
+              Math.min(box.start, box.end),
+              Math.max(box.start, box.end),
+            )}
+          />
+        )}
         <div
           className="audio-lighting-cursor"
           ref={cursor}

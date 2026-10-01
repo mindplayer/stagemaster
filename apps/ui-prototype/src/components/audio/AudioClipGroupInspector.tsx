@@ -60,7 +60,7 @@ export function AudioClipGroupInspector({
         {selection.inactive ? `，${selection.inactive} 个已停用` : ""}
       </p>
       {!selection.items.length ? (
-        <p>在左侧选择灯光片段。</p>
+        <p>在目录或时间线中选择灯光片段。</p>
       ) : (
         <div className="audio-batch-operations">
           <p>

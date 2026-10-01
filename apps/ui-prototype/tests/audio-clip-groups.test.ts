@@ -1,3 +1,7 @@
+import {
+  clipsInRange,
+  currentClipIds,
+} from "../src/components/audio/clip-selection.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { AudioTimeline, AudioLightingClip } from "../src/audio-types.ts";
@@ -110,4 +114,30 @@ test("片段启停筛选保持隐藏选择，统一启停不依赖目标时间",
     ids: ["c0", "c1"],
     action: { kind: "enabled", enabled: false },
   });
+});
+
+test("时间线框选双向且仅按区间交集，不因锁定停用而遗漏", () => {
+  const before = structuredClone(clips);
+  const source = clips.map((c) => ({ ...c, enabled: false }));
+  assert.deepEqual(clipsInRange(source, 500, 4001), ["c0", "c1", "c2"]);
+  assert.deepEqual(clipsInRange(source, 4001, 500), ["c0", "c1", "c2"]);
+  assert.deepEqual(clipsInRange(source, 1000, 2000), []);
+  assert.deepEqual(clipsInRange(source, 1000, 4000), ["c1"]);
+  assert.deepEqual(clipsInRange(source, 0, 0), []);
+  assert.deepEqual(clipsInRange(source, NaN, 5000), []);
+  assert.deepEqual(clipsInRange(source, 0, Infinity), []);
+  assert.deepEqual(clips, before);
+});
+test("共享选择规范化去重且过滤撤销后失效项，按时间顺序呈现", () => {
+  assert.deepEqual(currentClipIds(clips, ["c2", "missing", "c0", "c2"]), [
+    "c0",
+    "c2",
+  ]);
+  assert.deepEqual(currentClipIds([], ["c2"]), []);
+  const range = clipsInRange(clips, 2000, 5000);
+  assert.deepEqual(currentClipIds(clips, ["c0", "c2", ...range]), [
+    "c0",
+    "c1",
+    "c2",
+  ]);
 });

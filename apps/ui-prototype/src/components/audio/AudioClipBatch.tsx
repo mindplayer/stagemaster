@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import type { ClipSelection } from "./clip-selection";
+import { useEffect, useState } from "react";
 import type {
   AudioEdit,
   AudioLightingClip,
@@ -11,7 +12,6 @@ import { AudioClipGroupInspector } from "./AudioClipGroupInspector";
 import {
   clipGroupCommand,
   clipGroupSelection,
-  toggleClipRange,
   type ClipGroupOperation,
 } from "./clip-group-tools";
 import "./audio-marker-batch.css";
@@ -21,15 +21,16 @@ export function AudioClipBatch({
   busy,
   visible,
   onEdit,
+  selectionState,
 }: {
+  selectionState: ClipSelection;
   track: AudioTimeline;
   items: AudioLightingClip[];
   busy: boolean;
   visible: boolean;
   onEdit(command: AudioEdit): Promise<ProjectView | null>;
 }) {
-  const [ids, setIds] = useState<string[]>([]),
-    anchor = useRef<string | null>(null);
+  const { ids, replace: setIds } = selectionState;
   const [destination, setDestination] = useState<string | null>(null);
   const [problem, setProblem] = useState(""),
     [removing, setRemoving] = useState(false),
@@ -43,13 +44,14 @@ export function AudioClipBatch({
     setProblem("");
     setRemoving(false);
   }
+  useEffect(reset, [ids.join("\0")]);
   function select(next: string[]) {
     setIds(next);
     reset();
   }
   function toggle(id: string, range: boolean) {
-    select(toggleClipRange(selected, items, id, anchor.current, range));
-    anchor.current = id;
+    selectionState.toggle(id, items, range);
+    reset();
   }
   async function run(kind: ClipGroupOperation) {
     if (blocked) return;
@@ -68,7 +70,6 @@ export function AudioClipBatch({
             .map((c) => c.id),
         );
       if (kind === "remove") setIds([]);
-      anchor.current = null;
       reset();
     } catch (error) {
       setProblem(error instanceof Error ? error.message : String(error));
@@ -90,7 +91,6 @@ export function AudioClipBatch({
         <button
           disabled={blocked || !selected.length}
           onClick={() => {
-            anchor.current = null;
             select([]);
           }}
         >

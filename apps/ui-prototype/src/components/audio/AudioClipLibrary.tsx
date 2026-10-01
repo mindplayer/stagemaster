@@ -1,3 +1,4 @@
+import type { ClipSelection } from "./clip-selection";
 import "./audio-clips.css";
 import { AudioClipBatch } from "./AudioClipBatch";
 import { filteredClips, type ClipStateFilter } from "./clip-group-tools";
@@ -20,7 +21,9 @@ export function AudioClipLibrary({
   onBatch,
   visible,
   onEdit,
+  selectionState,
 }: {
+  selectionState: ClipSelection;
   batch: boolean;
   onBatch(): void;
   visible: boolean;
@@ -84,6 +87,7 @@ export function AudioClipLibrary({
       {query && <button onClick={() => setQuery("")}>清除片段筛选</button>}
       {batch ? (
         <AudioClipBatch
+          selectionState={selectionState}
           track={track}
           items={items}
           busy={busy}

@@ -1,3 +1,5 @@
+import { useClipSelection } from "./useClipSelection";
+import { clipsInRange } from "./clip-selection";
 import { AudioResourceHeader } from "./AudioResourceHeader";
 import { AudioClipLibrary } from "./AudioClipLibrary";
 import { useAudioClipActions } from "./useAudioClipActions";
@@ -69,6 +71,7 @@ export const AudioWorkspace = forwardRef<
     !!track?.lightingClips && batchKey === `${trackIdentity}:clips`;
   useEffect(() => setBatchKey(""), [trackIdentity]);
   const [selected, setSelected] = useState("");
+  const clipSelection = useClipSelection(trackIdentity, track?.lightingClips);
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
   const { draft, form, change, cancel, collect } = useAudioWorkspaceDraft(
@@ -203,12 +206,16 @@ export const AudioWorkspace = forwardRef<
             {track && (
               <AudioClipLibrary
                 key={trackIdentity}
+                selectionState={clipSelection}
                 batch={clipBatch}
                 visible={visible}
                 onEdit={edit}
                 onBatch={async () => {
-                  if (await beforeChange())
+                  if (await beforeChange()) {
+                    if (!clipBatch && !clipSelection.ids.length)
+                      clipSelection.replace([selected]);
                     setBatchKey(clipBatch ? "" : `${trackIdentity}:clips`);
+                  }
                 }}
                 track={track}
                 scenes={project.scenes}
@@ -284,7 +291,7 @@ export const AudioWorkspace = forwardRef<
                   sample={audio.playingSample}
                   requestedPosition={audio.requestedPosition}
                   selected={batch || clipBatch ? "" : selected}
-                  disabled={blocked || !!draft}
+                  disabled={blocked || !!draft || !visible}
                   onSeek={seek}
                   onSelect={(id) => {
                     setSelected(id);
@@ -292,6 +299,27 @@ export const AudioWorkspace = forwardRef<
                     cancel();
                   }}
                   onMove={moveMarker}
+                  clipSelection={{
+                    active: clipBatch,
+                    ids: clipSelection.ids,
+                    onMode: () => {
+                      if (!clipBatch && !clipSelection.ids.length)
+                        clipSelection.replace([selected]);
+                      setBatchKey(clipBatch ? "" : `${trackIdentity}:clips`);
+                    },
+                    onPick: (id, range) =>
+                      clipSelection.toggle(
+                        id,
+                        track.lightingClips ?? [],
+                        range,
+                      ),
+                    onRange: (start, end, append) =>
+                      clipSelection.replace([
+                        ...(append ? clipSelection.ids : []),
+                        ...clipsInRange(track.lightingClips ?? [], start, end),
+                      ]),
+                    onClear: () => clipSelection.replace([]),
+                  }}
                   onClipMove={(clip) =>
                     void edit({ kind: "putLightingClip", clip })
                   }

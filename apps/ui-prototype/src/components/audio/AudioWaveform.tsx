@@ -1,3 +1,4 @@
+import type { ClipLaneSelection } from "./clip-selection";
 import type { SceneView } from "../../application-host";
 import { useMemo, useState, type RefObject } from "react";
 import type {
@@ -27,6 +28,7 @@ export function AudioWaveform({
   onSelect,
   onMove,
   onClipMove,
+  clipSelection,
 }: {
   track: AudioTimeline;
   scenes?: SceneView[];
@@ -41,6 +43,7 @@ export function AudioWaveform({
   onSelect(id: string): void;
   onMove(marker: AudioMarker): void;
   onClipMove?(clip: AudioLightingClip): void;
+  clipSelection?: ClipLaneSelection;
 }) {
   const duration = track.outMs - track.inMs;
   const prepared = useMemo(() => {
@@ -190,6 +193,7 @@ export function AudioWaveform({
             />
           )}
         <WaveformMarkers
+          clipSelection={clipSelection}
           track={track}
           scenes={scenes}
           laneCursor={wave.laneCursor}

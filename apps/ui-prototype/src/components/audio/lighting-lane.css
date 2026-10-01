@@ -170,3 +170,30 @@
 .audio-lighting-clip.inactive .audio-lighting-select {
   background: transparent;
 }
+
+.workbench .audio-lighting-lane > header button {
+  min-height: 22px;
+  padding: 1px 8px;
+  font-size: 10px;
+}
+.audio-lighting-clips[data-selecting="true"] {
+  touch-action: none;
+  user-select: none;
+}
+.audio-lighting-clips[data-selecting="true"] .audio-lighting-select {
+  cursor: crosshair;
+}
+.audio-clip-marquee {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  border: 1px solid #a7e7e0;
+  background: #83dfd52b;
+  z-index: 4;
+}
+@media (max-width: 760px) {
+  .audio-lighting-lane > header > span:last-child {
+    display: none;
+  }
+}
