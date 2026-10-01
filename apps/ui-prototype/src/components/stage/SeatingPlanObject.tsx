@@ -35,7 +35,7 @@ export function SeatingPlanObject({
         strokeWidth={unit * 0.12}
       />
       {centers.map(([x, y], i) => (
-        <g key={i}>
+        <g key={i} transform={`rotate(${-layout.angles[i]},${x},${-y})`}>
           <rect
             className="seating-chair"
             x={x - w / 2}
@@ -54,6 +54,25 @@ export function SeatingPlanObject({
           />
         </g>
       ))}
+      {selected && layout.focus && (
+        <g pointerEvents="none">
+          <path
+            className="seating-front"
+            strokeDasharray={`${unit * 0.3} ${unit * 0.2}`}
+            strokeWidth={unit * 0.07}
+            d={`M 0 0 L ${layout.focus[0]} ${-layout.focus[1]}`}
+          />
+          <circle
+            className="seating-front"
+            cx={layout.focus[0]}
+            cy={-layout.focus[1]}
+            r={unit * 0.3}
+            strokeWidth={unit * 0.07}
+          >
+            <title>座区共同焦点</title>
+          </circle>
+        </g>
+      )}
       <path
         className="seating-front"
         d={`M 0 ${-depth / 2 - 0.1} v -.4 m -.15 .15 l .15 -.15 l .15 .15`}

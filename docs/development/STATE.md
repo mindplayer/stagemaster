@@ -1,5 +1,7 @@
 # 当前开发状态
 
+STAGE-004 完成（基线 `0e67513`，结果为本次 `feat(stage): add concentric curved audience seating` 提交）：依 ADR-075 增加同心弧排、逐座朝向、净通道及即时参数预览；559 Rust、200 UI、113 格式、严格检查／类型／桌面及原生取消／历史／保存重开／UE 同步通过，见[工单](tasks/STAGE-004-curved-seating.md)。独立副本三组 66 座，中央 r=3、锁定并已保存；UE 关闭、音乐未播放、设备断开，原工程未改。持续 goal active，接续单列表／场景预演速率。
+
 AUDIO-012 完成（基线 `5497af5`，结果为本次 `feat(audio): scroll the timeline during clip gestures` 提交）：独立片段单段／裁切／整组／框选边缘滚动、累计锚点、取消及播放跟随退让；198 UI、类型／桌面／格式与组件真实按住手势／原生历史保存重开通过，见[工单](tasks/AUDIO-012-timeline-edge-scroll.md)。独立副本第三片段 3.393–4.133 秒已保存，音乐 0、UE 关闭、设备断开。持续 goal active，接续弧形观众座区。
 
 EFFECT-004 完成（基线 `7422578`，结果为本次 `feat(effects): preview drafts without committing project changes` 提交）：依 ADR-074 实现不改工程的效果草稿即时预演、错误保持、取消恢复、单例归属与锁外编译；UE 短暂忙帧保持仍受 2 秒上限约束。553 Rust／最终 64 桌面、195 UI、类型／fmt／严格检查／桌面／UE 构建与 5 UE 自动化、原生编辑／机械行程拒绝／取消历史／保存重开通过，见[工单](tasks/EFFECT-004-live-draft-preview.md)。独立副本已保存，仅第三场景第一周期 4.136 秒；音乐停止、UE 关闭、设备断开，原工程未改。持续 goal active，接续时间线边缘滚动。

@@ -1,8 +1,10 @@
 //! Parametric audience sections. Derived seats never become document identities.
+mod arc;
 use crate::stage::{SpatialVector3, decimal};
 use serde::{Deserialize, Serialize};
 
 pub(crate) const CAPABILITY: &str = "stage.seating";
+pub(crate) const ARC_CAPABILITY: &str = "stage.seating.arc";
 pub const MAX_PROJECT_SEATS: usize = 1024;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -12,7 +14,14 @@ pub struct SeatingAisle {
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SeatingArc {
+    pub radius_meters: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SeatingShape {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arc: Option<SeatingArc>,
     pub space_id: Option<String>,
     pub position_meters: SpatialVector3,
     pub yaw_degrees: String,
@@ -27,6 +36,8 @@ pub struct SeatingShape {
 /// Validated world geometry. Seat ordering is front-to-back, then local left-to-right.
 pub struct SeatingLayout {
     pub centers: Vec<[f64; 2]>,
+    pub seat_yaws_radians: Vec<f64>,
+    pub focus: Option<[f64; 2]>,
     pub outline: [[f64; 2]; 4],
     pub floor: f64,
     pub yaw_radians: f64,
@@ -70,6 +81,10 @@ impl SeatingShape {
         } else {
             0.0
         };
+        if let Some(arc) = &self.arc {
+            let radius = decimal(&arc.radius_meters, 1.0, 10_000.0)?;
+            return arc::layout(self, p, yaw, [w, d, dx, dy], radius);
+        }
         let width = f64::from(self.columns - 1) * dx + w + extra;
         let depth = f64::from(self.rows - 1) * dy + d;
         let (sin, cos) = yaw.sin_cos();
@@ -103,6 +118,8 @@ impl SeatingShape {
         }
         Ok(SeatingLayout {
             centers,
+            seat_yaws_radians: vec![yaw; count],
+            focus: None,
             outline,
             floor: p[2],
             yaw_radians: yaw,

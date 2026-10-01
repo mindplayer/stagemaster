@@ -21,6 +21,7 @@ export interface RigShape {
   heightMeters: string;
 }
 export interface SeatingShape {
+  arc?: { radiusMeters: string } | null;
   kind: "seating";
   spaceId: string | null;
   positionMeters: SpatialVector3;

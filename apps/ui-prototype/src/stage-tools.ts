@@ -69,6 +69,7 @@ export function stageCommand(object: StageObject): StageEdit {
       ] as const)
         s[key] = canonical(s[key]);
       if (s.aisle) s.aisle.widthMeters = canonical(s.aisle.widthMeters);
+      if (s.arc) s.arc.radiusMeters = canonical(s.arc.radiusMeters);
     } else if (s.kind === "rig") {
       for (const axis of ["x", "y", "z"] as const)
         s.positionMeters[axis] = canonical(s.positionMeters[axis]);

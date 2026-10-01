@@ -54,7 +54,7 @@ mod sequence_timing;
 pub use sequence_timing::{StepAdvance, StepTimingPatch};
 mod stage;
 mod stage_constructions;
-pub use seating::{SeatingAisle, SeatingLayout, SeatingShape};
+pub use seating::{SeatingAisle, SeatingArc, SeatingLayout, SeatingShape};
 mod stage_locks;
 pub use audio_group::MarkerGroupAction;
 pub use compilation::{CompiledSequence, CompiledStep};

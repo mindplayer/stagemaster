@@ -1,3 +1,4 @@
+import { curvedSeating } from "./seating-arc.ts";
 import type { SeatingShape } from "./stage-types.ts";
 type Point = [number, number];
 /** Bounded draft projection. Rust validates committed geometry and generates the UE mesh. */
@@ -38,8 +39,17 @@ export function seatingLayout(s: SeatingShape) {
     if (!Number.isFinite(width) || width + 1e-9 < dx - w) return null;
     extra = Math.max(0, width - (dx - w));
   }
-  const width = (s.columns - 1) * dx + w + extra,
+  let width = (s.columns - 1) * dx + w + extra,
     depth = (s.rows - 1) * dy + d;
+  let curved: ReturnType<typeof curvedSeating> = null;
+  if (s.arc) {
+    const radius = number(s.arc.radiusMeters, 1, 10000);
+    if (!Number.isFinite(radius)) return null;
+    curved = curvedSeating(s, [w, d, dx, dy], radius);
+    if (!curved) return null;
+    width = curved.width;
+    depth = curved.depth;
+  }
   const world = ([a, b]: Point): Point => [
     x + a * Math.cos(angle) - b * Math.sin(angle),
     y + a * Math.sin(angle) + b * Math.cos(angle),
@@ -56,17 +66,18 @@ export function seatingLayout(s: SeatingShape) {
     z + 0.85 > 100000
   )
     return null;
-  const centers: Point[] = [];
-  for (let row = 0; row < s.rows; row++)
-    for (let col = 0; col < s.columns; col++) {
-      centers.push([
-        -width / 2 +
-          w / 2 +
-          col * dx +
-          (s.aisle && col >= s.aisle.afterColumn ? extra : 0),
-        depth / 2 - d / 2 - row * dy,
-      ]);
-    }
+  const centers: Point[] = curved?.centers ?? [];
+  if (!curved)
+    for (let row = 0; row < s.rows; row++)
+      for (let col = 0; col < s.columns; col++) {
+        centers.push([
+          -width / 2 +
+            w / 2 +
+            col * dx +
+            (s.aisle && col >= s.aisle.afterColumn ? extra : 0),
+          depth / 2 - d / 2 - row * dy,
+        ]);
+      }
   return {
     width,
     depth,
@@ -74,6 +85,9 @@ export function seatingLayout(s: SeatingShape) {
     d,
     yaw,
     centers,
+    angles: curved?.angles ?? centers.map(() => 0),
+    focus: curved?.focus ?? null,
+    worldFocus: curved ? world(curved.focus) : null,
     worldCenters: centers.map(world),
     outline: worldOutline,
   };

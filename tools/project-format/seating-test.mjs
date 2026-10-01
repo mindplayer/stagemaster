@@ -18,3 +18,11 @@ test('座区和工程分别限制座位数量',()=>{
   p.stage.constructions.push({...structuredClone(c),id:'a0000000-0000-4000-8000-000000000003'});assert.throws(()=>auditProject(p),/1024/);
   c.shape.columns=9;assert.throws(()=>auditProject(p),/512/);
 });
+
+test('弧排独立三角向量、能力、净宽与重叠拒绝',()=>{
+  const vector=JSON.parse(readFileSync(new URL('../test-data/seating-arc-layout.json',import.meta.url),'utf8'));
+  const good=project();good.stage.constructions[0].shape=vector.shape;good.requires.push({key:'stage.seating.arc',version:1});
+  assert.doesNotThrow(()=>auditProject(good));
+  for(const change of [p=>p.requires=p.requires.filter(c=>c.key!=='stage.seating.arc'),p=>p.stage.constructions[0].shape.arc.radiusMeters='1',p=>p.stage.constructions[0].shape.columnSpacingMeters='0.5',p=>p.stage.constructions[0].shape.arc.extra=true]) {const p=structuredClone(good);change(p);assert.throws(()=>auditProject(p));}
+  good.stage.constructions[0].shape.columns=4;good.stage.constructions[0].shape.columnSpacingMeters='0.6';good.stage.constructions[0].shape.aisle={afterColumn:2,widthMeters:'1.2'};assert.doesNotThrow(()=>auditProject(good));
+});

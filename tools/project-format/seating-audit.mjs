@@ -1,3 +1,4 @@
+import { curvedSeatingBounds } from "./seating-arc-audit.mjs";
 // Offline bounds/quantity audit; Rust remains the authoritative geometry implementation.
 export function auditSeating(project) {
   const sections = (project.stage?.constructions ?? []).filter(c => c.shape.kind === 'seating');
@@ -26,7 +27,11 @@ export function auditSeating(project) {
       assert(width + 1e-9 >= dx - w, '通道净宽过小');
       extra = Math.max(0, width - (dx - w));
     }
-    const halfW = ((s.columns - 1) * dx + w + extra) / 2, halfD = ((s.rows - 1) * dy + d) / 2;
+    let halfW = ((s.columns - 1) * dx + w + extra) / 2, halfD = ((s.rows - 1) * dy + d) / 2;
+    if (s.arc) {
+      assert(project.requires.some(c=>c.key==='stage.seating.arc'&&c.version===1),'弧排缺少能力声明');
+      [halfW,halfD]=curvedSeatingBounds(s,w,d,dx,dy,assert);
+    }
     for (const a of [-halfW, halfW]) for (const b of [-halfD, halfD]) {
       assert(Math.abs(x + a * Math.cos(yaw) - b * Math.sin(yaw)) <= 100000 && Math.abs(y + a * Math.sin(yaw) + b * Math.cos(yaw)) <= 100000 && z + .85 <= 100000, '座区边界越界');
     }

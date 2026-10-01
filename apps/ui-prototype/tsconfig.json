@@ -20,6 +20,8 @@
   },
   "include": [
     "src",
+    "tests/timeline-scroll-harness.tsx",
+    "tests/seating.test.ts",
     "tests/audio-clip-batch-harness.tsx",
     "tests/audio-clip-groups.test.ts",
     "tests/demo-session.test.ts",

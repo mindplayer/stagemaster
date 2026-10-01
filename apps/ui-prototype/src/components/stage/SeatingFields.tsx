@@ -1,3 +1,4 @@
+import { SeatingLayoutPreview } from "./SeatingLayoutPreview";
 import type { SeatingShape, StageSpace } from "../../stage-types";
 import { seatingLayout } from "../../seating-tools";
 import { displayMeters } from "./stage-display";
@@ -46,9 +47,48 @@ export function SeatingFields({
             </span>
           </>
         ) : (
-          <span>请检查座数、间距和通道参数</span>
+          <span>请检查座数、间距、通道和半径；座椅不能重叠</span>
         )}
       </div>
+      <SeatingLayoutPreview shape={s} />
+      <div className="seating-arrangement">
+        <span>排列方式</span>
+        <div role="group" aria-label="座区排列方式">
+          <button
+            type="button"
+            aria-pressed={!s.arc}
+            onClick={() => change({ arc: null })}
+          >
+            直排
+          </button>
+          <button
+            type="button"
+            aria-pressed={!!s.arc}
+            onClick={() => {
+              if (!s.arc) change({ arc: { radiusMeters: "5" } });
+            }}
+          >
+            弧形
+          </button>
+        </div>
+      </div>
+      {s.arc && (
+        <>
+          {number(
+            "前排半径（米）",
+            s.arc.radiusMeters,
+            (v) => change({ arc: { radiusMeters: v } }),
+            1,
+            10000,
+          )}
+          {layout?.worldFocus && (
+            <small>
+              共同焦点 X {displayMeters(layout.worldFocus[0])} / Y{" "}
+              {displayMeters(layout.worldFocus[1])} 米
+            </small>
+          )}
+        </>
+      )}
       <div className="stage-pair">
         {number(
           "排数",
@@ -85,14 +125,14 @@ export function SeatingFields({
       </div>
       <div className="stage-pair">
         {number(
-          "座椅中心距（米）",
+          s.arc ? "前排弧长中心距（米）" : "座椅中心距（米）",
           s.columnSpacingMeters,
           (v) => change({ columnSpacingMeters: v }),
           Number(s.seatWidthMeters) || 0.3,
           5,
         )}
         {number(
-          "排中心距（米）",
+          s.arc ? "径向排中心距（米）" : "排中心距（米）",
           s.rowSpacingMeters,
           (v) => change({ rowSpacingMeters: v }),
           Number(s.seatDepthMeters) || 0.3,

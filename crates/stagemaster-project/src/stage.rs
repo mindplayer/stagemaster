@@ -403,5 +403,12 @@ fn initialize(root: &mut Value, command: &StageEdit) -> Result<(), String> {
     {
         capabilities.push(json!({"key":crate::seating::CAPABILITY,"version":1}));
     }
+    if matches!(command, StageEdit::PutConstruction { shape: ConstructionShape::Seating(s), .. } if s.arc.is_some())
+        && !capabilities
+            .iter()
+            .any(|c| c["key"] == crate::seating::ARC_CAPABILITY)
+    {
+        capabilities.push(json!({"key":crate::seating::ARC_CAPABILITY,"version":1}));
+    }
     Ok(())
 }

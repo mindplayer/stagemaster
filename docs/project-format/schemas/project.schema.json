@@ -2838,6 +2838,17 @@
                 "kind": {
                   "const": "seating"
                 },
+                "arc": {
+                  "anyOf": [
+                    { "type": "null" },
+                    {
+                      "type": "object",
+                      "required": ["radiusMeters"],
+                      "properties": { "radiusMeters": { "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal" } },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
                 "spaceId": {
                   "oneOf": [
                     {

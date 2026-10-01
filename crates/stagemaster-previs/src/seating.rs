@@ -4,10 +4,10 @@ use stagemaster_project::SeatingShape;
 pub(super) fn mesh(shape: &SeatingShape) -> Result<Vec<Triangle>, String> {
     let layout = shape.layout()?;
     let mut mesh = Vec::with_capacity(layout.centers.len() * 72);
-    let (sin, cos) = layout.yaw_radians.sin_cos();
     let w = layout.seat_width;
     let d = layout.seat_depth;
-    for center in &layout.centers {
+    for (center, angle) in layout.centers.iter().zip(&layout.seat_yaws_radians) {
+        let (sin, cos) = angle.sin_cos();
         let world = |x: f64, y: f64| [center[0] + x * cos - y * sin, center[1] + x * sin + y * cos];
         let mut solid = |x: f64, y: f64, width: f64, depth: f64, bottom: f64, top: f64| {
             geometry::wall(

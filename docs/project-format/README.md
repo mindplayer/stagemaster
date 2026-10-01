@@ -200,3 +200,5 @@ AUDIO-006 按 [ADR-067](../development/decisions/PRODUCT-ADR-067-audio-lighting-
 AUDIO-008 按 [ADR-072](../development/decisions/PRODUCT-ADR-072-lighting-clip-enable.md) 在独立片段增加可选 `enabled`，缺省／true 为启用（规范写出时省略 true）。false 须声明 `media.audio-clip-state@1`；能力要求存在独立片段轨道。停用仍保留区间、引用、数量和锁约束，执行期间按默认值空隙处理，不续前段。普通属性编辑不能暗改状态；具体验证结果看任务记录。
 
 AUDIO-010 在独立灯光片段增加可选 `effectOffsetMs`（缺省 0、最大 3,600,000 且加片段长度不越界），非零须 `media.audio-clip-offset@1`。用于保持分割后的动态效果源时间，进入渐变仍按片段本地时钟；当前仅允许渐变结束后分割，完整边界见 [ADR-073](../development/decisions/PRODUCT-ADR-073-audio-clip-effect-offset.md)。现有设备包不支持非零偏移，不能静默编码。
+
+STAGE-004 按 [ADR-075](../development/decisions/PRODUCT-ADR-075-curved-seating.md) 增加可选 seating.arc（radiusMeters）与 `stage.seating.arc@1`，省略／null 保持矩形；实际弧形不得无能力声明。参数和几何约束见[场地契约](../module-api/stage-spaces.md#stage-004-弧形座区)，逐座生成角度不写入工程。当前实施验收中。
