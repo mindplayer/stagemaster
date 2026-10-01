@@ -91,7 +91,10 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
             let mut attributes = fixture
                 .attributes
                 .iter()
-                .filter(|a| a.function.is_none())
+                .filter(|a| {
+                    a.function.is_none()
+                        && !stagemaster_project::is_continuous_optics_attribute(&a.key)
+                })
                 .map(|a| a.key.as_str())
                 .collect::<Vec<_>>();
             if fixture.positioning.is_some() {
@@ -118,7 +121,13 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 direction: ray.direction,
                 full_beam_angle_degrees: 25.0,
                 optics: "generic-illustrative",
-                light_simulation: if has_function_optics(fixture) {
+                light_simulation: if fixture
+                    .attributes
+                    .iter()
+                    .any(|a| stagemaster_project::is_continuous_optics_attribute(&a.key))
+                {
+                    "unmodeled-optics"
+                } else if has_unmodeled_optics(fixture) {
                     "unmodeled-functions"
                 } else {
                     "dimmer-rgb"
@@ -138,6 +147,8 @@ fn points(values: &[[String; 2]]) -> Result<Vec<[f64; 2]>, String> {
         .collect()
 }
 
-fn has_function_optics(fixture: &stagemaster_project::FixtureView) -> bool {
-    fixture.attributes.iter().any(|a| a.function.is_some())
+fn has_unmodeled_optics(fixture: &stagemaster_project::FixtureView) -> bool {
+    fixture.attributes.iter().any(|a| {
+        a.function.is_some() || stagemaster_project::is_continuous_optics_attribute(&a.key)
+    })
 }

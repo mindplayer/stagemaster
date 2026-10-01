@@ -28,6 +28,8 @@ mod effect_compile;
 mod effects;
 mod encoding;
 mod fixture;
+mod fixture_optics;
+pub use fixture_optics::is_continuous_optics_attribute;
 mod fixture_exchange;
 mod fixture_function;
 mod fixture_value;

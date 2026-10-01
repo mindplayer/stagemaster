@@ -40,6 +40,7 @@ export function QuickPresets({
     { id: "light", name: "仅亮度", keys: ["dimmer"] },
     { id: "color", name: "仅颜色", keys: ["red", "green", "blue"] },
     { id: "position", name: "仅位置", keys: ["pan", "tilt"] },
+    { id: "optics", name: "仅镜头与光圈", keys: ["zoom", "focus", "iris"] },
   ];
   const scope =
     scopes.find((s) => JSON.stringify(s.keys) === JSON.stringify(mask))?.id ??

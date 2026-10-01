@@ -1,3 +1,4 @@
+import { opticsLabels } from "../../fixture-optics";
 import type { ProfileDraft } from "../../fixture-tools";
 import { functionLabels } from "../../fixture-function-types";
 import { ProfileChannelFields } from "./ProfileChannelFields";
@@ -13,7 +14,8 @@ export function ProfileLinearChannels({
       <h3>线性属性与物理通道</h3>
       <div className="profile-channels">
         {value.channels.map((c, i) =>
-          c.attribute in functionLabels ? null : (
+          c.attribute in functionLabels ||
+          Object.hasOwn(opticsLabels, c.attribute) ? null : (
             <ProfileChannelFields
               key={c.attribute}
               channel={c}

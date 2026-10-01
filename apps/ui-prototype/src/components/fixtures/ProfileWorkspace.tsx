@@ -5,6 +5,7 @@ import {
 import type { ApplicationHost } from "../../application-host";
 import { ProfileMetadata } from "./ProfileMetadata";
 import { ProfileMotionFields } from "./ProfileMotionFields";
+import { ProfileOpticsChannels } from "./ProfileOpticsChannels";
 import { ProfileLinearChannels } from "./ProfileLinearChannels";
 import { ProfileFunctionChannels } from "./ProfileFunctionChannels";
 import { ChannelStrip } from "./ProfileChannelStrip";
@@ -242,6 +243,7 @@ export const ProfileWorkspace = forwardRef<
                     <ProfileMetadata value={value} setDraft={setDraft} />
                     <ProfileMotionFields value={value} setDraft={setDraft} />
                     <ProfileLinearChannels value={value} setDraft={setDraft} />
+                    <ProfileOpticsChannels value={value} setDraft={setDraft} />
                     <ProfileFunctionChannels
                       value={value}
                       setDraft={setDraft}

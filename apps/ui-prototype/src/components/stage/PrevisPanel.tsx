@@ -184,7 +184,7 @@ export function PrevisPanel({
           </summary>
           <p>{limitedFixtures.map((f) => f.name).join("、")}</p>
           <p>
-            色盘、图案、快门和棱镜尚无光学模型，因此隐藏这些灯具的光束。实际通道值以播放监看为准。
+            色盘、图案、快门、棱镜、变焦、调焦和光圈尚无光学模型，因此隐藏这些灯具的光束。实际通道值以播放监看为准。
           </p>
         </details>
       )}

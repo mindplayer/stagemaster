@@ -286,7 +286,7 @@ pub(super) fn attribute_label(key: &str) -> &str {
         "gobo-wheel" => "图案盘",
         "shutter" => "快门与频闪",
         "prism" => "棱镜",
-        _ => key,
+        _ => crate::fixture_optics::label(key).unwrap_or(key),
     }
 }
 

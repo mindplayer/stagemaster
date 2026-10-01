@@ -157,7 +157,7 @@ fn lights(rig: &LightRig, value: impl Fn(&str, &str, u64) -> u64) -> Vec<Light> 
             Light {
                 pose,
                 fixture_id: f.id.clone(),
-                intensity: if super::has_function_optics(f) {
+                intensity: if super::has_unmodeled_optics(f) {
                     0.0
                 } else {
                     attribute("dimmer", 1.0)

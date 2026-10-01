@@ -65,7 +65,9 @@ pub(super) fn supported_keys<'a>(keys: impl Iterator<Item = &'a str>) -> bool {
     if keys.windows(2).any(|p| p[0] == p[1]) {
         return false;
     }
-    keys.retain(|k| !crate::fixture_value::is_function_key(k));
+    keys.retain(|k| {
+        !crate::fixture_value::is_function_key(k) && !crate::is_continuous_optics_attribute(k)
+    });
     if keys.contains(&"pan") || keys.contains(&"tilt") {
         if keys.iter().filter(|&&k| k == "pan" || k == "tilt").count() != 2
             || !keys.contains(&"pan")
@@ -105,6 +107,7 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     }
     let mut occupied = BTreeSet::new();
     for channel in &def.channels {
+        crate::fixture_optics::validate(channel)?;
         if crate::fixture_value::is_function_key(&channel.attribute) && channel.functions.is_none()
         {
             return Err(format!(

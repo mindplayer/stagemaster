@@ -1,5 +1,7 @@
 # 当前开发状态
 
+FIXTURE-005 完成（基线 `5d80c07`，结果为本次 `feat(fixtures): add continuous lens and iris controls` 提交）：依 ADR-080 贯通变焦／调焦／光圈建档、场景／预设、渐变与包；594 Rust、233 UI、严格检查／类型／格式／桌面和组件／原生取消、历史、预设隔离、保存重开通过，见[工单](tasks/FIXTURE-005-continuous-optics.md)。独立镜头工程已保存、UE 关闭／音乐 0／设备断开，原 STAGE-004 未改。持续 goal active，接续 U01／U10 属性分类。
+
 UX-034 完成（基线 `4ab3937`，结果为本次 `feat(stage): unify labels across venue objects` 提交）：三处平面的空间／地台／桁架／座区／灯具统一标注，选中优先／旋转正向／一致隐藏；231 UI、类型／格式／桌面、混合组件和原生三视图通过，见[工单](tasks/UX-034-unified-plan-labels.md)。当前 STAGE-004 已保存未改、音乐 0／UE 关闭／设备断开；持续 goal active，接续 F02 摇头灯常用属性。
 
 FIXTURE-004 完成（基线 `875f107`，结果为本次 `feat(fixtures): reuse portable fixture modes across projects` 提交）：依 ADR-079 实现模式文件／导入检查／独立身份与保护保存；590 Rust、227 UI、类型／fmt／严格检查／桌面、组件生命周期及原生导入导出／取消／历史／配灯／保存重开通过，见[工单](tasks/FIXTURE-004-portable-modes.md)。当前已保存新验收工程 3 模式／1 灯，UE 关闭、无音乐、设备断开；来源未改，持续 goal active，接续非灯具平面标签。

@@ -1,3 +1,4 @@
+import { opticsLabels } from "../../fixture-optics";
 import { isStageLocked } from "../../stage-locks";
 import {
   forwardRef,
@@ -92,8 +93,9 @@ export const WorkbenchViewport = forwardRef<
           })}
           limitedFixtures={project.fixtures.filter(
             (f) =>
-              f.attributes.some((a) => a.function) &&
-              project.stage.placements.some((p) => p.fixtureId === f.id),
+              f.attributes.some(
+                (a) => a.function || Object.hasOwn(opticsLabels, a.key),
+              ) && project.stage.placements.some((p) => p.fixtureId === f.id),
           )}
           ref={ref}
           fixed

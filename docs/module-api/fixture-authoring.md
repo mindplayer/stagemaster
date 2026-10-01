@@ -10,7 +10,7 @@ interface ProfileDefinition {
   positioning?: PositionModel; // 见位置求解契约，缺省为固定灯
   footprint: number; // 1–512，包含空余通道
   channels: {
-    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
+    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "zoom" | "focus" | "iris" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
     coarse: number; // 从 1 起
     fine: number | null; // 从 1 起，非相邻和细调在前均可
     defaultValue: number | { functionKey: string; position: number }; // 连续值或功能选择
@@ -54,3 +54,11 @@ interface Repatch { universe: number; address: number; gap: number }
 - 模式编辑拆为元信息、轴行程、物理映射、功能区间和分布组件；更换基础组合保留已配置的轴与功能。场景连续参数与功能参数分别显示，共用父级草稿、应用、取消及历史。
 
 三维暂仅为这些灯具展示灯体和朝向，隐藏尚无模型的光束并列明受影响灯具；输出明细仍显示完整的实际通道。此边界见[预演接口](previsualization.md)，不等同真实光学验证。
+
+## 镜头与光圈（FIXTURE-005）
+
+依 [ADR-080](../development/decisions/PRODUCT-ADR-080-continuous-optics-controls.md)，`zoom`（变焦）、`focus`（调焦）、`iris`（光圈）各可独立增加一组全范围线性粗细通道；默认值必须为 0–65535 整数，不接受 functions 表。既有基础属性与成对位置轴要求不变。Rust `is_continuous_optics_attribute` 维护支持集合；界面独立建档区复用连续字段与草稿校验，切换基础组合保持镜头定义。
+
+百分比仅代表通道控制位置，不推断光束角、焦距、开度或正反方向。场景、释放、预设及列表／音频段落渐变使用原有 normalized／LTP 管线；总控／熄灯不改变这些属性。快速预设增加“仅镜头与光圈”范围。可携带模式文件保持准确粗细、默认值及独立导入身份。
+
+现有 lighting.basic 和通用播放包已承载这类值，不新增格式能力或执行版本；动态效果白名单未扩展。带宏／保留区间／非线性物理映射尚未建模。三维保留灯位并明确光学未模拟，不能把百分比显示当物理预演。

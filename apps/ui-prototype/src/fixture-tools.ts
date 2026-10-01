@@ -3,6 +3,7 @@ import {
   fixtureInteger as integer,
 } from "./fixture-field-error.ts";
 export { FixtureFieldError } from "./fixture-field-error.ts";
+import { opticsLabels } from "./fixture-optics.ts";
 import { functionLabels, sameFunctions } from "./fixture-function-types.ts";
 import {
   functionsDraft,
@@ -13,6 +14,7 @@ import type { FixtureView, ProjectView } from "./application-host";
 import type { ProfileDefinition, Repatch } from "./fixture-types";
 export const channelLabels: Record<string, string> = {
   ...functionLabels,
+  ...opticsLabels,
   dimmer: "亮度",
   pan: "水平轴",
   tilt: "垂直轴",
@@ -88,7 +90,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const footprint = integer(draft.footprint, 1, 512, "footprint", "模式占用");
   const keys = draft.channels
     .map((c) => c.attribute)
-    .filter((k) => !(k in functionLabels))
+    .filter((k) => !(k in functionLabels) && !Object.hasOwn(opticsLabels, k))
     .filter((k) => !draft.positioning || (k !== "pan" && k !== "tilt"))
     .sort()
     .join(",");
