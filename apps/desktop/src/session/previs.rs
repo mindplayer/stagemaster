@@ -72,23 +72,8 @@ impl Session {
         version: &str,
         placement: FixturePlacement,
     ) -> Result<Revision, String> {
-        self.guard(generation)?;
-        if version != self.content_version.to_string() {
-            return Err("场地版本已变化，请刷新三维预演".into());
-        }
-        let doc = self.document.as_ref().ok_or("请先打开工程")?;
-        let view = doc.view();
-        match &self.previs_source.clone() {
-            Source::Scene { scene_id }
-                if !view.scenes.iter().any(|scene| scene.id == *scene_id) =>
-            {
-                return Err("原预演场景已删除，请重新选择".into());
-            }
-            Source::Playback if self.render_playback()?.output.is_none() => {
-                return Err("请先重新载入场景列表预览".into());
-            }
-            _ => {}
-        }
+        self.guard_viewport_edit(generation, version)?;
+        let view = self.document.as_ref().ok_or("请先打开工程")?.view();
         let previous = view
             .stage
             .placements
@@ -112,6 +97,30 @@ impl Session {
         // The desktop must acknowledge the new generation before another remote edit.
         self.previs_edit_allowed = false;
         Ok(self.previs_revision())
+    }
+    pub(super) fn guard_viewport_edit(
+        &mut self,
+        generation: u32,
+        version: &str,
+    ) -> Result<(), String> {
+        self.guard(generation)?;
+        if version != self.content_version.to_string() {
+            return Err("场地版本已变化，请刷新三维预演".into());
+        }
+        let doc = self.document.as_ref().ok_or("请先打开工程")?;
+        let view = doc.view();
+        match &self.previs_source.clone() {
+            Source::Scene { scene_id }
+                if !view.scenes.iter().any(|scene| scene.id == *scene_id) =>
+            {
+                return Err("原预演场景已删除，请重新选择".into());
+            }
+            Source::Playback if self.render_playback()?.output.is_none() => {
+                return Err("请先重新载入场景列表预览".into());
+            }
+            _ => {}
+        }
+        Ok(())
     }
 }
 

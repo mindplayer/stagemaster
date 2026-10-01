@@ -26,15 +26,17 @@
 
 桌面 `previs_request` 支持 `status/enable/disable/source`，状态新增可空 `viewerUrl`。它只带当前观看会话的独立凭据，允许 Tauri 前端连接本机视频服务，不能访问工程桥或渲染器信令入口。信令绑定本机动态端口、校验 Tauri Origin、限制一个观看者和 256 KiB 消息，不配置外部 STUN／TURN。正常关闭回收两个子进程；轮询发现任一子进程退出时关闭整个预演连接，保留工程与播放器。画面连接状态与工程桥连接状态分别显示。
 
-查看动作经官方数据通道传输，`UIInteraction` 接受单字段 `{ "action": "top" }`，允许 `perspective/top/all/selected/workLight/cancel/move/inspect`，以及下述严格定形的选择和提交反馈。任意控制台命令入口关闭。渲染器以 5 Hz 返回中文查看状态、所选灯具描述和工作照明状态；这些是临时查看状态，不写工程。键盘转发仅在视窗获得焦点时启用，离开或卸载立即关闭；未开启麦克风、摄像头或真实硬件控制。
+查看动作经官方数据通道传输，`UIInteraction` 接受单字段 `{ "action": "top" }`，允许 `perspective/top/all/selected/workLight/cutaway/cancel/move/inspect/moveHorizontal/moveVertical`，以及下述严格定形的选择和提交反馈。任意控制台命令入口关闭。渲染器以 5 Hz 返回中文查看状态、所选灯具描述和工作照明状态；这些是临时查看状态，不写工程。键盘转发仅在视窗获得焦点时启用，离开或卸载立即关闭；未开启麦克风、摄像头或真实硬件控制。
 
-### 内嵌位置提案（e50cfbd 后增量，已接通）
+### 内嵌组位移提案（STAGE-005／ADR-094）
 
-按 ADR-019 补充决策，产品的拖动编辑使用当前窗口统一队列，不启用持久 HTTP 编辑资格。渲染器松手发送 `{kind:"placement", requestId, generation, version, placement}`；位置保留六位小数文本，版本保持十进制字符串。前端校验结构／范围／大小并去重，在 `run()` 中先处理草稿，再调用 `project_request` 的 `previsPlacement`。其参数为 generation、version 和 placement，返回完整 `Snapshot`。Rust 的 `place_from_viewport` 复用既有灯位、预演源可用性和版本检查，禁止更改空间或安装旋转，调用同一 `Session.edit` 形成一次历史记录。
+当前验收状态见 [STAGE-005](../development/tasks/STAGE-005-shared-3d-fixture-movement.md)。继续使用当前窗口统一编辑队列，不启用持久 HTTP 编辑资格。渲染器松手发送 `{kind:"translation", requestId, generation, version, fixtureIds, deltaMeters}`；米制位移最多六位小数文本，版本保持十进制字符串。前端校验结构／范围／大小并去重，在 `run()` 中处理草稿后调用 `project_request.previsTranslation`，返回完整 `Snapshot`。Rust `translate_from_viewport` 检查工程代次、内容版本、预演源，并将 1–256 个唯一已布置灯具交给 `StageEdit::TranslatePlacements`，一次历史、整组原子变更。
 
-无效草稿保留在原字段；若草稿应用导致版本变化，旧拖动提案拒绝，用户重新拖动即可。视窗卸载／连接变化或提案排队超过 2.5 秒，前端不再执行。UE 的临时拖动位置最多等待 3 秒或下一次权威场地更新，失败恢复原位置。前端返回 `{action:"placementResult", requestId, accepted}`，不能以接受通知替代实际工程快照。
+无效草稿保留在原字段；草稿应用导致版本变化时旧提案拒绝。前端还核对提案与当前有序选择完全一致；跨工程／页面／选择变化、连接轮次变化或排队超过 2.5 秒使延迟请求失效。UE 临时位置最多等待 3 秒或下一次权威场地更新；拒绝、取消、失焦或断开恢复全部成员。返回 `{action:"placementResult", requestId, accepted}`，接受反馈不能代替权威快照。旧 `previsPlacement` 与单灯 HTTP 诊断端点保留原校验，但新视窗拒绝旧 `kind:"placement"` 提案，不向旧渲染器开放移动。
 
-查看协议补充 `move/inspect` 切换交互模式；`select` 带 fixtureId 将舞台工作区选择同步到三维，UE 选择事件 `{kind:"selection", fixtureId}` 经过工作区草稿处理再显示属性。周期状态新增 `kind:"state"` 与 `move`。这些查看命令不具备直接工程写入权限。UE 5.8 默认 MouseUp 消息忽略最终坐标，本适配器通过官方消息处理器扩展先更新松手位置，再调用原处理器释放捕获，避免短手势丢失末端移动。官方前端的 `(65535,65535)` 越界标记和 MouseLeave 必须取消拖动，不能当作右下角坐标提交；已加入协议回归并原生复测。
+周期状态显式提供 `interactionVersion:2`、`move` 和 `vertical`；不兼容版本可查看但不移动。`selectGroup` 携带有序 `fixtureIds`（0–1024 个唯一身份），对应事件为 `{kind:"selectionGroup",fixtureIds}`。末项为活动对象，空数组清空，迟到选灯同样检查上下文与连接轮次。旧单灯选择事件仍可读；主流程使用共享集合。视窗消息最多 65536 字符，UE 输入最多 49152 字符；身份长度至多 256 字符。选择／镜头命令不具备直接工程写入权限。
+
+UE 5.8 默认 MouseUp 忽略最终坐标，适配器保留既有终点修正后释放捕获；`(65535,65535)` 越界标记、MouseLeave 与 Esc 取消拖动。场地／帧协议仍为版本 2，未增加第二份工程或时钟。旋转／缩放与混合构件组另行实施。
 
 所有成功响应包含：
 
@@ -73,7 +75,7 @@
 1. 最多一个在途帧请求，目标约 30 Hz；慢响应略过采样，不补播历史。几何与灯值必须匹配 bridgeId／version，未知 protocol 拒绝；更换工程清空旧画面。
 2. 位置变换仅在 UE 边界转厘米、反转 Y；本协议经反射后的顶点顺序已经匹配 UE 正面约定，不能再次交换三角索引。法线与 UE 自带盒网格核对；射线沿同样基变换，不再实现灯光语义或指向求解。
 3. 相机、选择与拖动草稿属于渲染器查看状态。拖动中就地反馈，松手只提交一次；Esc 取消，版本变化／断线撤销草稿。禁止每帧写入工程。
-4. HTTP 编辑资格默认关闭；其诊断路径需桌面按当前 generation 确认，内容修改、保存、撤销和每次提交都会撤销资格。产品内嵌视窗改走上述统一队列和 `project_request.previsPlacement`，没有持久 HTTP 授权，不能绕过草稿与精确版本检查。
+4. HTTP 编辑资格默认关闭；其诊断路径需桌面按当前 generation 确认，内容修改、保存、撤销和每次提交都会撤销资格。产品内嵌视窗改走上述统一队列和 `project_request.previsTranslation`，没有持久 HTTP 授权，不能绕过草稿与精确版本检查。
 5. 禁用、断线、过期计划和渲染器退出都不改变工程或播放器；播放源仍由原 Instant 时钟推进。真实 DMX 输出权限不属于此接口。
 
 ## 已有验证与剩余验收

@@ -59,6 +59,8 @@
     "tests/step-navigation.test.ts",
     "tests/step-navigation-harness.tsx",
     "tests/pinned-resources.test.ts",
-    "tests/pinned-resources-harness.tsx"
+    "tests/pinned-resources-harness.tsx",
+    "tests/previs-messages.test.ts",
+    "tests/previs-interaction-scope.test.ts"
   ]
 }

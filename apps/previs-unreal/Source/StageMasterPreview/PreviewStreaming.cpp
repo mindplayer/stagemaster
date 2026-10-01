@@ -5,6 +5,7 @@
 #include "Misc/Char.h"
 #include "PreviewCameraPawn.h"
 #include "PreviewInput.h"
+#include "PreviewSelection.h"
 #include "GameFramework/PlayerController.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -28,6 +29,8 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
         State->SetStringField(TEXT("workLight"), Camera->WorkLightText().ToString());
         State->SetBoolField(TEXT("move"), Camera->IsMoveMode());
         State->SetBoolField(TEXT("cutaway"), Camera->IsCutaway());
+        State->SetNumberField(TEXT("interactionVersion"), 2);
+        State->SetBoolField(TEXT("vertical"), Camera->IsVerticalMove());
         FString Json;
         FJsonSerializer::Serialize(State, TJsonWriterFactory<>::Create(&Json));
         // Send periodically as viewers may reconnect while the scene stays unchanged.
@@ -74,7 +77,7 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
             if (!WeakCamera.IsValid() || Ar.TotalSize() - Ar.Tell() < 2) return;
             uint16 Length = 0;
             Ar << Length;
-            if (Length == 0 || Length > 256 || Ar.TotalSize() - Ar.Tell() != Length * sizeof(TCHAR)) return;
+            if (Length == 0 || Length > 49152 || Ar.TotalSize() - Ar.Tell() != Length * sizeof(TCHAR)) return;
             FString Json;
             Json.GetCharArray().SetNumZeroed(Length + 1);
             Ar.Serialize(Json.GetCharArray().GetData(), Length * sizeof(TCHAR));
@@ -86,7 +89,13 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
             else if (Action == TEXT("select") && Object->Values.Num() == 2)
             {
                 FString Id;
-                if (Object->TryGetStringField(TEXT("fixtureId"), Id) && Id.Len() <= 256) WeakCamera->SelectFromHost(Id);
+                if (Object->TryGetStringField(TEXT("fixtureId"), Id) && Id.Len() <= 256)
+                    WeakCamera->SelectFromHost(Id.IsEmpty() ? TArray<FString>() : TArray<FString>{Id});
+            }
+            else if (Action == TEXT("selectGroup") && Object->Values.Num() == 2)
+            {
+                TArray<FString> Ids;
+                if (StageMaster::ReadFixtureSelection(Object, Ids)) WeakCamera->SelectFromHost(Ids);
             }
             else if (Action == TEXT("placementResult") && Object->Values.Num() == 3)
             {

@@ -13,15 +13,24 @@ export interface PrevisStatus {
   source: PrevisSource;
   problem: string | null;
 }
-import type { FixturePlacement } from "./stage-types";
+import type { FixturePlacement, SpatialVector3 } from "./stage-types";
 export interface PrevisPlacement {
   generation: number;
   version: string;
   placement: FixturePlacement;
 }
 export interface PrevisInteractions {
-  selectedId: string;
-  onSelect(id: string): Promise<boolean>;
+  selectedIds: string[];
+  onSelect(ids: string[], isActive: () => boolean): Promise<boolean>;
   onPrepareMove(): Promise<boolean>;
-  onPlacement(proposal: PrevisPlacement, isActive: () => boolean): Promise<boolean>;
+  onTranslation(
+    proposal: PrevisTranslation,
+    isActive: () => boolean,
+  ): Promise<boolean>;
+}
+export interface PrevisTranslation {
+  generation: number;
+  version: string;
+  fixtureIds: string[];
+  deltaMeters: SpatialVector3;
 }

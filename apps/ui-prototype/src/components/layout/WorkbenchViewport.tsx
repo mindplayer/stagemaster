@@ -87,10 +87,9 @@ export const WorkbenchViewport = forwardRef<
       >
         <SharedPrevis
           {...previs}
-          placementLocked={isStageLocked(project.stage, {
-            kind: "placement",
-            id: preview.selectedId,
-          })}
+          placementLocked={preview.selectedIds.some((id) =>
+            isStageLocked(project.stage, { kind: "placement", id }),
+          )}
           limitedFixtures={project.fixtures.filter(
             (f) =>
               f.attributes.some(
@@ -100,7 +99,7 @@ export const WorkbenchViewport = forwardRef<
           ref={ref}
           fixed
           viewControls={controls}
-          contextKey={`${page}:${view}`}
+          contextKey={`${project.id}:${page}:${view}`}
           onReveal={() => {
             revealViewport();
             if (page === "stage") onStageView("three");

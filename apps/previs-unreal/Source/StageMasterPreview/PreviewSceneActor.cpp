@@ -264,8 +264,14 @@ FBox APreviewSceneActor::GetBounds() const
 }
 FString APreviewSceneActor::FixtureAt(const FHitResult& Hit) const
 {
-    for (const auto& Entry : Fixtures) if (Hit.GetComponent() == Entry.Value.Body || Hit.GetComponent()==Entry.Value.Base || Hit.GetComponent()==Entry.Value.ArmLeft || Hit.GetComponent()==Entry.Value.ArmRight) return Entry.Key;
+    for (const auto& Entry : Fixtures) if (Entry.Value.ContainsHitComponent(Hit.GetComponent())) return Entry.Key;
     return {};
+}
+bool FPreviewFixtureVisual::ContainsHitComponent(const UPrimitiveComponent* Component) const
+{
+    // A missed ray has no component; fixed fixtures also have no yoke parts.
+    // Two absent components must never turn an empty-space click into a fixture hit.
+    return Component && (Component == Body || Component == Base || Component == ArmLeft || Component == ArmRight);
 }
 const StageMaster::FFixture* APreviewSceneActor::FindFixture(const FString& Id) const
 {

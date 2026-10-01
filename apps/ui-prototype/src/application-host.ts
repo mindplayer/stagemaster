@@ -10,6 +10,7 @@ import type {
   PrevisRequest,
   PrevisStatus,
   PrevisPlacement,
+  PrevisTranslation,
 } from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
@@ -131,6 +132,7 @@ export type ProjectRequest =
   | { kind: "edit"; generation: number; command: EditCommand }
   | { kind: "applyEffectTemplate"; generation: number; token: string }
   | ({ kind: "previsPlacement" } & PrevisPlacement)
+  | ({ kind: "previsTranslation" } & PrevisTranslation)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";

@@ -102,6 +102,11 @@ export type StageEdit =
       layout: RigLayout | null;
     }
   | { op: "putPlacement"; placement: FixturePlacement }
+  | {
+      op: "translatePlacements";
+      fixtureIds: string[];
+      deltaMeters: SpatialVector3;
+    }
   | { op: "removePlacement"; fixtureId: string };
 export type StageObject =
   | { kind: "space"; value: StageSpace }

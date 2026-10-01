@@ -12,12 +12,14 @@ class UDirectionalLightComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UStaticMesh;
+class UPrimitiveComponent;
 namespace StageMaster { class FPreviewBridge; }
 
 USTRUCT()
 struct FPreviewFixtureVisual
 {
     GENERATED_BODY()
+    bool ContainsHitComponent(const UPrimitiveComponent* Component) const;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Base;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> ArmLeft;

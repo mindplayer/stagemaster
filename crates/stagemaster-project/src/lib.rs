@@ -86,6 +86,7 @@ mod stage;
 mod stage_constructions;
 pub use seating::{SeatingAisle, SeatingArc, SeatingLayout, SeatingShape};
 mod stage_locks;
+mod stage_translation;
 pub use audio_group::MarkerGroupAction;
 pub use compilation::{CompiledSequence, CompiledStep};
 pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};

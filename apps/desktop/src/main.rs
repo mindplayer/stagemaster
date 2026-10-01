@@ -18,7 +18,7 @@ mod sequence_report;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
-use stagemaster_project::{EditCommand, FixturePlacement};
+use stagemaster_project::{EditCommand, FixturePlacement, SpatialVector3};
 use std::sync::{Arc, Mutex};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager};
@@ -54,6 +54,14 @@ enum Request {
     ApplyEffectTemplate {
         generation: u32,
         token: String,
+    },
+    PrevisTranslation {
+        generation: u32,
+        version: String,
+        #[serde(rename = "fixtureIds")]
+        fixture_ids: Vec<String>,
+        #[serde(rename = "deltaMeters")]
+        delta_meters: SpatialVector3,
     },
     PrevisPlacement {
         generation: u32,
@@ -130,6 +138,14 @@ fn dispatch(
                 .state::<effect_template::Service>()
                 .take(generation, &token)?;
             session.apply_effect_template(generation, review)?;
+        }
+        Request::PrevisTranslation {
+            generation,
+            version,
+            fixture_ids,
+            delta_meters,
+        } => {
+            session.translate_from_viewport(generation, &version, fixture_ids, delta_meters)?;
         }
         Request::PrevisPlacement {
             generation,

@@ -2,7 +2,6 @@
 #include "PreviewSceneActor.h"
 #include "PreviewViewport.h"
 #include "Camera/CameraComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -42,6 +41,7 @@ void APreviewCameraPawn::EndPlay(const EEndPlayReason::Type Reason)
 {
     Streaming.Stop();
     CancelDrag();
+    ClearPendingPlacement();
     if (Overlay.IsValid())
     {
         if (auto Viewport = GetWorld()->GetGameViewport()) Viewport->RemoveViewportWidgetContent(Overlay.ToSharedRef());
@@ -54,30 +54,11 @@ void APreviewCameraPawn::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
     Streaming.Tick(this);
     if (!Scene) return;
-    if (!PendingPlacement.IsEmpty() && (PendingSerial != Scene->GetSceneSerial() ||
-        !Scene->CanMoveFixtures() || FPlatformTime::Seconds() > PendingUntil)) ClearPendingPlacement();
-    if (ProjectId != Scene->GetScene().ProjectId)
-    {
-        CancelDrag();
-        ProjectId = Scene->GetScene().ProjectId;
-        SelectedId.Empty();
-        FocusAll();
-    }
-    if (Dragging && (!Scene->CanMoveFixtures() || DragSerial != Scene->GetSceneSerial()))
-    {
-        CancelDrag();
-        InteractionMessage = TEXT("灯位拖动已取消：连接或工程状态变化");
-    }
-    if (const auto Fixture = Scene->FindFixture(SelectedId))
-    {
-        const FVector Position = Dragging && DragMoved ? DragPosition : Fixture->Origin;
-        DrawDebugSphere(GetWorld(), Position, 17, 16, FColor(124, 168, 255), false, 0, 0, 1.5f);
-        DrawDebugDirectionalArrow(GetWorld(), Position, Position + Fixture->Direction * 80, 10, FColor(124, 168, 255), false, 0, 0, 1.5f);
-    }
-    else SelectedId.Empty();
+    TickSelection();
 }
 void APreviewCameraPawn::UpdateCamera()
 {
+    InteractionMessage.Empty();
     const FRotator Rotation(Pitch, Yaw, 0);
     SetActorLocationAndRotation(Pivot - Rotation.Vector() * Distance, Rotation);
 }
@@ -91,7 +72,9 @@ void APreviewCameraPawn::ViewAction(const FString& Action)
     else if (Action == TEXT("workLight")) ToggleWorkLight();
     else if (Action == TEXT("cancel")) CancelDrag();
     else if (Action == TEXT("move")) { CancelDrag(); MoveMode = true; }
-    else if (Action == TEXT("inspect")) { CancelDrag(); MoveMode = false; }
+    else if (Action == TEXT("inspect")) { CancelDrag(); ClearPendingPlacement(); MoveMode = false; }
+    else if (Action == TEXT("moveHorizontal")) { CancelDrag(); VerticalMove = false; }
+    else if (Action == TEXT("moveVertical")) { CancelDrag(); VerticalMove = true; }
 }
 void APreviewCameraPawn::Navigate(const FVector2D& Delta, bool Pan)
 {
@@ -118,25 +101,26 @@ void APreviewCameraPawn::FocusAll()
 {
     CancelDrag();
     if (!Scene) return;
-    const FBox Bounds = Scene->GetBounds();
+    FitBounds(Scene->GetBounds(), 100);
+}
+void APreviewCameraPawn::FitBounds(const FBox& Bounds, double MinimumDistance)
+{
     if (!Bounds.IsValid) return;
     Pivot = Bounds.GetCenter();
     int32 Width = 1, Height = 1;
     if (auto Player = Cast<APlayerController>(GetController())) Player->GetViewportSize(Width, Height);
     const double Aspect = FMath::Max(1.0, static_cast<double>(Width) / FMath::Max(1, Height));
     const double HalfAngle = FMath::Atan(FMath::Tan(FMath::DegreesToRadians(27.5)) / Aspect);
-    Distance = FMath::Max(100.0, Bounds.GetExtent().Size() / FMath::Sin(HalfAngle) * 1.1);
+    Distance = FMath::Max(MinimumDistance, Bounds.GetExtent().Size() / FMath::Sin(HalfAngle) * 1.1);
     UpdateCamera();
 }
 void APreviewCameraPawn::FocusSelected()
 {
     CancelDrag();
-    if (Scene) if (const auto Fixture = Scene->FindFixture(SelectedId))
-    {
-        Pivot = Fixture->Origin;
-        Distance = 700;
-        UpdateCamera();
-    }
+    if (!Scene) return;
+    FBox Bounds(ForceInit);
+    for (const auto& Id : SelectedIds) if (const auto Fixture = Scene->FindFixture(Id)) Bounds += Fixture->Origin;
+    if (Bounds.IsValid) FitBounds(Bounds.ExpandBy(30), 300);
 }
 void APreviewCameraPawn::TopView()
 {
@@ -145,119 +129,6 @@ void APreviewCameraPawn::TopView()
     Yaw = -90;
     FocusAll();
     UpdateCamera();
-}
-bool APreviewCameraPawn::PointOnDragPlane(const FVector2D& Screen, FVector& Point) const
-{
-    auto Player = Cast<APlayerController>(GetController());
-    FVector Origin, Direction;
-    if (!Player || !Player->DeprojectScreenPositionToWorld(static_cast<float>(Screen.X), static_cast<float>(Screen.Y), Origin, Direction) || FMath::Abs(Direction.Z) < 0.0001) return false;
-    const double T = (DragOrigin.Z - Origin.Z) / Direction.Z;
-    if (T < 0 || T > 20000000) return false;
-    Point = Origin + Direction * T;
-    return true;
-}
-void APreviewCameraPawn::SelectAt(const FVector2D& Screen)
-{
-    CancelDrag();
-    InteractionMessage.Empty();
-    auto Player = Cast<APlayerController>(GetController());
-    if (!Player || !Scene || !PendingPlacement.IsEmpty()) return;
-    FHitResult Hit;
-    Player->GetHitResultAtScreenPosition(Screen, ECC_Visibility, true, Hit);
-    SelectedId = Scene->FixtureAt(Hit);
-    const auto Selection = MakeShared<FJsonObject>();
-    Selection->SetStringField(TEXT("kind"), TEXT("selection"));
-    Selection->SetStringField(TEXT("fixtureId"), SelectedId);
-    Streaming.Send(Selection);
-    const auto Fixture = Scene->FindFixture(SelectedId);
-    if (!MoveMode || !Fixture) return;
-    if (!Scene->CanMoveFixtures())
-    {
-        InteractionMessage = TEXT("场地尚未同步，请稍后再移动灯位");
-        return;
-    }
-    DragOrigin = Fixture->Origin;
-    FVector Point;
-    if (!PointOnDragPlane(Screen, Point))
-    {
-        InteractionMessage = TEXT("当前镜头过于平直，请俯视后拖动");
-        return;
-    }
-    DragOffset = DragOrigin - Point;
-    DragPosition = DragOrigin;
-    DragScreenOrigin = Screen;
-    DragSerial = Scene->GetSceneSerial();
-    Dragging = true;
-    DragMoved = false;
-}
-void APreviewCameraPawn::SelectFromHost(const FString& Id)
-{
-    if (Id == SelectedId) return;
-    CancelDrag();
-    SelectedId = Scene && Scene->FindFixture(Id) ? Id : FString();
-}
-void APreviewCameraPawn::ClearPendingPlacement()
-{
-    if (Scene) Scene->RestorePosition(PendingFixture);
-    PendingPlacement.Empty();
-    PendingFixture.Empty();
-}
-void APreviewCameraPawn::PlacementResult(const FString& Id, bool Accepted)
-{
-    if (Id != PendingPlacement) return;
-    if (!Accepted)
-    {
-        ClearPendingPlacement();
-        InteractionMessage = TEXT("灯位未应用，请检查桌面提示");
-    }
-}
-void APreviewCameraPawn::DragTo(const FVector2D& Screen)
-{
-    if (!Dragging || !Scene) return;
-    if (!Scene->CanMoveFixtures() || DragSerial != Scene->GetSceneSerial()) { CancelDrag(); return; }
-    if (!DragMoved && (Screen - DragScreenOrigin).SizeSquared() < 9) return;
-    FVector Point;
-    if (PointOnDragPlane(Screen, Point) && Scene->PreviewPosition(SelectedId, Point + DragOffset))
-    {
-        DragPosition = Point + DragOffset;
-        DragMoved = true;
-    }
-}
-void APreviewCameraPawn::FinishDrag()
-{
-    if (!Dragging || !Scene) return;
-    Dragging = false;
-    if (DragMoved && !DragPosition.Equals(DragOrigin, 0.00001) && DragSerial == Scene->GetSceneSerial())
-    {
-        const auto Fixture = Scene->FindFixture(SelectedId);
-        if (Fixture)
-        {
-            auto Proposal = StageMaster::MoveRequest(Scene->GetScene().Stamp, *Fixture, DragPosition);
-            if (!Proposal.IsValid())
-            {
-                Scene->RestorePosition(SelectedId);
-                DragMoved = false;
-                InteractionMessage = TEXT("灯位超出允许范围，已恢复原位");
-                return;
-            }
-            Proposal->RemoveField(TEXT("bridgeId"));
-            Proposal->SetStringField(TEXT("kind"), TEXT("placement"));
-            PendingPlacement = FGuid::NewGuid().ToString(EGuidFormats::Digits).ToLower();
-            PendingFixture = SelectedId;
-            PendingSerial = Scene->GetSceneSerial();
-            PendingUntil = FPlatformTime::Seconds() + 3;
-            Proposal->SetStringField(TEXT("requestId"), PendingPlacement);
-            if (!Streaming.Send(Proposal)) ClearPendingPlacement();
-        }
-    }
-    else Scene->RestorePosition(SelectedId);
-    DragMoved = false;
-}
-void APreviewCameraPawn::CancelDrag()
-{
-    if (Dragging && Scene) Scene->RestorePosition(SelectedId);
-    Dragging = false;
-    DragMoved = false;
 }
 void APreviewCameraPawn::ToggleMove()
 {
@@ -270,15 +141,6 @@ FText APreviewCameraPawn::StatusText() const
 {
     const FString Status = Scene ? Scene->GetStatus() : TEXT("正在载入");
     return FText::FromString(InteractionMessage.IsEmpty() ? Status : Status + TEXT("  ·  ") + InteractionMessage);
-}
-FText APreviewCameraPawn::SelectionText() const
-{
-    if (Scene) if (const auto Fixture = Scene->FindFixture(SelectedId))
-    {
-        const auto Position = StageMaster::ToMeters(Dragging && DragMoved ? DragPosition : Fixture->Origin);
-        return FText::FromString(FString::Printf(TEXT("%s   位置 %.3f / %.3f / %.3f 米"), *Fixture->Name, Position.X, Position.Y, Position.Z));
-    }
-    return FText::FromString(TEXT("未选择灯具"));
 }
 FText APreviewCameraPawn::MoveText() const { return FText::FromString(MoveMode ? TEXT("灯位移动") : TEXT("查看与选择")); }
 FText APreviewCameraPawn::WorkLightText() const { return FText::FromString(Scene && Scene->HasWorkLight() ? TEXT("工作照明：开") : TEXT("工作照明：关")); }

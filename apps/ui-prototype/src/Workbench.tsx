@@ -1,3 +1,4 @@
+import { previsInteractions } from "./components/workbench/previs-interactions";
 import { useSceneRemoval } from "./components/workbench/useSceneRemoval";
 import { SceneRemovalDialog } from "./components/workbench/SceneRemovalDialog";
 import { locateSceneUsage as navigateSceneUsage } from "./components/workbench/scene-usage-navigation";
@@ -131,7 +132,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [revealEditing, setRevealEditing] = useState(0);
   const sharedPrevis = useRef<SharedPrevisHandle>(null);
   const [stageView, setStageView] = useState<"plan" | "three">("plan");
-  const [stageSelected, setStageSelected] = useState("");
+  const [stageSelected, setStageSelected] = useState<string[]>([]);
   const [monitorVisible, setMonitorVisible] = useState(false);
   const audioSession = useAudio(
     host,
@@ -467,7 +468,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     audioSceneLink.reset();
     if (next.project) {
       setPage(next.project.fixtures.length ? "scenes" : "fixtures");
-      setStageSelected("");
+      setStageSelected([]);
       setPatchId("");
       setPatchSelection([]);
       setProfilePending(false);
@@ -898,37 +899,21 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 busy,
                 generation: () => current.current.generation,
                 run: (work, flushDrafts) => run(work, flushDrafts),
-                selectedId:
-                  page === "stage"
-                    ? stageSelected
-                    : page === "scenes"
-                      ? (selected.at(-1) ?? "")
-                      : "",
-                onSelect: (id) => {
-                  if (page === "stage")
-                    return (
-                      stage.current?.selectFixture(id) ?? Promise.resolve(false)
-                    );
-                  if (page !== "scenes") return Promise.resolve(false);
-                  return run(async () => {
-                    if (
-                      id &&
-                      !current.current.project?.fixtures.some(
-                        (f) => f.id === id,
-                      )
-                    )
-                      throw new Error("所选灯具已不存在");
-                    setSelectedIds(id ? [id] : []);
-                  });
-                },
-                onPrepareMove: () => run(async () => {}),
-                onPlacement: (proposal, isActive) =>
-                  run(async () => {
-                    if (!isActive())
-                      throw new Error("三维编辑上下文已变化，灯位未修改");
-                    await request({ kind: "previsPlacement", ...proposal });
-                    setNotice("灯位已更新，可撤销恢复");
-                  }),
+                ...previsInteractions({
+                  page,
+                  stage,
+                  selectedIds:
+                    page === "stage"
+                      ? stageSelected
+                      : page === "scenes"
+                        ? selected
+                        : [],
+                  project: () => current.current.project,
+                  run,
+                  request,
+                  select: setSelectedIds,
+                  notice: setNotice,
+                }),
               }}
             />
             <DockPane region="full" visible={page === "profiles"}>
@@ -970,7 +955,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                   }
                 />
               }
-              onSelectedFixture={setStageSelected}
+              onSelectedFixtures={setStageSelected}
               project={project}
               visible={page === "stage"}
               busy={busy}

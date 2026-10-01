@@ -1,5 +1,7 @@
 # 当前开发状态
 
+STAGE-005 完成（基线 `b9275f8`，结果为本次 `feat(stage): share fixture selection and move groups in 3D` 提交）：二维／三维共享有序选择、原子整组水平／升降、锁定／取消与版本保护；修复空白误选固定灯及遮挡下操作点命中。684 Rust／297 UI／7 UE、严格检查／类型／双端构建及原生不同高度整组、单灯历史、混合锁定、取消、俯视保护与保存重开通过，见[工单](tasks/STAGE-005-shared-3d-fixture-movement.md)／[ADR-094](decisions/PRODUCT-ADR-094-shared-3d-fixture-movement.md)。独立副本已保存，来源未改，UE 关闭、音乐 0、设备未连；持续 goal active，接续双场景动态交叉的时间线边界。旋转／缩放、混合构件组、三维框选与原生按住 Esc 验收仍后续。
+
 AUDIO-018 完成（基线 `2aba0fd`，结果为本次 `feat(audio): preserve entry fades across clip splits and slices` 提交）：渐变中分割、完整内部截取、有界连续属性快照与独立渐变时钟、显式重新计算及源范围保护；678 Rust／291 UI／160 格式、类型／严格检查／Xtensa 检查／桌面及原生取消／越界焦点／历史／保存重开通过，见[工单](tasks/AUDIO-018-preserved-entry-fades.md)／[ADR-093](decisions/PRODUCT-ADR-093-preserved-clip-entry-fades.md)。独立副本 25 片段已保存，原工程未改，音乐 0、UE 关闭、设备未连。持续 goal active；多轨、双动态交叉、正式演出循环及真实输出仍后续。
 
 LIBRARY-003 完成（基线 `9eacc42`，结果为本次 `feat(effects): reuse authored intensity keyframe templates` 提交）：既有关键帧亮度效果可导出／复用，严格格式 2 与来源能力，复用原求值器；668 Rust、287 UI、146 格式、类型／严格检查／桌面及原生取消／历史／精确值／保存重开通过，见[工单](tasks/LIBRARY-003-keyframe-templates.md)／[ADR-092](decisions/PRODUCT-ADR-092-keyframe-effect-templates.md)。当前独立副本已保存，原 19 场景不变、新增一场景，播放未载入、UE 关闭、设备未连接。持续 goal active，云目录、其他属性模板与真实新增灯型仍后续。

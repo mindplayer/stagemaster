@@ -18,6 +18,7 @@ mod files;
 mod output;
 mod preview;
 mod previs;
+mod previs_translation;
 #[cfg(test)]
 mod profile_file_tests;
 #[cfg(test)]

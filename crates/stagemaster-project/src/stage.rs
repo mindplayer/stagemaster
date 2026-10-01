@@ -132,6 +132,10 @@ pub enum StageEdit {
     PutPlacement {
         placement: FixturePlacement,
     },
+    TranslatePlacements {
+        fixture_ids: Vec<String>,
+        delta_meters: SpatialVector3,
+    },
     RemovePlacement {
         fixture_id: String,
     },
@@ -296,6 +300,12 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             } else {
                 values.push(value);
             }
+        }
+        StageEdit::TranslatePlacements {
+            fixture_ids,
+            delta_meters,
+        } => {
+            crate::stage_translation::apply(root, &fixture_ids, &delta_meters)?;
         }
         StageEdit::RemovePlacement { fixture_id } => {
             crate::rigging::detach(root, std::slice::from_ref(&fixture_id))?;

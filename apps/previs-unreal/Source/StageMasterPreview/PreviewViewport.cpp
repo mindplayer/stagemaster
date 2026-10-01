@@ -34,7 +34,7 @@ public:
         Navigating = Button == EKeys::RightMouseButton || Event.IsAltDown();
         CapturedButton = Button;
         if (Navigating) Camera->CancelDrag();
-        else Camera->SelectAt(ScreenPosition(Geometry, Event));
+        else Camera->SelectAt(ScreenPosition(Geometry, Event), Event.IsShiftDown() || Event.IsControlDown() || Event.IsCommandDown());
         return FReply::Handled().CaptureMouse(AsShared()).SetUserFocus(AsShared());
     }
     virtual FReply OnMouseMove(const FGeometry& Geometry, const FPointerEvent& Event) override

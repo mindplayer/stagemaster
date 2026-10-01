@@ -52,13 +52,13 @@ export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
   revealFixture(id: string): void;
-  selectFixture(id: string): Promise<boolean>;
+  selectFixtures(ids: string[], isActive: () => boolean): Promise<boolean>;
 }
 export const StageWorkspace = forwardRef<
   StageHandle,
   {
     project: ProjectView;
-    onSelectedFixture(id: string): void;
+    onSelectedFixtures(ids: string[]): void;
     visible: boolean;
     canvasVisible?: boolean;
     viewControls?: ReactNode;
@@ -71,7 +71,7 @@ export const StageWorkspace = forwardRef<
 >(function StageWorkspace(
   {
     project,
-    onSelectedFixture,
+    onSelectedFixtures,
     visible,
     canvasVisible = true,
     viewControls,
@@ -88,11 +88,6 @@ export const StageWorkspace = forwardRef<
     useState<PlanVisibility>(ALL_VISIBLE);
   const projectRef = useRef(project);
   projectRef.current = project;
-  const selectedFixture = selection?.kind === "placement" ? selection.id : "";
-  useEffect(
-    () => onSelectedFixture(selectedFixture),
-    [selectedFixture, onSelectedFixture],
-  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const selectedPlacements = project.stage.placements.filter((p) =>
     selectedIds.includes(p.fixtureId),
@@ -103,6 +98,11 @@ export const StageWorkspace = forwardRef<
           selectedPlacements.some((p) => p.fixtureId === id),
         )
       : [];
+  const selectionKey = JSON.stringify(liveIds);
+  useEffect(
+    () => onSelectedFixtures(JSON.parse(selectionKey) as string[]),
+    [selectionKey, onSelectedFixtures],
+  );
   const [arrangement, setArrangement] = useState<{
     ids: string[];
     draft: ArrangementDraft;
@@ -221,13 +221,22 @@ export const StageWorkspace = forwardRef<
   useImperativeHandle(ref, () => ({
     collect,
     accept: cancel,
-    async selectFixture(id) {
-      if (!(await beforeChange())) return false;
-      if (id && !project.stage.placements.some((p) => p.fixtureId === id))
+    async selectFixtures(ids, isActive) {
+      if (!isActive() || !(await beforeChange()) || !isActive()) return false;
+      if (
+        ids.length > 1024 ||
+        new Set(ids).size !== ids.length ||
+        ids.some(
+          (id) =>
+            !projectRef.current.stage.placements.some(
+              (p) => p.fixtureId === id,
+            ),
+        )
+      )
         return false;
-      if (id) revealInPlan({ kind: "placement", id });
-      setSelection(id ? { kind: "placement", id } : null);
-      setSelectedIds(id ? [id] : []);
+      revealPlacements(ids);
+      setSelection(ids.length ? { kind: "placement", id: ids.at(-1)! } : null);
+      setSelectedIds(ids);
       cancel();
       return true;
     },
