@@ -26,7 +26,7 @@ impl EffectTemplateFile {
     pub fn create(definition: EffectTemplateDefinition) -> Result<Self, String> {
         let template = EffectTemplate {
             format: "stagemaster-effect-template".into(),
-            format_version: 1,
+            format_version: definition.recipe.format_version(),
             template_id: crate::id(),
             revision: crate::id(),
             definition,
@@ -65,10 +65,17 @@ pub(super) fn validate(raw: &Value) -> Result<(), String> {
     {
         return Err("灯效模板名称不能为空".into());
     }
+    let template: EffectTemplate =
+        serde_json::from_value(raw.clone()).map_err(|_| "灯效模板字段无效")?;
+    if let super::EffectTemplateRecipe::IntensityKeyframes { keyframes } =
+        &template.definition.recipe
+    {
+        crate::effects::validate_frame_order(keyframes)?;
+    }
     Ok(())
 }
 pub(super) fn digest(template: &EffectTemplate) -> String {
-    // Value uses sorted object keys. There are no floats in v1 recipes.
+    // Value uses sorted object keys. Supported recipes contain no floats.
     let value = serde_json::to_value(template).expect("typed template");
     let bytes = serde_json::to_vec(&value).expect("JSON value");
     format!("{:x}", Sha256::digest(bytes))

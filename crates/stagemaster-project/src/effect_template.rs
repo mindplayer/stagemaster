@@ -1,11 +1,13 @@
 //! Portable semantic recipes; channel allocation belongs to the project adapter.
 mod binding;
 mod codec;
+mod recipe;
 mod source;
 pub use binding::{EffectTemplateReview, EffectTemplateReviewView};
 pub use codec::{EffectTemplateFile, MAX_EFFECT_TEMPLATE_BYTES};
 pub(super) use source::validate_project;
 pub(super) const CAPABILITY: &str = "lighting.effects.template-source";
+pub(super) const KEYFRAME_CAPABILITY: &str = "lighting.effects.template-keyframes";
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -34,6 +36,9 @@ pub enum EffectTemplateRecipe {
         high: u16,
         #[serde(rename = "dutyPercent")]
         duty_percent: u8,
+    },
+    IntensityKeyframes {
+        keyframes: Vec<crate::EffectKeyframe>,
     },
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]

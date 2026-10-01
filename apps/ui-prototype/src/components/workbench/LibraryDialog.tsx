@@ -9,6 +9,7 @@ export function LibraryDialog({
   onSubmit,
   submit = "保存",
   submitDisabled = false,
+  focusTitle = false,
   children,
 }: {
   title: string;
@@ -18,13 +19,16 @@ export function LibraryDialog({
   onSubmit(): Promise<boolean>;
   submit?: string;
   submitDisabled?: boolean;
+  focusTitle?: boolean;
   children: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
   const [localError, setLocalError] = useState("");
   useEffect(() => {
     dialog.current?.showModal();
-  }, []);
+    if (focusTitle) heading.current?.focus();
+  }, [focusTitle]);
   return (
     <dialog
       ref={dialog}
@@ -65,7 +69,9 @@ export function LibraryDialog({
           setLocalError("");
         }}
       >
-        <h2>{title}</h2>
+        <h2 ref={heading} tabIndex={focusTitle ? -1 : undefined}>
+          {title}
+        </h2>
         <fieldset disabled={busy}>{children}</fieldset>
         {(localError || error) && (
           <p className="wb-library-error" role="alert">

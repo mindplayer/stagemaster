@@ -119,6 +119,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::position::reference::CAPABILITY,
             "lighting.effects.basic",
             crate::effect_template::CAPABILITY,
+            crate::effect_template::KEYFRAME_CAPABILITY,
             "lighting.effects.keyframes",
             "lighting.effects.position",
             crate::world_line::CAPABILITY,

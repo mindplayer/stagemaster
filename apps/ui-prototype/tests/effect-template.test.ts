@@ -10,10 +10,16 @@ import {
   effectCommands,
 } from "../src/effect-tools.ts";
 import type { EffectTemplateSource } from "../src/effect-template-types.ts";
+import { toKeyframes } from "../src/keyframe-tools.ts";
 test("模板导出仅接受完整单一亮度基础曲线，其他类型不悄悄删字段", () => {
   const e = createEffect("breathe", "a", ["f"]);
   assert.equal(canExportEffectTemplate(e), true);
   assert.equal(canExportEffectTemplate({ ...e, enabled: false }), true);
+  assert.equal(canExportEffectTemplate(toKeyframes(e)), true);
+  assert.equal(
+    canExportEffectTemplate(toKeyframes(createEffect("color", "c", ["f"]))),
+    false,
+  );
   for (const key of ["color", "multicolor", "worldLine", "panSweep"] as const) {
     assert.equal(canExportEffectTemplate(createEffect(key, "a", ["f"])), false);
   }

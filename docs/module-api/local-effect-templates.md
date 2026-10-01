@@ -1,4 +1,4 @@
-# 本地灯效模板核心 · v1
+# 本地灯效模板核心
 
 LIBRARY-002／[ADR-091](../development/decisions/PRODUCT-ADR-091-local-intensity-templates.md)。核心及桌面文件入口已实现，正式应用跨工程复用与保存重开通过。云服务伪 API 仍见 [effect-library.md](effect-library.md)，不能把设计稿全部当成已实现。
 
@@ -16,7 +16,7 @@ target.apply_effect_template(reviewed)?; // 一次历史由应用适配器维护
 
 首版 recipe 为 `intensity-wave`，waveform 为 `smooth | triangle | pulse`；low/high 为归一化 0..65535，dutyPercent 1..99。timing 为周期 100..3600000 ms、phaseDegrees 0..359、spreadDegrees 0..360 和 reverseOrder。平滑沿用核心 smoothstep，灯序展开沿用 i/N，相位／暂停等运行语义全部由现有播放器承接。模板不引用颜色、灯位或基础位置。
 
-导出只接受恰好一个 dimmer 范围属性的基础曲线；停用状态不写模板。每次导出是新的独立模板版本，参数与当前效果一致。导入要求 1..512 个不重复目标、显式连续调光；只读检查和实际单场景编译通过后获得不可从 JSON 构造的 `EffectTemplateReview`。审阅保存完整原文档与候选；应用核对完整内容，包括尚未保存的编辑，拒绝过期审阅。应用生成已启用效果，仍须用户正常启动预演／执行；同属性冲突不能默默覆盖。
+格式 1 导出只接受恰好一个 dimmer 范围属性的基础曲线；停用状态不写模板。每次导出是新的独立模板版本，参数与当前效果一致。导入要求 1..512 个不重复目标、显式连续调光；只读检查和实际单场景编译通过后获得不可从 JSON 构造的 `EffectTemplateReview`。审阅保存完整原文档与候选；应用核对完整内容，包括尚未保存的编辑，拒绝过期审阅。应用生成已启用效果，仍须用户正常启动预演／执行；同属性冲突不能默默覆盖。
 
 `SceneEffect.templateSource` 是 `{template, sha256}` 完整来源快照，额外要求 `lighting.effects.template-source@1`。哈希为模板经固定对象键排序的紧凑 UTF-8 JSON 的 SHA256；v1 不含浮点数。重复模板来源不是重复工程对象；工程内 ID 与模板 ID 独立。来源属于历史信息，手工编辑／复制时完整保留，已有效果的 Put 不允许改写或移除来源；当前效果参数可以与来源不同。编译不读取网络或来源配方，而读取工程内已绑定的完整效果参数。
 
@@ -29,3 +29,9 @@ target.apply_effect_template(reviewed)?; // 一次历史由应用适配器维护
 `exportEffectTemplate(generation, sceneId, effectId)` 导出当前已应用效果，原生保存框要求 `.smeffect.json`；`EffectTemplateFileStore` 沿用 `DiskFile` 的原子写入和并发修改检测，拒绝链接、不兼容文件和工程文件覆盖。文件读取有 16 KiB 上限。导出不改工程修订。
 
 界面先提交有效草稿，再冻结场景及有序目标。场景、灯序、页签或工程代次变化会取消审阅并拒绝迟到回执；离开再返回同一选择也不能接收旧结果。审阅明确显示启用状态、亮度范围、节奏及灯序；错误保留在审阅内，取消后回到导入按钮。来源标记随效果显示，离线打开不依赖模板原文件。
+
+## 关键帧配方 · 格式 2
+
+[ADR-092](../development/decisions/PRODUCT-ADR-092-keyframe-effect-templates.md) 增加 `formatVersion: 2`、`recipe.kind: "intensity-keyframes"` 与 `keyframes: [{position, value, transition}]`。格式 1 只接受基础曲线，格式 2 只接受关键帧。2–32 帧，位置为 0..9999 的周期万分比，从零严格递增；值为 0..65535 归一化亮度，过渡为 `hold | linear | smooth`。与原工程关键帧共享结构和排序验证，保留末帧到下一轮的既有语义；占空比不属于此配方。
+
+LIBRARY-003 核心、桌面审阅和原生历史／保存重开已验收。格式 2 来源另需 `lighting.effects.template-keyframes@1`，即使本地效果后来转换成基础曲线，原来源能力仍保留。导出、绑定、来源快照、摘要、离线版本固定与文件保护沿用前述 API。导入审阅复用现有曲线路径计算展示只读曲线，可展开精确帧值；真正输出仍只有 Rust 原求值器。当前模板转换只接 dimmer，其他属性不被悄悄删去或近似。

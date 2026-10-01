@@ -1,10 +1,7 @@
 use super::{
     EffectTemplateDefinition, EffectTemplateFile, EffectTemplateRecipe, EffectTemplateTiming,
-    IntensityWaveform,
 };
-use crate::{
-    Document, EditCommand, EffectEdit, EffectValues, PlanUsage, SceneEffect, Waveform, array, text,
-};
+use crate::{Document, EditCommand, EffectEdit, PlanUsage, SceneEffect, array, text};
 use serde::Serialize;
 use std::collections::BTreeSet;
 
@@ -44,33 +41,10 @@ impl Document {
             .into_iter()
             .find(|e| e.id == effect_id)
             .ok_or("效果不存在")?;
-        let waveform = match effect.waveform {
-            Waveform::Smooth => IntensityWaveform::Smooth,
-            Waveform::Triangle => IntensityWaveform::Triangle,
-            Waveform::Pulse => IntensityWaveform::Pulse,
-            _ => return Err("当前模板文件只支持亮度呼吸、往返和脉冲".into()),
-        };
-        let [
-            EffectValues::Range {
-                attribute,
-                low,
-                high,
-            },
-        ] = effect.channels.as_slice()
-        else {
-            return Err("请只导出单一亮度属性的效果".into());
-        };
-        if attribute != "dimmer" || effect.target_path.is_some() {
-            return Err("当前模板文件只支持亮度效果".into());
-        }
+        let recipe = EffectTemplateRecipe::from_effect(&effect)?;
         EffectTemplateFile::create(EffectTemplateDefinition {
             name: effect.name,
-            recipe: EffectTemplateRecipe::IntensityWave {
-                waveform,
-                low: *low,
-                high: *high,
-                duty_percent: effect.duty_percent,
-            },
+            recipe,
             timing: EffectTemplateTiming {
                 period_ms: effect.period_ms,
                 phase_degrees: effect.phase_degrees,
@@ -104,12 +78,7 @@ impl Document {
                 .map_err(|e| format!("灯具“{}”不能使用亮度模板：{e}", text(fixture, "name")))?;
         }
         let definition = &file.template().definition;
-        let EffectTemplateRecipe::IntensityWave {
-            waveform,
-            low,
-            high,
-            duty_percent,
-        } = definition.recipe;
+        let (waveform, duty_percent, channels) = definition.recipe.effect_values();
         let timing = &definition.timing;
         let effect = SceneEffect {
             id: crate::id(),
@@ -122,16 +91,8 @@ impl Document {
             reverse: timing.reverse_order,
             duty_percent,
             target_path: None,
-            waveform: match waveform {
-                IntensityWaveform::Smooth => Waveform::Smooth,
-                IntensityWaveform::Triangle => Waveform::Triangle,
-                IntensityWaveform::Pulse => Waveform::Pulse,
-            },
-            channels: vec![EffectValues::Range {
-                attribute: "dimmer".into(),
-                low,
-                high,
-            }],
+            waveform,
+            channels,
             template_source: Some(Box::new(file.source())),
         };
         let mut candidate = self.clone();

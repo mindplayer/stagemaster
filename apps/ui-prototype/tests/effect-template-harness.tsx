@@ -37,11 +37,12 @@ function Harness() {
   const [delay, setDelay] = useState(false),
     [rejectCapture, setRejectCapture] = useState(false),
     [rejectApply, setRejectApply] = useState(false),
-    [cancelFile, setCancelFile] = useState(false);
+    [cancelFile, setCancelFile] = useState(false),
+    [keyframes, setKeyframes] = useState(false);
   const [events, setEvents] = useState<string[]>([]),
     [error, setError] = useState("");
-  const flags = useRef({ delay, cancelFile });
-  flags.current = { delay, cancelFile };
+  const flags = useRef({ delay, cancelFile, keyframes });
+  flags.current = { delay, cancelFile, keyframes };
   const notify = (text: string) => setEvents((e) => [...e, text]);
   const host = useRef({
     ...applicationHost,
@@ -82,6 +83,23 @@ function Harness() {
           },
         },
       };
+      if (flags.current.keyframes) {
+        const frames = [
+          { position: 0, value: 0, transition: "hold" as const },
+          { position: 2000, value: 65535, transition: "linear" as const },
+          { position: 8000, value: 20000, transition: "smooth" as const },
+        ];
+        effect.waveform = "keyframes";
+        effect.channels = [{ attribute: "dimmer", keyframes: frames }];
+        effect.templateSource.template = {
+          ...effect.templateSource.template,
+          formatVersion: 2,
+          definition: {
+            ...effect.templateSource.template.definition,
+            recipe: { kind: "intensity-keyframes", keyframes: frames },
+          },
+        };
+      }
       return {
         generation: gen,
         token: `token-${gen}-${ids.join("")}`,
@@ -138,6 +156,9 @@ function Harness() {
         </button>
         <button onClick={() => setRejectApply((v) => !v)}>
           拒绝应用 {String(rejectApply)}
+        </button>
+        <button onClick={() => setKeyframes((v) => !v)}>
+          关键帧模板 {String(keyframes)}
         </button>
         <button onClick={() => setCancelFile((v) => !v)}>
           取消文件选择 {String(cancelFile)}

@@ -4,6 +4,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
+pub(crate) fn validate_frame_order(frames: &[EffectKeyframe]) -> Result<(), String> {
+    if frames.first().is_none_or(|f| f.position != 0)
+        || frames.windows(2).any(|p| p[0].position >= p[1].position)
+    {
+        return Err("关键帧须从 0% 开始并按时间递增".into());
+    }
+    Ok(())
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SceneEffect {
@@ -58,14 +67,14 @@ pub enum EffectValues {
         keyframes: Vec<EffectKeyframe>,
     },
 }
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EffectKeyframe {
     pub position: u16,
     pub value: u16,
     pub transition: Transition,
 }
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Transition {
     Hold,
@@ -134,6 +143,11 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
                     .template_source
                     .is_some()
                     .then_some(crate::effect_template::CAPABILITY),
+                effect
+                    .template_source
+                    .as_ref()
+                    .is_some_and(|source| source.template.format_version == 2)
+                    .then_some(crate::effect_template::KEYFRAME_CAPABILITY),
                 is_keyframes.then_some("lighting.effects.keyframes"),
                 matches!(effect.waveform, Waveform::Position)
                     .then_some("lighting.effects.position"),
@@ -244,13 +258,7 @@ fn validate_keyframes(root: &Value, effect: &SceneEffect) -> Result<(), String> 
             return Err("效果变化方式与属性关键帧不一致".into());
         }
         if let Some(frames) = channel.frames() {
-            if frames[0].position != 0 || frames.windows(2).any(|p| p[0].position >= p[1].position)
-            {
-                return Err(format!(
-                    "效果“{}”的关键帧须从 0% 开始并按时间递增",
-                    effect.name
-                ));
-            }
+            validate_frame_order(frames).map_err(|e| format!("效果“{}”：{e}", effect.name))?;
             let reference = reference.ok_or("效果关键帧缺失")?;
             if reference.len() != frames.len()
                 || reference

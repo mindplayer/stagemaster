@@ -40,3 +40,35 @@ test('相同模板修订内容冲突，必须建立新修订',()=>{
   e.templateSource.sha256=templateDigest(e.templateSource.template);
   assert.doesNotThrow(()=>auditProject(p));
 });
+
+function keyframeSourceProject() {
+  const p=document();
+  p.requires.push({key:'lighting.effects.template-keyframes',version:1});
+  const origin=source(p);
+  origin.template.formatVersion=2;
+  origin.template.definition.recipe={kind:'intensity-keyframes',keyframes:[
+    {position:0,value:0,transition:'hold'},
+    {position:2000,value:65535,transition:'linear'},
+    {position:9000,value:1000,transition:'smooth'}
+  ]};
+  origin.sha256=templateDigest(origin.template);
+  return p;
+}
+test('关键帧来源与本地基础曲线独立，格式 2 原样保留',()=>{
+  assert.doesNotThrow(()=>auditProject(keyframeSourceProject()));
+});
+for (const [name, mutate, pattern] of [
+  ['来源能力缺失',p=>p.requires.pop(),/能力声明/],
+  ['版本交叉',p=>source(p).template.formatVersion=1,/Schema/],
+  ['未知版本',p=>source(p).template.formatVersion=3,/Schema/],
+  ['零点缺失',p=>source(p).template.definition.recipe.keyframes[0].position=1,/递增/],
+  ['重复时刻',p=>source(p).template.definition.recipe.keyframes[1].position=0,/递增/],
+  ['次序倒置',p=>source(p).template.definition.recipe.keyframes[2].position=1000,/递增/],
+  ['终点越界',p=>source(p).template.definition.recipe.keyframes[2].position=10000,/Schema/],
+  ['属性夹带',p=>source(p).template.definition.recipe.keyframes[0].attribute='dimmer',/Schema/],
+  ['不足两帧',p=>source(p).template.definition.recipe.keyframes.splice(1),/Schema/],
+]) test(`关键帧模板拒绝${name}`,()=>{
+  const p=keyframeSourceProject();mutate(p);
+  source(p).sha256=templateDigest(source(p).template);
+  assert.throws(()=>auditProject(p),pattern);
+});

@@ -1,5 +1,7 @@
 # 实现状态
 
+[LIBRARY-003](development/tasks/LIBRARY-003-keyframe-templates.md) 已在本地模板中增加 2–32 帧亮度曲线，保留原有过渡、周期与灯序；明确文件格式 2、额外来源能力和旧格式兼容，导入提供只读曲线／精确值。668 Rust／287 UI／146 格式、严格检查／桌面及真实渐入效果跨场景导入、取消／历史／保存重开通过。云目录、其他属性配方仍后续。
+
 2026-10-02：[LIBRARY-002](development/tasks/LIBRARY-002-local-intensity-templates.md) 已实现独立基础亮度模板、跨工程导入／审阅／导出、来源快照、版本保护和一次历史；664 Rust／287 UI、类型／严格检查／桌面，以及两个独立工程 80／3 台复用、取消／冲突／保存重开通过。云端灯效目录、其他配方与真实新增灯型仍未实现。[FIXTURE-007](development/tasks/FIXTURE-007-custom-wheel-appearance.md)／[FIXTURE-008](development/tasks/FIXTURE-008-color-slot-remap.md) 已补自定义色盘外观、独立变体与通道修订审阅；[POSITION-003](development/tasks/POSITION-003-reference-checks.md) 已补逐灯参考点与模型偏差检查，不能等同实灯自动校准。
 
 2026-10-02：[EFFECT-007](development/tasks/EFFECT-007-world-line-effects.md) 已实现共同世界目标直线往返，整线可达性与固定 32 帧误差认证、草稿即时预演和双灯 UE 通过；626 Rust／274 UI／121 格式、类型／严格检查／桌面与原生历史／取消／保存重开通过。轨迹平面选点、任意多段运动和实灯约束仍待补。

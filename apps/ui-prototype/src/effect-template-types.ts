@@ -1,26 +1,42 @@
-/** Core v1 DTO. Normalized intensity uses the same 16-bit scale as scene values. */
-export interface EffectTemplate {
+/** Core DTO. Normalized brightness is independent of native DMX resolution. */
+interface TemplateEnvelope {
   format: "stagemaster-effect-template";
-  formatVersion: 1;
   templateId: string;
   revision: string;
-  definition: {
-    name: string;
-    recipe: {
-      kind: "intensity-wave";
-      waveform: "smooth" | "triangle" | "pulse";
-      low: number;
-      high: number;
-      dutyPercent: number;
-    };
-    timing: {
-      periodMs: number;
-      phaseDegrees: number;
-      spreadDegrees: number;
-      reverseOrder: boolean;
-    };
+}
+interface TemplateDefinition {
+  name: string;
+  timing: {
+    periodMs: number;
+    phaseDegrees: number;
+    spreadDegrees: number;
+    reverseOrder: boolean;
   };
 }
+export type EffectTemplate = TemplateEnvelope &
+  (
+    | {
+        formatVersion: 1;
+        definition: TemplateDefinition & {
+          recipe: {
+            kind: "intensity-wave";
+            waveform: "smooth" | "triangle" | "pulse";
+            low: number;
+            high: number;
+            dutyPercent: number;
+          };
+        };
+      }
+    | {
+        formatVersion: 2;
+        definition: TemplateDefinition & {
+          recipe: {
+            kind: "intensity-keyframes";
+            keyframes: import("./effect-types").EffectKeyframe[];
+          };
+        };
+      }
+  );
 export interface EffectTemplateSource {
   template: EffectTemplate;
   sha256: string;

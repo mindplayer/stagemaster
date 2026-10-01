@@ -24,6 +24,13 @@ pub(crate) fn validate_project(root: &Value) -> Result<(), String> {
                 let source: EffectTemplateSource =
                     serde_json::from_value(source.clone()).map_err(|_| "灯效模板来源字段无效")?;
                 validate(&source)?;
+                if source.template.format_version == 2
+                    && !array(root, "requires")
+                        .iter()
+                        .any(|r| r["key"] == super::KEYFRAME_CAPABILITY)
+                {
+                    return Err("关键帧灯效模板来源缺少工程能力声明".into());
+                }
                 let key = (&source.template.template_id, &source.template.revision);
                 if let Some(previous) =
                     identities.insert((key.0.clone(), key.1.clone()), source.sha256.clone())

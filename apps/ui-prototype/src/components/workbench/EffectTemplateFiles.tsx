@@ -171,9 +171,10 @@ export function EffectTemplateFiles({
           onChange={(e) => setExportId(e.target.value)}
         >
           {!eligible.length && <option value="">暂无可导出的亮度效果</option>}
-          {eligible.map((e) => (
+          {eligible.map((e, index) => (
             <option value={e.id} key={e.id}>
-              {e.name}
+              {index + 1}. {e.name} · {e.fixtureIds.length} 台 ·{" "}
+              {e.periodMs / 1000} 秒
             </option>
           ))}
         </select>
@@ -187,7 +188,7 @@ export function EffectTemplateFiles({
       <p className="wb-dim">
         {working
           ? "正在处理模板文件…"
-          : "支持亮度呼吸、往返和脉冲；先选择目标灯具，再导入模板。"}
+          : "支持基础曲线与关键帧亮度效果；先选择目标灯具，再导入模板。"}
       </p>
       {error && !file && (
         <p role="alert" className="wb-error">
