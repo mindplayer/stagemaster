@@ -71,6 +71,13 @@ export function StageLibraryPanel({
           placeholder="搜索空间、构件、灯具"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              onQuery("");
+            }
+          }}
         />
       </label>
       <div className="stage-create">
@@ -91,6 +98,7 @@ export function StageLibraryPanel({
         selection={selection}
         selectedIds={selectedIds}
         query={query}
+        onClearQuery={() => onQuery("")}
         busy={busy}
         visibility={visibility}
         onVisibility={(next) => onVisibility(next)}

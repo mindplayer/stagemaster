@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-043 完成（基线 `f925458`，结果为本次 `feat(stage): locate filtered selections and navigate the object directory` 提交）：场地筛选外选择计数／定位、内部滚动与焦点导航，补取消后的旧校验清理；262 UI、类型／格式／桌面、密集组件和原生错误草稿／取消保护通过，见[工单](tasks/UX-043-stage-directory-navigation.md)。工程哈希未改，帕灯 24 选中，音乐 0／UE 关闭／设备断开；持续 goal active。
+
 AUDIO-015 完成（基线 `ee6257c`，结果为本次 `feat(audio): edit entering fades across selected lighting clips` 提交）：整组进入渐变、混合值／固定身份草稿与原子锁定／长度检查；608 Rust、260 UI、严格检查／类型／格式／桌面、组件与原生历史／保存重开通过，见[工单](tasks/AUDIO-015-group-fade.md)。副本只改三段 fadeMs 与修订，来源未改，音乐 0／UE 关闭／设备断开；持续 goal active，接续场地目录定位。
 
 UX-042 完成（基线 `406263b`，结果为本次 `feat(resources): pin frequently used groups and presets` 提交）：共享常用灯组／预设固定栏、本机有界持久化与选择／调用隔离；258 UI、类型／格式／桌面、组件身份／容量／召回及原生重启／工程隔离验证通过，见[工单](tasks/UX-042-pinned-resources.md)。副本哈希未改，首场景／24 光束灯、音乐 0／UE 关闭／设备断开；持续 goal active。

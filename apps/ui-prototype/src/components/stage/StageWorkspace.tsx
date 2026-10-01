@@ -166,6 +166,11 @@ export const StageWorkspace = forwardRef<
     },
   });
   function cancel() {
+    form.current
+      ?.querySelectorAll<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >("input,select,textarea")
+      .forEach((field) => field.setCustomValidity(""));
     draftRef.current = null;
     setDraft(null);
     setLocalError("");

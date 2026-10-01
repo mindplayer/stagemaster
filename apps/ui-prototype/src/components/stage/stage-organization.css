@@ -70,3 +70,32 @@
   border-style: dashed;
   color: #8fa4b2;
 }
+
+.stage-outline-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 160px;
+  gap: 8px;
+}
+.stage-outline-navigation {
+  display: grid;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.stage-outline-navigation small {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.stage-outline-navigation > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.workbench .stage-outline-navigation button {
+  padding: 6px;
+  font-size: 11px;
+}
+.stage-outline-shell .stage-objects {
+  overscroll-behavior: contain;
+}

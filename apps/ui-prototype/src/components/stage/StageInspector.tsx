@@ -106,6 +106,14 @@ export function StageInspector({
     <aside className="stage-inspector">
       <form
         noValidate
+        onInputCapture={(e) => {
+          if (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLSelectElement ||
+            e.target instanceof HTMLTextAreaElement
+          )
+            e.target.setCustomValidity("");
+        }}
         ref={form}
         onSubmit={(e) => {
           e.preventDefault();

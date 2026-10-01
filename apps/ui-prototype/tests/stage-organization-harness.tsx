@@ -78,6 +78,7 @@ function Harness() {
           selection={selection}
           selectedIds={ids}
           query={query}
+          onClearQuery={() => setQuery("")}
           busy={false}
           visibility={visibility}
           onVisibility={setVisibility}
