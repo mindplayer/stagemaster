@@ -1,6 +1,6 @@
 import type { ClipSelection } from "./clip-selection";
 import "./audio-clips.css";
-import { AudioClipBatch } from "./AudioClipBatch";
+import { AudioClipBatch, type ClipGroupEditor } from "./AudioClipBatch";
 import { filteredClips, type ClipStateFilter } from "./clip-group-tools";
 import type { AudioEdit } from "../../audio-types";
 import type { ProjectView } from "../../application-host";
@@ -23,7 +23,9 @@ export function AudioClipLibrary({
   onEdit,
   selectionState,
   onGroupPending,
+  groupEditor,
 }: {
+  groupEditor?: ClipGroupEditor;
   onGroupPending?(pending: boolean): void;
   selectionState: ClipSelection;
   batch: boolean;
@@ -89,6 +91,7 @@ export function AudioClipLibrary({
       {query && <button onClick={() => setQuery("")}>清除片段筛选</button>}
       {batch ? (
         <AudioClipBatch
+          groupEditor={groupEditor}
           selectionState={selectionState}
           onPending={onGroupPending}
           track={track}

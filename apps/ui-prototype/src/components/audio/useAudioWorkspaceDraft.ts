@@ -54,11 +54,13 @@ export function useAudioWorkspaceDraft(
       const field =
         error instanceof AudioDraftError
           ? error.field
-          : value.kind === "marker"
-            ? "markerName"
-            : value.kind === "clip"
-              ? "clipStart"
-              : "trimStart";
+          : value.kind === "clipGroupFade"
+            ? "clipGroupFade"
+            : value.kind === "marker"
+              ? "markerName"
+              : value.kind === "clip"
+                ? "clipStart"
+                : "trimStart";
       requestAnimationFrame(() =>
         form.current
           ?.querySelector<HTMLInputElement>(`[name="${field}"]`)

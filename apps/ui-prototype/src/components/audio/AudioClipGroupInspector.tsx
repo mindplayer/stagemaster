@@ -1,10 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { audioTime } from "../../audio-tools";
 import type {
   clipGroupSelection,
   ClipGroupOperation,
 } from "./clip-group-tools";
 export function AudioClipGroupInspector({
+  onFade,
+  fadeButtonRef,
+  pending,
   selection,
   value,
   problem,
@@ -16,6 +19,9 @@ export function AudioClipGroupInspector({
   onRemove,
   onRun,
 }: {
+  onFade?(): void;
+  fadeButtonRef?: RefObject<HTMLButtonElement | null>;
+  pending: boolean;
   selection: ReturnType<typeof clipGroupSelection>;
   value: string;
   problem: string;
@@ -116,9 +122,21 @@ export function AudioClipGroupInspector({
               恢复所选片段
             </button>
           </div>
+          {onFade && (
+            <button
+              disabled={blocked || pending || !!selection.locked}
+              ref={fadeButtonRef}
+              onClick={onFade}
+            >
+              统一进入渐变
+            </button>
+          )}
+          {onFade && pending && (
+            <small>请先完成或取消目标修改／删除确认，再调整渐变。</small>
+          )}
           {selection.locked > 0 && (
             <small>
-              锁定片段可复制；移动、删除或切换启停前请先解锁，或移出选择。
+              锁定片段可复制；移动、删除、渐变或切换启停前请先解锁，或移出选择。
             </small>
           )}
           {removing && (

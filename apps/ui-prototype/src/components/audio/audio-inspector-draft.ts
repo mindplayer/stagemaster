@@ -5,7 +5,13 @@ import type { AudioEdit, AudioMarker, AudioTimeline } from "../../audio-types";
 import { audioMilliseconds, validateMarker } from "../../audio-tools.ts";
 import { validateAudioTransitions } from "../../audio-transition-tools.ts";
 
+import {
+  collectGroupFade,
+  type ClipGroupFadeDraft,
+} from "./clip-group-fade.ts";
+
 export type AudioDraft =
+  | ClipGroupFadeDraft
   | ClipDraft
   | {
       kind: "marker";
@@ -30,6 +36,7 @@ export function collectAudioDraft(
   value: AudioDraft,
   track: AudioTimeline,
 ): AudioEdit {
+  if (value.kind === "clipGroupFade") return collectGroupFade(value, track);
   if (value.kind === "clip") return collectClipDraft(value, track);
   let field = value.kind === "marker" ? "markerName" : "trimStart";
   try {

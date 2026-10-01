@@ -1,3 +1,5 @@
+import { AudioClipGroupFadeInspector } from "./AudioClipGroupFadeInspector";
+import { groupFadeDraft } from "./clip-group-fade";
 import { clipMotionCommand } from "./clip-trim-tools";
 import { useClipSelection } from "./useClipSelection";
 import { clipsInRange } from "./clip-selection";
@@ -212,6 +214,31 @@ export const AudioWorkspace = forwardRef<
                 key={trackIdentity}
                 selectionState={clipSelection}
                 onGroupPending={setClipGroupPending}
+                groupEditor={{
+                  beforeChange,
+                  begin: () => {
+                    try {
+                      change(groupFadeDraft(track, clipSelection.ids));
+                    } catch (error) {
+                      setProblem(
+                        error instanceof Error ? error.message : String(error),
+                      );
+                    }
+                  },
+                  content:
+                    draft?.kind === "clipGroupFade" ? (
+                      <AudioClipGroupFadeInspector
+                        draft={draft}
+                        track={track}
+                        form={form}
+                        busy={blocked}
+                        problem={problem}
+                        onChange={change}
+                        onApply={() => void beforeChange()}
+                        onCancel={cancel}
+                      />
+                    ) : null,
+                }}
                 batch={clipBatch}
                 visible={visible}
                 onEdit={edit}

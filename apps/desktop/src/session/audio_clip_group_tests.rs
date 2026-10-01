@@ -58,4 +58,22 @@ fn clip_group_is_one_history_node_and_failure_preserves_redo() {
     assert_eq!(session.undo.len(), 2);
     session.history(generation, false).unwrap();
     assert_eq!(session.document, after);
+    let fade = |fade_ms: u64| {
+        serde_json::from_value(json!({"op":"audio","command":{"kind":"editLightingClips","ids":ids,"action":{"kind":"fade","fadeMs":fade_ms}}})).unwrap()
+    };
+    session.edit(session.generation, fade(333)).unwrap();
+    assert_eq!(session.undo.len(), 2);
+    let faded = session.document.clone();
+    let generation = session.generation;
+    session.edit(generation, fade(333)).unwrap();
+    assert_eq!(session.generation, generation);
+    assert_eq!(session.undo.len(), 2);
+    session.history(generation, false).unwrap();
+    assert_eq!(session.document, after);
+    let generation = session.generation;
+    assert!(session.edit(generation, fade(1001)).is_err());
+    assert_eq!(session.generation, generation);
+    assert_eq!(session.redo.len(), 1);
+    session.history(generation, true).unwrap();
+    assert_eq!(session.document, faded);
 }

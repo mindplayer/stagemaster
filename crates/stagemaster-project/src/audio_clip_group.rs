@@ -15,6 +15,7 @@ pub enum LightingClipGroupAction {
     Copy { destination_ms: u64 },
     Remove {},
     Enabled { enabled: bool },
+    Fade { fade_ms: u64 },
 }
 
 pub(super) fn apply(
@@ -44,6 +45,18 @@ pub(super) fn apply(
         return Err(format!("片段“{}”已锁定，请先解锁或移出选择", locked.name));
     }
     let destination = match action {
+        LightingClipGroupAction::Fade { fade_ms } => {
+            if let Some(short) = sources.iter().find(|c| fade_ms > c.end_ms - c.start_ms) {
+                return Err(format!(
+                    "进入渐变超出片段“{}”的长度，请缩短渐变",
+                    short.name
+                ));
+            }
+            for clip in clips.iter_mut().filter(|c| selected.contains(&c.id)) {
+                clip.fade_ms = fade_ms;
+            }
+            return Ok(());
+        }
         LightingClipGroupAction::Enabled { enabled } => {
             for clip in clips.iter_mut().filter(|c| selected.contains(&c.id)) {
                 clip.enabled = enabled;

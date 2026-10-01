@@ -1,5 +1,11 @@
 import type { ClipSelection } from "./clip-selection";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type {
   AudioEdit,
   AudioLightingClip,
@@ -15,6 +21,11 @@ import {
   type ClipGroupOperation,
 } from "./clip-group-tools";
 import "./audio-marker-batch.css";
+export interface ClipGroupEditor {
+  content: ReactNode;
+  begin(): void;
+  beforeChange(): Promise<boolean>;
+}
 export function AudioClipBatch({
   track,
   items,
@@ -23,7 +34,9 @@ export function AudioClipBatch({
   onEdit,
   selectionState,
   onPending,
+  groupEditor,
 }: {
+  groupEditor?: ClipGroupEditor;
   onPending?(pending: boolean): void;
   selectionState: ClipSelection;
   track: AudioTimeline;
@@ -33,6 +46,20 @@ export function AudioClipBatch({
   onEdit(command: AudioEdit): Promise<ProjectView | null>;
 }) {
   const { ids, replace: setIds } = selectionState;
+  const fadeButton = useRef<HTMLButtonElement>(null);
+  const wasEditing = useRef(false);
+  const editing = !!groupEditor?.content;
+  useLayoutEffect(() => {
+    // Restore keyboard context only when the removed form owned focus.
+    if (
+      wasEditing.current &&
+      !editing &&
+      visible &&
+      document.activeElement === document.body
+    )
+      fadeButton.current?.focus();
+    wasEditing.current = editing;
+  }, [editing, visible]);
   const [destination, setDestination] = useState<string | null>(null);
   const [problem, setProblem] = useState(""),
     [removing, setRemoving] = useState(false),
@@ -51,11 +78,13 @@ export function AudioClipBatch({
     setRemoving(false);
   }
   useEffect(reset, [ids.join("\0")]);
-  function select(next: string[]) {
+  async function select(next: string[]) {
+    if (blocked || (groupEditor && !(await groupEditor.beforeChange()))) return;
     setIds(next);
     reset();
   }
-  function toggle(id: string, range: boolean) {
+  async function toggle(id: string, range: boolean) {
+    if (blocked || (groupEditor && !(await groupEditor.beforeChange()))) return;
     selectionState.toggle(id, items, range);
     reset();
   }
@@ -146,22 +175,27 @@ export function AudioClipBatch({
         {!items.length && <small>未找到片段</small>}
       </div>
       <DockPane region="inspector" visible={visible}>
-        <AudioClipGroupInspector
-          selection={selection}
-          value={value}
-          problem={problem}
-          removing={removing}
-          blocked={blocked}
-          visible={visible}
-          onValue={(v) => {
-            setDestination(v);
-            setProblem("");
-            setRemoving(false);
-          }}
-          onReset={reset}
-          onRemove={setRemoving}
-          onRun={(kind) => void run(kind)}
-        />
+        {groupEditor?.content ?? (
+          <AudioClipGroupInspector
+            onFade={groupEditor?.begin}
+            fadeButtonRef={fadeButton}
+            pending={destination !== null || removing}
+            selection={selection}
+            value={value}
+            problem={problem}
+            removing={removing}
+            blocked={blocked}
+            visible={visible}
+            onValue={(v) => {
+              setDestination(v);
+              setProblem("");
+              setRemoving(false);
+            }}
+            onReset={reset}
+            onRemove={setRemoving}
+            onRun={(kind) => void run(kind)}
+          />
+        )}
       </DockPane>
     </>
   );

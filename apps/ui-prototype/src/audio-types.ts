@@ -58,6 +58,7 @@ export type AudioCommand =
 export type MarkerGroupAction =
   { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type LightingClipGroupAction =
+  | { kind: "fade"; fadeMs: number }
   | { kind: "enabled"; enabled: boolean }
   | { kind: "move" | "copy"; destinationMs: number }
   | { kind: "remove" };

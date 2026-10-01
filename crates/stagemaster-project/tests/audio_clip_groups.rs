@@ -156,3 +156,59 @@ fn legacy_mode_and_unknown_fields_are_rejected() {
     );
     assert_eq!(doc, before);
 }
+
+#[test]
+fn group_fade_preserves_source_progress_and_all_other_clip_fields() {
+    let mut doc = fixture();
+    let mut root: Value = serde_json::from_slice(&doc.encode().unwrap()).unwrap();
+    root["requires"].as_array_mut().unwrap().extend([
+        json!({"key":"media.audio-clip-offset","version":1}),
+        json!({"key":"media.audio-clip-state","version":1}),
+    ]);
+    root["media"]["audioEditing"]["lightingClips"][1]["effectOffsetMs"] = json!(725);
+    root["media"]["audioEditing"]["lightingClips"][1]["enabled"] = json!(false);
+    doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+    let before = clips(&doc);
+    let ids = vec![before[2].id.clone(), before[1].id.clone()];
+    for fade_ms in [1000, 0, 333] {
+        group(&mut doc, &ids, json!({"kind":"fade","fadeMs":fade_ms})).unwrap();
+        let mut expected = before.clone();
+        expected[1].fade_ms = fade_ms;
+        expected[2].fade_ms = fade_ms;
+        assert_eq!(clips(&doc), expected);
+        assert_eq!(doc, Document::decode(&doc.encode().unwrap()).unwrap());
+    }
+}
+
+#[test]
+fn later_short_or_locked_clip_rejects_whole_fade_and_contract_is_strict() {
+    let mut doc = fixture();
+    let old = clips(&doc);
+    let ids = vec![old[1].id.clone(), old[2].id.clone()];
+    let before = doc.clone();
+    for fade_ms in [1001_u64, u64::MAX] {
+        let error = group(&mut doc, &ids, json!({"kind":"fade","fadeMs":fade_ms})).unwrap_err();
+        assert!(error.contains(&old[2].name) || error.contains(&old[1].name));
+        assert_eq!(doc, before);
+    }
+    edit(
+        &mut doc,
+        json!({"kind":"setLightingClipLock","id":old[2].id,"locked":true}),
+    )
+    .unwrap();
+    let locked = doc.clone();
+    assert!(
+        group(&mut doc, &ids, json!({"kind":"fade","fadeMs":0}))
+            .unwrap_err()
+            .contains(&old[2].name)
+    );
+    assert_eq!(doc, locked);
+    for action in [
+        json!({"kind":"fade","fadeMs":-1}),
+        json!({"kind":"fade","fadeMs":0.5}),
+        json!({"kind":"fade","fadeMs":0,"enabled":true}),
+        json!({"kind":"fade"}),
+    ] {
+        assert!(serde_json::from_value::<EditCommand>(json!({"op":"audio","command":{"kind":"editLightingClips","ids":ids,"action":action}})).is_err());
+    }
+}

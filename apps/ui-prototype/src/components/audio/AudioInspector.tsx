@@ -58,6 +58,7 @@ export function AudioInspector({
             start: (track.inMs / 1000).toFixed(3),
             end: (track.outMs / 1000).toFixed(3),
           });
+  if (data.kind === "clipGroupFade") return null;
   if (data.kind === "clip")
     return (
       <AudioClipInspector
