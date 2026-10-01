@@ -15,6 +15,15 @@ export interface FixtureZero {
 }
 export type PositionEdit =
   | {
+      op: "captureReference";
+      sceneId: string;
+      fixtureId: string;
+      name: string;
+      targetMeters: SpatialVector3;
+    }
+  | { op: "removeReference"; fixtureId: string; pointId: string }
+  | { op: "clearReferences"; fixtureId: string }
+  | {
       op: "axes" | "offsetAxes";
       sceneId: string;
       fixtureIds: string[];

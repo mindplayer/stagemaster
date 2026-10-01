@@ -27,6 +27,7 @@ project.fixtures = project.fixtures.map((f, i) => ({
 const scene = { id: "scene", name: "位置验收", values: [], effects: [] };
 function Harness() {
   const editor = useRef<PositionHandle>(null);
+  const [single, setSingle] = useState(false);
   const [pending, setPending] = useState(false),
     [busy, setBusy] = useState(false),
     [reject, setReject] = useState(false),
@@ -56,6 +57,13 @@ function Harness() {
       style={{ padding: 20, display: "flex", alignItems: "start", gap: 24 }}
     >
       <aside style={{ width: 360 }}>
+        <button
+          onClick={() => {
+            if (apply()) setSingle(!single);
+          }}
+        >
+          切换单灯选择
+        </button>
         <button onClick={() => setBusy(!busy)}>切换忙状态</button>
         <button onClick={() => setMissing(!missing)}>切换未布置</button>
         <button onClick={() => setMounted(!mounted)}>切换面板</button>
@@ -75,13 +83,14 @@ function Harness() {
       <div style={{ width: 360 }}>
         {mounted && (
           <PositionPanel
+            key={String(single)}
             ref={editor}
             project={
               missing
                 ? { ...project, stage: { ...project.stage, placements: [] } }
                 : project
             }
-            fixtures={project.fixtures.slice(0, 2)}
+            fixtures={project.fixtures.slice(0, single ? 1 : 2)}
             scene={scene}
             busy={busy}
             onPending={setPending}

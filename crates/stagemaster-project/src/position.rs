@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use stagemaster_spatial::positioning::{AxisRange, IntersectingHead, ZeroCorrection};
 mod edit;
+pub(super) mod reference;
 pub(super) use edit::apply;
+pub use reference::view::{PositionReferenceView, ReferenceCheckView, ReferencePointView};
+pub use reference::{PositionReference, ReferencePoint, ReferenceSource};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -63,6 +66,19 @@ pub enum PositionEdit {
     Calibrate {
         fixture_id: String,
         correction: Option<FixtureZero>,
+    },
+    CaptureReference {
+        scene_id: String,
+        fixture_id: String,
+        name: String,
+        target_meters: SpatialVector3,
+    },
+    RemoveReference {
+        fixture_id: String,
+        point_id: String,
+    },
+    ClearReferences {
+        fixture_id: String,
     },
 }
 fn decimal(s: &str, limit: f64) -> Result<f64, String> {

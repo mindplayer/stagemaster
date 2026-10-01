@@ -57,6 +57,10 @@ mod world_line_curve;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
 pub use fixture::{FixtureEdit, ProfileChannel, ProfileDefinition, Repatch};
 pub use position::{FixtureZero, PositionAxis, PositionEdit, PositionModel};
+pub use position::{
+    PositionReference, PositionReferenceView, ReferenceCheckView, ReferencePoint,
+    ReferencePointView, ReferenceSource,
+};
 pub use world_line::{TargetBranch, TargetPath};
 mod library;
 mod rigging;

@@ -1309,8 +1309,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         beforeChange={() => run(async () => {})}
                         hasPosition={selected.some(
                           (id) =>
-                            project.fixtures.find((f) => f.id === id)
-                              ?.attributes.some((a) => a.key === "pan"),
+                            project.fixtures.some(
+                              (f) => f.id === id &&
+                                (f.positionReference || f.attributes.some((a) => a.key === "pan")),
+                            ),
                         )}
                         position={
                           <>

@@ -65,6 +65,7 @@ export type EditOperation =
       value: number;
     };
 export interface FixtureView {
+  positionReference?: import("./position-reference").PositionReferenceView;
   positioning?: PositionModel | null;
   zeroCorrection?: FixtureZero | null;
   profileId: string;

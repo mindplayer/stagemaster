@@ -19,6 +19,7 @@ export function AimTargetPlane({
   disabled,
   onChange,
   targetLabel = "目标",
+  planeLabel = "共同目标平面",
   secondaryPoint,
   scopeKey = "",
 }: {
@@ -29,6 +30,7 @@ export function AimTargetPlane({
   disabled: boolean;
   onChange(point: { x: string; y: string }): void;
   targetLabel?: string;
+  planeLabel?: string;
   secondaryPoint?: { x: string; y: string; label: string };
   scopeKey?: string;
 }) {
@@ -80,7 +82,7 @@ export function AimTargetPlane({
     [project, fixtureIds, unit],
   );
   return (
-    <section className="aim-target-plane" aria-label="共同目标平面">
+    <section className="aim-target-plane" aria-label={planeLabel}>
       <div className="aim-target-tools">
         <button
           type="button"
@@ -129,7 +131,11 @@ export function AimTargetPlane({
         ref={svg}
         className={`stage-canvas aim-canvas is-${tool}`}
         role="group"
-        aria-label="共同指向选点平面"
+        aria-label={
+          planeLabel === "共同目标平面"
+            ? "共同指向选点平面"
+            : `${planeLabel}选点`
+        }
         aria-describedby={helpId}
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}

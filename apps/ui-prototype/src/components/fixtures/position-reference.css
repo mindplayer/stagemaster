@@ -1,0 +1,15 @@
+.position-reference-list article {
+  padding: 10px 0;
+  border-top: 1px solid var(--line, #3c4149);
+}
+.position-reference-list p {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.position-reference-list strong {
+  overflow-wrap: anywhere;
+}
+.position-reference-panel h2 {
+  margin: 10px 0;
+}

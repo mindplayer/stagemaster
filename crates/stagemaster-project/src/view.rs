@@ -57,6 +57,8 @@ pub struct ProfileView {
 pub struct FixtureView {
     pub positioning: Option<crate::PositionModel>,
     pub zero_correction: Option<crate::FixtureZero>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position_reference: Option<crate::PositionReferenceView>,
     pub profile_id: String,
     pub id: String,
     pub name: String,
@@ -215,6 +217,7 @@ fn fixture(root: &Value, fixture: &Value) -> FixtureView {
         .iter()
         .find(|p| p["fixtureId"] == fixture["id"]);
     FixtureView {
+        position_reference: crate::position::reference::view::project(root, fixture, profile),
         positioning: crate::position::model(profile).expect("validated model"),
         zero_correction: fixture
             .get("zeroCorrection")

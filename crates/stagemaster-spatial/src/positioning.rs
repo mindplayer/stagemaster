@@ -1,8 +1,10 @@
 //! Static geometry for an explicitly restricted, intersecting orthogonal two-axis head.
 //! It is not a general GDTF solver, path planner, collision checker or device controller.
 mod flip;
+mod reference;
 use crate::Installation;
 use glam::{DQuat, DVec3};
+pub use reference::ReferenceCheck;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AxisRange {

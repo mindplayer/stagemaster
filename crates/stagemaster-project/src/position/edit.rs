@@ -18,7 +18,7 @@ fn default(p: &Value, key: &str) -> u16 {
     )
     .expect("validated default")
 }
-fn scene_value(root: &Value, scene: &Value, id: &str, key: &str, p: &Value) -> u16 {
+pub(super) fn scene_value(root: &Value, scene: &Value, id: &str, key: &str, p: &Value) -> u16 {
     let entry = array(scene, "assignments")
         .iter()
         .find(|a| a["target"]["fixtureId"] == id && a["target"]["attribute"] == key);
@@ -127,11 +127,24 @@ fn resolve(
                 Some(m.tilt.encode(solved.angles.tilt_degrees, fine(p, "tilt"))?),
             ]
         }
-        PositionEdit::Calibrate { .. } => unreachable!(),
+        PositionEdit::Calibrate { .. }
+        | PositionEdit::CaptureReference { .. }
+        | PositionEdit::RemoveReference { .. }
+        | PositionEdit::ClearReferences { .. } => {
+            unreachable!("non-axis command dispatched before resolve")
+        }
     };
     Ok::<_, String>(values)
 }
 pub(crate) fn apply(root: &mut Value, command: PositionEdit) -> Result<(), String> {
+    if matches!(
+        &command,
+        PositionEdit::CaptureReference { .. }
+            | PositionEdit::RemoveReference { .. }
+            | PositionEdit::ClearReferences { .. }
+    ) {
+        return super::reference::edit::apply(root, command);
+    }
     if let PositionEdit::Calibrate {
         fixture_id,
         correction,
@@ -150,31 +163,31 @@ pub(crate) fn apply(root: &mut Value, command: PositionEdit) -> Result<(), Strin
         require(root);
         return Ok(());
     }
-    let (scene_id, ids) = match &command {
-        PositionEdit::Axes {
-            scene_id,
-            fixture_ids,
-            ..
-        }
-        | PositionEdit::OffsetAxes {
-            scene_id,
-            fixture_ids,
-            ..
-        }
-        | PositionEdit::Flip {
-            scene_id,
-            fixture_ids,
-        }
-        | PositionEdit::Aim {
-            scene_id,
-            fixture_ids,
-            ..
-        }
-        | PositionEdit::Home {
-            scene_id,
-            fixture_ids,
-        } => (scene_id, fixture_ids),
-        PositionEdit::Calibrate { .. } => unreachable!(),
+    let (PositionEdit::Axes {
+        scene_id,
+        fixture_ids: ids,
+        ..
+    }
+    | PositionEdit::OffsetAxes {
+        scene_id,
+        fixture_ids: ids,
+        ..
+    }
+    | PositionEdit::Flip {
+        scene_id,
+        fixture_ids: ids,
+    }
+    | PositionEdit::Aim {
+        scene_id,
+        fixture_ids: ids,
+        ..
+    }
+    | PositionEdit::Home {
+        scene_id,
+        fixture_ids: ids,
+    }) = &command
+    else {
+        unreachable!("non-axis command already dispatched")
     };
     if ids.is_empty() || ids.len() > 128 || ids.iter().collect::<BTreeSet<_>>().len() != ids.len() {
         return Err("请选择 1–128 台不重复的摇头灯".into());

@@ -8,7 +8,7 @@ FIXTURE-007 完成（基线 `ee709fb`，结果为本次 `feat(fixtures): author 
 
 FIXTURE-006 第一增量完成（基线 `028362d`，结果为本次 `feat(fixtures): separate channel mapping from physical geometry` 提交）：真实说明书归档、通道与物理模型解耦，638 Rust／276 UI／严格检查／桌面及原生历史、保存重开通过；实际灯具完整适配仍待多光源／控制宏，用户新增定制色盘优先接续，见[工单](tasks/FIXTURE-006-real-fixture-intake.md)／[ADR-087](decisions/PRODUCT-ADR-087-fixture-mapping-without-geometry.md)。POSITION-003 保留为后续校准增量；持续 goal active。
 
-POSITION-003 已设计、待实施（基线 `028362d`）：摇头灯参考点保存、模式修订保护与 Rust 射线偏差检查，见[工单](tasks/POSITION-003-reference-checks.md)／[ADR-086](decisions/PRODUCT-ADR-086-position-reference-checks.md)；持续 goal active。
+POSITION-003 完成（设计基线 `028362d`，实施基线 `c22fcc8`，结果为本次 `feat(position): persist reference points and report model deviation` 提交）：持久参考点、真实轴精度、模式修订保护及共享射线偏差；652 Rust／最终 17 专项、285 UI、128 格式、严格检查／类型／桌面及原生取消／历史／零偏重算／保存重开通过，见[工单](tasks/POSITION-003-reference-checks.md)／[ADR-086](decisions/PRODUCT-ADR-086-position-reference-checks.md)。当前独立副本已保存，设备未连、UE 关闭、音乐 0；持续 goal 接续可复用灯效模板。
 
 POSITION-002 完成（基线 `ed844c6`，结果为本次 `feat(position): add per-fixture relative axes and alternate yoke poses` 提交）：逐灯相对轴草稿／精度保护和等指向翻转、整批行程／效果拒绝，拆分位置编辑职责；632 Rust 全量＋最终 5 项专项（总 633）、274 UI、严格检查／类型／桌面及原生撤销／重做／UE 更新／保存重开通过，见[工单](tasks/POSITION-002-relative-axis-and-flip.md)。副本仅 2 台／4 轴变化，来源未改；音乐 0／UE 关闭／设备未连。持续 goal 接续参考点校准检查。
 

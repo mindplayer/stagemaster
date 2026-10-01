@@ -694,6 +694,9 @@
         },
         "zeroCorrection": {
           "$ref": "#/$defs/FixtureZero"
+        },
+        "positionReference": {
+          "$ref": "#/$defs/PositionReference"
         }
       },
       "required": [
@@ -3555,6 +3558,69 @@
           "additionalProperties": false
         }
       ]
+    },
+    "PositionReference": {
+      "type": "object",
+      "properties": {
+        "profileId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "profileRevision": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/PositionReferencePoint"
+          }
+        }
+      },
+      "required": [
+        "profileId",
+        "profileRevision",
+        "points"
+      ],
+      "additionalProperties": false
+    },
+    "PositionReferencePoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "targetMeters": {
+          "$ref": "#/$defs/SpatialVector3"
+        },
+        "panValue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "tiltValue": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "source": {
+          "const": "sceneSetpoint"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "targetMeters",
+        "panValue",
+        "tiltValue",
+        "source"
+      ],
+      "additionalProperties": false
     }
   }
 }
