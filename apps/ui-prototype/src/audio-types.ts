@@ -9,6 +9,7 @@ export interface AudioMarker {
   name: string;
   timeMs: number;
   sceneId: string | null;
+  fadeMs?: number;
 }
 export interface AudioTimeline {
   asset: AudioAsset;

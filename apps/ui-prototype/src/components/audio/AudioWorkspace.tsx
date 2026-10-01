@@ -9,10 +9,15 @@ import type {
   ProjectView,
 } from "../../application-host";
 import type { AudioEdit, AudioMarker } from "../../audio-types";
-import { audioMilliseconds, validateMarker } from "../../audio-tools";
+import { validateMarker } from "../../audio-tools";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
-import { AudioInspector, type AudioDraft } from "./AudioInspector";
+import { AudioInspector } from "./AudioInspector";
+import {
+  collectAudioDraft,
+  AudioDraftError,
+  type AudioDraft,
+} from "./audio-inspector-draft";
 import { AudioWaveform } from "./AudioWaveform";
 import type { useAudio } from "./useAudio";
 import { useMarkerActions } from "./useMarkerActions";
@@ -88,37 +93,17 @@ export const AudioWorkspace = forwardRef<
   function collect(): EditOperation[] {
     const value = draftRef.current;
     if (!value || !track) return [];
-    let field = value.kind === "marker" ? "markerName" : "trimStart";
     try {
       if (!form.current?.reportValidity())
         throw new Error("请修正音频属性中的输入");
-      if (value.kind === "marker") {
-        if (!value.name.trim()) throw new Error("卡点名称不能为空");
-        field = "markerTime";
-        const next = validateMarker(
-          {
-            id: value.id,
-            name: value.name.trim(),
-            timeMs: audioMilliseconds(value.time, "卡点时间"),
-            sceneId: value.sceneId || null,
-          },
-          track,
-        );
-        return [{ op: "audio", command: { kind: "putMarker", marker: next } }];
-      }
-      const inMs = audioMilliseconds(value.start, "裁切开始");
-      field = "trimEnd";
-      const outMs = audioMilliseconds(value.end, "裁切结束");
-      if (inMs >= outMs || outMs > track.asset.durationMs)
-        throw new Error("裁切范围必须在源文件内，结束晚于开始");
-      if (track.markers.some((m) => m.timeMs >= outMs - inMs))
-        throw new Error("裁切后部分卡点超出音乐，请先移动或删除这些卡点");
-      return [{ op: "audio", command: { kind: "trim", inMs, outMs } }];
+      return [{ op: "audio", command: collectAudioDraft(value, track) }];
     } catch (error) {
       setProblem(error instanceof Error ? error.message : String(error));
       requestAnimationFrame(() =>
         form.current
-          ?.querySelector<HTMLInputElement>(`[name="${field}"]`)
+          ?.querySelector<HTMLInputElement>(
+            `[name="${error instanceof AudioDraftError ? error.field : value.kind === "marker" ? "markerName" : "trimStart"}"]`,
+          )
           ?.focus(),
       );
       throw error;

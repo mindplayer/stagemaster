@@ -69,7 +69,7 @@ impl AudioPreview {
                     output: None,
                 });
             }
-            let compiled = doc.compile_audio_scene(scene.as_deref())?;
+            let compiled = doc.compile_audio_marker(marker.map(|m| m.id.as_str()))?;
             let mut player = Player::new(compiled.plan, 0);
             player.execute(0, 0)?;
             self.lighting = Some(Lighting {

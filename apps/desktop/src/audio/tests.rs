@@ -27,17 +27,40 @@ fn document() -> (Document, AudioTimeline) {
             AudioMarker {
                 id: "a0000000-0000-4000-8000-000000000001".into(),
                 name: "追逐开始".into(),
+                fade_ms: 0,
                 time_ms: 1000,
                 scene_id: Some(scene.clone()),
             },
             AudioMarker {
                 id: "a0000000-0000-4000-8000-000000000002".into(),
                 name: "暗场开始".into(),
+                fade_ms: 0,
                 time_ms: 4000,
                 scene_id: Some(view.scenes[1].id.clone()),
             },
         ],
     };
+    doc.edit(stagemaster_project::EditCommand::Audio {
+        command: stagemaster_project::AudioEdit::SetAsset {
+            asset: track.asset.clone(),
+        },
+    })
+    .unwrap();
+    doc.edit(stagemaster_project::EditCommand::Audio {
+        command: stagemaster_project::AudioEdit::Trim {
+            in_ms: track.in_ms,
+            out_ms: track.out_ms,
+        },
+    })
+    .unwrap();
+    for marker in &track.markers {
+        doc.edit(stagemaster_project::EditCommand::Audio {
+            command: stagemaster_project::AudioEdit::PutMarker {
+                marker: marker.clone(),
+            },
+        })
+        .unwrap();
+    }
     (doc, track)
 }
 #[test]
@@ -78,12 +101,7 @@ fn backward_seek_rebuilds_effect_phase_and_marker_boundary_is_exact() {
 #[test]
 fn changing_asset_or_range_clears_old_transport_but_marker_edits_preserve_cursor() {
     let (mut doc, track) = document();
-    doc.edit(stagemaster_project::EditCommand::Audio {
-        command: stagemaster_project::AudioEdit::SetAsset {
-            asset: track.asset.clone(),
-        },
-    })
-    .unwrap();
+
     let current = doc.audio_timeline().unwrap();
     let mut preview = AudioPreview::default();
     preview.load("unused.wav".into(), current).unwrap();
@@ -105,4 +123,35 @@ fn changing_asset_or_range_clears_old_transport_but_marker_edits_preserve_cursor
     .unwrap();
     preview.synchronize(&doc);
     assert!(!preview.active());
+}
+
+#[test]
+fn native_cursor_seek_uses_transition_snapshot_and_retains_pause_state() {
+    let (mut doc, mut track) = document();
+    track.markers[1].fade_ms = 1000;
+    doc.edit(stagemaster_project::EditCommand::Audio {
+        command: stagemaster_project::AudioEdit::PutMarker {
+            marker: track.markers[1].clone(),
+        },
+    })
+    .unwrap();
+    let mut preview = AudioPreview::default();
+    preview
+        .load("unused-for-paused-render.wav".into(), track)
+        .unwrap();
+    for (time, level) in [
+        (4000, 255),
+        (4500, 128),
+        (5000, 0),
+        (4500, 128),
+        (4000, 255),
+    ] {
+        preview.transport.seek(time).unwrap();
+        let result = preview.render(&doc, 1).unwrap();
+        assert_eq!(result.status, "paused");
+        let output = result.output.unwrap();
+        assert_eq!(output.slots[0], level, "at {time}");
+        assert!(output.slots[1..].iter().all(|slot| *slot == 0));
+        assert!(!preview.position().playing);
+    }
 }

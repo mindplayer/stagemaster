@@ -28,3 +28,20 @@ test('外部媒体仍须声明自己的能力',()=>{
   p.requires=p.requires.filter(v=>v.key!=='media.external');
   assert.throws(()=>auditProject(p),/media.external/);
 });
+
+test('音乐灯光渐变有独立能力、段落边界和零渐变兼容',()=>{
+  const p=project();const marker=p.media.audioEditing.markers[0];
+  marker.fadeMs=0;assert.doesNotThrow(()=>auditProject(p));
+  marker.fadeMs=1000;assert.throws(()=>auditProject(p),/media.audio-transitions/);
+  p.requires.push({key:'media.audio-transitions',version:1});
+  assert.doesNotThrow(()=>auditProject(p));
+  marker.fadeMs=29001;assert.throws(()=>auditProject(p),/渐变/);
+  marker.fadeMs=1000;marker.sceneId=null;assert.throws(()=>auditProject(p),/渐变/);
+});
+test('纯节奏标记不截断渐变，绑定场景才形成下一边界',()=>{
+  const p=project();p.requires.push({key:'media.audio-transitions',version:1});
+  p.media.audioEditing.markers[0].fadeMs=2000;
+  const next={id:'a0000000-0000-4000-8000-000000000002',name:'中间拍',timeMs:2000,sceneId:null};
+  p.media.audioEditing.markers.push(next);assert.doesNotThrow(()=>auditProject(p));
+  next.sceneId=p.lighting.scenes[0].id;assert.throws(()=>auditProject(p),/渐变/);
+});

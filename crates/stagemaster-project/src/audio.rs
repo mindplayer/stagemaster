@@ -20,7 +20,14 @@ pub struct AudioMarker {
     pub name: String,
     pub time_ms: u64,
     pub scene_id: Option<String>,
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub fade_ms: u64,
 }
+#[allow(clippy::trivially_copy_pass_by_ref)] // Serde skip_serializing_if requires a borrowed field.
+fn is_zero(value: &u64) -> bool {
+    *value == 0
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AudioTimeline {
@@ -73,7 +80,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
         root["requires"]
             .as_array_mut()
             .ok_or("能力列表无效")?
-            .retain(|r| r["key"] != "media.audio-editing");
+            .retain(|r| {
+                r["key"] != "media.audio-editing" && r["key"] != crate::audio_lighting::CAPABILITY
+            });
         return Ok(());
     }
     let mut track = if let AudioEdit::SetAsset { asset } = &command {
@@ -111,6 +120,16 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
                 .ok_or("此卡点已不存在")?;
             track.markers.remove(index);
         }
+    }
+    if track.markers.iter().any(|marker| marker.fade_ms > 0)
+        && !array(root, "requires")
+            .iter()
+            .any(|r| r["key"] == crate::audio_lighting::CAPABILITY)
+    {
+        root["requires"]
+            .as_array_mut()
+            .ok_or("能力列表无效")?
+            .push(json!({"key":crate::audio_lighting::CAPABILITY,"version":1}));
     }
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
     if !array(root, "requires")
@@ -171,26 +190,6 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         }
         previous = Some(marker.time_ms);
     }
+    crate::audio_lighting::validate(root, &track)?;
     Ok(())
-}
-
-impl Document {
-    /// Compile an isolated scene or the fixture defaults for the start of a music track.
-    /// # Errors
-    /// Reject invalid scene references, patch conflicts or core playback capacity violations.
-    pub fn compile_audio_scene(
-        &self,
-        scene_id: Option<&str>,
-    ) -> Result<crate::CompiledSequence, String> {
-        if let Some(id) = scene_id {
-            return self.compile_scene(id);
-        }
-        let mut temporary = self.clone();
-        let id = crate::id();
-        temporary.root["lighting"]["scenes"]
-            .as_array_mut()
-            .ok_or("没有灯光场景库")?
-            .push(json!({"id":id,"name":"音乐起始默认值","assignments":[]}));
-        temporary.compile_scene(&id)
-    }
 }

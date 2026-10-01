@@ -53,6 +53,7 @@ export function AudioMarkerList({
             <strong>{m.name}</strong>
             <span>
               {scenes.find((s) => s.id === m.sceneId)?.name ?? "节奏标记"}
+              {m.fadeMs ? ` · 渐变 ${(m.fadeMs / 1000).toFixed(3)} 秒` : ""}
             </span>
           </button>
         ))}

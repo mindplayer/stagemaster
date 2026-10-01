@@ -33,7 +33,7 @@ export function AudioLightingLane({
     <div className="audio-lighting-lane" role="group" aria-label="灯光段落">
       <header>
         <strong>灯光场景</strong>
-        <span>{segments.filter((s) => s.markerId).length} 段 · 硬切</span>
+        <span>{segments.filter((s) => s.markerId).length} 段</span>
         <span>拖动边界调整切换时间</span>
       </header>
       <div className="audio-lighting-clips">
@@ -60,7 +60,7 @@ export function AudioLightingLane({
                   data-lighting-segment={marker.id}
                   aria-pressed={selected === marker.id}
                   aria-label={`${label}，${range}`}
-                  title={`${label} · ${range} · 双击定位`}
+                  title={`${label} · ${range} · ${marker.fadeMs ? `渐变 ${(marker.fadeMs / 1000).toFixed(3)} 秒` : "直接切换"} · 双击定位`}
                   disabled={disabled}
                   onClick={() => onSelect(marker.id)}
                   onDoubleClick={() => onSeek(marker.timeMs)}
@@ -84,6 +84,19 @@ export function AudioLightingLane({
               ) : (
                 <span className="audio-lighting-default-label">{label}</span>
               )}
+              {marker?.fadeMs && segment.start + marker.fadeMs > start ? (
+                <span
+                  className="audio-lighting-fade"
+                  aria-hidden="true"
+                  style={{
+                    width:
+                      Math.max(
+                        0,
+                        Math.min(end, segment.start + marker.fadeMs) - start,
+                      ) * pixels,
+                  }}
+                />
+              ) : null}
               {marker && segment.start >= viewport.start && (
                 <button
                   className="audio-lighting-boundary"

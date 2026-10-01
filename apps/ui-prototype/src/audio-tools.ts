@@ -1,3 +1,4 @@
+import { validateAudioTransitions } from "./audio-transition-tools.ts";
 import type { AudioMarker, AudioTimeline } from "./audio-types.ts";
 export function audioTime(ms: number) {
   return `${Math.floor(ms / 60000)
@@ -28,6 +29,10 @@ export function validateMarker(marker: AudioMarker, track: AudioTimeline) {
     track.markers.some((m) => m.id !== marker.id && m.timeMs === marker.timeMs)
   )
     throw new Error("这个时间已有卡点，请移动播放头或修改现有卡点");
+  validateAudioTransitions({
+    ...track,
+    markers: [...track.markers.filter((m) => m.id !== marker.id), marker],
+  });
   return marker;
 }
 export function snapAudioTime(
@@ -44,8 +49,14 @@ export function snapAudioTime(
   if (!snap) return bounded;
   const nearby = track.markers
     .filter((m) => m.id !== except)
-    .reduce<
-      number | null
-    >((best, m) => (Math.abs(m.timeMs - bounded) <= tolerance && (best === null || Math.abs(m.timeMs - bounded) < Math.abs(best - bounded)) ? m.timeMs : best), null);
+    .reduce<number | null>(
+      (best, m) =>
+        Math.abs(m.timeMs - bounded) <= tolerance &&
+        (best === null ||
+          Math.abs(m.timeMs - bounded) < Math.abs(best - bounded))
+          ? m.timeMs
+          : best,
+      null,
+    );
   return nearby ?? bounded;
 }

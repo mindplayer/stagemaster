@@ -1,18 +1,9 @@
 import type { RefObject } from "react";
 import type { AudioMarker, AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
-export type AudioDraft =
-  | { kind: "marker"; id: string; name: string; time: string; sceneId: string }
-  | { kind: "trim"; start: string; end: string };
-export function markerDraft(marker: AudioMarker): AudioDraft {
-  return {
-    kind: "marker",
-    id: marker.id,
-    name: marker.name,
-    time: (marker.timeMs / 1000).toFixed(3),
-    sceneId: marker.sceneId ?? "",
-  };
-}
+import { audioFadeLimit } from "../../audio-transition-tools";
+import { markerDraft, type AudioDraft } from "./audio-inspector-draft";
+export type { AudioDraft } from "./audio-inspector-draft";
 export function AudioInspector({
   track,
   marker,
@@ -99,7 +90,13 @@ export function AudioInspector({
               aria-label="卡点灯光场景"
               value={data.sceneId}
               disabled={busy}
-              onChange={(e) => onChange({ ...data, sceneId: e.target.value })}
+              onChange={(e) =>
+                onChange({
+                  ...data,
+                  sceneId: e.target.value,
+                  fade: e.target.value ? data.fade : "0",
+                })
+              }
             >
               <option value="">仅作节奏标记</option>
               {scenes.map((s) => (
@@ -109,6 +106,57 @@ export function AudioInspector({
               ))}
             </select>
           </label>
+          {data.sceneId && (
+            <>
+              <label>
+                进入方式
+                <select
+                  aria-label="灯光进入方式"
+                  disabled={busy}
+                  value={data.fade === "0" ? "cut" : "fade"}
+                  onChange={(e) =>
+                    onChange({
+                      ...data,
+                      fade:
+                        e.target.value === "cut"
+                          ? "0"
+                          : (
+                              Math.min(
+                                1000,
+                                marker ? audioFadeLimit(track, marker) : 1000,
+                              ) / 1000
+                            ).toFixed(3),
+                    })
+                  }
+                >
+                  <option value="cut">直接切换</option>
+                  <option value="fade">渐变进入</option>
+                </select>
+              </label>
+              {data.fade !== "0" && (
+                <label>
+                  渐变（秒）
+                  <input
+                    name="markerFade"
+                    aria-label="灯光渐变（秒）"
+                    inputMode="decimal"
+                    required
+                    disabled={busy}
+                    value={data.fade}
+                    onChange={(e) =>
+                      onChange({ ...data, fade: e.target.value })
+                    }
+                  />
+                </label>
+              )}
+              {marker && (
+                <small>
+                  本段最多 {(audioFadeLimit(track, marker) / 1000).toFixed(3)}{" "}
+                  秒；功能档位仍在卡点直接切换。
+                </small>
+              )}
+            </>
+          )}
           <div className="audio-marker-actions">
             <button
               type="button"
@@ -127,7 +175,7 @@ export function AudioInspector({
             </button>
           </div>
           <p>
-            到达此处切换到所选场景，动态效果从该点开始。修改关联场景也会影响其他引用它的位置。
+            到达卡点开始所选场景；渐变从前段边界状态进入，新效果从此处计时。修改关联场景也会影响其他引用位置。
           </p>
         </>
       ) : (

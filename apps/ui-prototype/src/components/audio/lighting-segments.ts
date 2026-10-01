@@ -7,7 +7,7 @@ export interface LightingSegment {
   end: number;
 }
 
-/** A display projection of existing hard-cut markers, never a playback evaluator. */
+/** A display projection of existing lighting markers, never a playback evaluator. */
 export function lightingSegments(track: AudioTimeline): LightingSegment[] {
   const duration = track.outMs - track.inMs;
   const markers = track.markers
@@ -44,8 +44,13 @@ export function constrainBoundaryTime(
     .sort((a, b) => a.timeMs - b.timeMs);
   const index = bound.findIndex((m) => m.id === id);
   if (index < 0) throw new Error("此卡点未绑定灯光场景");
-  const min = index > 0 ? bound[index - 1].timeMs + 1 : 0;
-  const max = (bound[index + 1]?.timeMs ?? track.outMs - track.inMs) - 1;
+  const min =
+    index > 0
+      ? bound[index - 1].timeMs + Math.max(1, bound[index - 1].fadeMs ?? 0)
+      : 0;
+  const max =
+    (bound[index + 1]?.timeMs ?? track.outMs - track.inMs) -
+    Math.max(1, marker.fadeMs ?? 0);
   const time = Math.max(min, Math.min(max, Math.round(raw)));
   const occupied = new Set(
     track.markers.filter((m) => m.id !== id).map((m) => m.timeMs),

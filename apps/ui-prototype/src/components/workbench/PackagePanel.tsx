@@ -371,7 +371,7 @@ export function PackagePanel({
         />
       )}
       <p className="wb-package-caption">
-        包含已应用的未保存编辑。安装使用生成时的固定内容；安装不会开始播放。
+        场景／列表包含已应用的未保存编辑；音乐、卡点和时间线渐变不随此包导出。安装使用生成时的固定内容；安装不会开始播放。
       </p>
     </section>
   );

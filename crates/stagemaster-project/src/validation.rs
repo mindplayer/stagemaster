@@ -129,6 +129,7 @@ fn supported(root: &Value) -> Result<(), String> {
     for capability in array(root, "requires") {
         if ![
             "media.audio-editing",
+            crate::audio_lighting::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
             "lighting.positioning",

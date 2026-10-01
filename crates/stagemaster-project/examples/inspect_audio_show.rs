@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .iter()
             .find(|m| m.scene_id.is_some() && m.time_ms > marker.time_ms)
             .map_or(track.duration_ms(), |m| m.time_ms);
-        let compiled = doc.compile_audio_scene(marker.scene_id.as_deref())?;
+        let compiled = doc.compile_audio_marker(Some(&marker.id))?;
         let mut player = Player::new(compiled.plan, 0);
         player.execute(0, 0)?;
         let mut maximum_lit = 0;

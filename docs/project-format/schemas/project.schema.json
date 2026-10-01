@@ -3193,6 +3193,11 @@
               "type": "null"
             }
           ]
+        },
+        "fadeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
         }
       },
       "required": [

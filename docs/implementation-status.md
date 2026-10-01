@@ -1,6 +1,6 @@
 # 实现状态
 
-当前界面能力基线：2026-10-01，[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 已贯通功能区间建档、场景／预设和包兼容；[FIXTURE-003A](development/tasks/FIXTURE-003A-discrete-playback.md) 提供直接切换执行基础。本表是当前能力与验证边界的入口；后续增量和当前窗口／实板状态看 [STATE](development/STATE.md)，历史过程看各工单。技术框架为 Rust 核心、Tauri 2＋React／TypeScript 界面；云端 Fastify＋PostgreSQL＋对象存储尚未实施。
+当前界面能力基线：2026-10-01，[AUDIO-003](development/tasks/AUDIO-003-lighting-transitions.md) 已补音乐灯光段落进入渐变，[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 已贯通功能区间建档、场景／预设和包兼容；[FIXTURE-003A](development/tasks/FIXTURE-003A-discrete-playback.md) 提供直接切换执行基础。本表是当前能力与验证边界的入口；后续增量和当前窗口／实板状态看 [STATE](development/STATE.md)，历史过程看各工单。技术框架为 Rust 核心、Tauri 2＋React／TypeScript 界面；云端 Fastify＋PostgreSQL＋对象存储尚未实施。
 
 已有真实编辑、音频、内嵌预演及设备安装链路，仍是开发版。界面可操作、计划可编码、设备安装成功分别有证据；真实 RS485 输出仍禁用，不能据此宣称可交付演出。
 
@@ -13,7 +13,7 @@
 | 动态效果 | [效果模块](module-api/lighting-effects.md)：亮度／RGB 曲线、32 帧、三种过渡、灯序／相位；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 加入相对物理角度双轴运动；[固定属性编辑](development/tasks/UX-020-docked-effect-editing.md) 保持三维可见 | 功能区间内渐变／命名档位追逐、连续世界目标轨迹、速度／加速度约束、现场速度主控／节拍、像素；当前正弦采用有界采样，详见契约 |
 | 摇头位置 | [POSITION-001](development/tasks/POSITION-001-moving-head-workflow.md)：独立两轴范围／反向、零偏、静态共同点、轴角渐变和关节预演 | 非相交轴／多头、自动校准、实灯精度／碰撞；相对运动不能等同持续目标跟随 |
 | 单列表执行 | [播放核心](module-api/sequence-preview.md)、[专注执行视图](development/tasks/UX-021-execution-view.md)：延时／渐变／自动等待、人工推进、跳转／暂停／循环、当前／下一步／选择分离与旧版本保护 | 多执行器现场混合、总控、临时覆盖／归还、完整剧本关联及人工／定时混合调度 |
-| 音乐与灯光卡点 | [音频模块](module-api/audio-editing.md)、[成熟波形](development/tasks/AUDIO-002-professional-waveform.md)、[灯光段落](development/tasks/UX-022-audio-lighting-lane.md)：真实音频、WaveSurfer、裁切／定位／手动标记／场景绑定、边界编辑和统一历史 | 自动拍子、多轨、重叠／跨场景渐变、跨设备时钟和有线／蓝牙延迟校准；音乐不存 ESP32 |
+| 音乐与灯光卡点 | [音频模块](module-api/audio-editing.md)、[成熟波形](development/tasks/AUDIO-002-professional-waveform.md)、[灯光段落](development/tasks/UX-022-audio-lighting-lane.md)：真实音频、WaveSurfer、裁切／定位／手动标记／场景绑定、边界编辑和统一历史；AUDIO-003 支持确定性进入渐变／任意定位，功能属性保持直接切换 | 自动拍子、多轨、重叠／双场景动态持续交叉、跨设备时钟和有线／蓝牙延迟校准；音乐不存 ESP32 |
 | 舞台与场地 | [装配](development/tasks/STAGE-001-rigging-workflow.md)、[场地目录](development/tasks/UX-025-stage-organization.md)：空间／尺寸、桁架／挂灯、阵列／对齐、测距、显隐／搜索／精确输入及一次历史 | 座区／座椅复合业务对象、门洞／共享墙、复杂吊点、完整三维组变换 |
 | 程序内三维 | [PREVIS-002](development/tasks/PREVIS-002-single-workspace.md)：唯一 UE 视窗与共享播放进度、跨页保持；[UX-023](development/tasks/UX-023-previs-session-contention.md) 处理短时锁竞争；未建模功能灯具明确提示并保留灯位／姿态，不输出假光束 | 仍依赖本机 UnrealEditor；独立运行时打包、专业光学／轮盘模拟、规模／延迟预算和完整辅助功能 |
 | 工程检查与素材交付 | [检查](module-api/project-check.md)、[资源健康](development/tasks/UX-028-project-resource-health.md)：编译／配适定位、资源摘要、缓存／随附文件分别检查、缺失重定位与保存补齐 | 当前资源检查针对已接入音乐文件；完整多媒体依赖、导出图纸、运行来源诊断未实现 |
@@ -26,7 +26,7 @@
 
 ## 验证命令
 
-FIXTURE-003B 通过 469 项 Rust、132 项 UI、97 项格式检查、fmt／严格 Clippy／类型、桌面构建及 Xtensa 源码检查；原生建档／多选／预设、错误定位／取消、保存重开、内嵌 UE 和包生成见[任务验收](development/tasks/FIXTURE-003B-function-authoring.md)。本轮同时修复并独立验证 [STORE-001](development/tasks/STORE-001-explicit-lock-lifetime.md) 存储锁生命周期。测试数量是该构建的记录，不是商业成熟度评分。现有实板未刷入新的能力声明，仍需兼容检查。
+AUDIO-003 通过 475 项 Rust、136 项 UI、99 项格式检查、fmt／严格 Clippy／类型、桌面构建；原生渐变／取消撤销／保存重开／音乐和 UE 见[任务验收](development/tasks/AUDIO-003-lighting-transitions.md)。此前 FIXTURE-003B 的功能建档与 Xtensa 检查见[验收](development/tasks/FIXTURE-003B-function-authoring.md)。此前已独立修复验证 [STORE-001](development/tasks/STORE-001-explicit-lock-lifetime.md) 存储锁生命周期。测试数量是该构建的记录，不是商业成熟度评分。现有实板未刷入新的能力声明，仍需兼容检查。
 
 项目使用本地离线依赖缓存；终端从根目录运行：
 
