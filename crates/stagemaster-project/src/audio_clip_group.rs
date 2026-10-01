@@ -14,6 +14,7 @@ pub enum LightingClipGroupAction {
     Move { destination_ms: u64 },
     Copy { destination_ms: u64 },
     Remove {},
+    Enabled { enabled: bool },
 }
 
 pub(super) fn apply(
@@ -43,6 +44,12 @@ pub(super) fn apply(
         return Err(format!("片段“{}”已锁定，请先解锁或移出选择", locked.name));
     }
     let destination = match action {
+        LightingClipGroupAction::Enabled { enabled } => {
+            for clip in clips.iter_mut().filter(|c| selected.contains(&c.id)) {
+                clip.enabled = enabled;
+            }
+            return Ok(());
+        }
         LightingClipGroupAction::Remove {} => {
             clips.retain(|c| !selected.contains(&c.id));
             return Ok(());

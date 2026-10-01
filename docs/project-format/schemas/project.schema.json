@@ -3425,6 +3425,10 @@
         },
         "locked": {
           "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
         }
       },
       "required": [

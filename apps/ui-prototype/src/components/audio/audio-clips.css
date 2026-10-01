@@ -67,3 +67,11 @@
   font-size: 10px;
   color: var(--wb-muted);
 }
+
+.audio-clip-list > button.inactive {
+  border-style: dashed;
+  border-color: var(--wb-muted);
+}
+.audio-clip-list > button.inactive strong {
+  color: var(--wb-muted);
+}

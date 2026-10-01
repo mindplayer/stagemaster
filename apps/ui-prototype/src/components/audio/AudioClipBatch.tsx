@@ -12,6 +12,7 @@ import {
   clipGroupCommand,
   clipGroupSelection,
   toggleClipRange,
+  type ClipGroupOperation,
 } from "./clip-group-tools";
 import "./audio-marker-batch.css";
 export function AudioClipBatch({
@@ -50,7 +51,7 @@ export function AudioClipBatch({
     select(toggleClipRange(selected, items, id, anchor.current, range));
     anchor.current = id;
   }
-  async function run(kind: "move" | "copy" | "remove") {
+  async function run(kind: ClipGroupOperation) {
     if (blocked) return;
     setProblem("");
     setWorking(true);
@@ -107,8 +108,8 @@ export function AudioClipBatch({
             id={`batch-clip-${c.id}`}
             role="checkbox"
             aria-checked={selected.includes(c.id)}
-            aria-label={`选择片段：${c.name}，${audioTime(c.startMs)}`}
-            className={selected.includes(c.id) ? "selected" : ""}
+            aria-label={`选择片段：${c.name}，${audioTime(c.startMs)}${c.enabled === false ? "，已停用" : ""}`}
+            className={`${selected.includes(c.id) ? "selected" : ""} ${c.enabled === false ? "inactive" : ""}`}
             disabled={blocked}
             onClick={(e) => toggle(c.id, e.shiftKey)}
             onKeyDown={(e) => {
@@ -131,6 +132,7 @@ export function AudioClipBatch({
             <strong>
               {selected.includes(c.id) ? "✓ " : ""}
               {c.name}
+              {c.enabled === false ? " · 已停用" : ""}
               {c.locked ? " · 已锁定" : ""}
             </strong>
           </button>

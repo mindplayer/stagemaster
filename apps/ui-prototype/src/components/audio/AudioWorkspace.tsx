@@ -308,6 +308,7 @@ export const AudioWorkspace = forwardRef<
               clip={clips.clip}
               onCopy={clips.copy}
               onLock={() => void clips.lock()}
+              onEnabled={() => void clips.enabled()}
               draft={draft}
               scenes={project.scenes}
               busy={blocked}

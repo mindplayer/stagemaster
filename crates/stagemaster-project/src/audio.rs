@@ -125,6 +125,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
                 r["key"] != "media.audio-editing"
                     && r["key"] != crate::audio_lighting::CAPABILITY
                     && r["key"] != crate::audio_clips::CAPABILITY
+                    && r["key"] != crate::audio_clip_state::CAPABILITY
             });
         return Ok(());
     }
@@ -199,6 +200,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             .ok_or("能力列表无效")?
             .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
     }
+    crate::audio_clip_state::declare_if_needed(root, &track)?;
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
     if !array(root, "requires")
         .iter()
@@ -213,6 +215,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
+        crate::audio_clip_state::validate(root, None)?;
         return if array(root, "requires")
             .iter()
             .any(|r| r["key"] == crate::audio_clips::CAPABILITY)
@@ -267,5 +270,6 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     }
     crate::audio_lighting::validate(root, &track)?;
     crate::audio_clips::validate(root, &track)?;
+    crate::audio_clip_state::validate(root, Some(&track))?;
     Ok(())
 }

@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 export function auditAudioClips(project, track, declared, add, get) {
   const clips = track.lightingClips;
   assert((clips !== undefined) === declared.has('media.audio-clips@1'), '独立灯光片段须与 media.audio-clips 能力同时存在');
+  const state = declared.has('media.audio-clip-state@1');
+  assert(!state || clips !== undefined, '片段启停能力缺少独立片段轨道');
   if (clips === undefined) return;
+  assert(!clips.some(c => c.enabled === false) || state, '缺少 media.audio-clip-state 能力声明');
   add('audio-lighting-clip', clips);
   assert(track.markers.every(m => !m.sceneId && !(m.fadeMs ?? 0)), '片段模式卡点只能作节奏标记');
   let previousEnd = 0;

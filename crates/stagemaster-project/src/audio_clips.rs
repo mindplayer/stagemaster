@@ -15,6 +15,11 @@ pub struct AudioLightingClip {
     pub end_ms: u64,
     pub fade_ms: u64,
     pub locked: bool,
+    #[serde(
+        default = "crate::audio_clip_state::enabled_default",
+        skip_serializing_if = "crate::audio_clip_state::is_enabled"
+    )]
+    pub enabled: bool,
 }
 /// A borrowed scheduling identity; no UI, audio device or clock dependency.
 #[derive(Clone, Copy, Debug)]
@@ -29,7 +34,7 @@ impl AudioTimeline {
         if let Some(clips) = &self.lighting_clips {
             return clips
                 .iter()
-                .find(|c| c.start_ms <= time_ms && time_ms < c.end_ms)
+                .find(|c| c.enabled && c.start_ms <= time_ms && time_ms < c.end_ms)
                 .map(|c| AudioLightingRef {
                     id: &c.id,
                     scene_id: &c.scene_id,
@@ -121,7 +126,12 @@ impl Document {
             .iter()
             .find(|c| c.id == id)
             .ok_or("此灯光片段不存在")?;
-        let previous = clips.iter().find(|c| c.end_ms == clip.start_ms);
+        if !clip.enabled {
+            return Err("此灯光片段已停用".into());
+        }
+        let previous = clips
+            .iter()
+            .find(|c| c.enabled && c.end_ms == clip.start_ms);
         self.compile_audio_entry(
             &clip.scene_id,
             clip.fade_ms,

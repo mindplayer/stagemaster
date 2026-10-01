@@ -196,3 +196,5 @@ STAGE-002 按 [ADR-065](../development/decisions/PRODUCT-ADR-065-stage-edit-lock
 STAGE-003 按 [ADR-066](../development/decisions/PRODUCT-ADR-066-parametric-seating.md) 增加 `stage.seating@1` 和参数化 `seating` 构件：工程保存排／列、椅宽深、中心间距、世界中心／朝向和可空净宽通道；Rust 校验后生成二维／三维座椅。单区 512、全工程 1024 座有界，旧工程无需补字段，不自动转换旧示意构件；详见[场地 API](../module-api/stage-spaces.md)。
 
 AUDIO-006 按 [ADR-067](../development/decisions/PRODUCT-ADR-067-audio-lighting-clips.md) 增加可选 `media.audioEditing.lightingClips` 与 `media.audio-clips@1`：独立场景引用和半开区间、最多 512 段、非重叠、显式转换、锁定及原子编辑；卡点改为纯节奏标记，旧文件缺省时保持旧语义。时间线不进入 ESP32 播放包；详见[音频 API](../module-api/audio-editing.md)。
+
+AUDIO-008 按 [ADR-072](../development/decisions/PRODUCT-ADR-072-lighting-clip-enable.md) 在独立片段增加可选 `enabled`，缺省／true 为启用（规范写出时省略 true）。false 须声明 `media.audio-clip-state@1`；能力要求存在独立片段轨道。停用仍保留区间、引用、数量和锁约束，执行期间按默认值空隙处理，不续前段。普通属性编辑不能暗改状态；具体验证结果看任务记录。

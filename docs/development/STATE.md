@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-008 完成（基线 `2a5a9f4`，结果为本次 `feat(audio): add persistent lighting clip enable state` 提交）：依 ADR-072 实现持久单／多片段停用、默认值空隙、严格能力与恢复；536 Rust、181 UI、109 格式、类型／fmt／严格检查／桌面和原生隐藏选择／取消／历史／游标保持／保存重开通过，见[工单](tasks/AUDIO-008-lighting-clip-enable.md)。独立副本两段停用、已保存、音乐 0、UE 关闭、设备断开。持续 goal active，接续时间线直接成组选择。
+
 AUDIO-007 完成（基线 `527919e`，结果为本次 `feat(audio): add atomic lighting clip group editing` 提交）：依 ADR-071 实现片段组移动／复制／删除、隐藏选择与锁定保护；532 Rust、179 UI、类型／fmt／严格检查／桌面及浏览器／原生取消、历史、错误、播放、保存重开通过，见[验收](tasks/AUDIO-007-lighting-clip-groups.md)。当前独立副本已保存，两段蓝色副本为 6.000／6.940 秒；音乐 0、UE 关闭、设备断开。持续 goal active，接续片段停用。
 
 UX-032 完成（基线 `0781e16`，结果 `527919e`）：按任务记忆专注编排、保留单例音乐／三维及窄屏步骤布局；176 UI、类型、桌面和原生／浏览器验收通过，见[工单](tasks/UX-032-focus-editing-layout.md)。当前独立平面验收工程已保存，执行步骤专注、预演未载入、设备断开。

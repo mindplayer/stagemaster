@@ -178,14 +178,14 @@ export function AudioClipLane({
             return (
               <div
                 key={c.id}
-                className={`audio-lighting-clip ${selected === c.id ? "selected" : ""} ${c.locked ? "locked" : ""}`}
+                className={`audio-lighting-clip ${selected === c.id ? "selected" : ""} ${c.locked ? "locked" : ""} ${c.enabled === false ? "inactive" : ""}`}
                 style={style(c.startMs, c.endMs)}
               >
                 <button
                   data-lighting-segment={c.id}
                   className="audio-lighting-select"
                   aria-pressed={selected === c.id}
-                  aria-label={`${c.name}，${audioTime(c.startMs)} — ${audioTime(c.endMs)}${c.locked ? "，已锁定" : ""}`}
+                  aria-label={`${c.name}，${audioTime(c.startMs)} — ${audioTime(c.endMs)}${c.locked ? "，已锁定" : ""}${c.enabled === false ? "，已停用，灯具默认值" : ""}`}
                   disabled={disabled}
                   onPointerDown={(e) => begin(e, "move")}
                   onClick={() => onSelect(c.id)}
@@ -193,25 +193,32 @@ export function AudioClipLane({
                   onKeyDown={(e) => key(e, c, "move")}
                 >
                   <strong>
+                    {c.enabled === false ? "停用 · " : ""}
                     {c.locked ? "锁定 · " : ""}
                     {c.name}
                   </strong>
-                  <small>{label}</small>
+                  <small>{c.enabled === false ? "灯具默认值" : label}</small>
                 </button>
-                {c.fadeMs > 0 && c.startMs + c.fadeMs > viewport.start && (
-                  <span
-                    className="audio-lighting-fade"
-                    aria-hidden="true"
-                    style={{
-                      width: Math.max(
-                        0,
-                        (Math.min(c.endMs, c.startMs + c.fadeMs, viewport.end) -
-                          Math.max(c.startMs, viewport.start)) *
-                          pixels,
-                      ),
-                    }}
-                  />
-                )}
+                {c.enabled !== false &&
+                  c.fadeMs > 0 &&
+                  c.startMs + c.fadeMs > viewport.start && (
+                    <span
+                      className="audio-lighting-fade"
+                      aria-hidden="true"
+                      style={{
+                        width: Math.max(
+                          0,
+                          (Math.min(
+                            c.endMs,
+                            c.startMs + c.fadeMs,
+                            viewport.end,
+                          ) -
+                            Math.max(c.startMs, viewport.start)) *
+                            pixels,
+                        ),
+                      }}
+                    />
+                  )}
                 {(["start", "end"] as const).map(
                   (mode) =>
                     (mode === "start"

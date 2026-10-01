@@ -15,6 +15,7 @@ export function AudioClipInspector({
   onCancel,
   onCopy,
   onLock,
+  onEnabled,
   onRemove,
   onPreview,
   onEditScene,
@@ -31,6 +32,7 @@ export function AudioClipInspector({
   onCancel(): void;
   onCopy(): void;
   onLock(): void;
+  onEnabled(): void;
   onRemove(): void;
   onPreview(): void;
   onEditScene(): void;
@@ -64,6 +66,16 @@ export function AudioClipInspector({
         <button type="button" disabled={busy || dirty} onClick={onLock}>
           {clip.locked ? "解锁片段" : "锁定片段"}
         </button>
+      )}
+      {clip && !data.copy && (
+        <div className="wb-actions">
+          <button type="button" disabled={blocked || dirty} onClick={onEnabled}>
+            {clip.enabled === false ? "恢复片段" : "停用片段"}
+          </button>
+          <span role="status">
+            {clip.enabled === false ? "已停用 · 使用灯具默认值" : "已启用"}
+          </span>
+        </div>
       )}
       <label>
         名称
@@ -124,7 +136,7 @@ export function AudioClipInspector({
       ))}
       <p>
         {data.copy
-          ? "复制保留原片段时长和渐变，副本解除锁定。"
+          ? "复制保留原片段时长、渐变和启停状态，副本解除锁定。"
           : locked
             ? "已锁定位置与内容，解锁后可修改。"
             : "单轨片段不能重叠。改变开始时间会从头运行动态效果。"}
@@ -146,7 +158,7 @@ export function AudioClipInspector({
               disabled={busy || !ready}
               onClick={onPreview}
             >
-              从此片段预演
+              {clip.enabled === false ? "从此位置预演" : "从此片段预演"}
             </button>
             <button type="button" disabled={busy} onClick={onEditScene}>
               编辑关联场景

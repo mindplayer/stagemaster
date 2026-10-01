@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import { audioTime } from "../../audio-tools";
-import type { clipGroupSelection } from "./clip-group-tools";
+import type {
+  clipGroupSelection,
+  ClipGroupOperation,
+} from "./clip-group-tools";
 export function AudioClipGroupInspector({
   selection,
   value,
@@ -22,7 +25,7 @@ export function AudioClipGroupInspector({
   onValue(value: string): void;
   onReset(): void;
   onRemove(value: boolean): void;
-  onRun(kind: "move" | "copy" | "remove"): void;
+  onRun(kind: ClipGroupOperation): void;
 }) {
   const target = useRef<HTMLInputElement>(null),
     cancel = useRef<HTMLButtonElement>(null),
@@ -54,6 +57,7 @@ export function AudioClipGroupInspector({
         已选 {selection.items.length} 个
         {selection.hidden ? `，其中 ${selection.hidden} 个在筛选外` : ""}
         {selection.locked ? `，${selection.locked} 个已锁定` : ""}
+        {selection.inactive ? `，${selection.inactive} 个已停用` : ""}
       </p>
       {!selection.items.length ? (
         <p>在左侧选择灯光片段。</p>
@@ -94,8 +98,28 @@ export function AudioClipGroupInspector({
               取消目标修改
             </button>
           </div>
+          <div className="audio-batch-selection">
+            <button
+              disabled={
+                blocked ||
+                !!selection.locked ||
+                selection.inactive === selection.items.length
+              }
+              onClick={() => onRun("disable")}
+            >
+              停用所选片段
+            </button>
+            <button
+              disabled={blocked || !!selection.locked || !selection.inactive}
+              onClick={() => onRun("enable")}
+            >
+              恢复所选片段
+            </button>
+          </div>
           {selection.locked > 0 && (
-            <small>锁定片段可复制；移动或删除前请先解锁，或移出选择。</small>
+            <small>
+              锁定片段可复制；移动、删除或切换启停前请先解锁，或移出选择。
+            </small>
           )}
           {removing && (
             <div

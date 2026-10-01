@@ -29,6 +29,7 @@ pub(super) fn apply(track: &mut AudioTimeline, command: AudioEdit) -> Result<(),
                 end_ms,
                 fade_ms,
                 locked: false,
+                enabled: true,
             });
         }
         AudioEdit::PutLightingClip { clip } => {
@@ -41,6 +42,9 @@ pub(super) fn apply(track: &mut AudioTimeline, command: AudioEdit) -> Result<(),
             }
             if clip.locked != previous.locked {
                 return Err("请使用片段锁定操作修改锁状态".into());
+            }
+            if clip.enabled != previous.enabled {
+                return Err("请使用片段停用或恢复操作修改状态".into());
             }
             *previous = clip;
         }
@@ -106,6 +110,7 @@ fn convert(track: &mut AudioTimeline) -> Result<(), String> {
             end_ms: bound.get(i + 1).map_or(track.duration_ms(), |n| n.time_ms),
             fade_ms: m.fade_ms,
             locked: false,
+            enabled: true,
         })
         .collect();
     track.lighting_clips = Some(clips);

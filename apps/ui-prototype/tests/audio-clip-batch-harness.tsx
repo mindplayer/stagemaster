@@ -25,6 +25,7 @@ const track: AudioTimeline = {
     endMs: i * 1000 + 700,
     fadeMs: 200,
     locked: i === 2,
+    enabled: i !== 1,
   })),
 };
 function Harness() {

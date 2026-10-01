@@ -83,6 +83,7 @@ export function collectClipDraft(
       endMs,
       fadeMs,
       locked: source?.locked ?? false,
+      ...(source?.enabled === false ? { enabled: false } : {}),
     };
     validateClip(clip, track, d.copy ? "" : clip.id);
     if (d.copy && source)

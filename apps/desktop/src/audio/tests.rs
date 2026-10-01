@@ -233,3 +233,45 @@ fn music_master_restores_current_effect_without_seeking_or_rebuilding_transport(
     assert_eq!(restored.slots[4], 0);
     assert_eq!(preview.position().position_ms, 1500);
 }
+
+#[test]
+fn disabled_clip_invalidates_cached_light_without_moving_native_cursor() {
+    let (mut doc, _) = document();
+    doc.edit(
+        serde_json::from_value(json!({"op":"audio","command":{"kind":"convertLightingClips"}}))
+            .unwrap(),
+    )
+    .unwrap();
+    let track = doc.audio_timeline().unwrap();
+    let id = track.lighting_clips.as_ref().unwrap()[0].id.clone();
+    let mut preview = AudioPreview::default();
+    preview
+        .load("unused-for-paused-render.wav".into(), track)
+        .unwrap();
+    preview.transport.seek(1250).unwrap();
+    let master = stagemaster_playback::OutputMaster::default();
+    let before = preview
+        .render(&doc, 1, master)
+        .unwrap()
+        .output
+        .unwrap()
+        .slots;
+    assert!(before.iter().any(|v| *v > 0));
+    for (enabled, version) in [(false, 2), (true, 3)] {
+        doc.edit(serde_json::from_value(json!({"op":"audio","command":{"kind":"editLightingClips","ids":[id],"action":{"kind":"enabled","enabled":enabled}}})).unwrap()).unwrap();
+        preview.synchronize(&doc);
+        assert_eq!(preview.position().position_ms, 1250);
+        let after = preview
+            .render(&doc, version, master)
+            .unwrap()
+            .output
+            .unwrap()
+            .slots;
+        if enabled {
+            assert_eq!(after, before);
+        } else {
+            assert!(after.iter().all(|v| *v == 0));
+        }
+        assert!(!preview.position().playing);
+    }
+}

@@ -156,3 +156,17 @@
 .audio-lighting-clip.locked {
   border-style: dashed;
 }
+
+.audio-lighting-clip.inactive {
+  background: repeating-linear-gradient(
+    135deg,
+    #202c34,
+    #202c34 7px,
+    #2e3b43 7px,
+    #2e3b43 9px
+  );
+  border-style: dashed;
+}
+.audio-lighting-clip.inactive .audio-lighting-select {
+  background: transparent;
+}

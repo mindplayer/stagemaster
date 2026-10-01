@@ -1,6 +1,6 @@
 import "./audio-clips.css";
 import { AudioClipBatch } from "./AudioClipBatch";
-import { filteredClips } from "./clip-group-tools";
+import { filteredClips, type ClipStateFilter } from "./clip-group-tools";
 import type { AudioEdit } from "../../audio-types";
 import type { ProjectView } from "../../application-host";
 import { useState } from "react";
@@ -35,6 +35,7 @@ export function AudioClipLibrary({
   onConvert(): void;
 }) {
   const [query, setQuery] = useState("");
+  const [stateFilter, setStateFilter] = useState<ClipStateFilter>("all");
   const clips = track.lightingClips;
   if (!clips)
     return (
@@ -47,7 +48,7 @@ export function AudioClipLibrary({
         </small>
       </section>
     );
-  const items = filteredClips(clips, scenes, query);
+  const items = filteredClips(clips, scenes, query, stateFilter);
   return (
     <section className="audio-clips-library" aria-label="灯光片段目录">
       <header>
@@ -68,6 +69,18 @@ export function AudioClipLibrary({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+      <select
+        aria-label="片段播放状态筛选"
+        value={stateFilter}
+        onChange={(e) => setStateFilter(e.target.value as ClipStateFilter)}
+      >
+        <option value="all">全部片段</option>
+        <option value="enabled">已启用片段</option>
+        <option value="disabled">已停用片段</option>
+      </select>
+      {stateFilter !== "all" && (
+        <button onClick={() => setStateFilter("all")}>清除状态筛选</button>
+      )}
       {query && <button onClick={() => setQuery("")}>清除片段筛选</button>}
       {batch ? (
         <AudioClipBatch
@@ -88,7 +101,7 @@ export function AudioClipLibrary({
               <button
                 key={c.id}
                 aria-pressed={selected === c.id}
-                className={selected === c.id ? "selected" : ""}
+                className={`${selected === c.id ? "selected" : ""} ${c.enabled === false ? "inactive" : ""}`}
                 disabled={busy}
                 onClick={() => onSelect(c.id)}
                 onDoubleClick={() => onSeek(c.startMs)}
@@ -98,6 +111,7 @@ export function AudioClipLibrary({
                 </time>
                 <strong>
                   {c.name}
+                  {c.enabled === false ? " · 已停用" : ""}
                   {c.locked ? " · 已锁定" : ""}
                 </strong>
                 <span>{scenes.find((s) => s.id === c.sceneId)?.name}</span>

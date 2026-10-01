@@ -13,6 +13,7 @@ export function AudioInspector({
   clip,
   onCopy,
   onLock,
+  onEnabled,
   draft,
   scenes,
   busy,
@@ -33,6 +34,7 @@ export function AudioInspector({
   clip?: AudioLightingClip;
   onCopy(): void;
   onLock(): void;
+  onEnabled(): void;
   draft: AudioDraft | null;
   scenes: SceneView[];
   busy: boolean;
@@ -68,6 +70,7 @@ export function AudioInspector({
         onCancel={onCancel}
         onCopy={onCopy}
         onLock={onLock}
+        onEnabled={onEnabled}
         onRemove={onRemove}
         onPreview={onPreview}
         onEditScene={onEditScene}

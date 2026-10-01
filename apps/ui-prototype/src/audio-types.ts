@@ -19,6 +19,7 @@ export interface AudioLightingClip {
   endMs: number;
   fadeMs: number;
   locked: boolean;
+  enabled?: boolean;
 }
 export interface AudioTimeline {
   asset: AudioAsset;
@@ -56,7 +57,9 @@ export type AudioCommand =
 export type MarkerGroupAction =
   { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type LightingClipGroupAction =
-  { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
+  | { kind: "enabled"; enabled: boolean }
+  | { kind: "move" | "copy"; destinationMs: number }
+  | { kind: "remove" };
 export type AudioEdit =
   | {
       kind: "editLightingClips";

@@ -86,3 +86,28 @@ test("组操作毫秒精确、删除不依赖时间输入，核心负责碰撞�
   );
   assert.deepEqual(track, before);
 });
+
+test("片段启停筛选保持隐藏选择，统一启停不依赖目标时间", () => {
+  const t = structuredClone(track);
+  t.lightingClips![1].enabled = false;
+  assert.deepEqual(
+    filteredClips(t.lightingClips!, [], "", "disabled").map((c) => c.id),
+    ["c1"],
+  );
+  assert.deepEqual(
+    filteredClips(t.lightingClips!, [], "", "enabled").map((c) => c.id),
+    ["c0", "c2"],
+  );
+  const selection = clipGroupSelection(
+    t.lightingClips!,
+    ["c0", "c1"],
+    [t.lightingClips![1]],
+  );
+  assert.equal(selection.inactive, 1);
+  assert.equal(selection.hidden, 1);
+  assert.deepEqual(clipGroupCommand(t, ["c0", "c1"], "disable", "无效"), {
+    kind: "editLightingClips",
+    ids: ["c0", "c1"],
+    action: { kind: "enabled", enabled: false },
+  });
+});

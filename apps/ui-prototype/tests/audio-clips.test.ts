@@ -110,3 +110,15 @@ test("拖动保持长度、端点约束和原始对象，吸附同时支持前�
   );
   assert.deepEqual(t, before);
 });
+
+test("编辑停用片段的名称、时间与渐变不会隐式恢复", () => {
+  const t = track();
+  t.lightingClips![0].enabled = false;
+  const command = collectAudioDraft(
+    { ...clipDraft(t.lightingClips![0]), name: "保留停用" },
+    t,
+  );
+  assert.equal(command.kind, "putLightingClip");
+  if (command.kind === "putLightingClip")
+    assert.equal(command.clip.enabled, false);
+});

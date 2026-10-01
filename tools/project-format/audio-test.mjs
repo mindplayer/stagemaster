@@ -71,3 +71,17 @@ test('片段能力、区间、引用、身份、容量与双调度分别拒绝',
     p=>p.media.audioEditing.lightingClips=Array.from({length:513},(_,i)=>({...p.media.audioEditing.lightingClips[0],id:`d0000000-0000-4000-8000-${String(i).padStart(12,'0')}`,startMs:i*10,endMs:i*10+5,fadeMs:0})),
   ]) {const p=clipProject();mutate(p);assert.throws(()=>auditProject(p));}
 });
+
+test('片段启停默认兼容，停用需要能力且保留区间约束',()=>{
+  const p=clipProject();const c=p.media.audioEditing.lightingClips[0];
+  c.enabled=true;assert.doesNotThrow(()=>auditProject(p));
+  c.enabled=false;assert.throws(()=>auditProject(p),/media.audio-clip-state/);
+  p.requires.push({key:'media.audio-clip-state',version:1});assert.doesNotThrow(()=>auditProject(p));
+  c.enabled='false';assert.throws(()=>auditProject(p));c.enabled=false;
+  c.endMs=c.startMs;assert.throws(()=>auditProject(p));
+});
+test('片段启停能力不允许缺失轨道',()=>{
+  for(const mutate of [p=>delete p.media,p=>delete p.media.audioEditing.lightingClips]){
+    const p=clipProject();p.requires.push({key:'media.audio-clip-state',version:1});mutate(p);assert.throws(()=>auditProject(p));
+  }
+});

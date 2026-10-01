@@ -67,6 +67,14 @@ export function useAudioClipActions({
         locked: !clip.locked,
       });
   }
+  async function enabled() {
+    if (clip && (await beforeChange()))
+      await edit({
+        kind: "editLightingClips",
+        ids: [clip.id],
+        action: { kind: "enabled", enabled: clip.enabled === false },
+      });
+  }
   async function remove() {
     if (!removing) return;
     if (await edit({ kind: "removeLightingClip", id: removing.id })) {
@@ -80,6 +88,7 @@ export function useAudioClipActions({
     copy,
     convert,
     lock,
+    enabled,
     removing,
     requestRemove: () => clip && setRemoving({ id: clip.id, name: clip.name }),
     cancelRemove: () => setRemoving(null),
