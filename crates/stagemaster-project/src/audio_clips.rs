@@ -15,6 +15,8 @@ pub struct AudioLightingClip {
     pub end_ms: u64,
     pub fade_ms: u64,
     pub locked: bool,
+    #[serde(default, skip_serializing_if = "crate::audio_clip_offset::is_zero")]
+    pub effect_offset_ms: u64,
     #[serde(
         default = "crate::audio_clip_state::enabled_default",
         skip_serializing_if = "crate::audio_clip_state::is_enabled"
@@ -132,10 +134,20 @@ impl Document {
         let previous = clips
             .iter()
             .find(|c| c.enabled && c.end_ms == clip.start_ms);
-        self.compile_audio_entry(
+        let mut compiled = self.compile_audio_entry(
             &clip.scene_id,
             clip.fade_ms,
-            previous.map(|p| (p.scene_id.as_str(), p.end_ms - p.start_ms)),
-        )
+            previous.map(|p| {
+                (
+                    p.scene_id.as_str(),
+                    p.end_ms - p.start_ms,
+                    p.effect_offset_ms,
+                )
+            }),
+        )?;
+        compiled.plan = compiled
+            .plan
+            .with_effect_time_offset(clip.effect_offset_ms)?;
+        Ok(compiled)
     }
 }

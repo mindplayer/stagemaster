@@ -13,6 +13,9 @@ use stagemaster_playback::{MAX_TIME_MS, Plan, Step};
 /// # Errors
 /// Rejects invalid labels, mappings, dimensions, encoded size and reference memory limits.
 pub fn encode_program(program: &Program) -> Result<Vec<u8>, Error> {
+    if program.plan.effect_time_offset_ms() != 0 {
+        return Err(Error::Invalid("当前设备包不支持片段效果时间偏移"));
+    }
     if program.plan.steps().len() > MAX_STEPS {
         return Err(Error::Limit("每个节目最多 128 步；请拆分列表"));
     }

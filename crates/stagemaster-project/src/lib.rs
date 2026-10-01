@@ -4,6 +4,8 @@ mod audio_clip_edit;
 mod audio_clips;
 pub use audio_clips::{AudioLightingClip, AudioLightingRef, MAX_LIGHTING_CLIPS};
 mod audio_clip_group;
+mod audio_clip_offset;
+mod audio_clip_split;
 mod audio_clip_state;
 mod audio_group;
 pub use audio_clip_group::LightingClipGroupAction;

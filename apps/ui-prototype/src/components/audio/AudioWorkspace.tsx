@@ -95,6 +95,8 @@ export const AudioWorkspace = forwardRef<
     track,
     selected,
     position: audio.position.positionMs,
+    readPosition: async () =>
+      (await host.audio(generation(), { kind: "snapshot" })).positionMs,
     scenes: project.scenes,
     beforeChange,
     edit,
@@ -334,6 +336,7 @@ export const AudioWorkspace = forwardRef<
               track={track}
               marker={marker}
               clip={clips.clip}
+              splitActions={clips.splitActions}
               onCopy={clips.copy}
               onLock={() => void clips.lock()}
               onEnabled={() => void clips.enabled()}

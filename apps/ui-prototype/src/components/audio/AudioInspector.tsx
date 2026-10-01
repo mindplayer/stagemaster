@@ -1,3 +1,4 @@
+import type { ClipSplitActions } from "./clip-split-tools";
 import { AudioClipInspector } from "./AudioClipInspector";
 import { clipDraft } from "./audio-clip-draft";
 import type { AudioLightingClip } from "../../audio-types";
@@ -14,6 +15,7 @@ export function AudioInspector({
   onCopy,
   onLock,
   onEnabled,
+  splitActions,
   draft,
   scenes,
   busy,
@@ -35,6 +37,7 @@ export function AudioInspector({
   onCopy(): void;
   onLock(): void;
   onEnabled(): void;
+  splitActions: ClipSplitActions;
   draft: AudioDraft | null;
   scenes: SceneView[];
   busy: boolean;
@@ -71,6 +74,7 @@ export function AudioInspector({
         onCopy={onCopy}
         onLock={onLock}
         onEnabled={onEnabled}
+        splitActions={splitActions}
         onRemove={onRemove}
         onPreview={onPreview}
         onEditScene={onEditScene}

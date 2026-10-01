@@ -133,6 +133,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::audio_lighting::CAPABILITY,
             crate::audio_clips::CAPABILITY,
             crate::audio_clip_state::CAPABILITY,
+            crate::audio_clip_offset::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
             crate::sequence_script::CAPABILITY,

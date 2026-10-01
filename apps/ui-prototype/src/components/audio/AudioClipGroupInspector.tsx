@@ -140,7 +140,7 @@ export function AudioClipGroupInspector({
               </button>
             </div>
           )}
-          <small>保留片段长度和相对间隔；每个片段的效果从新起点开始。</small>
+          <small>保留片段长度和相对间隔；每个片段保留自己的效果起点。</small>
         </div>
       )}
       {problem && (

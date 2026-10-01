@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-010 完成（基线 `12ec189`，结果为本次 `feat(audio): preserve effect progress across clip splits` 提交）：依 ADR-073 增加效果源时间偏移、保持进度的分割与重置、包拒绝及严格兼容；546 Rust＋最终工程 150、185 UI、112 格式、类型／fmt／严格检查／桌面／Xtensa 与原生渐变拒绝／暂停游标／历史／连续分割／保存重开通过，见[工单](tasks/AUDIO-010-phase-preserving-split.md)。24 段独立副本已保存，音乐 0、UE 关闭、设备断开。持续 goal active，接续时间线整组直接移动。
+
 AUDIO-009 完成（基线 `9e1d943`，结果为本次 `feat(audio): share timeline clip selection and marquee gestures` 提交）：目录／时间线共享组选择、框选／键盘与取消，修复点选误吸附；183 UI、类型／桌面与原生正反框选／缩放／复制历史／错误草稿／保存重开通过，见[工单](tasks/AUDIO-009-timeline-clip-selection.md)。独立副本已保存 22 段、音乐 0、UE 关闭、设备断开；持续 goal active。
 
 AUDIO-008 完成（基线 `2a5a9f4`，结果为本次 `feat(audio): add persistent lighting clip enable state` 提交）：依 ADR-072 实现持久单／多片段停用、默认值空隙、严格能力与恢复；536 Rust、181 UI、109 格式、类型／fmt／严格检查／桌面和原生隐藏选择／取消／历史／游标保持／保存重开通过，见[工单](tasks/AUDIO-008-lighting-clip-enable.md)。独立副本两段停用、已保存、音乐 0、UE 关闭、设备断开。持续 goal active，接续时间线直接成组选择。

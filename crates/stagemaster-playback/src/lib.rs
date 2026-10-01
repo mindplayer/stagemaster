@@ -144,7 +144,7 @@ impl Player {
         let elapsed = self.elapsed_ms - step.delay_ms;
         self.values.copy_from_slice(&step.target);
         for effect in &self.plan.effects[index] {
-            self.values[effect.index] = effect.sample(elapsed);
+            self.values[effect.index] = effect.sample(elapsed, self.plan.effect_time_offset_ms);
         }
         if elapsed < step.fade_ms {
             let mut snap = self.plan.snap_attributes.iter().peekable();

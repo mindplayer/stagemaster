@@ -63,7 +63,7 @@ impl Document {
             previous.and_then(|p| {
                 p.scene_id
                     .as_deref()
-                    .map(|scene| (scene, marker.time_ms - p.time_ms))
+                    .map(|scene| (scene, marker.time_ms - p.time_ms, 0))
             }),
         )
     }
@@ -71,15 +71,15 @@ impl Document {
         &self,
         scene_id: &str,
         fade_ms: u64,
-        previous: Option<(&str, u64)>,
+        previous: Option<(&str, u64, u64)>,
     ) -> Result<CompiledSequence, String> {
         let mut compiled = self.compile_audio_scene(Some(scene_id))?;
         if fade_ms == 0 {
             return Ok(compiled);
         }
-        let from = if let Some((scene, elapsed)) = previous {
+        let from = if let Some((scene, elapsed, offset)) = previous {
             let source = self.compile_audio_scene(Some(scene))?;
-            let mut player = Player::new(source.plan, 0);
+            let mut player = Player::new(source.plan.with_effect_time_offset(offset)?, 0);
             player.execute(0, 0)?;
             // Validation guarantees that the preceding entry fade is complete.
             player.advance(elapsed)?;

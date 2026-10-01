@@ -1,3 +1,5 @@
+import { AudioClipSplit } from "./AudioClipSplit";
+import type { ClipSplitActions } from "./clip-split-tools";
 import type { RefObject } from "react";
 import type { SceneView } from "../../application-host";
 import type { AudioLightingClip } from "../../audio-types";
@@ -16,6 +18,7 @@ export function AudioClipInspector({
   onCopy,
   onLock,
   onEnabled,
+  splitActions,
   onRemove,
   onPreview,
   onEditScene,
@@ -33,6 +36,7 @@ export function AudioClipInspector({
   onCopy(): void;
   onLock(): void;
   onEnabled(): void;
+  splitActions: ClipSplitActions;
   onRemove(): void;
   onPreview(): void;
   onEditScene(): void;
@@ -139,7 +143,7 @@ export function AudioClipInspector({
           ? "复制保留原片段时长、渐变和启停状态，副本解除锁定。"
           : locked
             ? "已锁定位置与内容，解锁后可修改。"
-            : "单轨片段不能重叠。改变开始时间会从头运行动态效果。"}
+            : "单轨片段不能重叠。移动或改变开始时间，效果均从本片段的效果起点运行。"}
       </p>
       <div className="wb-actions">
         <button type="submit" className="primary" disabled={blocked || !dirty}>
@@ -177,6 +181,15 @@ export function AudioClipInspector({
             </button>
           </div>
         </>
+      )}
+      {clip && !data.copy && (
+        <AudioClipSplit
+          key={`${clip.id}:${clip.startMs}:${clip.endMs}:${clip.effectOffsetMs ?? 0}`}
+          clip={clip}
+          disabled={blocked || dirty}
+          ready={ready}
+          actions={splitActions}
+        />
       )}
       <small>
         空隙使用灯具默认值；相邻片段从前段边界状态渐变。场景修改会影响所有引用位置。

@@ -80,6 +80,13 @@ pub enum AudioEdit {
         ids: Vec<String>,
         action: crate::LightingClipGroupAction,
     },
+    SplitLightingClip {
+        id: String,
+        time_ms: u64,
+    },
+    ResetLightingClipEffectOffset {
+        id: String,
+    },
     ConvertLightingClips,
     AddLightingClip {
         name: String,
@@ -115,19 +122,23 @@ pub(super) fn read(root: &Value) -> Option<AudioTimeline> {
         .get("audioEditing")
         .map(|value| serde_json::from_value(value.clone()).expect("validated audio timeline"))
 }
+fn clear(root: &mut Value) -> Result<(), String> {
+    root.as_object_mut().ok_or("工程无效")?.remove("media");
+    root["requires"]
+        .as_array_mut()
+        .ok_or("能力列表无效")?
+        .retain(|r| {
+            r["key"] != "media.audio-editing"
+                && r["key"] != crate::audio_lighting::CAPABILITY
+                && r["key"] != crate::audio_clips::CAPABILITY
+                && r["key"] != crate::audio_clip_state::CAPABILITY
+                && r["key"] != crate::audio_clip_offset::CAPABILITY
+        });
+    Ok(())
+}
 pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> {
     if matches!(command, AudioEdit::Clear) {
-        root.as_object_mut().ok_or("工程无效")?.remove("media");
-        root["requires"]
-            .as_array_mut()
-            .ok_or("能力列表无效")?
-            .retain(|r| {
-                r["key"] != "media.audio-editing"
-                    && r["key"] != crate::audio_lighting::CAPABILITY
-                    && r["key"] != crate::audio_clips::CAPABILITY
-                    && r["key"] != crate::audio_clip_state::CAPABILITY
-            });
-        return Ok(());
+        return clear(root);
     }
     let mut track = if let AudioEdit::SetAsset { asset } = &command {
         if read(root).is_some() {
@@ -151,6 +162,12 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
         | AudioEdit::RemoveLightingClip { .. }
         | AudioEdit::SetLightingClipLock { .. }) => {
             crate::audio_clip_edit::apply(&mut track, command)?;
+        }
+        AudioEdit::SplitLightingClip { id, time_ms } => {
+            crate::audio_clip_split::split(&mut track, &id, time_ms)?;
+        }
+        AudioEdit::ResetLightingClipEffectOffset { id } => {
+            crate::audio_clip_split::reset(&mut track, &id)?;
         }
         AudioEdit::SetAsset { .. } | AudioEdit::Clear => {}
         AudioEdit::Trim { in_ms, out_ms } => {
@@ -201,6 +218,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
     }
     crate::audio_clip_state::declare_if_needed(root, &track)?;
+    crate::audio_clip_offset::declare_if_needed(root, &track)?;
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
     if !array(root, "requires")
         .iter()
@@ -216,6 +234,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
         crate::audio_clip_state::validate(root, None)?;
+        crate::audio_clip_offset::validate(root, None)?;
         return if array(root, "requires")
             .iter()
             .any(|r| r["key"] == crate::audio_clips::CAPABILITY)
@@ -271,5 +290,6 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     crate::audio_lighting::validate(root, &track)?;
     crate::audio_clips::validate(root, &track)?;
     crate::audio_clip_state::validate(root, Some(&track))?;
+    crate::audio_clip_offset::validate(root, Some(&track))?;
     Ok(())
 }

@@ -1,3 +1,7 @@
+import {
+  clipSplitLimits,
+  splitClipCommand,
+} from "../src/components/audio/clip-split-tools.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { AudioTimeline, AudioLightingClip } from "../src/audio-types.ts";
@@ -121,4 +125,35 @@ test("编辑停用片段的名称、时间与渐变不会隐式恢复", () => {
   assert.equal(command.kind, "putLightingClip");
   if (command.kind === "putLightingClip")
     assert.equal(command.clip.enabled, false);
+});
+
+test("分割位置精确到毫秒，边界与未完成渐变明确拒绝", () => {
+  assert.deepEqual(clipSplitLimits(clip), { min: 1500, max: 2999 });
+  assert.deepEqual(splitClipCommand(clip, "1.733"), {
+    kind: "splitLightingClip",
+    id: clip.id,
+    timeMs: 1733,
+  });
+  for (const value of ["1", "1.499", "3", "-1", "1.0001", ""])
+    assert.throws(() => splitClipCommand(clip, value));
+  assert.throws(() => splitClipCommand({ ...clip, locked: true }, "2"), /锁定/);
+  assert.ok(
+    clipSplitLimits({ ...clip, fadeMs: 2000 }).min >
+      clipSplitLimits({ ...clip, fadeMs: 2000 }).max,
+  );
+});
+test("改名与普通移动保留效果源偏移，过长源范围错误定位到结束", () => {
+  const t = track();
+  t.lightingClips![0].effectOffsetMs = 333;
+  const c = t.lightingClips![0];
+  const command = collectAudioDraft({ ...clipDraft(c), name: "保持源时间" }, t);
+  assert.equal(command.kind, "putLightingClip");
+  if (command.kind === "putLightingClip")
+    assert.equal(command.clip.effectOffsetMs, 333);
+  assert.equal(moveLightingClip(t, c, "move", 100).effectOffsetMs, 333);
+  t.lightingClips![0].effectOffsetMs = 3599999;
+  assert.throws(
+    () => collectAudioDraft(clipDraft(c), t),
+    (e: unknown) => e instanceof AudioDraftError && e.field === "clipEnd",
+  );
 });

@@ -85,3 +85,23 @@ test('片段启停能力不允许缺失轨道',()=>{
     const p=clipProject();p.requires.push({key:'media.audio-clip-state',version:1});mutate(p);assert.throws(()=>auditProject(p));
   }
 });
+
+
+test('片段效果起点默认兼容且须声明能力，并限制源时间范围',()=>{
+  const p=clipProject();const c=p.media.audioEditing.lightingClips[0];
+  c.effectOffsetMs=0;assert.doesNotThrow(()=>auditProject(p));
+  c.effectOffsetMs=333;assert.throws(()=>auditProject(p),/media.audio-clip-offset/);
+  p.requires.push({key:'media.audio-clip-offset',version:1});assert.doesNotThrow(()=>auditProject(p));
+  for(const value of [-1,1.5,'333',null,3600001,3599000]) {c.effectOffsetMs=value;assert.throws(()=>auditProject(p));}
+});
+test('效果起点能力必须有独立灯光片段轨道',()=>{
+  for(const mutate of [p=>delete p.media,p=>delete p.media.audioEditing.lightingClips]){
+    const p=clipProject();p.requires.push({key:'media.audio-clip-offset',version:1});mutate(p);assert.throws(()=>auditProject(p));
+  }
+});
+
+test('孤立的效果起点能力独立拒绝，不依靠其他片段能力检查',()=>{
+  const p=structuredClone(loadExamples().find(d => d.project?.name === '单路灯光示例'));
+  p.requires.push({key:'media.audio-clip-offset',version:1});
+  assert.throws(()=>auditProject(p),/缺少音乐轨道/);
+});

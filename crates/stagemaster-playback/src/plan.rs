@@ -26,6 +26,7 @@ pub struct Plan {
     pub(super) cycle_ms: Option<u64>,
     pub(super) effects: Vec<Vec<EffectChannel>>,
     pub(super) snap_attributes: Vec<u16>,
+    pub(super) effect_time_offset_ms: u64,
 }
 impl Plan {
     /// Validate an in-memory plan. This is not a persistent/device wire format.
@@ -133,7 +134,28 @@ impl Plan {
             cycle_ms,
             effects,
             snap_attributes,
+            effect_time_offset_ms: 0,
         })
+    }
+    /// Offset only the dynamic source clock of an isolated held scene.
+    /// Delay/fade time remains local to the scene. Device encoders must support this explicitly.
+    /// # Errors
+    /// Rejects offsets beyond the plan time limit and automatic/multi-step plans.
+    pub fn with_effect_time_offset(mut self, offset_ms: u64) -> Result<Self, String> {
+        if offset_ms > MAX_TIME_MS
+            || self.steps.len() != 1
+            || self.repeat
+            || self.steps[0].delay_ms != 0
+            || self.steps[0].wait_ms.is_some()
+        {
+            return Err("效果时间偏移仅支持单个无延时的手动保持场景，最大 86400 秒".into());
+        }
+        self.effect_time_offset_ms = offset_ms;
+        Ok(self)
+    }
+    #[must_use]
+    pub const fn effect_time_offset_ms(&self) -> u64 {
+        self.effect_time_offset_ms
     }
     #[must_use]
     pub fn snap_attributes(&self) -> &[u16] {

@@ -42,6 +42,11 @@ export function validateClip(
     throw new AudioDraftError("结束须晚于开始，且位于音乐范围内", "clipEnd");
   if (c.fadeMs > c.endMs - c.startMs)
     throw new AudioDraftError("进入渐变不能超过片段长度", "clipFade");
+  if ((c.effectOffsetMs ?? 0) + c.endMs - c.startMs > 3_600_000)
+    throw new AudioDraftError(
+      "效果起点与片段长度之和不能超过 3600 秒",
+      "clipEnd",
+    );
   const conflict = track.lightingClips?.find(
     (other) =>
       other.id !== except && c.startMs < other.endMs && other.startMs < c.endMs,
@@ -83,6 +88,9 @@ export function collectClipDraft(
       endMs,
       fadeMs,
       locked: source?.locked ?? false,
+      ...(source?.effectOffsetMs
+        ? { effectOffsetMs: source.effectOffsetMs }
+        : {}),
       ...(source?.enabled === false ? { enabled: false } : {}),
     };
     validateClip(clip, track, d.copy ? "" : clip.id);

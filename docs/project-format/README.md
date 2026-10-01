@@ -198,3 +198,5 @@ STAGE-003 按 [ADR-066](../development/decisions/PRODUCT-ADR-066-parametric-seat
 AUDIO-006 按 [ADR-067](../development/decisions/PRODUCT-ADR-067-audio-lighting-clips.md) 增加可选 `media.audioEditing.lightingClips` 与 `media.audio-clips@1`：独立场景引用和半开区间、最多 512 段、非重叠、显式转换、锁定及原子编辑；卡点改为纯节奏标记，旧文件缺省时保持旧语义。时间线不进入 ESP32 播放包；详见[音频 API](../module-api/audio-editing.md)。
 
 AUDIO-008 按 [ADR-072](../development/decisions/PRODUCT-ADR-072-lighting-clip-enable.md) 在独立片段增加可选 `enabled`，缺省／true 为启用（规范写出时省略 true）。false 须声明 `media.audio-clip-state@1`；能力要求存在独立片段轨道。停用仍保留区间、引用、数量和锁约束，执行期间按默认值空隙处理，不续前段。普通属性编辑不能暗改状态；具体验证结果看任务记录。
+
+AUDIO-010 在独立灯光片段增加可选 `effectOffsetMs`（缺省 0、最大 3,600,000 且加片段长度不越界），非零须 `media.audio-clip-offset@1`。用于保持分割后的动态效果源时间，进入渐变仍按片段本地时钟；当前仅允许渐变结束后分割，完整边界见 [ADR-073](../development/decisions/PRODUCT-ADR-073-audio-clip-effect-offset.md)。现有设备包不支持非零偏移，不能静默编码。

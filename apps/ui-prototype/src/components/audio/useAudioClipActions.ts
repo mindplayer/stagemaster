@@ -12,7 +12,9 @@ export function useAudioClipActions({
   onDraft,
   onSelect,
   onProblem,
+  readPosition,
 }: {
+  readPosition(): Promise<number>;
   track: AudioTimeline | null;
   selected: string;
   position: number;
@@ -75,6 +77,21 @@ export function useAudioClipActions({
         action: { kind: "enabled", enabled: clip.enabled === false },
       });
   }
+  async function split(timeMs: number) {
+    if (!clip || !(await beforeChange())) return false;
+    const previous = new Set(track?.lightingClips?.map((c) => c.id));
+    const next = await edit({ kind: "splitLightingClip", id: clip.id, timeMs });
+    const right = next?.audio?.lightingClips?.find((c) => !previous.has(c.id));
+    if (right) onSelect(right.id);
+    return !!right;
+  }
+  async function resetOffset() {
+    if (!clip || !(await beforeChange())) return false;
+    return !!(await edit({
+      kind: "resetLightingClipEffectOffset",
+      id: clip.id,
+    }));
+  }
   async function remove() {
     if (!removing) return;
     if (await edit({ kind: "removeLightingClip", id: removing.id })) {
@@ -83,6 +100,7 @@ export function useAudioClipActions({
     }
   }
   return {
+    splitActions: { split, resetOffset, readPosition },
     clip,
     add,
     copy,

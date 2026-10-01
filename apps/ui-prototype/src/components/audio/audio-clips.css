@@ -75,3 +75,21 @@
 .audio-clip-list > button.inactive strong {
   color: var(--wb-muted);
 }
+
+.audio-clip-split {
+  border-top: 1px solid var(--wb-line);
+  padding-top: 10px;
+}
+.audio-clip-split details {
+  margin-top: 12px;
+}
+.audio-clip-split summary {
+  cursor: pointer;
+  padding-bottom: 10px;
+}
+.audio-clip-split input {
+  width: 100%;
+}
+.audio-clip-split [role="alert"] {
+  color: #ffbea8;
+}

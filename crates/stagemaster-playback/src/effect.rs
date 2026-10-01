@@ -59,10 +59,10 @@ pub struct EffectChannel {
 
 impl EffectChannel {
     #[must_use]
-    pub(crate) fn sample(&self, elapsed_ms: u64) -> u16 {
+    pub(crate) fn sample(&self, elapsed_ms: u64, offset_ms: u64) -> u16 {
         let period = u64::from(self.period_ms);
-        let phase =
-            ((elapsed_ms % period) * 65_536 / period + 65_536 - u64::from(self.phase)) % 65_536;
+        let elapsed = (elapsed_ms % period + offset_ms % period) % period;
+        let phase = (elapsed * 65_536 / period + 65_536 - u64::from(self.phase)) % 65_536;
         if let Curve::Keyframes(frames) = &self.curve {
             return sample_keyframes(frames, phase);
         }

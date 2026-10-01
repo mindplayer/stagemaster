@@ -20,6 +20,7 @@ export interface AudioLightingClip {
   fadeMs: number;
   locked: boolean;
   enabled?: boolean;
+  effectOffsetMs?: number;
 }
 export interface AudioTimeline {
   asset: AudioAsset;
@@ -66,6 +67,8 @@ export type AudioEdit =
       ids: string[];
       action: LightingClipGroupAction;
     }
+  | { kind: "splitLightingClip"; id: string; timeMs: number }
+  | { kind: "resetLightingClipEffectOffset"; id: string }
   | { kind: "convertLightingClips" }
   | {
       kind: "addLightingClip";

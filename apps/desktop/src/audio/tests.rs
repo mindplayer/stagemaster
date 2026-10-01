@@ -275,3 +275,53 @@ fn disabled_clip_invalidates_cached_light_without_moving_native_cursor() {
         assert!(!preview.position().playing);
     }
 }
+
+#[test]
+fn split_recompiles_paused_music_without_resetting_dynamic_progress() {
+    let (mut doc, _) = document();
+    doc.edit(
+        serde_json::from_value(json!({"op":"audio","command":{"kind":"convertLightingClips"}}))
+            .unwrap(),
+    )
+    .unwrap();
+    let track = doc.audio_timeline().unwrap();
+    let id = track.lighting_clips.as_ref().unwrap()[0].id.clone();
+    let mut preview = AudioPreview::default();
+    preview.load("unused-paused.wav".into(), track).unwrap();
+    let mut expected = Vec::new();
+    for time in [1232, 1233, 1250, 1499, 1500, 2600, 3999, 4000, 1233] {
+        preview.transport.seek(time).unwrap();
+        expected.push((
+            time,
+            preview
+                .render(&doc, 1, stagemaster_playback::OutputMaster::default())
+                .unwrap()
+                .output
+                .unwrap()
+                .slots,
+        ));
+    }
+    doc.edit(
+        serde_json::from_value(
+            json!({"op":"audio","command":{"kind":"splitLightingClip","id":id,"timeMs":1233}}),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    preview.synchronize(&doc);
+    assert_eq!(preview.position().position_ms, 1233);
+    for (time, slots) in expected {
+        preview.transport.seek(time).unwrap();
+        assert_eq!(
+            preview
+                .render(&doc, 2, stagemaster_playback::OutputMaster::default())
+                .unwrap()
+                .output
+                .unwrap()
+                .slots,
+            slots,
+            "at {time}"
+        );
+        assert!(!preview.position().playing);
+    }
+}
