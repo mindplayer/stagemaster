@@ -1,0 +1,52 @@
+.preview-rate {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--wb-border);
+}
+.preview-rate header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.preview-rate output {
+  color: var(--wb-accent);
+  font-variant-numeric: tabular-nums;
+}
+.preview-rate-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.preview-rate-presets button {
+  flex: 1;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+.preview-rate-presets button[aria-pressed="true"] {
+  color: var(--wb-accent);
+  border-color: var(--wb-accent);
+}
+.preview-rate-input {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.workbench .preview-rate-input input:not([type="range"]):not([type="color"]) {
+  width: 64px;
+  min-width: 0;
+}
+.preview-rate-input button {
+  padding: 6px 8px;
+}
+.preview-rate small {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.preview-rate p {
+  color: #ffb4a8;
+  font-size: 12px;
+  margin: 0;
+}

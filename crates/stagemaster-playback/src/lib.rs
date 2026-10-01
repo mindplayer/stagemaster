@@ -7,9 +7,11 @@ use alloc::{string::String, vec::Vec};
 mod effect;
 mod output_master;
 mod plan;
+mod rate_clock;
 pub use effect::{Curve, EffectChannel, Keyframe, Transition};
 pub use output_master::OutputMaster;
 pub use plan::{Plan, Step};
+pub use rate_clock::RateClock;
 
 pub const MAX_STEPS: usize = 1024;
 pub const MAX_ATTRIBUTES: usize = 512;

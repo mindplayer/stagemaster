@@ -1,6 +1,6 @@
 //! Desktop-only clock and transport adapter for the independent playback engine.
 use serde::{Deserialize, Serialize};
-use stagemaster_playback::{Player, Status};
+use stagemaster_playback::{Player, RateClock, Status};
 use stagemaster_project::{CompiledSequence, Document};
 use std::time::Instant;
 mod draft;
@@ -59,6 +59,7 @@ pub(crate) enum Command {
     Pause,
     Resume,
     Stop,
+    SetRate { percent: u16 },
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -79,6 +80,7 @@ struct LoadedView {
     status: &'static str,
     step_id: Option<String>,
     elapsed_ms: u64,
+    rate_percent: u16,
     delay_ms: u64,
     fade_ms: u64,
     wait_ms: Option<u64>,
@@ -92,6 +94,7 @@ struct LoadedView {
 struct Loaded {
     draft: Option<draft::Draft>,
     player: Player,
+    clock: RateClock,
     output: stagemaster_project::CompiledOutput,
     sequence_id: String,
     scene_id: Option<String>,
@@ -139,7 +142,7 @@ impl Preview {
                 output: None,
             });
         }
-        loaded.player.advance(now)?;
+        loaded.advance(now)?;
         Ok(RenderOutput {
             status: status_name(loaded.player.status()),
             output: Some(
@@ -193,11 +196,13 @@ impl Preview {
             revision_id,
             steps,
         } = compiled;
-        let player = Player::new(plan, self.now());
+        let now = self.now();
+        let player = Player::new(plan, now);
         self.clear();
         self.loaded = Some(Loaded {
             draft: None,
             player,
+            clock: RateClock::new(now),
             output,
             sequence_id: if scene_id.is_some() {
                 String::new()
@@ -231,6 +236,11 @@ impl Preview {
         {
             return Err("工程已修改，请重新载入预览后执行".into());
         }
+        let mut clock = loaded.clock;
+        let time = match command {
+            Command::SetRate { percent } => clock.set_rate(now, percent)?,
+            _ => clock.advance(now)?,
+        };
         match command {
             Command::Execute { step_id } => {
                 let index = loaded
@@ -238,13 +248,15 @@ impl Preview {
                     .iter()
                     .position(|s| s.id == step_id)
                     .ok_or("此步骤不在已载入的预览中")?;
-                loaded.player.execute(index, now)?;
+                loaded.player.execute(index, time)?;
             }
-            Command::Next => loaded.player.next(now)?,
-            Command::Pause => loaded.player.pause(now)?,
-            Command::Resume => loaded.player.resume(now)?,
-            Command::Stop => loaded.player.stop(now)?,
+            Command::Next => loaded.player.next(time)?,
+            Command::Pause => loaded.player.pause(time)?,
+            Command::Resume => loaded.player.resume(time)?,
+            Command::Stop => loaded.player.stop(time)?,
+            Command::SetRate { .. } => loaded.player.advance(time)?,
         }
+        loaded.clock = clock;
         self.last_serial = serial;
         Ok(())
     }
@@ -255,7 +267,7 @@ impl Preview {
         master: stagemaster_playback::OutputMaster,
     ) -> Result<Snapshot, String> {
         let loaded = if let Some(l) = &mut self.loaded {
-            l.player.advance(now)?;
+            l.advance(now)?;
             let index = l.player.index();
             let step = index.map(|i| &l.player.plan().steps()[i]);
             Some(LoadedView {
@@ -267,6 +279,7 @@ impl Preview {
                 status: status_name(l.player.status()),
                 step_id: index.map(|i| l.steps[i].id.clone()),
                 elapsed_ms: l.player.elapsed_ms(),
+                rate_percent: l.clock.percent(),
                 delay_ms: step.map_or(0, |s| s.delay_ms),
                 fade_ms: step.map_or(0, |s| s.fade_ms),
                 wait_ms: step.and_then(|s| s.wait_ms),
@@ -287,6 +300,15 @@ impl Preview {
         })
     }
 }
+impl Loaded {
+    fn advance(&mut self, now: u64) -> Result<u64, String> {
+        let mut clock = self.clock;
+        let time = clock.advance(now)?;
+        self.player.advance(time)?;
+        self.clock = clock;
+        Ok(time)
+    }
+}
 fn status_name(status: Status) -> &'static str {
     match status {
         Status::Idle => "idle",
@@ -300,3 +322,6 @@ fn status_name(status: Status) -> &'static str {
 mod draft_tests;
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod rate_tests;

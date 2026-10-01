@@ -141,7 +141,8 @@ impl Preview {
             self.install(prepared.compiled, version, Some(prepared.scene_id));
             let now = self.now();
             let loaded = self.loaded.as_mut().expect("installed scene");
-            loaded.player.execute(0, now)?;
+            let time = loaded.advance(now)?;
+            loaded.player.execute(0, time)?;
             loaded.draft = Some(Draft {
                 effect_id: prepared.effect_id,
                 baseline,
@@ -179,7 +180,7 @@ fn replace_at_time(
     compiled: CompiledSequence,
     now: u64,
 ) -> Result<(), String> {
-    loaded.player.advance(now)?;
+    let now = loaded.advance(now)?;
     let status = loaded.player.status();
     let elapsed = loaded.player.elapsed_ms();
     let mut player = Player::new(compiled.plan, 0);

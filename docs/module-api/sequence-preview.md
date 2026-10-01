@@ -73,3 +73,11 @@ ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不�
 [ADR-070](../development/decisions/PRODUCT-ADR-070-sequence-group-timing.md) 扩展 `operation: {kind:"timing",patch}`，其中 `delayMs`／`fadeMs`／`advance` 均可省略，省略代表保留每步原值。advance 仅为 `{kind:"manual"}` 或 `{kind:"after",waitMs}`；空 patch、未知字段与不合法整数／超限时间拒绝。手动形式不能夹带 waitMs。每项最多 86400000 毫秒；所有所选步骤一次原子提交与历史。UI 统一时间表单只生成选中字段，冻结步骤身份，通过既有 collect／accept 参加保存和上下文切换，不在 TS 推演播放时序。
 
 效果草稿另提供 beginEffectDraft／updateEffectDraft／endEffectDraft，loaded.draftEffectId 标识临时内容；与普通载入共用同一 Player 和 epoch，详见[效果草稿契约](lighting-effects.md#效果草稿即时预演effect-004)。
+
+## 场景／列表预演速率（EXEC-002）
+
+[ADR-076](../development/decisions/PRODUCT-ADR-076-preview-rate.md) 新增 `control.command = {kind:"setRate",percent:25..400 整数}`；loaded 快照新增 `ratePercent`。沿用同一 epoch／controlSerial 与严格旧工程拒绝，不新增第二套播放会话。改变倍率不清零步骤经过时间；暂停中可调整而不会恢复，停止保留倍率，新载入默认 100%。草稿更新／结束保留逻辑进度和倍率。
+
+纯 Rust `RateClock::new(now_ms)`、`advance(now_ms)`、`set_rate(now_ms,percent)` 在无 I/O／无分配的固定精度中映射单调时间。内部保留 1/100 毫秒余数，拒绝倒退与溢出；速率变更点以前按旧倍率、以后按新倍率。桌面 Loaded 持有一个映射并供 Player 的控制、监看、UE、草稿替换共用。整个列表的延时／渐变／自动等待／循环及效果一同改变，界面显示的“编排”时间保持原计划尺度。
+
+UI 两个预演面复用 PreviewRateControls，快捷 50／100／200%、精确输入和取消只操作运行状态；setRate 不自动应用工程草稿，不能被误当效果参数。音乐仍由音频采样时钟驱动，音频与列表既有互斥不变。无工程／包格式或固件变更；多执行器、独立效果速率、节拍输入和真实输出主控仍后续。

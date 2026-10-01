@@ -1,3 +1,4 @@
+import { PreviewRateControls } from "./PreviewRateControls";
 import "./scene-preview.css";
 import { useEffect } from "react";
 import {
@@ -230,6 +231,7 @@ export function PreviewPanel({
         </p>
       )}
       {loaded && !same && <p className="wb-dim">当前预览：{loaded.name}</p>}
+      <PreviewRateControls controller={controller} disabled={!ready || busy} />
       {error && (
         <p className="wb-preview-warning" role="alert">
           {error}
@@ -248,7 +250,7 @@ export function PreviewPanel({
             <span>
               {phase}{" "}
               {active
-                ? `${seconds(Math.min(loaded.elapsedMs, 86_400_000_000))} 秒`
+                ? `编排 ${seconds(Math.min(loaded.elapsedMs, 86_400_000_000))} 秒`
                 : ""}
             </span>
           </div>

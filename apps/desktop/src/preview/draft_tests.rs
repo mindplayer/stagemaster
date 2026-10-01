@@ -37,10 +37,13 @@ fn draft_updates_preserve_paused_time_and_match_authoritative_sampling() {
     loaded.player.execute(0, 0).unwrap();
     loaded.player.pause(250).unwrap();
     let epoch = p.epoch;
+    p.control(1, epoch, 1, Command::SetRate { percent: 50 }, p.now())
+        .unwrap();
     p.update_draft(&doc, 1, epoch, 1, effect(&doc, 2000), false)
         .unwrap();
     let frame = snapshot(&mut p).loaded.unwrap();
     assert_eq!(frame.status, "paused");
+    assert_eq!(frame.rate_percent, 50);
     assert_eq!(frame.elapsed_ms, 250);
     let compiled = draft::compile(&doc, &scene, effect(&doc, 2000), false).unwrap();
     let mut oracle = Player::new(compiled.plan, 0);
@@ -55,6 +58,7 @@ fn draft_updates_preserve_paused_time_and_match_authoritative_sampling() {
     p.end_draft(epoch).unwrap();
     let frame = snapshot(&mut p).loaded.unwrap();
     assert!(frame.draft_effect_id.is_none());
+    assert_eq!(frame.rate_percent, 50);
     assert_eq!(frame.elapsed_ms, 250);
     assert_eq!(frame.status, "paused");
     let base = doc.compile_scene(&scene).unwrap();

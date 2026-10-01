@@ -1,3 +1,4 @@
+import { PreviewRateControls } from "./PreviewRateControls";
 import { SequenceScriptPrompt } from "./SequenceScript";
 import { useEffect, useState } from "react";
 import {
@@ -86,7 +87,7 @@ export function ExecutionPreview({
                 {loaded?.status === "finished" ? "本轮结束" : phase.label}
               </span>
               <output>
-                {seconds(phase.elapsed)} 秒
+                编排 {seconds(phase.elapsed)} 秒
                 {phase.total ? ` / ${seconds(phase.total)} 秒` : ""}
               </output>
             </div>
@@ -151,6 +152,7 @@ export function ExecutionPreview({
           停止
         </button>
       </div>
+      <PreviewRateControls controller={controller} disabled={!ready || busy} />
       <div className="execution-selected" aria-label="所选步骤操作">
         <span>所选步骤</span>
         <strong>

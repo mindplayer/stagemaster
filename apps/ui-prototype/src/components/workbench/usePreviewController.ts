@@ -92,10 +92,10 @@ export function usePreviewController({
     errorSource.current = null;
     setError("");
     try {
-      // Stop/pause must remain available even when an unrelated editor draft is invalid.
+      // Transport-only actions must not apply an unrelated or temporary editor draft.
       if (
         (typeof command === "string" ||
-          (!["stop", "pause"].includes(command.kind) &&
+          (!["stop", "pause", "setRate"].includes(command.kind) &&
             !(
               command.kind === "resume" && current.current.loaded?.draftEffectId
             ))) &&

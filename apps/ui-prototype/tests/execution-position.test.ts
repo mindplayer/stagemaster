@@ -14,6 +14,7 @@ const loaded: NonNullable<PreviewSnapshot["loaded"]> = {
   status: "idle",
   stepId: null,
   elapsedMs: 0,
+  ratePercent: 100,
   delayMs: 500,
   fadeMs: 1000,
   waitMs: null,

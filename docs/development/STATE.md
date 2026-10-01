@@ -1,5 +1,7 @@
 # 当前开发状态
 
+EXEC-002 完成（基线 `b6c72c6`，结果为本次 `feat(preview): add continuous rehearsal playback rate` 提交）：依 ADR-076 增加单播放器 25–400% 连续预演速率、暂停保持／载入重置及共享精确控件；566 Rust、最终时钟 3、201 UI、类型／fmt／严格检查／桌面及原生错误／取消／跨页／重载／UE 同步通过，见[工单](tasks/EXEC-002-preview-rate.md)。独立六步剧本副本未改，当前第一步暂停、75%，UE 关闭、无音频、设备断开。持续 goal active，接续执行台键盘与误触保护。
+
 STAGE-004 完成（基线 `0e67513`，结果为本次 `feat(stage): add concentric curved audience seating` 提交）：依 ADR-075 增加同心弧排、逐座朝向、净通道及即时参数预览；559 Rust、200 UI、113 格式、严格检查／类型／桌面及原生取消／历史／保存重开／UE 同步通过，见[工单](tasks/STAGE-004-curved-seating.md)。独立副本三组 66 座，中央 r=3、锁定并已保存；UE 关闭、音乐未播放、设备断开，原工程未改。持续 goal active，接续单列表／场景预演速率。
 
 AUDIO-012 完成（基线 `5497af5`，结果为本次 `feat(audio): scroll the timeline during clip gestures` 提交）：独立片段单段／裁切／整组／框选边缘滚动、累计锚点、取消及播放跟随退让；198 UI、类型／桌面／格式与组件真实按住手势／原生历史保存重开通过，见[工单](tasks/AUDIO-012-timeline-edge-scroll.md)。独立副本第三片段 3.393–4.133 秒已保存，音乐 0、UE 关闭、设备断开。持续 goal active，接续弧形观众座区。

@@ -86,6 +86,7 @@ export interface PreviewSnapshot {
     status: "idle" | "running" | "paused" | "finished";
     stepId: string | null;
     elapsedMs: number;
+    ratePercent: number;
     delayMs: number;
     fadeMs: number;
     waitMs: number | null;
@@ -98,6 +99,7 @@ export interface PreviewSnapshot {
   };
 }
 export type PreviewCommand =
+  | { kind: "setRate"; percent: number }
   | { kind: "execute"; stepId: string }
   | { kind: "next" | "pause" | "resume" | "stop" };
 export type PreviewRequest =
