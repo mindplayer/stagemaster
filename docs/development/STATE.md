@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-017 完成（基线 `fb4b1eb`，集成前置 `c80ca1a`，结果为本次 `feat(audio): share marker group selection between library and waveform` 提交）：目录／波形卡点共享组选择、范围／整组视图、固定目标与取消保护，复用片段选择模型；272 UI、类型／桌面、组件与原生复制历史／保存重开通过，见[工单](tasks/AUDIO-017-marker-selection.md)。副本只增两点至 34，原片段／场景与来源保持；当前窗口正常退出、持续 goal active。
+
 APP-001 完成（基线 `fb4b1eb`，结果为本次 `fix(desktop): finish adapter cleanup before exiting the event loop` 提交）：修复真实退出互等，异步清理前移、预演关闭闸门；611 Rust／严格检查、桌面构建及两次原生退出／取消／重开通过，见[工单](tasks/APP-001-exit-cleanup.md)。AUDIO-017 的 UI 增量仍待独立提交，当前验收窗口已正常退出，持续 goal active。
 
 AUDIO-016 完成（基线 `1446271`，结果为本次 `feat(audio): fit timeline view to selected lighting ranges` 提交）：所选片段／组／卡点与旧段落视图适应、跟随退出和草稿保护；270 UI、类型／桌面及真实波形／原生验证通过，见[工单](tasks/AUDIO-016-selection-view.md)。来源与副本哈希一致，音乐 0／UE 关闭／设备断开；持续 goal active，接续卡点组的时间线衔接。

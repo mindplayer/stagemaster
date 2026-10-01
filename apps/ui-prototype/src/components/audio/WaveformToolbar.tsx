@@ -1,5 +1,8 @@
+import type { MarkerLaneSelection } from "./marker-selection";
 export function WaveformToolbar({
   channels,
+  markerSelection,
+  markerDisabled,
   follow,
   snap,
   gain,
@@ -16,6 +19,8 @@ export function WaveformToolbar({
   onFit,
 }: {
   channels: number;
+  markerSelection?: MarkerLaneSelection;
+  markerDisabled: boolean;
   follow: boolean;
   snap: boolean;
   gain: string;
@@ -39,6 +44,15 @@ export function WaveformToolbar({
         <span>{channels === 2 ? "立体声" : "单声道"}</span>
       </div>
       <div className="audio-wave-controls">
+        {markerSelection && (
+          <button
+            aria-pressed={markerSelection.active}
+            disabled={markerDisabled || markerSelection.blocked}
+            onClick={markerSelection.onMode}
+          >
+            卡点多选
+          </button>
+        )}
         <label>
           <input
             type="checkbox"

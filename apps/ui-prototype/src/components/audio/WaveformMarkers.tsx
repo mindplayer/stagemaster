@@ -1,3 +1,4 @@
+import type { MarkerLaneSelection } from "./marker-selection";
 import type { ClipLaneSelection } from "./clip-selection";
 import { AudioClipLane } from "./AudioClipLane";
 import type { SceneView } from "../../application-host";
@@ -25,6 +26,7 @@ export function WaveformMarkers({
   onMove,
   onClipMove,
   clipSelection,
+  markerSelection,
   onSeek,
   onSelect,
   onZoom,
@@ -42,6 +44,7 @@ export function WaveformMarkers({
   onMove(marker: AudioMarker): void;
   onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
+  markerSelection?: MarkerLaneSelection;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onZoom(factor: number, x: number): void;
@@ -66,6 +69,8 @@ export function WaveformMarkers({
     onPan,
   );
   const drag = gesture.draft;
+  const group = markerSelection?.active ? markerSelection : undefined;
+  const selectedMarkers = new Set(group?.ids ?? [selected]);
   useEffect(() => {
     const el = surface.current!;
     const wheel = (e: WheelEvent) => {
@@ -102,6 +107,7 @@ export function WaveformMarkers({
       aria-label="音乐波形：点击定位，左右键微调，Esc 取消拖动"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
+          if (group && !disabled && !group.blocked) group.onClear();
           gesture.cancel();
           e.stopPropagation();
         }
@@ -119,7 +125,16 @@ export function WaveformMarkers({
           onSeek(Math.max(0, Math.min(duration, time)));
         }
       }}
-      onPointerDown={gesture.begin}
+      onPointerDown={(e) => {
+        if (
+          group &&
+          (e.target as HTMLElement).closest(
+            "[data-marker],.audio-lighting-lane",
+          )
+        )
+          return;
+        gesture.begin(e);
+      }}
       onPointerMove={(e) => {
         gesture.move(e);
         if ((e.target as HTMLElement).closest(".audio-lighting-lane")) {
@@ -139,19 +154,55 @@ export function WaveformMarkers({
         if (x < -10 || x > viewport.width) return null;
         const previous = track.markers[i - 1];
         const label =
-          selected === marker.id ||
+          selectedMarkers.has(marker.id) ||
           !previous ||
           (time - previous.timeMs) * pixels > 100;
         return (
           <button
             key={marker.id}
             data-marker={marker.id}
-            disabled={disabled}
-            className={`audio-wave-marker ${marker.sceneId ? "bound" : ""} ${selected === marker.id ? "selected" : ""} ${label ? "with-label" : ""}`}
+            disabled={disabled || !!group?.blocked}
+            aria-pressed={group ? selectedMarkers.has(marker.id) : undefined}
+            onPointerDown={(e) => {
+              if (group) {
+                e.stopPropagation();
+                e.currentTarget.focus();
+              }
+            }}
+            onClick={(e) => {
+              if (group && !disabled && !group.blocked) {
+                e.stopPropagation();
+                group.onPick(marker.id, e.shiftKey);
+              }
+            }}
+            className={`audio-wave-marker ${marker.sceneId ? "bound" : ""} ${selectedMarkers.has(marker.id) ? "selected" : ""} ${label ? "with-label" : ""}`}
             style={{ left: x }}
             aria-label={`${marker.name}，${audioTime(marker.timeMs)}`}
             title={`${marker.name} · ${audioTime(marker.timeMs)}`}
             onKeyDown={(e) => {
+              if (group) {
+                if (
+                  [
+                    "Enter",
+                    " ",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "Home",
+                    "End",
+                  ].includes(e.key)
+                ) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                if (
+                  !disabled &&
+                  !group.blocked &&
+                  !e.repeat &&
+                  (e.key === "Enter" || e.key === " ")
+                )
+                  group.onPick(marker.id, e.shiftKey);
+                return;
+              }
               if (e.key === "Enter") {
                 e.stopPropagation();
                 onSelect(marker.id);
@@ -171,7 +222,7 @@ export function WaveformMarkers({
           scenes={scenes}
           viewport={viewport}
           selected={selected}
-          disabled={disabled}
+          disabled={disabled || !!group}
           snap={snap}
           cursor={laneCursor}
           onSelect={onSelect}
@@ -196,7 +247,7 @@ export function WaveformMarkers({
             scenes={scenes}
             viewport={viewport}
             selected={selected}
-            disabled={disabled}
+            disabled={disabled || !!group}
             cursor={laneCursor}
             onSelect={onSelect}
             onSeek={onSeek}

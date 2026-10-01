@@ -41,27 +41,7 @@ export function clipGroupSelection(
     last: items.at(-1)?.endMs ?? 0,
   };
 }
-export function toggleClipRange(
-  ids: string[],
-  visible: AudioLightingClip[],
-  id: string,
-  anchor: string | null,
-  range: boolean,
-) {
-  const from = visible.findIndex((c) => c.id === anchor),
-    to = visible.findIndex((c) => c.id === id);
-  if (to < 0) return ids;
-  if (range && from >= 0)
-    return [
-      ...new Set([
-        ...ids,
-        ...visible
-          .slice(Math.min(from, to), Math.max(from, to) + 1)
-          .map((c) => c.id),
-      ]),
-    ];
-  return ids.includes(id) ? ids.filter((v) => v !== id) : [...ids, id];
-}
+export { toggleOrderedRange as toggleClipRange } from "../selection/ordered-selection.ts";
 export function clipGroupCommand(
   track: AudioTimeline,
   ids: string[],

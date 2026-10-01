@@ -1,3 +1,4 @@
+import { useOrderedSelection } from "../selection/useOrderedSelection";
 import { useRevealItem, type RevealItem } from "../layout/useRevealItem";
 import { AudioClipGroupFadeInspector } from "./AudioClipGroupFadeInspector";
 import { groupFadeDraft } from "./clip-group-fade";
@@ -73,12 +74,14 @@ export const AudioWorkspace = forwardRef<
     : "";
   const [batchKey, setBatchKey] = useState("");
   const [clipGroupPending, setClipGroupPending] = useState(false);
+  const [markerGroupPending, setMarkerGroupPending] = useState(false);
   const batch = !!trackIdentity && batchKey === `${trackIdentity}:markers`;
   const clipBatch =
     !!track?.lightingClips && batchKey === `${trackIdentity}:clips`;
   useEffect(() => setBatchKey(""), [trackIdentity]);
   const [selected, setSelected] = useState("");
   const clipSelection = useClipSelection(trackIdentity, track?.lightingClips);
+  const markerSelection = useOrderedSelection(trackIdentity, track?.markers);
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
   const { draft, form, change, cancel, collect } = useAudioWorkspaceDraft(
@@ -133,6 +136,12 @@ export const AudioWorkspace = forwardRef<
       return true;
     },
   }));
+  function setMarkerBatch(value: boolean) {
+    if (markerGroupPending || clipGroupPending) return;
+    if (value && !markerSelection.ids.length)
+      markerSelection.replace([selected]);
+    setBatchKey(value ? `${trackIdentity}:markers` : "");
+  }
   async function edit(command: AudioEdit) {
     return onEdit({ op: "audio", command });
   }
@@ -273,7 +282,7 @@ export const AudioWorkspace = forwardRef<
                 track={track}
                 scenes={project.scenes}
                 selected={selected}
-                busy={blocked}
+                busy={blocked || markerGroupPending}
                 onSelect={choose}
                 onSeek={seek}
                 onAdd={() => void clips.add()}
@@ -284,9 +293,10 @@ export const AudioWorkspace = forwardRef<
               <AudioMarkerLibrary
                 key={trackIdentity}
                 batch={batch}
-                onBatch={(value) =>
-                  setBatchKey(value ? `${trackIdentity}:markers` : "")
-                }
+                onBatch={setMarkerBatch}
+                selectionState={markerSelection}
+                pending={markerGroupPending || clipGroupPending}
+                onPending={setMarkerGroupPending}
                 workspaceVisible={visible}
                 onEdit={edit}
                 beforeChange={beforeChange}
@@ -352,6 +362,15 @@ export const AudioWorkspace = forwardRef<
                     cancel();
                   }}
                   onMove={moveMarker}
+                  markerSelection={{
+                    active: batch,
+                    ids: markerSelection.ids,
+                    blocked: markerGroupPending || clipGroupPending,
+                    onMode: () => setMarkerBatch(!batch),
+                    onPick: (id, range) =>
+                      markerSelection.toggle(id, track.markers, range),
+                    onClear: () => markerSelection.replace([]),
+                  }}
                   clipSelection={{
                     active: clipBatch,
                     movementBlocked: clipGroupPending

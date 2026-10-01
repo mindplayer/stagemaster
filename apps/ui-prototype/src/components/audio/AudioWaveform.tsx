@@ -1,3 +1,4 @@
+import type { MarkerLaneSelection } from "./marker-selection";
 import { WaveformToolbar } from "./WaveformToolbar";
 import { selectionViewRange } from "./selection-view";
 import type { ClipLaneSelection } from "./clip-selection";
@@ -31,6 +32,7 @@ export function AudioWaveform({
   onMove,
   onClipMove,
   clipSelection,
+  markerSelection,
 }: {
   track: AudioTimeline;
   scenes?: SceneView[];
@@ -46,6 +48,7 @@ export function AudioWaveform({
   onMove(marker: AudioMarker): void;
   onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
+  markerSelection?: MarkerLaneSelection;
 }) {
   const duration = track.outMs - track.inMs;
   const prepared = useMemo(() => {
@@ -77,7 +80,12 @@ export function AudioWaveform({
   );
   const channels = prepared.peaks?.length ?? 1;
   const blocked = disabled || !prepared.peaks;
-  const range = selectionViewRange(track, selected, clipSelection);
+  const range = selectionViewRange(
+    track,
+    selected,
+    clipSelection,
+    markerSelection,
+  );
   const canFit = !blocked && wave.ready && !!range;
   function fitSelected() {
     if (canFit && range && wave.fitSelection(range)) {
@@ -117,6 +125,8 @@ export function AudioWaveform({
       }}
     >
       <WaveformToolbar
+        markerSelection={markerSelection}
+        markerDisabled={blocked}
         channels={channels}
         follow={follow}
         snap={snap}
@@ -179,6 +189,7 @@ export function AudioWaveform({
           )}
         <WaveformMarkers
           clipSelection={clipSelection}
+          markerSelection={markerSelection}
           track={track}
           scenes={scenes}
           laneCursor={wave.laneCursor}

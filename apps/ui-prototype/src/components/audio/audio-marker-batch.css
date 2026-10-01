@@ -63,7 +63,7 @@
   border-radius: 6px;
   cursor: pointer;
 }
-.audio-marker-choice:has(input:checked) {
+.audio-marker-choice[aria-checked="true"] {
   background: #173e43;
   border-color: #3e8f88;
 }

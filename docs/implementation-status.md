@@ -1,5 +1,7 @@
 # 实现状态
 
+[AUDIO-017](development/tasks/AUDIO-017-marker-selection.md) 已补目录／波形卡点共享组选择、范围与整组视图、目标输入固定及原生一次历史／保存；[APP-001](development/tasks/APP-001-exit-cleanup.md) 修复退出异步清理与 WebKit 回执互等，原生正常关闭／取消保护通过。
+
 [AUDIO-016](development/tasks/AUDIO-016-selection-view.md) 已补所选片段／组／卡点与旧段落视图适应、关闭跟随与草稿保护，不改变播放位置或工程。
 
 [UX-046](development/tasks/UX-046-scene-removal-preflight.md) 已补单／批量场景删除前审阅、引用阻断和使用位置编辑入口；任一被引用即全组保护，成功一次历史，原生保存重开与内容核对通过。

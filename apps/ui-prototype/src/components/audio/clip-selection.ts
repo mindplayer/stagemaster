@@ -13,10 +13,7 @@ export function clipsInRange(
     .filter((c) => c.startMs < right && c.endMs > left)
     .map((c) => c.id);
 }
-export function currentClipIds(clips: AudioLightingClip[], ids: string[]) {
-  const chosen = new Set(ids);
-  return clips.filter((c) => chosen.has(c.id)).map((c) => c.id);
-}
+export { currentOrderedIds as currentClipIds } from "../selection/ordered-selection.ts";
 export interface ClipSelection {
   ids: string[];
   replace(ids: string[]): void;

@@ -9,7 +9,18 @@ export function selectionViewRange(
   track: AudioTimeline,
   selected: string,
   group?: { active: boolean; ids: string[] },
+  markers?: { active: boolean; ids: string[] },
 ): SelectionViewRange | null {
+  if (markers?.active) {
+    const chosen = new Set(markers.ids);
+    const items = track.markers.filter((m) => chosen.has(m.id));
+    if (!items.length) return null;
+    return {
+      startMs: Math.min(...items.map((m) => m.timeMs)),
+      endMs: Math.max(...items.map((m) => m.timeMs)),
+      label: `${items.length} 个卡点`,
+    };
+  }
   if (group?.active) {
     const ids = new Set(group.ids);
     const clips = (track.lightingClips ?? []).filter((clip) =>
