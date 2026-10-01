@@ -60,6 +60,7 @@ export function sameFunctions(
 export function sameFunctionMapping(
   a?: FunctionDefinition[],
   b?: FunctionDefinition[],
+  allowFixedSlots = false,
 ) {
   if (!a || !b) return a === b;
   return (
@@ -69,9 +70,10 @@ export function sameFunctionMapping(
         (g) =>
           f.key === g.key &&
           f.mode === g.mode &&
-          f.dmxFrom === g.dmxFrom &&
-          f.dmxTo === g.dmxTo &&
-          f.dmxDefault === g.dmxDefault,
+          ((allowFixedSlots && f.mode === "slot") ||
+            (f.dmxFrom === g.dmxFrom &&
+              f.dmxTo === g.dmxTo &&
+              f.dmxDefault === g.dmxDefault)),
       ),
     )
   );

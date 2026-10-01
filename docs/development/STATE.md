@@ -1,5 +1,9 @@
 # 当前开发状态
 
+LIBRARY-001 设计增量完成（基线 `7befdf7`，结果 `7dfa37b`）：云端可复用灯效方向已记录 [ADR-090](decisions/PRODUCT-ADR-090-reusable-effect-library.md) 与 [draft-1 契约](../module-api/effect-library.md)：语义模板／灯具映射／工程绑定／目标产物分层；当前为设计准备，未上线云库或新增灯型执行能力。运行实现待后续独立工单。
+
+FIXTURE-008 完成（基线 `7befdf7`，结果为本次 `feat(fixtures): review and apply fixed color slot revisions` 提交）：固定色盘通道差异审阅／显式重编码与原子历史；645 Rust、283 UI、严格检查／类型／桌面、组件失效／取消及原生撤销／保存重开通过，见[工单](tasks/FIXTURE-008-color-slot-remap.md)／[ADR-089](decisions/PRODUCT-ADR-089-color-slot-remap-review.md)。当前副本已保存，设备未连／UE 关闭／音乐 0。持续 goal 接续 POSITION-003。
+
 FIXTURE-007 完成（基线 `ee709fb`，结果为本次 `feat(fixtures): author custom wheel appearances and isolated variants` 提交）：MA／Titan／GDTF 机制落实为 14 档批量建档、通光／单色／半色、独立变体及选定灯替换，642 Rust／280 UI／122 格式、严格检查／桌面及原生历史／保存重开通过；见[工单](tasks/FIXTURE-007-custom-wheel-appearance.md)／[ADR-088](decisions/PRODUCT-ADR-088-custom-wheel-appearances.md)。当前独立验收工程已保存、设备未连／UE 关闭／音乐 0；持续 goal 接续变体通道差异审阅。
 
 FIXTURE-006 第一增量完成（基线 `028362d`，结果为本次 `feat(fixtures): separate channel mapping from physical geometry` 提交）：真实说明书归档、通道与物理模型解耦，638 Rust／276 UI／严格检查／桌面及原生历史、保存重开通过；实际灯具完整适配仍待多光源／控制宏，用户新增定制色盘优先接续，见[工单](tasks/FIXTURE-006-real-fixture-intake.md)／[ADR-087](decisions/PRODUCT-ADR-087-fixture-mapping-without-geometry.md)。POSITION-003 保留为后续校准增量；持续 goal active。

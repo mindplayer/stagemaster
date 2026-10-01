@@ -21,7 +21,7 @@ type FixtureCommand =
   | { op: "saveProfile"; id: string | null; definition: ProfileDefinition }
   | { op: "removeProfile"; id: string }
   | { op: "repatch"; fixtureIds: string[]; layout: Repatch }
-  | { op: "exchange"; fixtureIds: string[]; profileId: string; layout: Repatch | null };
+  | { op: "exchange"; fixtureIds: string[]; profileId: string; layout: Repatch | null; allowColorSlotRemap?: boolean };
 interface Repatch { universe: number; address: number; gap: number }
 // 宿主发送：{kind:"edit",generation,command:{op:"fixture",command}}
 ```
@@ -76,4 +76,10 @@ interface Repatch { universe: number; address: number; gap: number }
 
 带外观工程需要 `lighting.fixture-wheel-appearance@1`，建档命令自动声明；独立模式文件保留全部外观，导入生成独立模式，旧读取器严格拒绝新字段。执行包保持原有语义，色块不进入 DMX 映射，不增加 ESP32 显示数据负担。
 
-UI `planSlotBatch` 预检原生起点／宽度／数量、64 功能上限和重叠；`addSlotBatch` 仅显式加入草稿，可替换唯一未编辑的初始空白行并保持默认身份，其余功能与默认选择保留。复制模式保持功能键，保存产生独立模式身份，再经 `exchange` 指定目标灯具。外观差异使多灯共同功能不再合并显示；复制控制值或模式替换不是跨色盘颜色匹配。改变 DMX 区间／代表值仍需要未来明确功能映射，不以改色块绕过。
+UI `planSlotBatch` 预检原生起点／宽度／数量、64 功能上限和重叠；`addSlotBatch` 仅显式加入草稿，可替换唯一未编辑的初始空白行并保持默认身份，其余功能与默认选择保留。复制模式保持功能键，保存产生独立模式身份，再经 `exchange` 指定目标灯具。外观差异使多灯共同功能不再合并显示；复制控制值或模式替换不是跨色盘颜色匹配。
+
+## 固定色盘值的显式迁移（FIXTURE-008）
+
+依 [ADR-089](../development/decisions/PRODUCT-ADR-089-color-slot-remap-review.md)，`allowColorSlotRemap` 缺省 false。true 仅放宽相同功能键、同为固定档位的色盘起止值／代表值差异，允许编译原场景与预设引用时使用新值。自动换色等连续区间、功能键集合／类型、其他属性和物理模型仍须相容；整批只改变目标灯具的模式引用，失败无部分提交。
+
+桌面按源模式列出所选灯及色盘前后差异，需重新编码时必须显式勾选；更换选择／目标／源目标修订会撤销该选择。取消不改工程，一次应用对应一次历史；不隐式重写功能键，不推测实际颜色或自动反转通道。

@@ -56,6 +56,8 @@ pub enum FixtureEdit {
         fixture_ids: Vec<String>,
         profile_id: String,
         layout: Option<Repatch>,
+        #[serde(default)]
+        allow_color_slot_remap: bool,
     },
 }
 
@@ -242,8 +244,15 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             fixture_ids,
             profile_id,
             layout,
+            allow_color_slot_remap,
         } => {
-            crate::fixture_exchange::apply(root, &fixture_ids, &profile_id, layout)?;
+            crate::fixture_exchange::apply(
+                root,
+                &fixture_ids,
+                &profile_id,
+                layout,
+                allow_color_slot_remap,
+            )?;
         }
     }
     Ok(())

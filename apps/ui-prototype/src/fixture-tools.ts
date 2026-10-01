@@ -190,6 +190,7 @@ export function profileMatches(p: ProfileDefinition, query: string) {
 export function compatibleProfile(
   fixtures: FixtureView[],
   p: ProfileDefinition,
+  allowColorSlotRemap = false,
 ) {
   const keys = p.channels
     .map((c) => c.attribute)
@@ -201,6 +202,7 @@ export function compatibleProfile(
         sameFunctionMapping(
           a.function?.functions,
           p.channels.find((c) => c.attribute === a.key)?.functions,
+          allowColorSlotRemap && a.key === "color-wheel",
         ),
       ) &&
       Boolean(f.positioning) === Boolean(p.positioning) &&

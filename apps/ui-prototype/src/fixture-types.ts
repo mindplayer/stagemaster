@@ -34,4 +34,5 @@ export type FixtureEdit =
       fixtureIds: string[];
       profileId: string;
       layout: Repatch | null;
+      allowColorSlotRemap?: boolean;
     };

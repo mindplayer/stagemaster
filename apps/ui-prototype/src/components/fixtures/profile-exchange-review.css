@@ -1,0 +1,44 @@
+.profile-exchange-review {
+  border: 1px solid var(--line, #3c4149);
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 0;
+}
+.profile-exchange-review h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.profile-exchange-changes {
+  max-height: 230px;
+  overflow: auto;
+}
+.profile-exchange-changes p {
+  overflow-wrap: anywhere;
+}
+.profile-exchange-changes table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 12px;
+}
+.profile-exchange-changes th,
+.profile-exchange-changes td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line, #3c4149);
+  overflow-wrap: anywhere;
+}
+.profile-exchange-changes b {
+  color: #f8c985;
+  font-size: 11px;
+}
+.profile-slot-version {
+  display: grid;
+  gap: 4px;
+}
+.profile-slot-version > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

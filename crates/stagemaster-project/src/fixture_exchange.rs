@@ -1,4 +1,4 @@
-//! Explicit, lossless profile exchange; the document transaction owns rollback.
+//! Explicit, reference-preserving profile exchange; the document transaction owns rollback.
 use crate::fixture::{repatch, selection, supported_keys};
 use crate::{Repatch, array, editing, text};
 use serde_json::Value;
@@ -9,6 +9,7 @@ pub(super) fn apply(
     fixture_ids: &[String],
     profile_id: &str,
     layout: Option<Repatch>,
+    allow_color_slot_remap: bool,
 ) -> Result<(), String> {
     selection(root, fixture_ids)?;
     let profiles = array(&root["lighting"], "profiles");
@@ -53,7 +54,11 @@ pub(super) fn apply(
             let new_functions = crate::fixture_value::functions(other)?;
             let compatible = match (&old_functions, &new_functions) {
                 (None, None) => true,
-                (Some(a), Some(b)) => crate::fixture_appearance::same_mapping(a, b),
+                (Some(a), Some(b)) => crate::fixture_function_mapping::compatible(
+                    a,
+                    b,
+                    allow_color_slot_remap && channel["attribute"] == "color-wheel",
+                ),
                 _ => false,
             };
             if !compatible {

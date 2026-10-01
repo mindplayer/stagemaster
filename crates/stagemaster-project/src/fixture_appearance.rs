@@ -75,17 +75,3 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     }
     Ok(())
 }
-
-/// Equivalent control identities and byte mappings; display metadata and row order may differ.
-pub(super) fn same_mapping(a: &[FunctionDefinition], b: &[FunctionDefinition]) -> bool {
-    a.len() == b.len()
-        && a.iter().all(|f| {
-            b.iter().any(|g| {
-                f.key == g.key
-                    && f.mode == g.mode
-                    && f.dmx_from == g.dmx_from
-                    && f.dmx_to == g.dmx_to
-                    && f.dmx_default == g.dmx_default
-            })
-        })
-}

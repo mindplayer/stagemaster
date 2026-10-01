@@ -36,6 +36,7 @@ pub use fixture_optics::is_continuous_optics_attribute;
 mod fixture_appearance;
 mod fixture_exchange;
 mod fixture_function;
+mod fixture_function_mapping;
 pub use fixture_appearance::WheelAppearance;
 mod fixture_value;
 mod fixture_view;
