@@ -1,7 +1,9 @@
 //! Local file persistence, separate from project semantics and desktop dialogs.
+mod effect_template_file;
 mod package;
 mod patch_report;
 mod profile_file;
+pub use effect_template_file::EffectTemplateFileStore;
 mod recovery;
 mod report_file;
 mod sequence_report;

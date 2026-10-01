@@ -25,3 +25,19 @@ export interface EffectTemplateSource {
   template: EffectTemplate;
   sha256: string;
 }
+export interface ImportedEffectTemplate {
+  generation: number;
+  token: string;
+  fileName: string;
+  review: {
+    sceneId: string;
+    effect: import("./effect-types").SceneEffect;
+    usage: import("./check-types").PlanUsage;
+  };
+}
+export interface ExportedEffectTemplate {
+  generation: number;
+  effectId: string;
+  path: string | null;
+  warning: string | null;
+}

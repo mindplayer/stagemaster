@@ -2,6 +2,7 @@
 mod audio;
 mod check;
 mod device;
+mod effect_template;
 mod installation;
 mod lifecycle;
 mod output_control;
@@ -49,6 +50,10 @@ enum Request {
     Edit {
         generation: u32,
         command: EditCommand,
+    },
+    ApplyEffectTemplate {
+        generation: u32,
+        token: String,
     },
     PrevisPlacement {
         generation: u32,
@@ -120,6 +125,12 @@ fn dispatch(
             generation,
             command,
         } => session.edit(generation, command)?,
+        Request::ApplyEffectTemplate { generation, token } => {
+            let review = app
+                .state::<effect_template::Service>()
+                .take(generation, &token)?;
+            session.apply_effect_template(generation, review)?;
+        }
         Request::PrevisPlacement {
             generation,
             version,
@@ -179,6 +190,7 @@ fn main() {
         .manage(package::Service::default())
         .manage(report_export::Service::default())
         .manage(profile_file::Service::default())
+        .manage(effect_template::Service::default())
         .manage(devices)
         .manage(installation)
         .setup(|app| {
@@ -253,6 +265,9 @@ fn main() {
             sequence_report::sequence_report_export,
             profile_file::profile_file_export,
             profile_file::profile_file_import,
+            effect_template::files::effect_template_import,
+            effect_template::files::effect_template_export,
+            effect_template::effect_template_cancel,
             recovery::recovery_request,
             recent::recent_request,
             device::device_request,

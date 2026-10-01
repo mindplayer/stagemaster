@@ -1,0 +1,47 @@
+.effect-template-files {
+  border-top: 1px solid var(--wb-border);
+  padding-block: 10px;
+}
+.effect-template-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.effect-template-actions select {
+  min-width: 160px;
+  max-width: 280px;
+}
+.effect-template-files > p {
+  font-size: 12px;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.effect-template-review > strong {
+  display: block;
+  font-size: 18px;
+}
+.effect-template-review dl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px 12px;
+}
+.effect-template-review dd {
+  margin: 0;
+}
+.effect-template-review details {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.effect-template-targets {
+  max-height: 180px;
+  overflow: auto;
+  padding-left: 30px;
+}
+.effect-template-targets li {
+  padding: 4px 0;
+}
+.effect-template-targets small {
+  display: block;
+  color: var(--wb-muted);
+}

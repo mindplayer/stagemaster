@@ -10,6 +10,9 @@ const unavailable = async () => {
   throw new Error("本组件测试不调用该接口");
 };
 const host: ApplicationHost = {
+  importEffectTemplate: unavailable,
+  exportEffectTemplate: unavailable,
+  cancelEffectTemplate: unavailable,
   exportPatchReport: unavailable,
   exportSequenceReport: unavailable,
   importProfile: unavailable,

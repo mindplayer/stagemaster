@@ -11,6 +11,7 @@ export function SceneEditorTools({
   resources,
   preview,
   selection,
+  onToolChange,
 }: {
   visible: boolean;
   busy: boolean;
@@ -20,6 +21,7 @@ export function SceneEditorTools({
   resources: ReactNode;
   preview: ReactNode;
   selection: ReactNode;
+  onToolChange?(tool: string): void;
 }) {
   const [tool, setTool] = useState("fixtures");
   const items = [
@@ -43,7 +45,10 @@ export function SceneEditorTools({
               aria-pressed={tool === item.id}
               onClick={() => {
                 void beforeChange().then((ok) => {
-                  if (ok) setTool(item.id);
+                  if (ok) {
+                    setTool(item.id);
+                    onToolChange?.(item.id);
+                  }
                 });
               }}
             >

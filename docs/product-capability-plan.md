@@ -140,3 +140,5 @@
 2026-10-02 CAP-02／03 补充：[ADR-088](development/decisions/PRODUCT-ADR-088-custom-wheel-appearances.md) 已对照 MA／Titan／GDTF，明确色盘实测、外观与物理数据分离、变体隔离、受控试灯、功能依赖与更新影响审阅；FIXTURE-007 先实施档位外观／批量建档和显式应用，其余继续作为未完成项。
 
 2026-10-02 CAP-02／CAP-05／云分发补充：[ADR-090](development/decisions/PRODUCT-ADR-090-reusable-effect-library.md) 将灯具映射、灯效模板、工程实例和目标编译分层，先本地模板闭环再接云目录。类型化接口为设计稿；星空／激光／多单元 LED／新说明书按能力扩展，不能按外形或名称声称兼容。验收覆盖跨模式绑定、缺能力拒绝、离线固定版本和更新审阅，详见决策。
+
+2026-10-02 CAP-04／CAP-05／CAP-13 增量：[LIBRARY-002](development/tasks/LIBRARY-002-local-intensity-templates.md) 已完成基础亮度曲线的本地模板闭环。Rust 管配方／绑定／来源验证，存储管有界文件及原子写入，动态效果区提供导入／审阅／导出；两个独立工程 80／3 台绑定、静态属性保持、取消／冲突拒绝、历史与离线重开通过。依赖既有 dimmer 能力、效果编译与工程事务；云目录、其他曲线与跨能力颜色角色继续按独立工单推进。

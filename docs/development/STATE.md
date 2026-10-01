@@ -1,6 +1,6 @@
 # 当前开发状态
 
-LIBRARY-002 核心增量完成、桌面衔接继续（基线 `7de8cb9`，结果为本次 `feat(effects): add portable intensity templates and reviewed binding` 提交）：独立亮度模板、Rust 不透明审阅／绑定、来源快照和版本冲突保护；658 Rust 全量＋最终 31 专项（累计 659）、285 UI、136 格式、严格检查／类型通过，见[工单](tasks/LIBRARY-002-local-intensity-templates.md)／[ADR-091](decisions/PRODUCT-ADR-091-local-intensity-templates.md)。持续 goal active，未宣称云库或桌面文件工作流已完成。
+LIBRARY-002 完成（核心 `029b60d`；桌面基线同此，结果为本次 `feat(desktop): import and export reviewed effect templates` 提交）：独立亮度模板、Rust 审阅／绑定、来源与版本保护，正式动态效果区导入／导出／审阅贯通。664 Rust 全量＋最终 3 桌面专项、287 UI、类型／严格检查／fmt／桌面通过；原生取消、冲突、一次历史、参数修改／来源独立、保存重开及两个不同工程 80／3 台灯具复用通过，见[工单](tasks/LIBRARY-002-local-intensity-templates.md)／[ADR-091](decisions/PRODUCT-ADR-091-local-intensity-templates.md)。当前完整舞台副本已保存，播放未载入、UE 关闭、设备未连接。持续 goal active；云端目录、其他配方与更多真实灯型仍后续，不声称已实现。
 
 LIBRARY-001 设计增量完成（基线 `7befdf7`，结果 `7dfa37b`）：云端可复用灯效方向已记录 [ADR-090](decisions/PRODUCT-ADR-090-reusable-effect-library.md) 与 [draft-1 契约](../module-api/effect-library.md)：语义模板／灯具映射／工程绑定／目标产物分层；当前为设计准备，未上线云库或新增灯型执行能力。运行实现待后续独立工单。
 

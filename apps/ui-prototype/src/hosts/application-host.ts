@@ -4,6 +4,12 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      importEffectTemplate: (generation, sceneId, fixtureIds) =>
+        invoke("effect_template_import", { generation, sceneId, fixtureIds }),
+      exportEffectTemplate: (generation, sceneId, effectId) =>
+        invoke("effect_template_export", { generation, sceneId, effectId }),
+      cancelEffectTemplate: (token) =>
+        invoke("effect_template_cancel", { token }),
       importProfile: (generation) =>
         invoke("profile_file_import", { generation }),
       exportProfile: (generation, profileId) =>
@@ -36,6 +42,13 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      importEffectTemplate: async () => {
+        throw new Error("请使用桌面应用导入灯效模板");
+      },
+      exportEffectTemplate: async () => {
+        throw new Error("请使用桌面应用导出灯效模板");
+      },
+      cancelEffectTemplate: async () => {},
       importProfile: async () => {
         throw new Error("请使用桌面应用导入本机灯具模式");
       },

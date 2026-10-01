@@ -1,6 +1,6 @@
 # 本地灯效模板核心 · v1
 
-LIBRARY-002／[ADR-091](../development/decisions/PRODUCT-ADR-091-local-intensity-templates.md)。这是当前核心实现；桌面文件入口另行接入。云服务伪 API 仍见 [effect-library.md](effect-library.md)，不能把设计稿全部当成已实现。
+LIBRARY-002／[ADR-091](../development/decisions/PRODUCT-ADR-091-local-intensity-templates.md)。核心及桌面文件入口已实现，正式应用跨工程复用与保存重开通过。云服务伪 API 仍见 [effect-library.md](effect-library.md)，不能把设计稿全部当成已实现。
 
 `EffectTemplateFile::decode(&[u8])` 严格读取最多 16 KiB JSON；`create(EffectTemplateDefinition)` 创建独立模板／修订；`encode()` 写独立文件，`source()` 计算完整语义内容摘要。格式在 project.schema.json 的 `EffectTemplate` 定义，与工程来源共用同一校验器。
 
@@ -23,3 +23,9 @@ target.apply_effect_template(reviewed)?; // 一次历史由应用适配器维护
 来源每次解码都检查严格字段、版本、范围、能力声明与摘要。摘要是完整性核对，不是数字签名或云权限。当前只报告桌面计划容量；ESP32 预算、其他 recipe、多发光单元、云端目录与签名尚未接通。
 
 同一工程内若出现相同 templateId／revision 而摘要不同的来源，拒绝整个导入或打开；不同内容必须使用新修订。允许多处重复引用同一完整快照，也允许同一模板的不同修订并存。
+
+桌面适配由 `effect_template/files`、`effect_template/pending` 与 `session/edit` 分别负责文件交互、单项审阅缓存和统一历史安装。界面通过 `ApplicationHost.importEffectTemplate(generation, sceneId, fixtureIds)` 打开原生文件选择器，返回取消或只读审阅及随机 token；再用 `applyEffectTemplate` 工程请求提交 token。核心候选只保存在 Rust 中，不接受界面重新拼接候选数据。缓存最多一项，五分钟后拒绝应用，取消只释放匹配 token；新导入替换旧审阅。全部应用继续走工程事务队列、代次保护、恢复保存和原来的撤销栈，不能自行加载或启动预演。
+
+`exportEffectTemplate(generation, sceneId, effectId)` 导出当前已应用效果，原生保存框要求 `.smeffect.json`；`EffectTemplateFileStore` 沿用 `DiskFile` 的原子写入和并发修改检测，拒绝链接、不兼容文件和工程文件覆盖。文件读取有 16 KiB 上限。导出不改工程修订。
+
+界面先提交有效草稿，再冻结场景及有序目标。场景、灯序、页签或工程代次变化会取消审阅并拒绝迟到回执；离开再返回同一选择也不能接收旧结果。审阅明确显示启用状态、亮度范围、节奏及灯序；错误保留在审阅内，取消后回到导入按钮。来源标记随效果显示，离线打开不依赖模板原文件。

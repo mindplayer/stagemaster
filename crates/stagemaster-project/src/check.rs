@@ -37,7 +37,7 @@ pub enum ProgramStatus {
     Blocked,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlanUsage {
     pub attributes: usize,

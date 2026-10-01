@@ -40,8 +40,12 @@ export function SceneEditingTools({
   context,
   onOpenEffect,
   onToggleEffect,
+  captureTemplate,
+  onApplyTemplate,
 }: {
   onOpenEffect: OpenEffect;
+  captureTemplate(): Promise<number | null>;
+  onApplyTemplate(generation: number, token: string): Promise<boolean>;
   onToggleEffect(id: string, enabled: boolean): Promise<boolean>;
   context?: ReactNode;
   host: ApplicationHost;
@@ -64,12 +68,14 @@ export function SceneEditingTools({
   onAddScene(): void;
   onAddFixtures(): void;
 }) {
+  const [tool, setTool] = useState("fixtures");
   const [presetId, setPresetId] = useState("");
   const [mask, setMask] = useState<string[] | null>(null);
   const [recall, setRecall] = useState<RecallMode>("replace");
   return (
     <SceneEditorTools
       visible={visible}
+      onToolChange={setTool}
       selection={
         <>
           {context}
@@ -133,6 +139,13 @@ export function SceneEditingTools({
         scene && (
           <EffectRack
             key={scene.id}
+            files={{
+              host,
+              generation,
+              visible: visible && tool === "effects",
+              capture: captureTemplate,
+              onApply: onApplyTemplate,
+            }}
             scene={scene}
             fixtures={project.fixtures}
             scenes={project.scenes}

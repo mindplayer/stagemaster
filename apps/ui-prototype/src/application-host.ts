@@ -129,10 +129,22 @@ export type ProjectRequest =
   | { kind: "recover"; generation: number; id: string; token: string }
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
+  | { kind: "applyEffectTemplate"; generation: number; token: string }
   | ({ kind: "previsPlacement" } & PrevisPlacement)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  importEffectTemplate(
+    generation: number,
+    sceneId: string,
+    fixtureIds: string[],
+  ): Promise<import("./effect-template-types").ImportedEffectTemplate | null>;
+  exportEffectTemplate(
+    generation: number,
+    sceneId: string,
+    effectId: string,
+  ): Promise<import("./effect-template-types").ExportedEffectTemplate>;
+  cancelEffectTemplate(token: string): Promise<void>;
   importProfile(
     generation: number,
   ): Promise<import("./profile-file-types").ImportedProfile | null>;

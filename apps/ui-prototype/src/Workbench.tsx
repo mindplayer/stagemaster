@@ -1247,6 +1247,17 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                           return ok ? current.current.project : null;
                         }}
                         onView3d={() => sharedPrevis.current?.openPlayback()}
+                        captureTemplate={captureCheck}
+                        onApplyTemplate={(generation, token) =>
+                          run(async () => {
+                            await request({
+                              kind: "applyEffectTemplate",
+                              generation,
+                              token,
+                            });
+                            setNotice("灯效模板已应用，可撤销恢复");
+                          })
+                        }
                         onOpenEffect={effectWorkspace.open}
                         onToggleEffect={effectWorkspace.toggle}
                         onAddScene={addScene}
@@ -1307,12 +1318,13 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         active={page === "scenes" && !!activeScene}
                         busy={busy}
                         beforeChange={() => run(async () => {})}
-                        hasPosition={selected.some(
-                          (id) =>
-                            project.fixtures.some(
-                              (f) => f.id === id &&
-                                (f.positionReference || f.attributes.some((a) => a.key === "pan")),
-                            ),
+                        hasPosition={selected.some((id) =>
+                          project.fixtures.some(
+                            (f) =>
+                              f.id === id &&
+                              (f.positionReference ||
+                                f.attributes.some((a) => a.key === "pan")),
+                          ),
                         )}
                         position={
                           <>

@@ -14,7 +14,7 @@ pub struct EffectTemplateReview {
     candidate: Document,
     view: EffectTemplateReviewView,
 }
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EffectTemplateReviewView {
     pub scene_id: String,

@@ -1,3 +1,7 @@
+import {
+  EffectTemplateFiles,
+  type EffectTemplateFileProps,
+} from "./EffectTemplateFiles";
 import { useState } from "react";
 import type {
   EditOperation,
@@ -28,8 +32,13 @@ export function EffectRack({
   onEdit,
   onOpen,
   onToggle,
+  files,
 }: {
   onOpen: OpenEffect;
+  files: Pick<
+    EffectTemplateFileProps,
+    "host" | "generation" | "visible" | "capture" | "onApply"
+  >;
   onToggle(id: string, enabled: boolean): Promise<boolean>;
   scene: SceneView;
   fixtures: FixtureView[];
@@ -69,6 +78,14 @@ export function EffectRack({
             : "选择灯具后添加效果"}
         </span>
       </div>
+      <EffectTemplateFiles
+        {...files}
+        scene={scene}
+        fixtures={fixtures}
+        selected={selected}
+        busy={busy}
+        operationError={error}
+      />
       <div className="effect-templates">
         {effectTemplates.map((t) => (
           <button
@@ -105,6 +122,7 @@ export function EffectRack({
                   ? "同步"
                   : `展开 ${effect.spreadDegrees}°`}
                 {effect.reverse ? " · 反向" : ""}
+                {effect.templateSource && " · 来自灯效模板"}
                 {effect.waveform === "position" && " · 相对位置"}
                 {effect.waveform === "worldLine" && " · 共同空间目标"}
                 {effect.waveform === "keyframes"

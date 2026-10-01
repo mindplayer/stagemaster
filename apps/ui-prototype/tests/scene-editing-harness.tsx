@@ -168,6 +168,8 @@ function Harness() {
       </div>
       <div style={{ height: 320, minHeight: 320 }}>
         <SceneEditingTools
+          captureTemplate={async () => 1}
+          onApplyTemplate={async () => false}
           host={host}
           project={project}
           scene={project.scenes[0]}

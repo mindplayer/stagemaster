@@ -1,5 +1,8 @@
 use serde::Serialize;
 use stagemaster_project::{Document, EditCommand, ProjectView};
+mod edit;
+#[cfg(test)]
+mod effect_template_tests;
 use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 mod audio;
@@ -152,36 +155,6 @@ impl Session {
         self.guard(generation)?;
         if self.allow_replace(app)? {
             self.replace(Document::new("未命名工程")?, None);
-        }
-        Ok(())
-    }
-    pub(crate) fn edit(&mut self, generation: u32, command: EditCommand) -> Result<(), String> {
-        self.guard(generation)?;
-        let current = self.document.as_ref().ok_or("请先新建或打开工程")?;
-        let mut next = current.clone();
-        next.edit(command)?;
-        if next != *current {
-            self.undo.push(current.clone());
-            while self.undo.len() > 32
-                || self
-                    .undo
-                    .iter()
-                    .map(|doc| {
-                        doc.encode()
-                            .map_or(stagemaster_project::MAX_BYTES, |bytes| bytes.len())
-                    })
-                    .sum::<usize>()
-                    > 16 * 1024 * 1024
-            {
-                self.undo.remove(0);
-            }
-            self.redo.clear();
-            self.preview.clear_draft();
-            self.audio.synchronize(&next);
-            self.document = Some(next);
-            self.previs_edit_allowed = false;
-            self.content_version += 1;
-            self.generation += 1;
         }
         Ok(())
     }
