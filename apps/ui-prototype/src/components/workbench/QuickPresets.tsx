@@ -1,3 +1,4 @@
+import { PresetScopeSelect } from "./PresetScopeSelect";
 import { ResourcePicker } from "../resources/ResourcePicker";
 import { useState } from "react";
 import type { ProjectView, SceneView } from "../../application-host";
@@ -35,16 +36,6 @@ export function QuickPresets({
     .filter((a) => mask === null || mask.includes(a));
   const preset = project.presets.find((p) => p.id === presetId);
   const coverage = preset ? presetCoverage(preset, selected, attributes) : null;
-  const scopes = [
-    { id: "all", name: "全部属性", keys: null },
-    { id: "light", name: "仅亮度", keys: ["dimmer"] },
-    { id: "color", name: "仅颜色", keys: ["red", "green", "blue"] },
-    { id: "position", name: "仅位置", keys: ["pan", "tilt"] },
-    { id: "optics", name: "仅镜头与光圈", keys: ["zoom", "focus", "iris"] },
-  ];
-  const scope =
-    scopes.find((s) => JSON.stringify(s.keys) === JSON.stringify(mask))?.id ??
-    "custom";
   if (!project.presets.length) return null;
   return (
     <section className="quick-presets" aria-label="快捷预设">
@@ -73,25 +64,13 @@ export function QuickPresets({
         ]}
         onSelect={onPreset}
       />
-      <select
-        aria-label="快捷预设属性范围"
+      <PresetScopeSelect
+        label="快捷预设属性范围"
+        available={available}
+        selected={mask}
         disabled={busy}
-        value={scope}
-        onChange={(e) =>
-          onMask(scopes.find((s) => s.id === e.target.value)!.keys)
-        }
-      >
-        {scopes.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        ))}
-        {scope === "custom" && (
-          <option value="custom" disabled>
-            自选属性
-          </option>
-        )}
-      </select>
+        onChange={onMask}
+      />
       <select
         aria-label="快捷预设应用方式"
         disabled={busy}

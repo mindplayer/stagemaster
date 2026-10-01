@@ -9,6 +9,11 @@ export const parameterCategories = [
   { id: "other", label: "其他", keys: [] },
 ] as const;
 export type ParameterCategory = (typeof parameterCategories)[number]["id"];
+export function parameterCategoryKeys(
+  id: ParameterCategory,
+): readonly string[] {
+  return parameterCategories.find((c) => c.id === id)!.keys;
+}
 export function parameterCategory(key: string): ParameterCategory {
   return (
     parameterCategories.find((c) => (c.keys as readonly string[]).includes(key))

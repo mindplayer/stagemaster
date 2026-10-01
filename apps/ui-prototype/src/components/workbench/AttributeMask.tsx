@@ -1,3 +1,6 @@
+import "./attribute-mask.css";
+import { PresetScopeSelect } from "./PresetScopeSelect";
+
 export function AttributeMask({
   available,
   selected,
@@ -25,26 +28,19 @@ export function AttributeMask({
           {a.label}
         </label>
       ))}
+      <PresetScopeSelect
+        label="属性范围快捷选择"
+        available={available}
+        selected={selected}
+        onChange={(keys) => onChange(keys ?? available.map((a) => a.key))}
+      />
       <button
         type="button"
-        onClick={() => onChange(available.map((a) => a.key))}
+        disabled={!selected.length}
+        onClick={() => onChange([])}
       >
-        全部属性
+        清空属性
       </button>
-      {available.some((a) => ["red", "green", "blue"].includes(a.key)) && (
-        <button
-          type="button"
-          onClick={() =>
-            onChange(
-              available
-                .filter((a) => ["red", "green", "blue"].includes(a.key))
-                .map((a) => a.key),
-            )
-          }
-        >
-          仅颜色
-        </button>
-      )}
     </div>
   );
 }

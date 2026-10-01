@@ -1,3 +1,4 @@
+import { withFullScopeFixtures } from "./preset-scopes-project";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ResourcePool } from "../src/components/workbench/ResourcePool";
@@ -16,7 +17,7 @@ const values = keys.map((attribute) => ({
   presetId: null,
   presetName: null,
 }));
-const project: ProjectView = {
+const baseProject: ProjectView = {
   id: "p",
   name: "范围验收",
   description: "",
@@ -55,7 +56,13 @@ const project: ProjectView = {
     },
   ],
 };
+const full = new URLSearchParams(location.search).has("full");
+const project = full ? withFullScopeFixtures(baseProject) : baseProject;
 function Harness() {
+  const [selection, setSelection] = useState("all");
+  const selected = project.fixtures
+    .filter((f) => selection === "all" || f.id === selection)
+    .map((f) => f.id);
   const [mask, setMask] = useState<string[] | null>(null);
   const [presetId, setPresetId] = useState("preset");
   const [reject, setReject] = useState(false);
@@ -75,6 +82,18 @@ function Harness() {
   return (
     <main className="workbench" style={{ padding: 24 }}>
       <nav>
+        {full && (
+          <select
+            aria-label="验收灯具选择"
+            value={selection}
+            onChange={(e) => setSelection(e.target.value)}
+          >
+            <option value="all">全部灯具</option>
+            <option value="wheel">仅色盘灯</option>
+            <option value="rgb">仅染色灯</option>
+            <option value="empty">无灯具</option>
+          </select>
+        )}
         <label>
           <input
             type="checkbox"
@@ -92,7 +111,7 @@ function Harness() {
       <QuickPresets
         project={project}
         scene={project.scenes[0]}
-        selected={["lamp"]}
+        selected={selected}
         busy={false}
         presetId={presetId}
         mask={mask}
@@ -103,7 +122,7 @@ function Harness() {
       <ResourcePool
         project={project}
         scene={project.scenes[0]}
-        selected={["lamp"]}
+        selected={selected}
         busy={false}
         error={error}
         visible
