@@ -8,6 +8,8 @@ mod audio_tests;
 mod files;
 mod output;
 mod previs;
+#[cfg(test)]
+mod sequence_group_tests;
 
 #[derive(Default)]
 pub(crate) struct Session {

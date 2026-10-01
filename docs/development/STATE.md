@@ -1,5 +1,6 @@
 # 当前开发状态
 
+SEQUENCE-003 完成（基线 `aa37d6e`，结果为本次 `feat(sequence): add atomic step group organization` 提交）：依 ADR-069 实现步骤成组复制／移动／删除、搜索／范围／隐藏选择与一次历史，旧运行版本保持。522 Rust、最终组 4、171 UI、类型／fmt／严格检查／桌面及原生取消／撤销／保存重开／键盘通过，见[验收](tasks/SEQUENCE-003-step-group-editing.md)。独立六步副本已保存，预演未载入、UE 关闭、设备断开；持续 goal active，接续整组时间调整。
 EXEC-001 完成（基线 `036c9c2`，结果为本次 `feat(preview): add shared intensity master and blackout` 提交）：依 ADR-068 实现纯核心亮度缩放、单例总控／熄灯、真实输出属性／三维同源、作用范围提示及有界 UI 请求。516 Rust＋最终 50 桌面／2 输出回归、168 UI、类型／fmt／严格检查／桌面与原生错误取消／跨页／播放中熄灯恢复／推杆键盘通过，见[验收](tasks/EXEC-001-preview-output-master.md)。当前独立 Volare 副本已保存，音频暂停 25.120 秒，总控 100%／未熄灯，UE 关闭、设备断开。持续 goal active，接续编排批量操作。
 
 UX-030 完成（基线 `a36a0d9`，结果为本次 `feat(ui): clarify fixture capabilities and patch labels` 提交）：两处平面共用灯具能力符号、图例及名称／地址标注，统一未配适反馈与补零搜索；161 UI、类型／桌面和原生密集灯位／重叠选择／地址筛选通过，见[验收](tasks/UX-030-fixture-plan-symbols.md)。设备断开，工程未改；持续 goal active，继续时间编排与执行细节。

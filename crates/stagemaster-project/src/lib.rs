@@ -42,6 +42,8 @@ mod library;
 mod rigging;
 mod seating;
 mod sequence;
+mod sequence_groups;
+pub use sequence_groups::StepGroupOperation;
 mod sequence_script;
 mod stage;
 mod stage_constructions;

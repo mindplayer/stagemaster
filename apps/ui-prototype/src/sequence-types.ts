@@ -20,7 +20,15 @@ export interface SequenceView {
   repeat: "once" | "loop";
   steps: StepView[];
 }
+export type StepGroupOperation =
+  { kind: "copy" | "move"; beforeId: string | null } | { kind: "remove" };
 export type SequenceEdit =
+  | {
+      kind: "editSteps";
+      id: string;
+      stepIds: string[];
+      operation: StepGroupOperation;
+    }
   | { kind: "add"; name: string; sceneId: string }
   | {
       kind: "update";

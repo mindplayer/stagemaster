@@ -7,7 +7,8 @@ import { SequenceStepList } from "./SequenceStepList";
 import { DockPane } from "../layout/DockPane";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { TrashIcon } from "@phosphor-icons/react";
+import { SequenceWorkspaceHeading } from "./SequenceWorkspaceHeading";
+import { SequenceGroupEditor } from "./SequenceGroupEditor";
 import type {
   ApplicationHost,
   EditCommand,
@@ -62,6 +63,7 @@ export const SequenceWorkspace = forwardRef<
   },
   ref,
 ) {
+  const [batch, setBatch] = useState(false);
   const [position, setPosition] = useState(() => executionPosition(null));
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
   const [stepId, setStepId] = useState(
@@ -272,151 +274,118 @@ export const SequenceWorkspace = forwardRef<
       </DockPane>
       <DockPane region={execution ? "full" : "editor"} visible={visible}>
         <section className="wb-sequence-content" data-execution={execution}>
-          <div className="wb-content-heading">
-            <div>
-              <span className="wb-eyebrow">节目编排</span>
-              <h1>{sequence?.name ?? "场景列表"}</h1>
-            </div>
-            <div
-              className="execution-view-switch"
-              role="group"
-              aria-label="列表工作方式"
-            >
-              <button
-                disabled={busy}
-                aria-pressed={!execution}
-                onClick={() =>
-                  void beforeChange().then((ok) => ok && onExecution(false))
-                }
-              >
-                步骤编排
-              </button>
-              <button
-                disabled={busy}
-                aria-pressed={execution}
-                onClick={() =>
-                  void beforeChange().then((ok) => ok && onExecution(true))
-                }
-              >
-                执行视图
-              </button>
-            </div>
-            {sequence && !execution && (
-              <button
-                aria-label="删除列表"
-                disabled={busy}
-                onClick={() => {
-                  setLocalError("");
-                  setDeleteTarget("sequence");
-                }}
-              >
-                <TrashIcon />
-              </button>
-            )}
-          </div>
-          {execution && (
-            <div className="execution-list-picker">
-              <label htmlFor="execution-list">
-                {position.stale && position.sequenceId === sequence?.id
-                  ? "编排列表（待载入）"
-                  : "执行列表"}
-              </label>
-              <select
-                id="execution-list"
-                disabled={busy}
-                value={sequence?.id ?? ""}
-                onChange={(e) => void chooseSequence(e.target.value)}
-              >
-                {project.sequences.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <span className="wb-dim">{sequence?.steps.length ?? 0} 步</span>
-            </div>
-          )}
-          {sequence && (
-            <>
-              {execution ? (
-                <div className="execution-search">
-                  <input
-                    aria-label="搜索步骤"
-                    placeholder="搜索步骤、幕场或台词"
-                    value={stepQuery}
-                    onChange={(e) => setStepQuery(e.target.value)}
-                  />
-                  <button
-                    disabled={
-                      position.stale ||
-                      !position.currentId ||
-                      position.sequenceId !== sequence.id
+          <SequenceWorkspaceHeading
+            sequence={sequence}
+            sequences={project.sequences}
+            execution={execution}
+            batch={batch}
+            busy={busy}
+            position={position}
+            onExecution={(value) =>
+              void beforeChange().then((ok) => ok && onExecution(value))
+            }
+            onBatch={() =>
+              void beforeChange().then((ok) => ok && setBatch(!batch))
+            }
+            onChoose={(id) => void chooseSequence(id)}
+            onDelete={() => {
+              setLocalError("");
+              setDeleteTarget("sequence");
+            }}
+          />
+          {sequence &&
+            (!execution && batch ? (
+              <SequenceGroupEditor
+                key={sequence.id}
+                sequence={sequence}
+                scenes={project.scenes}
+                busy={busy}
+                visible={visible}
+                query={stepQuery}
+                setQuery={setStepQuery}
+                onEdit={edit}
+              />
+            ) : (
+              <>
+                {execution ? (
+                  <div className="execution-search">
+                    <input
+                      aria-label="搜索步骤"
+                      placeholder="搜索步骤、幕场或台词"
+                      value={stepQuery}
+                      onChange={(e) => setStepQuery(e.target.value)}
+                    />
+                    <button
+                      disabled={
+                        position.stale ||
+                        !position.currentId ||
+                        position.sequenceId !== sequence.id
+                      }
+                      onClick={() => {
+                        setStepQuery("");
+                        requestAnimationFrame(() =>
+                          document
+                            .getElementById(`step-${position.currentId}`)
+                            ?.scrollIntoView({ block: "center" }),
+                        );
+                      }}
+                    >
+                      定位当前
+                    </button>
+                  </div>
+                ) : (
+                  <SequenceEditToolbar
+                    scenes={project.scenes}
+                    busy={busy}
+                    addSceneId={addSceneId}
+                    setAddSceneId={setAddSceneId}
+                    stepQuery={stepQuery}
+                    setStepQuery={setStepQuery}
+                    index={index}
+                    stepCount={sequence.steps.length}
+                    hasStep={!!step}
+                    onInsert={() => void insertStep()}
+                    onDuplicate={() => void duplicateStep()}
+                    onMove={(index) =>
+                      void edit({
+                        kind: "moveStep",
+                        id: sequence.id,
+                        stepId: step!.id,
+                        index,
+                      })
                     }
-                    onClick={() => {
-                      setStepQuery("");
-                      requestAnimationFrame(() =>
-                        document
-                          .getElementById(`step-${position.currentId}`)
-                          ?.scrollIntoView({ block: "center" }),
-                      );
+                    onDelete={() => {
+                      setLocalError("");
+                      setDeleteTarget("step");
                     }}
-                  >
-                    定位当前
-                  </button>
-                </div>
-              ) : (
-                <SequenceEditToolbar
-                  scenes={project.scenes}
-                  busy={busy}
-                  addSceneId={addSceneId}
-                  setAddSceneId={setAddSceneId}
-                  stepQuery={stepQuery}
-                  setStepQuery={setStepQuery}
-                  index={index}
-                  stepCount={sequence.steps.length}
-                  hasStep={!!step}
-                  onInsert={() => void insertStep()}
-                  onDuplicate={() => void duplicateStep()}
-                  onMove={(index) =>
-                    void edit({
-                      kind: "moveStep",
-                      id: sequence.id,
-                      stepId: step!.id,
-                      index,
-                    })
-                  }
-                  onDelete={() => {
-                    setLocalError("");
-                    setDeleteTarget("step");
-                  }}
-                />
-              )}
-              <div className="wb-steps-region">
-                {step && !steps.some((s) => s.id === step.id) && (
-                  <p className="wb-dim">
-                    当前选中“{step.name}”未匹配筛选。
-                    <button onClick={() => setStepQuery("")}>清除筛选</button>
-                  </p>
+                  />
                 )}
-                <SequenceStepList
-                  steps={steps}
-                  selectedId={step?.id ?? ""}
-                  scenes={project.scenes}
-                  busy={busy}
-                  onSelect={chooseStep}
-                  position={
-                    position.sequenceId === sequence.id && !position.stale
-                      ? position
-                      : undefined
-                  }
-                />
-              </div>
-            </>
-          )}
+                <div className="wb-steps-region">
+                  {step && !steps.some((s) => s.id === step.id) && (
+                    <p className="wb-dim">
+                      当前选中“{step.name}”未匹配筛选。
+                      <button onClick={() => setStepQuery("")}>清除筛选</button>
+                    </p>
+                  )}
+                  <SequenceStepList
+                    steps={steps}
+                    selectedId={step?.id ?? ""}
+                    scenes={project.scenes}
+                    busy={busy}
+                    onSelect={chooseStep}
+                    position={
+                      position.sequenceId === sequence.id && !position.stale
+                        ? position
+                        : undefined
+                    }
+                  />
+                </div>
+              </>
+            ))}
           <PreviewPanel
             host={host}
             sequence={sequence}
-            stepId={step?.id ?? ""}
+            stepId={!execution && batch ? "" : (step?.id ?? "")}
             generation={generation}
             busy={busy}
             beforeAction={beforeChange}
@@ -427,7 +396,7 @@ export const SequenceWorkspace = forwardRef<
           />
         </section>
       </DockPane>
-      <DockPane region="inspector" visible={visible && !execution}>
+      <DockPane region="inspector" visible={visible && !execution && !batch}>
         <aside className="wb-properties wb-sequence-properties">
           {sequence && step && data && (
             <SequenceInspector

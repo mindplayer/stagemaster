@@ -13,6 +13,11 @@ use std::collections::BTreeSet;
     deny_unknown_fields
 )]
 pub enum SequenceEdit {
+    EditSteps {
+        id: String,
+        step_ids: Vec<String>,
+        operation: crate::StepGroupOperation,
+    },
     Add {
         name: String,
         scene_id: String,
@@ -78,8 +83,21 @@ pub enum Repeat {
 }
 
 pub(super) fn apply(root: &mut Value, command: SequenceEdit) -> Result<(), String> {
+    match command {
+        SequenceEdit::EditSteps {
+            id,
+            step_ids,
+            operation,
+        } => crate::sequence_groups::apply(root, &id, &step_ids, operation)?,
+        other => apply_single(root, other)?,
+    }
+    crate::sequence_script::sync_capability(root);
+    Ok(())
+}
+fn apply_single(root: &mut Value, command: SequenceEdit) -> Result<(), String> {
     use crate::editing::{find, list, remove};
     match command {
+        SequenceEdit::EditSteps { .. } => unreachable!("group edits routed above"),
         SequenceEdit::Add { name, scene_id } => {
             let scene = find(list(root, "scenes")?, &scene_id)?;
             let step = new_step(&scene_id, text(scene, "name"), "1");
@@ -171,7 +189,6 @@ pub(super) fn apply(root: &mut Value, command: SequenceEdit) -> Result<(), Strin
             remove(steps, &step_id)?;
         }
     }
-    crate::sequence_script::sync_capability(root);
     Ok(())
 }
 fn duplicate_step(root: &mut Value, sequence: &str, step_id: &str) -> Result<(), String> {
@@ -195,7 +212,7 @@ fn duplicate(root: &mut Value, source: &str, name: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn steps_mut<'a>(root: &'a mut Value, id: &str) -> Result<&'a mut Vec<Value>, String> {
+pub(super) fn steps_mut<'a>(root: &'a mut Value, id: &str) -> Result<&'a mut Vec<Value>, String> {
     crate::editing::find(crate::editing::list(root, "sequences")?, id)?["steps"]
         .as_array_mut()
         .ok_or_else(|| "列表步骤无效".into())
@@ -206,7 +223,7 @@ fn position(steps: &[Value], id: &str) -> Result<usize, String> {
         .position(|s| s["id"] == id)
         .ok_or_else(|| "步骤已不存在".into())
 }
-fn next_number(steps: &[Value]) -> Result<String, String> {
+pub(super) fn next_number(steps: &[Value]) -> Result<String, String> {
     let used = steps
         .iter()
         .map(|s| number_key(text(s, "number")))

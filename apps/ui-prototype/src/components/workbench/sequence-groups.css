@@ -1,0 +1,71 @@
+.sequence-group-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+}
+.sequence-group-toolbar input {
+  flex: 1;
+  min-width: 140px;
+}
+.sequence-group-toolbar > span {
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+.sequence-group-list {
+  display: grid;
+  gap: 4px;
+}
+.workbench .sequence-group-list > button {
+  display: grid;
+  grid-template-columns: 20px 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+}
+.workbench .sequence-group-list > button[aria-checked="true"] {
+  background: #253f43;
+  border-color: #589b97;
+}
+.sequence-group-check {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #78918f;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  color: #a6eee0;
+}
+.sequence-group-text {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.sequence-group-text strong,
+.sequence-group-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sequence-group-text small {
+  color: var(--wb-muted);
+}
+.sequence-group-properties p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.sequence-group-actions {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.sequence-group-list .wb-step-time small {
+  display: block;
+  margin-top: 3px;
+  color: var(--wb-muted);
+  font-weight: 400;
+}

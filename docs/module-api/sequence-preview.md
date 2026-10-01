@@ -63,3 +63,9 @@ ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不�
 `ApplicationHost.output` 对接 `output_request`，请求为 snapshot 或 set（epoch、serial、percent、blackout），快照返回同字段与 uncontrolledFixtures。专用会话代次和序号拒绝旧工程／重放；成功打开／新建重置，编辑／保存／载入节目／切页不重置。不写入工程、历史或设备包。停止恢复默认值仍受总控抑制，解除熄灯恢复记忆百分比；错误草稿不能阻止操作。
 
 静态三维仅缩放渲染强度，播放三维使用已缩放属性而不重复衰减。全局界面明确“预演”，没有真实设备输出或安全急停的含义。
+
+## 步骤成组整理
+
+[ADR-069](../development/decisions/PRODUCT-ADR-069-sequence-step-groups.md) 增加 `editSteps` 命令：`id` 为列表、`stepIds` 为非空唯一的步骤身份，`operation` 为 `copy`／`move`（`beforeId` 为目标 UUID，null 表示末尾）或 `remove`。Rust 按原执行顺序处理，最多 1024 步；跨列表身份、失效目标、移动到组内、复制超限、删空列表均原子拒绝。编号只是展示编号，移动不重新编号，复制分配新 UUID 和未占用整数编号。
+
+复制保留场景引用、时间与剧本，未展开继承后的最终灯光；顺序或数量改变会重新解析跟踪，因此界面明确提醒重新预演。操作只改工程，一次撤销整个组，不改变已载入计划。`SequenceGroupEditor` 只持有筛选、选择、目标和确认状态，复用工程事务／资源搜索；切页保留、换列表重建、隐藏选项计入操作且明确显示数量。
