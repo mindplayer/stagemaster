@@ -63,20 +63,27 @@ export function AudioPreviewTransport({
           停止音乐
         </button>
         <output>
-          {audioTime(draft ?? session.position.positionMs)} /{" "}
-          {audioTime(duration)}
+          {audioTime(
+            draft ?? session.requestedPosition ?? session.position.positionMs,
+          )}{" "}
+          / {audioTime(duration)}
+          {session.requestedPosition !== null && <small> · 定位中</small>}
         </output>
       </div>
       <input
         type="range"
         aria-label="三维音乐进度"
-        aria-valuetext={audioTime(draft ?? session.position.positionMs)}
+        aria-valuetext={audioTime(
+          draft ?? session.requestedPosition ?? session.position.positionMs,
+        )}
         title="拖动后松手定位，方向键微调，Esc 取消"
         min={0}
         max={duration}
         step={10}
         disabled={blocked}
-        value={draft ?? session.position.positionMs}
+        value={
+          draft ?? session.requestedPosition ?? session.position.positionMs
+        }
         onPointerDown={(event) => {
           gesture.current = "dragging";
           event.currentTarget.setPointerCapture(event.pointerId);

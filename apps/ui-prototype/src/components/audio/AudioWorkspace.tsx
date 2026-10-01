@@ -262,6 +262,8 @@ export const AudioWorkspace = forwardRef<
               <>
                 <AudioTransportBar
                   position={audio.position}
+                  requestedPosition={audio.requestedPosition}
+                  requestedVolume={audio.requestedVolume}
                   command={audio.command}
                   ready={!!audio.waveform}
                   duration={track.outMs - track.inMs}
@@ -276,6 +278,7 @@ export const AudioWorkspace = forwardRef<
                   compact={sharedTransport}
                   waveform={audio.waveform}
                   sample={audio.playingSample}
+                  requestedPosition={audio.requestedPosition}
                   selected={selected}
                   disabled={blocked || !!draft}
                   onSeek={seek}

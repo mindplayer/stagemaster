@@ -6,6 +6,7 @@ import type {
   AudioTimeline,
   AudioWaveform,
 } from "../../audio-types";
+import { AudioActionQueue } from "../../audio-action-queue";
 import { runAudioCommands } from "../../audio-command-sequence";
 const idle: AudioPosition = {
   volumePercent: 100,
@@ -31,7 +32,20 @@ export function useAudio(
   const mediaKey = track
     ? `${projectId}:${track.asset.digest}:${track.inMs}:${track.outMs}`
     : `${projectId}:empty`;
-  const commands = useRef<Promise<unknown>>(Promise.resolve());
+  const queue = useRef(new AudioActionQueue());
+  const intentSerial = useRef(0);
+  const [seekTarget, setSeekTarget] = useState<{
+    key: string;
+    token: number;
+    value: number;
+  } | null>(null);
+  const [volumeTarget, setVolumeTarget] = useState<{
+    key: string;
+    token: number;
+    value: number;
+  } | null>(null);
+  const latestSeek = useRef(0);
+  const latestVolume = useRef(0);
   const state = useRef({ generation, track, mediaKey });
   state.current = { generation, track, mediaKey };
   const playingSample = useRef({ position: idle, at: performance.now() });
@@ -41,6 +55,7 @@ export function useAudio(
     return () => {
       mounted.current = false;
       epoch.current++;
+      queue.current.invalidate();
     };
   }, []);
   function accept(next: AudioPosition) {
@@ -49,6 +64,9 @@ export function useAudio(
   }
   useEffect(() => {
     epoch.current++;
+    queue.current.invalidate();
+    setSeekTarget(null);
+    setVolumeTarget(null);
     preparedKey.current = "";
     setPreparing(false);
     setProblem("");
@@ -57,6 +75,9 @@ export function useAudio(
   }, [mediaKey]);
   async function prepare(kind: "import" | "load" | "locate") {
     const version = ++epoch.current;
+    queue.current.invalidate();
+    setSeekTarget(null);
+    setVolumeTarget(null);
     const loadingKey = mediaKey;
     setPreparing(true);
     setProblem("");
@@ -90,10 +111,17 @@ export function useAudio(
         // A scene preview can release the audio owner while this page is hidden.
         // Query the native transport before reusing the waveform; never reload a live voice.
         try {
+          const observation = queue.current.observation();
+          if (observation === null) return;
           const next = await host.audio(state.current.generation(), {
             kind: "snapshot",
           });
-          if (!active || version !== epoch.current) return;
+          if (
+            !active ||
+            version !== epoch.current ||
+            !queue.current.acceptsObservation(observation)
+          )
+            return;
           if (next.durationMs === track!.outMs - track!.inMs) {
             accept(next);
             return;
@@ -117,10 +145,18 @@ export function useAudio(
     async function poll() {
       const version = epoch.current;
       try {
-        const next = await host.audio(state.current.generation(), {
-          kind: "snapshot",
-        });
-        if (active && version === epoch.current) accept(next);
+        const observation = queue.current.observation();
+        if (observation !== null) {
+          const next = await host.audio(state.current.generation(), {
+            kind: "snapshot",
+          });
+          if (
+            active &&
+            version === epoch.current &&
+            queue.current.acceptsObservation(observation)
+          )
+            accept(next);
+        }
       } catch {
         /* Project mutations can invalidate an in-flight poll; next poll uses the new generation. */
       }
@@ -132,21 +168,44 @@ export function useAudio(
       clearTimeout(timer);
     };
   }, [host, visible, mediaKey, preparing]);
-  function enqueue(sequence: AudioCommand[]) {
+  async function enqueue(sequence: AudioCommand[]) {
     const targetGeneration = state.current.generation();
     const targetKey = state.current.mediaKey;
-    const queued = commands.current.then(() =>
-      runAudioCommands(
+    const token = ++intentSerial.current;
+    const seek = sequence.find((value) => value.kind === "seek");
+    const volume = sequence.find((value) => value.kind === "volume");
+    if (seek?.kind === "seek") {
+      latestSeek.current = token;
+      setSeekTarget({ key: targetKey, token, value: seek.positionMs });
+    }
+    if (volume?.kind === "volume") {
+      latestVolume.current = token;
+      setVolumeTarget({ key: targetKey, token, value: volume.percent });
+    }
+    try {
+      return await queue.current.enqueue(
         sequence,
-        () =>
-          mounted.current &&
-          targetKey === state.current.mediaKey &&
-          targetGeneration === state.current.generation(),
-        (value) => send(value, targetGeneration),
-      ),
-    );
-    commands.current = queued;
-    return queued;
+        `${targetKey}:${targetGeneration}`,
+        (values) =>
+          runAudioCommands(
+            values,
+            () =>
+              mounted.current &&
+              targetKey === state.current.mediaKey &&
+              targetGeneration === state.current.generation(),
+            (value) => send(value, targetGeneration),
+          ),
+      );
+    } catch (error) {
+      if (mounted.current && targetKey === state.current.mediaKey)
+        setProblem(error instanceof Error ? error.message : String(error));
+      return false;
+    } finally {
+      if (mounted.current) {
+        if (latestSeek.current === token) setSeekTarget(null);
+        if (latestVolume.current === token) setVolumeTarget(null);
+      }
+    }
   }
   async function command(command: AudioCommand) {
     await enqueue([command]);
@@ -171,6 +230,8 @@ export function useAudio(
   }
   return {
     position,
+    requestedPosition: seekTarget?.key === mediaKey ? seekTarget.value : null,
+    requestedVolume: volumeTarget?.key === mediaKey ? volumeTarget.value : null,
     playingSample,
     waveform,
     preparing,

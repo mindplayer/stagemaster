@@ -9,6 +9,8 @@ export function AudioTransportBar({
   blocked,
   addMarker,
   editingOnly = false,
+  requestedPosition = null,
+  requestedVolume = null,
 }: {
   position: AudioPosition;
   command(value: AudioCommand): Promise<void>;
@@ -18,6 +20,8 @@ export function AudioTransportBar({
   blocked: boolean;
   addMarker(): Promise<void>;
   editingOnly?: boolean;
+  requestedPosition?: number | null;
+  requestedVolume?: number | null;
 }) {
   return (
     <div className="audio-transport">
@@ -39,7 +43,7 @@ export function AudioTransportBar({
             停止
           </button>
           <output>
-            {audioTime(position.positionMs)}
+            {audioTime(requestedPosition ?? position.positionMs)}
             <small> / {audioTime(duration)}</small>
           </output>
         </>
@@ -57,7 +61,7 @@ export function AudioTransportBar({
           aria-label="试听音量"
           min="0"
           max="100"
-          value={position.volumePercent}
+          value={requestedVolume ?? position.volumePercent}
           onChange={(e) =>
             void command({
               kind: "volume",

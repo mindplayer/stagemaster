@@ -19,6 +19,7 @@ export function AudioWaveform({
   selected,
   disabled,
   compact = false,
+  requestedPosition = null,
   onSeek,
   onSelect,
   onMove,
@@ -30,6 +31,7 @@ export function AudioWaveform({
   selected: string;
   disabled: boolean;
   compact?: boolean;
+  requestedPosition?: number | null;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onMove(marker: AudioMarker): void;
@@ -248,7 +250,7 @@ export function AudioWaveform({
         max={duration}
         step="1"
         disabled={blocked}
-        value={sample.current.position.positionMs}
+        value={requestedPosition ?? sample.current.position.positionMs}
         onChange={(e) => onSeek(Number(e.target.value))}
       />
     </section>

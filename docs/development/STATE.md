@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-029 完成（基线 `fb34318`，结果为本次 `fix(audio): preserve seek intent across native replies` 提交）：独立有界定位队列、回执门控与共享待定位反馈；141 UI、类型与桌面通过，原生两次 32 连续按键精确 +320 ms，鼠标定位及停止通过，见[验收](tasks/UX-029-audio-seek-feedback.md)。声音／灯光只使用宿主游标；当前 Volare 渐变副本暂停 2.080 秒、工程已保存、UE 关闭、设备断开。持续目标接续剧本提示及列表编排。
+
 AUDIO-003 完成（基线 `28657cc`，结果为本次 `feat(audio): add deterministic lighting entry fades on the music timeline` 提交）：进入渐变／能力、Rust 单段边界快照、音频游标与 UI 属性／范围贯通。475 Rust、136 UI、99 格式、fmt／严格检查／桌面及真实 Volare 副本输入／取消／撤销／保存重开／音乐与 UE 通过，见[验收](tasks/AUDIO-003-lighting-transitions.md)。当前正式应用已保存渐变副本，第二段 0.650 秒，音乐停止、UE 关闭、设备断开；原 Volare 未改。发现快速按键下进度条回执竞争，继续 UX-029；重叠、多轨、片段复制／剧本及真实设备同步仍后续。持续 goal active。
 
 FIXTURE-003B 完成（基线 `abc5f7a`，期间集成 STORE-001 `b68fffd`，结果为本次 `feat(fixtures): author typed channel functions across the project workflow` 提交）：命名功能区间、类型化场景／预设、兼容换灯、语义 2 包与目标拒绝、中文建档／多选编辑和预演支持提示贯通。469 Rust、132 UI、97 格式、fmt／严格检查／桌面／Xtensa 源码及原生建档／错误取消／预设／重启／包生成／内嵌 UE 通过，见[验收](tasks/FIXTURE-003B-function-authoring.md)。当前正式应用为独立已保存灯具功能验收工程，灯库四模式，设备断开，UE 关闭；原 Volare 未改。完整光学与真实通道／设备运行仍未验收，持续目标接续时间线及剧本编排。
