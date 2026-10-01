@@ -14,7 +14,8 @@ use std::collections::BTreeSet;
 pub enum StepGroupOperation {
     Copy { before_id: Option<String> },
     Move { before_id: Option<String> },
-    Remove,
+    Remove {},
+    Timing { patch: crate::StepTimingPatch },
 }
 
 pub(super) fn apply(
@@ -38,7 +39,10 @@ pub(super) fn apply(
         return Err("部分所选步骤已不存在，请重新选择".into());
     }
     match operation {
-        StepGroupOperation::Remove => {
+        StepGroupOperation::Timing { patch } => {
+            crate::sequence_timing::apply(steps, &selected, &patch)?;
+        }
+        StepGroupOperation::Remove {} => {
             if selected.len() == steps.len() {
                 return Err("列表至少保留一个步骤；请取消一项选择，或删除整个列表".into());
             }

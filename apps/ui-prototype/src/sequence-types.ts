@@ -20,8 +20,15 @@ export interface SequenceView {
   repeat: "once" | "loop";
   steps: StepView[];
 }
+export interface StepTimingPatch {
+  delayMs?: number;
+  fadeMs?: number;
+  advance?: { kind: "manual" } | { kind: "after"; waitMs: number };
+}
 export type StepGroupOperation =
-  { kind: "copy" | "move"; beforeId: string | null } | { kind: "remove" };
+  | { kind: "copy" | "move"; beforeId: string | null }
+  | { kind: "remove" }
+  | { kind: "timing"; patch: StepTimingPatch };
 export type SequenceEdit =
   | {
       kind: "editSteps";

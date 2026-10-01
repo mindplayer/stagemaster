@@ -1,0 +1,37 @@
+.sequence-group-timing {
+  border-top: 1px solid var(--wb-border);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+.sequence-group-timing summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.group-timing-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px 16px;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+}
+.workbench .group-timing-toggle {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0;
+}
+.workbench .group-timing-toggle input[type="checkbox"] {
+  width: 15px;
+  min-width: 15px;
+  height: 15px;
+  margin: 0;
+}
+.group-timing-row span {
+  font-size: 12px;
+}
+.sequence-group-timing select {
+  margin-bottom: 10px;
+}

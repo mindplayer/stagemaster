@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { ProjectView } from "../../application-host";
 import type {
   SequenceEdit,
@@ -14,6 +14,10 @@ import {
 import { DockPane } from "../layout/DockPane";
 import { ResourcePicker } from "../resources/ResourcePicker";
 import { DeleteDialog } from "./DeleteDialog";
+import {
+  SequenceGroupTiming,
+  type GroupTimingHandle,
+} from "./SequenceGroupTiming";
 import { SequenceGroupList } from "./SequenceGroupList";
 import "./sequence-groups.css";
 
@@ -26,7 +30,13 @@ export function SequenceGroupEditor({
   query,
   setQuery,
   onEdit,
+  timingRef,
+  beforeChange,
+  onPending,
 }: {
+  timingRef: RefObject<GroupTimingHandle | null>;
+  beforeChange(): Promise<boolean>;
+  onPending(value: boolean): void;
   sequence: SequenceView;
   scenes: ProjectView["scenes"];
   busy: boolean;
@@ -75,13 +85,25 @@ export function SequenceGroupEditor({
       })),
   ];
   const validDestination = options.some((o) => o.id === destination);
-  function select(id: string, range: boolean) {
-    setSelected(toggleStepRange(ids, matches, id, anchor.current, range));
+  async function select(id: string, range: boolean) {
+    if (!(await beforeChange())) return;
+    const previousAnchor = anchor.current;
+    setSelected((current) =>
+      toggleStepRange(
+        orderedStepIds(sequence.steps, current),
+        matches,
+        id,
+        previousAnchor,
+        range,
+      ),
+    );
     anchor.current = id;
     setNotice("");
     setError("");
   }
-  async function apply(operation: StepGroupOperation) {
+  async function apply(
+    operation: Exclude<StepGroupOperation, { kind: "timing" }>,
+  ) {
     if (pending.current || disabled || !ids.length) return;
     pending.current = true;
     setWorking(true);
@@ -132,20 +154,31 @@ export function SequenceGroupEditor({
         />
         <button
           disabled={disabled || !matches.length}
-          onClick={() => {
-            setSelected([...new Set([...ids, ...matches.map((s) => s.id)])]);
-            setNotice("");
-          }}
+          onClick={() =>
+            void beforeChange().then((ok) => {
+              if (!ok) return;
+              setSelected((current) => [
+                ...new Set([
+                  ...orderedStepIds(sequence.steps, current),
+                  ...matches.map((s) => s.id),
+                ]),
+              ]);
+              setNotice("");
+            })
+          }
         >
           选择筛选结果
         </button>
         <button
           disabled={disabled || !ids.length}
-          onClick={() => {
-            setSelected([]);
-            anchor.current = null;
-            setNotice("");
-          }}
+          onClick={() =>
+            void beforeChange().then((ok) => {
+              if (!ok) return;
+              setSelected([]);
+              anchor.current = null;
+              setNotice("");
+            })
+          }
         >
           清除选择
         </button>
@@ -243,6 +276,14 @@ export function SequenceGroupEditor({
           )}
           {error && !confirm && <p role="alert">{error}</p>}
           <p role="status">{notice}</p>
+          <SequenceGroupTiming
+            ref={timingRef}
+            sequenceId={sequence.id}
+            steps={sequence.steps.filter((s) => ids.includes(s.id))}
+            busy={disabled}
+            beforeChange={beforeChange}
+            onPending={onPending}
+          />
         </aside>
       </DockPane>
       {confirm && (

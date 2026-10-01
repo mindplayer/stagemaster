@@ -45,6 +45,8 @@ mod sequence;
 mod sequence_groups;
 pub use sequence_groups::StepGroupOperation;
 mod sequence_script;
+mod sequence_timing;
+pub use sequence_timing::{StepAdvance, StepTimingPatch};
 mod stage;
 mod stage_constructions;
 pub use seating::{SeatingAisle, SeatingLayout, SeatingShape};

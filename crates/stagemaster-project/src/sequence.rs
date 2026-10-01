@@ -233,7 +233,7 @@ pub(super) fn next_number(steps: &[Value]) -> Result<String, String> {
         .map(|n| n.to_string())
         .ok_or_else(|| "没有可用编号".into())
 }
-fn duration(ms: u64) -> Value {
+pub(super) fn duration(ms: u64) -> Value {
     json!({"ticks":ms.to_string(),"ticksPerSecond":"1000"})
 }
 fn new_step(scene_id: &str, name: &str, number: &str) -> Value {

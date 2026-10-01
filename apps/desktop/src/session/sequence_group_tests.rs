@@ -84,3 +84,35 @@ fn group_history_is_atomic_and_running_plan_survives_edit_and_undo() {
         seq.steps.len() * 2
     );
 }
+
+#[test]
+fn sparse_group_timing_undo_restores_mixed_values_and_failure_preserves_redo() {
+    let mut root: Value = serde_json::from_slice(include_bytes!(
+        "../../../../docs/project-format/examples/lighting-basic.project.json"
+    ))
+    .unwrap();
+    root["entryPoints"] = json!([]);
+    let doc = Document::decode(&serde_json::to_vec(&root).unwrap()).unwrap();
+    let v = doc.view();
+    let seq = &v.sequences[0];
+    let mut session = Session::default();
+    session.replace(doc.clone(), None);
+    let command = |fade: u64| {
+        serde_json::from_value(json!({"op":"sequence","command":{"kind":"editSteps","id":seq.id,"stepIds":seq.steps.iter().map(|s|&s.id).collect::<Vec<_>>(),"operation":{"kind":"timing","patch":{"fadeMs":fade}}}})).unwrap()
+    };
+    session.edit(session.generation, command(1205)).unwrap();
+    assert_eq!(session.undo.len(), 1);
+    let after = session.document.clone();
+    session.history(session.generation, false).unwrap();
+    assert_eq!(session.document.as_ref(), Some(&doc));
+    let generation = session.generation;
+    assert!(session.edit(generation, command(86_400_001)).is_err());
+    assert_eq!(session.generation, generation);
+    assert_eq!(session.redo.len(), 1);
+    session.history(generation, true).unwrap();
+    assert_eq!(session.document, after);
+    let generation = session.generation;
+    session.edit(generation, command(1205)).unwrap();
+    assert_eq!(session.generation, generation);
+    assert_eq!(session.undo.len(), 1);
+}

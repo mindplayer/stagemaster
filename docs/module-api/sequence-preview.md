@@ -69,3 +69,5 @@ ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不�
 [ADR-069](../development/decisions/PRODUCT-ADR-069-sequence-step-groups.md) 增加 `editSteps` 命令：`id` 为列表、`stepIds` 为非空唯一的步骤身份，`operation` 为 `copy`／`move`（`beforeId` 为目标 UUID，null 表示末尾）或 `remove`。Rust 按原执行顺序处理，最多 1024 步；跨列表身份、失效目标、移动到组内、复制超限、删空列表均原子拒绝。编号只是展示编号，移动不重新编号，复制分配新 UUID 和未占用整数编号。
 
 复制保留场景引用、时间与剧本，未展开继承后的最终灯光；顺序或数量改变会重新解析跟踪，因此界面明确提醒重新预演。操作只改工程，一次撤销整个组，不改变已载入计划。`SequenceGroupEditor` 只持有筛选、选择、目标和确认状态，复用工程事务／资源搜索；切页保留、换列表重建、隐藏选项计入操作且明确显示数量。
+
+[ADR-070](../development/decisions/PRODUCT-ADR-070-sequence-group-timing.md) 扩展 `operation: {kind:"timing",patch}`，其中 `delayMs`／`fadeMs`／`advance` 均可省略，省略代表保留每步原值。advance 仅为 `{kind:"manual"}` 或 `{kind:"after",waitMs}`；空 patch、未知字段与不合法整数／超限时间拒绝。手动形式不能夹带 waitMs。每项最多 86400000 毫秒；所有所选步骤一次原子提交与历史。UI 统一时间表单只生成选中字段，冻结步骤身份，通过既有 collect／accept 参加保存和上下文切换，不在 TS 推演播放时序。

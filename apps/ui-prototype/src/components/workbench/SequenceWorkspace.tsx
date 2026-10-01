@@ -9,6 +9,7 @@ import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { SequenceWorkspaceHeading } from "./SequenceWorkspaceHeading";
 import { SequenceGroupEditor } from "./SequenceGroupEditor";
+import type { GroupTimingHandle } from "./SequenceGroupTiming";
 import type {
   ApplicationHost,
   EditCommand,
@@ -64,6 +65,7 @@ export const SequenceWorkspace = forwardRef<
   ref,
 ) {
   const [batch, setBatch] = useState(false);
+  const groupTiming = useRef<GroupTimingHandle>(null);
   const [position, setPosition] = useState(() => executionPosition(null));
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
   const [stepId, setStepId] = useState(
@@ -104,6 +106,7 @@ export const SequenceWorkspace = forwardRef<
     }
   }
   function cancel() {
+    groupTiming.current?.accept();
     draftRef.current = null;
     setDraft(null);
     setLocalError("");
@@ -111,9 +114,10 @@ export const SequenceWorkspace = forwardRef<
   }
   function collect(): EditOperation[] {
     const d = draftRef.current;
-    if (!d || !sequence || !step) return [];
+    const grouped = groupTiming.current?.collect() ?? [];
+    if (!d || !sequence || !step) return grouped;
     try {
-      return sequenceCommands(d, sequence, step);
+      return [...grouped, ...sequenceCommands(d, sequence, step)];
     } catch (reason) {
       setLocalError(reason instanceof Error ? reason.message : String(reason));
       if (reason instanceof SequenceInputError)
@@ -304,6 +308,9 @@ export const SequenceWorkspace = forwardRef<
                 query={stepQuery}
                 setQuery={setStepQuery}
                 onEdit={edit}
+                timingRef={groupTiming}
+                beforeChange={beforeChange}
+                onPending={onPending}
               />
             ) : (
               <>
