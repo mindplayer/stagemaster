@@ -9,6 +9,7 @@ mod package;
 mod patch_report;
 mod preview;
 mod previs;
+mod profile_file;
 mod recent;
 mod recovery;
 mod session;
@@ -173,6 +174,7 @@ fn main() {
         .manage(check::Service::default())
         .manage(package::Service::default())
         .manage(patch_report::Service::default())
+        .manage(profile_file::Service::default())
         .manage(devices)
         .manage(installation)
         .setup(|app| {
@@ -244,6 +246,8 @@ fn main() {
             package::package_build,
             package::package_export,
             patch_report::patch_report_export,
+            profile_file::profile_file_export,
+            profile_file::profile_file_import,
             recovery::recovery_request,
             recent::recent_request,
             device::device_request,

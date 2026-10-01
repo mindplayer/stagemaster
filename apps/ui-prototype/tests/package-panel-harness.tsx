@@ -11,6 +11,8 @@ const unavailable = async () => {
 };
 const host: ApplicationHost = {
   exportPatchReport: unavailable,
+  importProfile: unavailable,
+  exportProfile: unavailable,
   recent: async () => [],
   audio: async () => {throw new Error("此组件不调用音频");},
   audioPrepare: async () => {throw new Error("此组件不调用音频");},

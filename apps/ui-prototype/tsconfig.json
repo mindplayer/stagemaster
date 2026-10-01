@@ -17,6 +17,7 @@
     "tests/marker-motion.test.ts",
     "tests/marker-gesture-harness.tsx",
     "tests/patch-report-harness.tsx",
+    "tests/profile-file-harness.tsx",
     "tests/seating.test.ts",
     "tests/audio-clip-batch-harness.tsx",
     "tests/audio-clip-groups.test.ts",

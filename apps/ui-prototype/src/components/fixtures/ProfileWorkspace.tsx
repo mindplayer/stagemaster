@@ -1,32 +1,28 @@
+import {
+  ProfileFileActions,
+  ImportedProfileNotice,
+} from "./ProfileFileActions";
+import type { ApplicationHost } from "../../application-host";
 import { ProfileMetadata } from "./ProfileMetadata";
 import { ProfileMotionFields } from "./ProfileMotionFields";
 import { ProfileLinearChannels } from "./ProfileLinearChannels";
 import { ProfileFunctionChannels } from "./ProfileFunctionChannels";
 import { ChannelStrip } from "./ProfileChannelStrip";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import type {
-  EditCommand,
-  EditOperation,
-  ProjectView,
-} from "../../application-host";
-import {
-  FixtureFieldError,
-  profileDefinition,
-  profileDraft,
-  profileMatches,
-  type ProfileDraft,
-} from "../../fixture-tools";
+import { forwardRef, useRef, useState } from "react";
+import { useProfileDraft, type ProfileHandle } from "./useProfileDraft";
+export type { ProfileHandle } from "./useProfileDraft";
+import type { EditCommand, ProjectView } from "../../application-host";
+import { profileDraft, profileMatches } from "../../fixture-tools";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import "./fixtures.css";
-export interface ProfileHandle {
-  collect(): EditOperation[];
-  accept(): void;
-}
 export const ProfileWorkspace = forwardRef<
   ProfileHandle,
   {
     project: ProjectView;
+    host: ApplicationHost;
+    generation: number;
+    capture(): Promise<number | null>;
     visible: boolean;
     busy: boolean;
     error: string;
@@ -36,69 +32,52 @@ export const ProfileWorkspace = forwardRef<
     onBack(): void;
   }
 >(function ProfileWorkspace(
-  { project, visible, busy, error, onPending, beforeChange, onEdit, onBack },
+  {
+    project,
+    host,
+    generation,
+    capture,
+    visible,
+    busy,
+    error,
+    onPending,
+    beforeChange,
+    onEdit,
+    onBack,
+  },
   ref,
 ) {
   const [selectedId, setSelectedId] = useState(""),
     [query, setQuery] = useState("");
-  const [draft, setDraftState] = useState<ProfileDraft | null>(null),
-    draftRef = useRef<ProfileDraft | null>(null);
-  const editingId = useRef<string | null>(null),
-    form = useRef<HTMLFormElement>(null);
   const [remove, setRemove] = useState(false);
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  function cancelEditing() {
+    const fromFile = Boolean(imported);
+    cancel();
+    if (fromFile) importButtonRef.current?.focus();
+  }
   const profile =
     project.profiles.find((p) => p.id === selectedId) ??
     project.profiles.at(-1);
   const used = project.fixtures.filter((f) => f.profileId === profile?.id);
-  function setDraft(value: ProfileDraft | null) {
-    draftRef.current = value;
-    setDraftState(value);
-    onPending(value !== null);
-  }
-  function cancel() {
-    setDraft(null);
-  }
-  function collect(): EditOperation[] {
-    if (!draftRef.current) return [];
-    try {
-      return [
-        {
-          op: "fixture",
-          command: {
-            op: "saveProfile",
-            id: editingId.current,
-            definition: profileDefinition(draftRef.current),
-          },
-        },
-      ];
-    } catch (reason) {
-      if (reason instanceof FixtureFieldError) {
-        const field = form.current?.elements.namedItem(
-          reason.field,
-        ) as HTMLInputElement | null;
-        field?.focus();
-        field?.setCustomValidity?.(reason.message);
-        field?.reportValidity?.();
-      }
-      throw reason;
-    }
-  }
-  useImperativeHandle(ref, () => ({
-    collect,
-    accept() {
-      if (draftRef.current) {
-        setSelectedId(editingId.current ?? "");
-        setDraft(null);
-      }
-    },
-  }));
-  async function begin(copy: boolean) {
-    if (!(await beforeChange())) return;
-    editingId.current = copy ? null : (profile?.id ?? null);
-    const next = profileDraft(profile);
-    if (copy) next.name = `${next.name} 副本`;
-    setDraft(next);
-  }
+  const {
+    draft,
+    editingExisting,
+    imported,
+    form,
+    setDraft,
+    cancel,
+    begin,
+    beginNew,
+    importFile,
+    save,
+  } = useProfileDraft({
+    ref,
+    profile,
+    beforeChange,
+    onPending,
+    onSelected: setSelectedId,
+  });
   const shown = project.profiles.filter((p) => profileMatches(p, query));
   const value = draft ?? (profile ? profileDraft(profile) : null);
   return (
@@ -118,16 +97,20 @@ export const ProfileWorkspace = forwardRef<
         <button
           className="wb-primary"
           disabled={busy}
-          onClick={async () => {
-            if (await beforeChange()) {
-              editingId.current = null;
-              setDraft(profileDraft());
-            }
-          }}
+          onClick={() => void beginNew()}
         >
           新建模式
         </button>
       </header>
+      <ProfileFileActions
+        importButtonRef={importButtonRef}
+        {...{ host, generation, profile, busy, visible, capture }}
+        hasDrafts={draft !== null}
+        onImport={(file) => {
+          setQuery("");
+          importFile(file);
+        }}
+      />
       <div className="fixture-library-body">
         <aside>
           <input
@@ -177,7 +160,7 @@ export const ProfileWorkspace = forwardRef<
               noValidate
               onSubmit={(e) => {
                 e.preventDefault();
-                void beforeChange();
+                void save();
               }}
               onInputCapture={(e) => {
                 if (
@@ -189,17 +172,29 @@ export const ProfileWorkspace = forwardRef<
               onKeyDown={(e) => {
                 if (e.key === "Escape" && draft && !busy) {
                   e.preventDefault();
-                  cancel();
+                  cancelEditing();
                 }
               }}
             >
+              {imported && draft && (
+                <ImportedProfileNotice
+                  file={imported}
+                  name={value.name.trim()}
+                  sameNameCount={
+                    project.profiles.filter((p) => p.name === value.name.trim())
+                      .length
+                  }
+                />
+              )}
               <div className="profile-title">
                 <div>
                   <h2>
                     {draft
-                      ? editingId.current
+                      ? editingExisting
                         ? "编辑模式"
-                        : "新建模式"
+                        : imported
+                          ? "导入模式"
+                          : "新建模式"
                       : profile?.name}
                   </h2>
                   <p className="wb-dim">
@@ -266,11 +261,15 @@ export const ProfileWorkspace = forwardRef<
               )}
               {draft && (
                 <div className="profile-actions profile-footer">
-                  <button type="button" disabled={busy} onClick={cancel}>
-                    取消编辑
+                  <button type="button" disabled={busy} onClick={cancelEditing}>
+                    {imported ? "取消导入" : "取消编辑"}
                   </button>
-                  <button className="wb-primary" disabled={busy}>
-                    保存模式
+                  <button
+                    className="wb-primary"
+                    disabled={busy}
+                    data-import-save={imported ? "true" : undefined}
+                  >
+                    {imported ? "保存到工程" : "保存模式"}
                   </button>
                 </div>
               )}

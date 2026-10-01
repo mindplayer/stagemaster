@@ -132,6 +132,13 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
+  importProfile(
+    generation: number,
+  ): Promise<import("./profile-file-types").ImportedProfile | null>;
+  exportProfile(
+    generation: number,
+    profileId: string,
+  ): Promise<import("./profile-file-types").ExportedProfile>;
   exportPatchReport(
     generation: number,
   ): Promise<import("./report-types").PatchReportExport>;

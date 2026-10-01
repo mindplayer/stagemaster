@@ -16,6 +16,8 @@ mod output;
 mod preview;
 mod previs;
 #[cfg(test)]
+mod profile_file_tests;
+#[cfg(test)]
 mod report_tests;
 #[cfg(test)]
 mod sequence_group_tests;

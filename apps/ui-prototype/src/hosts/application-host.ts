@@ -4,6 +4,10 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      importProfile: (generation) =>
+        invoke("profile_file_import", { generation }),
+      exportProfile: (generation, profileId) =>
+        invoke("profile_file_export", { generation, profileId }),
       exportPatchReport: (generation) =>
         invoke("patch_report_export", { generation }),
       output: (request) => invoke("output_request", { request }),
@@ -30,6 +34,12 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      importProfile: async () => {
+        throw new Error("请使用桌面应用导入本机灯具模式");
+      },
+      exportProfile: async () => {
+        throw new Error("请使用桌面应用导出灯具模式");
+      },
       exportPatchReport: async () => {
         throw new Error("请使用桌面应用导出配灯表");
       },

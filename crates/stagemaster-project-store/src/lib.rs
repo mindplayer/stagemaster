@@ -1,9 +1,11 @@
 //! Local file persistence, separate from project semantics and desktop dialogs.
 mod package;
 mod patch_report;
+mod profile_file;
 mod recovery;
 pub use package::PackageFile;
 pub use patch_report::PatchReportFile;
+pub use profile_file::ProfileFileStore;
 pub use recovery::{
     MAX_RECOVERY_RECORDS, RecoveryCandidate, RecoveryCatalog, RecoveryEntry, RecoverySession,
     RecoveryState, RecoveryStore,

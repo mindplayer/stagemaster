@@ -914,6 +914,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               <ProfileWorkspace
                 key={`profiles:${project.id}`}
                 ref={profiles}
+                host={host}
+                generation={snapshot.generation}
+                capture={captureCheck}
                 project={project}
                 visible={page === "profiles"}
                 busy={busy}

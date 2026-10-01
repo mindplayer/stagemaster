@@ -32,6 +32,8 @@ mod fixture_exchange;
 mod fixture_function;
 mod fixture_value;
 mod fixture_view;
+mod profile_file;
+pub use profile_file::{MAX_PROFILE_FILE_BYTES, ProfileFile, ProfileSource};
 mod function_output;
 mod output;
 mod output_intensity;

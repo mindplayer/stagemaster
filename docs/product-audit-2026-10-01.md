@@ -154,7 +154,7 @@
 | U09／U10 | UX-018／020／021 收紧属性与执行密度，[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面与共享有序选择；[UX-031](development/tasks/UX-031-shared-stage-overview.md) 步骤／音乐的平面查看及单份音乐进度；[UX-032](development/tasks/UX-032-focus-editing-layout.md) 专注编排与任务偏好、窄宽自适应 | 更多任务布局、完整辅助功能与独立用户操作测试 |
 | U11 | [UX-024](development/tasks/UX-024-recent-projects.md) 最近工程及“下发节目”，[UX-028](development/tasks/UX-028-project-resource-health.md) 音乐健康与修复导航 | 多媒体资源扩展与其他平台验收 |
 | D01 | [DOC-001](development/tasks/DOC-001-current-capability-map.md) 当前表、README、能力导航／计划对齐 | 随每次能力变化维护，不再堆叠相互矛盾的当前表述 |
-| F02 | POSITION-001／EFFECT-003 物理双轴；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 功能区间建档／类型值／预设／兼容包；FIXTURE-003A 直接切换执行 | 多单元／关联通道、复位控制、物理光学、GDTF 导入和实灯验证 |
+| F02 | POSITION-001／EFFECT-003 物理双轴；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 功能区间建档／类型值／预设／兼容包；FIXTURE-003A 直接切换执行；[FIXTURE-004](development/tasks/FIXTURE-004-portable-modes.md) 模式文件跨工程复用与显式导入检查 | 多单元／关联通道、复位控制、物理光学、GDTF 导入和实灯验证 |
 | F01 | 既有设备安装／内存保护有实板证据 | 真实 DMX、脱机执行、现场时序与灯具验收仍未关闭 |
 
 工程交接增量：[REPORT-001](development/tasks/REPORT-001-patch-report-export.md) 已提供全灯具快照配灯表 CSV（含模式／地址／世界安装位置与来源），原生 80 灯内容、取消／错误草稿和历史保护通过。灯位图纸、节目单、可携带灯库与跨机／表格应用兼容仍另验。
