@@ -1,3 +1,5 @@
+import { WaveformToolbar } from "./WaveformToolbar";
+import { selectionViewRange } from "./selection-view";
 import type { ClipLaneSelection } from "./clip-selection";
 import type { SceneView } from "../../application-host";
 import { useMemo, useState, type RefObject } from "react";
@@ -75,6 +77,14 @@ export function AudioWaveform({
   );
   const channels = prepared.peaks?.length ?? 1;
   const blocked = disabled || !prepared.peaks;
+  const range = selectionViewRange(track, selected, clipSelection);
+  const canFit = !blocked && wave.ready && !!range;
+  function fitSelected() {
+    if (canFit && range && wave.fitSelection(range)) {
+      wave.follow.current = false;
+      setFollow(false);
+    }
+  }
   function overviewPoint(clientX: number, el: HTMLElement) {
     const rect = el.getBoundingClientRect();
     wave.center(
@@ -88,73 +98,48 @@ export function AudioWaveform({
     <section
       className="audio-timeline audio-wave-editor"
       aria-label="音乐时间线"
+      onKeyDown={(event) => {
+        if (
+          (event.metaKey || event.ctrlKey) &&
+          !event.altKey &&
+          !event.shiftKey &&
+          !event.repeat &&
+          event.key.toLowerCase() === "e" &&
+          !(
+            event.target instanceof HTMLElement &&
+            event.target.closest("input,select,textarea,[contenteditable=true]")
+          )
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          fitSelected();
+        }
+      }}
     >
-      <div className="audio-wave-toolbar">
-        <div className="audio-wave-identity">
-          <span className="audio-track-number">01</span>
-          <strong>音乐</strong>
-          <span>{channels === 2 ? "立体声" : "单声道"}</span>
-        </div>
-        <div className="audio-wave-controls">
-          <label>
-            <input
-              type="checkbox"
-              checked={follow}
-              onChange={(e) => {
-                setFollow(e.target.checked);
-                wave.follow.current = e.target.checked;
-              }}
-            />
-            跟随
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={snap}
-              onChange={(e) => setSnap(e.target.checked)}
-            />
-            吸附
-          </label>
-          <label>
-            显示幅度
-            <select
-              aria-label="波形显示幅度"
-              value={gain}
-              onChange={(e) => {
-                setGain(e.target.value);
-              }}
-            >
-              <option value="1">原始</option>
-              <option value="2">×2</option>
-              <option value="4">×4</option>
-            </select>
-          </label>
-          <button
-            aria-label="缩小波形"
-            disabled={!prepared.peaks || wave.zoom <= 1}
-            onClick={() => wave.zoomTo(wave.zoom / 1.5)}
-          >
-            −
-          </button>
-          <input
-            type="range"
-            aria-label="波形缩放"
-            min="0"
-            max={Math.log2(wave.maxZoom) * 15}
-            value={Math.log2(wave.zoom) * 15}
-            onChange={(e) => wave.zoomTo(2 ** (Number(e.target.value) / 15))}
-          />
-          <button
-            aria-label="放大波形"
-            disabled={!prepared.peaks || wave.zoom >= wave.maxZoom}
-            onClick={() => wave.zoomTo(wave.zoom * 1.5)}
-          >
-            ＋
-          </button>
-          <button onClick={() => wave.zoomTo(1)}>全曲</button>
-          <button onClick={() => wave.center()}>播放头</button>
-        </div>
-      </div>
+      <WaveformToolbar
+        channels={channels}
+        follow={follow}
+        snap={snap}
+        gain={gain}
+        zoom={wave.zoom}
+        maxZoom={wave.maxZoom}
+        ready={wave.ready}
+        canFit={canFit}
+        fitTitle={
+          range
+            ? `显示“${range.label}”的完整范围，保持播放位置（⌘E / Ctrl+E）`
+            : "先选择灯光片段或卡点"
+        }
+        onFollow={(value) => {
+          setFollow(value);
+          wave.follow.current = value;
+        }}
+        onSnap={setSnap}
+        onGain={setGain}
+        onZoom={wave.zoomTo}
+        onCenter={wave.center}
+        onFit={fitSelected}
+      />
       {(prepared.problem || wave.problem) && (
         <div role="alert" className="audio-error">
           {prepared.problem || wave.problem}

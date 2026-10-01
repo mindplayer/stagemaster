@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-016 完成（基线 `1446271`，结果为本次 `feat(audio): fit timeline view to selected lighting ranges` 提交）：所选片段／组／卡点与旧段落视图适应、跟随退出和草稿保护；270 UI、类型／桌面及真实波形／原生验证通过，见[工单](tasks/AUDIO-016-selection-view.md)。来源与副本哈希一致，音乐 0／UE 关闭／设备断开；持续 goal active，接续卡点组的时间线衔接。
+
 UX-046 完成（2026-10-02，基线 `379dc44`，结果为本次 `feat(scenes): review references before atomic group removal` 提交）：单／批量场景删除审阅、引用阻断及精确处理入口，固定对象／取消焦点／原子历史；609 Rust、268 UI、严格检查／类型／格式／桌面、原生错误草稿／混合组／撤销保存重开通过，见[工单](tasks/UX-046-scene-removal-preflight.md)。仅删除副本三场景，原内容完整，来源未改；当前 17 场景已保存，无音乐／UE 关闭／设备断开。持续 goal active，接续时间线视图定位。
 
 UX-045 完成（2026-10-02，基线 `707daea`，结果为本次 `feat(scenes): inspect references and navigate to exact editing locations` 提交）：场景直接使用位置／搜索分页、精确步骤／片段／卡点编辑导航、收起面板与筛选／忙时序保护；266 UI、类型／格式／桌面及原生新旧工程草稿拒绝／上下文／播放隔离通过，见[工单](tasks/UX-045-scene-usage-navigation.md)。两个副本与来源哈希一致，当前旧卡点副本已保存、音乐 0／UE 关闭／设备断开；持续 goal active，接续删除预检。

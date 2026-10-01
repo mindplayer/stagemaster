@@ -1,3 +1,4 @@
+import { fitSelectionView, type SelectionViewRange } from "./selection-view";
 import { audioDisplayTime } from "../../audio-loop-tools";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import WaveSurfer from "wavesurfer.js";
@@ -29,12 +30,14 @@ export function useWaveSurfer(
   });
   const [zoom, setZoom] = useState(1);
   const [problem, setProblem] = useState("");
+  const [ready, setReady] = useState(false);
   const latest = useRef({ sample, duration });
   latest.current = { sample, duration };
   useEffect(() => {
     if (!detail.current || !ruler.current || !overview.current || !peaks)
       return;
     setProblem("");
+    setReady(false);
     setZoom(1);
     const minimap = Minimap.create({
       container: overview.current,
@@ -100,7 +103,10 @@ export function useWaveSurfer(
     const off = [
       wave.on("scroll", update),
       wave.on("redrawcomplete", update),
-      wave.on("ready", update),
+      wave.on("ready", () => {
+        setReady(true);
+        update();
+      }),
       wave.on("error", () => setProblem("波形显示失败，请重新打开音频工作区")),
     ];
     let frame = 0;
@@ -144,6 +150,7 @@ export function useWaveSurfer(
       off.forEach((fn) => fn());
       wave.destroy();
       instance.current = null;
+      setReady(false);
     };
   }, [peaks, duration, channelHeight]);
   useEffect(() => {
@@ -164,6 +171,17 @@ export function useWaveSurfer(
     wave.setScroll(zoomAround(anchor, localX, px));
     manualUntil.current = performance.now() + 1500;
     setZoom(ratio);
+  }
+  function fitSelection(range: SelectionViewRange) {
+    const wave = instance.current;
+    if (!wave?.getDecodedData()) return false;
+    const plan = fitSelectionView(duration, wave.getWidth(), range);
+    if (!plan) return false;
+    wave.zoom(plan.pixelsPerSecond);
+    wave.setScroll(plan.scrollPixels);
+    manualUntil.current = performance.now() + 1500;
+    setZoom(plan.ratio);
+    return true;
   }
   function center(time = sample.current.position.positionMs) {
     const wave = instance.current;
@@ -194,6 +212,8 @@ export function useWaveSurfer(
     zoom,
     maxZoom: Math.max(1, ((duration / 1000) * 400) / viewport.width),
     zoomTo,
+    fitSelection,
+    ready,
     center,
     pan,
     problem,

@@ -1,5 +1,7 @@
 # 实现状态
 
+[AUDIO-016](development/tasks/AUDIO-016-selection-view.md) 已补所选片段／组／卡点与旧段落视图适应、关闭跟随与草稿保护，不改变播放位置或工程。
+
 [UX-046](development/tasks/UX-046-scene-removal-preflight.md) 已补单／批量场景删除前审阅、引用阻断和使用位置编辑入口；任一被引用即全组保护，成功一次历史，原生保存重开与内容核对通过。
 
 [UX-045](development/tasks/UX-045-scene-usage-navigation.md) 已补场景使用位置、引用搜索与精确编辑导航；可跨步骤执行视图、音乐片段／旧卡点批量模式和筛选找回目标，播放位置保持，错误草稿拒绝。
