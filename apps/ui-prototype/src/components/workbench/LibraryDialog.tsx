@@ -8,6 +8,7 @@ export function LibraryDialog({
   onCancel,
   onSubmit,
   submit = "保存",
+  submitDisabled = false,
   children,
 }: {
   title: string;
@@ -16,6 +17,7 @@ export function LibraryDialog({
   onCancel(): void;
   onSubmit(): Promise<boolean>;
   submit?: string;
+  submitDisabled?: boolean;
   children: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -65,7 +67,7 @@ export function LibraryDialog({
           <button type="button" disabled={busy} onClick={onCancel}>
             取消
           </button>
-          <button className="wb-primary" disabled={busy}>
+          <button className="wb-primary" disabled={busy || submitDisabled}>
             {submit}
           </button>
         </div>

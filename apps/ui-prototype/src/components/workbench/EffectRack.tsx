@@ -164,6 +164,7 @@ export function EffectRack({
       {importing && (
         <EffectReuseDialog
           scenes={scenes}
+          fixtures={fixtures}
           selected={selected}
           onCancel={() => setImporting(false)}
           onChoose={(effect, fixtures) => {

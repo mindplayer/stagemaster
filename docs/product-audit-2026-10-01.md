@@ -140,11 +140,11 @@
 
 ## 实施跟踪（2026-10-01）
 
-下表对齐 EXEC-003；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
+下表对齐 EFFECT-005；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
 
 | 原问题 | 已实施与验证 | 剩余范围 |
 | --- | --- | --- |
-| U01／U02 | [UX-018](development/tasks/UX-018-scene-editing-flow.md) 属性／常驻灯组，[UX-019](development/tasks/UX-019-context-and-effect-curves.md) 预设／曲线，[UX-027](development/tasks/UX-027-searchable-resources.md) 资源搜索 ；FIXTURE-003B 已接功能选择及预设明细 | 完整光学／控制属性仍取决于 F02 扩展 |
+| U01／U02 | [UX-018](development/tasks/UX-018-scene-editing-flow.md) 属性／常驻灯组，[UX-019](development/tasks/UX-019-context-and-effect-curves.md) 预设／曲线，[UX-027](development/tasks/UX-027-searchable-resources.md) 资源搜索 ；FIXTURE-003B 已接功能选择及预设明细；[EFFECT-005](development/tasks/EFFECT-005-reuse-and-order.md) 效果复用来源／目标预检、分页检索及整组灯序 | 完整光学／控制属性仍取决于 F02 扩展 |
 | U03 | [UX-020](development/tasks/UX-020-docked-effect-editing.md) 非模态草稿、取消／撤销；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 独立双轴角度与运动模板；[EFFECT-004](development/tasks/EFFECT-004-live-draft-preview.md) 草稿即时预演／错误保持／取消恢复及唯一三维 | 现场主控、世界目标轨迹后续 |
 | U04 | UX-018 显式场景预演与对象／版本；[UX-023](development/tasks/UX-023-previs-session-contention.md) 短时锁竞争，EFFECT-003 修复旧预演错误残留 | 实际现场输出与编排源隔离仍须硬件验收 |
 | U05 | [UX-021](development/tasks/UX-021-execution-view.md) 当前／下一步／选择分离、执行面与跳转保护；[EXEC-001](development/tasks/EXEC-001-preview-output-master.md) 常驻预演亮度总控／熄灯与共享输出；[EXEC-002](development/tasks/EXEC-002-preview-rate.md) 主机连续预演速率／暂停保持／载入重置；[EXEC-003](development/tasks/EXEC-003-execution-keyboard.md) 焦点限定键盘、松键／忙保护及跨页／失焦退出 | 多执行器、真实输出主控、临时覆盖与完整应急操作 |

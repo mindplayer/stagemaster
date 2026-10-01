@@ -1,5 +1,6 @@
 import type { FixtureView, EditOperation } from "./application-host";
 import type { SceneEffect } from "./effect-types";
+import { effectTargetIssues } from "./effect-targets.ts";
 import {
   createPositionEffect,
   isPositionTemplate,
@@ -102,20 +103,13 @@ export function effectCommands(
   illuminate: boolean,
 ): EditOperation[] {
   if (!effect.name.trim()) throw new Error("请填写效果名称");
-  if (!effect.fixtureIds.length) throw new Error("效果至少需要一台灯具");
-  if (new Set(effect.fixtureIds).size !== effect.fixtureIds.length)
-    throw new Error("效果灯具不能重复");
-  for (const id of effect.fixtureIds) {
-    const fixture = fixtures.find((f) => f.id === id);
-    if (
-      !fixture ||
-      (effect.waveform === "position" && !fixture.positioning) ||
-      effect.channels.some(
-        (c) => !fixture.attributes.some((a) => a.key === c.attribute),
-      )
-    )
-      throw new Error(`灯具“${fixture?.name ?? id}”不支持此效果的属性`);
-  }
+  const issue = effectTargetIssues(
+    effect.fixtureIds,
+    fixtures,
+    effect.channels,
+    effect.waveform === "position",
+  )[0];
+  if (issue) throw new Error(`灯具“${issue.name}”：${issue.reason}`);
   const commands: EditOperation[] = [
     {
       op: "effect",

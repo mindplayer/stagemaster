@@ -1,0 +1,60 @@
+.effect-order-actions,
+.effect-reuse-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+.effect-order-actions button {
+  font-size: 12px;
+  padding: 5px 8px;
+}
+.effect-reuse-pages > span:first-child {
+  margin-right: auto;
+}
+.effect-reuse-source {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  margin: 10px 0;
+  border-left: 3px solid var(--wb-accent);
+  background: #20323a;
+  overflow-wrap: anywhere;
+}
+.effect-reuse-source > button {
+  align-self: flex-start;
+}
+.effect-target-report {
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 12px;
+  color: #f1d797;
+  background: #302d23;
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+.effect-target-report ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.effect-target-report li {
+  margin: 4px 0;
+}
+.effect-order > ol > li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto auto;
+  gap: 4px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.effect-order > ol > li > span {
+  grid-column: 2 / -1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.effect-order > ol > li > button:first-of-type {
+  grid-column: 3;
+}
