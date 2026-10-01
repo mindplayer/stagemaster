@@ -1,19 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "strict": true,
-    "types": [
-      "node",
-      "vite/client"
-    ],
+    "types": ["node", "vite/client"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true
@@ -21,6 +14,8 @@
   "include": [
     "src",
     "tests/timeline-scroll-harness.tsx",
+    "tests/marker-motion.test.ts",
+    "tests/marker-gesture-harness.tsx",
     "tests/seating.test.ts",
     "tests/audio-clip-batch-harness.tsx",
     "tests/audio-clip-groups.test.ts",

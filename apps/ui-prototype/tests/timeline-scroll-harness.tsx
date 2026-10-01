@@ -1,4 +1,5 @@
 import { trimmedEffectOffset } from "../src/components/audio/clip-trim-tools";
+import { validateMarker } from "../src/audio-tools";
 // Isolated real waveform/lane components. No sound, files, engine or device I/O.
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -11,6 +12,7 @@ import type {
 } from "../src/audio-types";
 import "../src/base.css";
 import "../src/components/audio/audio.css";
+const markerMode = new URLSearchParams(location.search).has("markers");
 const initial: AudioTimeline = {
   asset: {
     digest: "ab".repeat(32),
@@ -70,6 +72,15 @@ const waveform = {
     ),
   ],
 } satisfies Wave;
+if (markerMode) {
+  delete initial.lightingClips;
+  initial.markers = [
+    { id: "m1", name: "节奏一", timeMs: 1000, sceneId: null },
+    { id: "m2", name: "邻近节奏", timeMs: 1050, sceneId: null },
+    { id: "start", name: "开场", timeMs: 3000, sceneId: "s", fadeMs: 500 },
+    { id: "end", name: "收束", timeMs: 40000, sceneId: "t", fadeMs: 1000 },
+  ];
+}
 function Harness() {
   const [track, setTrack] = useState(initial),
     [selected, setSelected] = useState("one"),
@@ -78,6 +89,7 @@ function Harness() {
     [visible, setVisible] = useState(true),
     [moves, setMoves] = useState(0),
     [seeks, setSeeks] = useState(0);
+  const [error, setError] = useState("");
   const sample = useRef<{ position: AudioPosition; at: number }>({
     position: {
       positionMs: 505,
@@ -115,17 +127,22 @@ function Harness() {
       </button>
       <output role="status">
         提交 {moves} 次；定位 {seeks} 次；选择 {ids.join(",")}；
-        {track
-          .lightingClips!.map(
+        {track.lightingClips
+          ?.map(
             (c) =>
               `${c.name} ${c.startMs}—${c.endMs}（效果起点 ${c.effectOffsetMs ?? 0}）`,
           )
           .join("；")}
+        {track.markers.map((m) => `${m.name} ${m.timeMs}`).join("；")}
       </output>
+      {error && <p role="alert">{error}</p>}
       <div style={{ display: visible ? "block" : "none" }}>
         <AudioWaveform
           track={track}
-          scenes={[]}
+          scenes={[
+            { id: "s", name: "蓝色", values: [], effects: [] },
+            { id: "t", name: "金色", values: [], effects: [] },
+          ]}
           waveform={waveform}
           sample={sample}
           selected={selected}
@@ -133,7 +150,21 @@ function Harness() {
           compact
           onSeek={() => setSeeks((v) => v + 1)}
           onSelect={setSelected}
-          onMove={() => {}}
+          onMove={(marker) => {
+            try {
+              validateMarker(marker, track);
+              setTrack({
+                ...track,
+                markers: track.markers
+                  .map((m) => (m.id === marker.id ? marker : m))
+                  .sort((a, b) => a.timeMs - b.timeMs),
+              });
+              setMoves((v) => v + 1);
+              setError("");
+            } catch (error) {
+              setError(String(error));
+            }
+          }}
           onClipMove={(clip, mode) => {
             const previous = track.lightingClips!.find(
               (c) => c.id === clip.id,

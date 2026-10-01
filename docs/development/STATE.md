@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-014 完成（基线 `957e832`，结果为本次 `feat(audio): extend edge scrolling to markers and legacy boundaries` 提交）：卡点／旧段落共用边缘滚动、三像素阈值与生命周期取消；227 UI、类型／格式／桌面、真实组件与隔离保持态、原生撤销／重做／保存重开通过，见[工单](tasks/AUDIO-014-marker-edge-scroll.md)。独立副本卡点 2.622 秒已保存，音乐 0／UE 关闭／设备断开；持续 goal active，接续配灯表交接。
+
 UX-033 完成（基线 `72d5f1b`，结果为本次 `feat(stage): avoid collisions between fixture labels` 提交）：三处平面共享标签避让／选中优先／字素缩略与省略提示；223 UI、类型／格式／桌面、密集组件及原生三视图通过，见[工单](tasks/UX-033-fixture-label-collision.md)。独立工程哈希未改、音乐 0／UE 关闭／设备断开，持续 goal active，接续卡点边缘滚动。
 
 AUDIO-013 完成（基线 `af76c72`，结果为本次 `feat(audio): preserve effect progress when trimming clips` 提交）：依 ADR-077 增加显式裁切事务、源范围保护及精确时间模式；571 Rust＋历史 1、218 UI、113 格式、类型／fmt／严格检查／桌面与组件／原生取消历史保存重开通过，见[工单](tasks/AUDIO-013-phase-preserving-trim.md)。副本首段开始／效果起点均 333 毫秒已保存，原工程未改；音乐 0／UE 关闭／设备断开。持续 goal active，接续灯位标签避让。
