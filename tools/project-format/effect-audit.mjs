@@ -1,3 +1,4 @@
+import { auditEffectTemplateSource } from "./effect-template-audit.mjs";
 import assert from "node:assert/strict";
 const unique = (values, label) =>
   assert(new Set(values).size === values.length, `重复${label}`);
@@ -8,6 +9,7 @@ export function auditEffects(scene, declared, get, attr) {
   if (effects.length)
     assert(declared.has("lighting.effects.basic@1"), "缺少动态效果能力声明");
   for (const effect of effects) {
+    auditEffectTemplateSource(effect.templateSource, declared);
     unique(
       effect.channels.map((c) => c.attribute),
       "效果属性",

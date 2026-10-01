@@ -6,7 +6,7 @@
   "description": "工程格式草案的离线开发期校验，不是产品运行内核",
   "scripts": {
     "check": "node check.mjs",
-    "test": "node --test test.mjs audio-test.mjs fixture-function-test.mjs sequence-script-test.mjs stage-lock-test.mjs seating-test.mjs position-reference-test.mjs"
+    "test": "node --test test.mjs audio-test.mjs fixture-function-test.mjs sequence-script-test.mjs stage-lock-test.mjs seating-test.mjs position-reference-test.mjs effect-template-test.mjs"
   },
   "engines": {
     "node": ">=24"

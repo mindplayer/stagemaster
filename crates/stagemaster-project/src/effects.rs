@@ -20,6 +20,8 @@ pub struct SceneEffect {
     pub channels: Vec<EffectValues>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target_path: Option<Box<crate::world_line::TargetPath>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_source: Option<Box<crate::EffectTemplateSource>>,
 }
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -118,6 +120,9 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
             let is_keyframes = matches!(effect.waveform, Waveform::Keyframes);
             let encoded = serde_json::to_value(&effect).map_err(|_| "效果编码失败")?;
             if let Some(existing) = effects.iter_mut().find(|e| e["id"] == effect.id) {
+                if existing.get("templateSource") != encoded.get("templateSource") {
+                    return Err("已有灯效的模板来源快照不能被改写或移除".into());
+                }
                 *existing = encoded;
             } else {
                 effects.push(encoded);
@@ -125,6 +130,10 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
             let requires = root["requires"].as_array_mut().ok_or("缺少工程能力声明")?;
             for key in [
                 Some("lighting.effects.basic"),
+                effect
+                    .template_source
+                    .is_some()
+                    .then_some(crate::effect_template::CAPABILITY),
                 is_keyframes.then_some("lighting.effects.keyframes"),
                 matches!(effect.waveform, Waveform::Position)
                     .then_some("lighting.effects.position"),

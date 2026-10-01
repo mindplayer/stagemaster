@@ -1,34 +1,9 @@
 use crate::{array, text};
 use serde_json::Value;
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    sync::OnceLock,
-};
-
-fn schema() -> &'static jsonschema::Validator {
-    static SCHEMA: OnceLock<jsonschema::Validator> = OnceLock::new();
-    SCHEMA.get_or_init(|| {
-        let common = include_str!("../../../docs/project-format/schemas/common.schema.json");
-        let project = include_str!("../../../docs/project-format/schemas/project.schema.json");
-        // Keep the checked-in schemas authoritative; resolve their URN reference in memory.
-        let rewrite = |s: &str| {
-            s.replace(
-                "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/",
-                "#/$defs/Common/$defs/",
-            )
-        };
-        let mut root: Value =
-            serde_json::from_str(&rewrite(project)).expect("embedded project schema");
-        let mut common: Value =
-            serde_json::from_str(&rewrite(common)).expect("embedded common schema");
-        common.as_object_mut().expect("schema object").remove("$id");
-        root["$defs"]["Common"] = common;
-        jsonschema::validator_for(&root).expect("embedded schemas must compile")
-    })
-}
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) fn validate(root: &Value) -> Result<(), String> {
-    schema()
+    crate::schema::project()
         .validate(root)
         .map_err(|error| format!("工程字段不符合格式要求：{}", error.instance_path()))?;
     if array(&root["project"], "parentRevisionIds").contains(&root["project"]["revisionId"]) {
@@ -102,6 +77,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     crate::sequence::validate(root)?;
     crate::sequence_script::validate(root)?;
     crate::effects::validate(root)?;
+    crate::effect_template::validate_project(root)?;
     crate::position::validate(root)?;
     crate::position::reference::validate(root)?;
     Ok(())
@@ -142,6 +118,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "lighting.positioning",
             crate::position::reference::CAPABILITY,
             "lighting.effects.basic",
+            crate::effect_template::CAPABILITY,
             "lighting.effects.keyframes",
             "lighting.effects.position",
             crate::world_line::CAPABILITY,

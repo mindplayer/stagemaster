@@ -12,6 +12,7 @@ export interface SceneEffect {
   dutyPercent: number;
   channels: EffectChannel[];
   targetPath?: WorldLinePath;
+  templateSource?: import("./effect-template-types").EffectTemplateSource;
 }
 export interface WorldLinePath {
   kind: "line";

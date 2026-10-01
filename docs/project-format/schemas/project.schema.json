@@ -3200,6 +3200,9 @@
             "maxErrorMeters"
           ],
           "additionalProperties": false
+        },
+        "templateSource": {
+          "$ref": "#/$defs/EffectTemplateSource"
         }
       },
       "required": [
@@ -3619,6 +3622,140 @@
         "panValue",
         "tiltValue",
         "source"
+      ],
+      "additionalProperties": false
+    },
+    "EffectTemplateTiming": {
+      "type": "object",
+      "properties": {
+        "periodMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 3600000
+        },
+        "phaseDegrees": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 359
+        },
+        "spreadDegrees": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "reverseOrder": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "periodMs",
+        "phaseDegrees",
+        "spreadDegrees",
+        "reverseOrder"
+      ],
+      "additionalProperties": false
+    },
+    "EffectTemplateRecipe": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "intensity-wave"
+        },
+        "waveform": {
+          "enum": [
+            "smooth",
+            "triangle",
+            "pulse"
+          ]
+        },
+        "low": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "high": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "dutyPercent": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        }
+      },
+      "required": [
+        "kind",
+        "waveform",
+        "low",
+        "high",
+        "dutyPercent"
+      ],
+      "additionalProperties": false
+    },
+    "EffectTemplateDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "recipe": {
+          "$ref": "#/$defs/EffectTemplateRecipe"
+        },
+        "timing": {
+          "$ref": "#/$defs/EffectTemplateTiming"
+        }
+      },
+      "required": [
+        "name",
+        "recipe",
+        "timing"
+      ],
+      "additionalProperties": false
+    },
+    "EffectTemplate": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "stagemaster-effect-template"
+        },
+        "formatVersion": {
+          "const": 1
+        },
+        "templateId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "definition": {
+          "$ref": "#/$defs/EffectTemplateDefinition"
+        }
+      },
+      "required": [
+        "format",
+        "formatVersion",
+        "templateId",
+        "revision",
+        "definition"
+      ],
+      "additionalProperties": false
+    },
+    "EffectTemplateSource": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "$ref": "#/$defs/EffectTemplate"
+        },
+        "sha256": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Sha256"
+        }
+      },
+      "required": [
+        "template",
+        "sha256"
       ],
       "additionalProperties": false
     }

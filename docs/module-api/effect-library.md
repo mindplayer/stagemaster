@@ -1,6 +1,6 @@
 # 灯效模板库伪 API · draft-1
 
-依据 [ADR-090](../development/decisions/PRODUCT-ADR-090-reusable-effect-library.md)。这是未来服务的可类型检查设计，**没有运行实现、没有云端入口，也没有改工程格式**。已实现部分仍以 [lighting-effects.md](lighting-effects.md) 为准。
+依据 [ADR-090](../development/decisions/PRODUCT-ADR-090-reusable-effect-library.md)。这是未来服务的可类型检查设计，**这些远程接口没有运行实现、没有云端入口**。本地亮度模板的首个核心实现见 [local-effect-templates.md](local-effect-templates.md)；其他已实现效果仍以 [lighting-effects.md](lighting-effects.md) 为准。
 
 `EffectCatalogApi` 只检索／获取不可变模板。下载资源经已有资源入口验证为本机固定引用后，`EffectBindingApi.review` 在 Rust 侧只读检查；`apply` 用同一不可变审阅票据和预期工程修订创建效果实例，单次可撤销事务。票据不是现场执行授权，应用也不会开始播放。底层复用 ProjectService 与现有编译器，不新建另一效果数据库／播放器。
 

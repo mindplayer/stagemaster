@@ -28,6 +28,12 @@ pub use patch_report::PatchReport;
 pub use sequence_report::SequenceReport;
 mod editing;
 mod effect_compile;
+mod effect_template;
+pub use effect_template::{
+    EffectTemplate, EffectTemplateDefinition, EffectTemplateFile, EffectTemplateRecipe,
+    EffectTemplateReview, EffectTemplateReviewView, EffectTemplateSource, EffectTemplateTiming,
+    IntensityWaveform, MAX_EFFECT_TEMPLATE_BYTES,
+};
 mod effects;
 mod encoding;
 mod fixture;
@@ -88,6 +94,7 @@ pub use stage::{
     StageView,
 };
 pub use stage_locks::{StageEditLock, StageLockKind};
+mod schema;
 mod strict_json;
 mod validation;
 mod view;

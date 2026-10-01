@@ -1,5 +1,7 @@
 # 当前开发状态
 
+LIBRARY-002 核心增量完成、桌面衔接继续（基线 `7de8cb9`，结果为本次 `feat(effects): add portable intensity templates and reviewed binding` 提交）：独立亮度模板、Rust 不透明审阅／绑定、来源快照和版本冲突保护；658 Rust 全量＋最终 31 专项（累计 659）、285 UI、136 格式、严格检查／类型通过，见[工单](tasks/LIBRARY-002-local-intensity-templates.md)／[ADR-091](decisions/PRODUCT-ADR-091-local-intensity-templates.md)。持续 goal active，未宣称云库或桌面文件工作流已完成。
+
 LIBRARY-001 设计增量完成（基线 `7befdf7`，结果 `7dfa37b`）：云端可复用灯效方向已记录 [ADR-090](decisions/PRODUCT-ADR-090-reusable-effect-library.md) 与 [draft-1 契约](../module-api/effect-library.md)：语义模板／灯具映射／工程绑定／目标产物分层；当前为设计准备，未上线云库或新增灯型执行能力。运行实现待后续独立工单。
 
 FIXTURE-008 完成（基线 `7befdf7`，结果为本次 `feat(fixtures): review and apply fixed color slot revisions` 提交）：固定色盘通道差异审阅／显式重编码与原子历史；645 Rust、283 UI、严格检查／类型／桌面、组件失效／取消及原生撤销／保存重开通过，见[工单](tasks/FIXTURE-008-color-slot-remap.md)／[ADR-089](decisions/PRODUCT-ADR-089-color-slot-remap-review.md)。当前副本已保存，设备未连／UE 关闭／音乐 0。持续 goal 接续 POSITION-003。

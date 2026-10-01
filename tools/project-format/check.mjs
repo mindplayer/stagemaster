@@ -1,3 +1,4 @@
+import { auditTemplateIdentities } from "./effect-template-audit.mjs";
 import { auditPositionReferences } from "./position-reference-audit.mjs";
 import { auditEffects } from './effect-audit.mjs';
 import { auditSeating } from './seating-audit.mjs';
@@ -142,6 +143,7 @@ export function auditProject(p) {
   const declared = new Set(p.requires.map(x => `${x.key}@${x.version}`));
   auditAudioEditing(p, declared, add, get);
   auditPositionReferences(p, declared, add);
+  auditTemplateIdentities(p);
   for (const [module, capability] of Object.entries({ lighting:'lighting.basic',media:'media.external',motion:'motion.external',io:'io.logic',stage:'stage.layout',monitoring:'monitoring',surfaces:'surface.mapping' })) if (p[module] && !(module === 'media' && p.media.audioEditing && p.media.systems.length === 0 && p.media.objects.length === 0)) assert(declared.has(`${capability}@1`), `缺少模块能力声明：${capability}`);
   if (p.stage && ['spaces','constructions','placements'].some(key => key in p.stage)) assert(declared.has('stage.spaces@1'), '缺少模块能力声明：stage.spaces');
   if (p.timelines.length) assert(declared.has('timeline.basic@1'), '缺少时间线能力声明');
