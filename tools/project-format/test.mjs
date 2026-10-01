@@ -147,3 +147,19 @@ invalid('位置效果必须声明专用能力',withPositionEffect,p=>{p.requires
 invalid('位置效果不能混入范围通道',withPositionEffect,p=>{p.lighting.scenes[0].effects[0].channels[0]={attribute:'dimmer',low:0,high:65535}},/位置效果与属性/);
 invalid('位置幅度不能为负数',withPositionEffect,p=>{p.lighting.scenes[0].effects[0].channels[0].amplitudeDegrees='-1'},/角度超出/);
 invalid('位置效果不能缺少灯具物理模型',withPositionEffect,p=>{delete p.lighting.profiles[0].positioning;delete p.lighting.fixtures[0].zeroCorrection},/两轴运动模型/);
+
+const withWorldLine = () => {
+  const p=withPositionEffect(), e=p.lighting.scenes[0].effects[0];
+  p.requires.push({key:'lighting.effects.world-line',version:1});
+  e.waveform='worldLine'; e.channels=[{attribute:'pan'},{attribute:'tilt'}];
+  e.targetPath={kind:'line',fromMeters:{x:'-1',y:'2',z:'0.5'},toMeters:{x:'1',y:'2',z:'0.5'},branch:'auto',maxErrorMeters:'0.1'};
+  return p;
+};
+test('空间轨迹严格结构与双轴引用独立核验',()=>auditProject(withWorldLine()));
+invalid('空间轨迹不能缺少能力声明',withWorldLine,p=>{p.requires=p.requires.filter(c=>c.key!=='lighting.effects.world-line')},/空间轨迹能力/);
+invalid('空间轨迹不能缺少路径',withWorldLine,p=>{delete p.lighting.scenes[0].effects[0].targetPath},/轨迹与效果/);
+invalid('空间轨迹两轴不能独立占用',withWorldLine,p=>{p.lighting.scenes[0].effects[0].channels.pop()},/同时控制两轴/);
+invalid('相对轴效果不能夹带世界路径',withWorldLine,p=>{p.lighting.scenes[0].effects[0].waveform='position'},/轨迹与效果/);
+invalid('空间轨迹误差阈值有界',withWorldLine,p=>{p.lighting.scenes[0].effects[0].targetPath.maxErrorMeters='1.1'},/允许误差/);
+invalid('空间轨迹端点不能重合',withWorldLine,p=>{const t=p.lighting.scenes[0].effects[0].targetPath;t.toMeters=structuredClone(t.fromMeters)},/端点重合/);
+invalid('空间轨迹不能带无效解族',withWorldLine,p=>{p.lighting.scenes[0].effects[0].targetPath.branch='flip'},/结构/);

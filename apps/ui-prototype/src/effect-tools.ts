@@ -7,8 +7,14 @@ import {
   positionTemplates,
 } from "./position-effect-tools.ts";
 import type { PositionEffectTemplate } from "./position-effect-tools.ts";
+import { createWorldLine } from "./world-line-tools.ts";
 export type EffectTemplate =
-  "breathe" | "chase" | "color" | "multicolor" | PositionEffectTemplate;
+  | "breathe"
+  | "chase"
+  | "color"
+  | "multicolor"
+  | "worldLine"
+  | PositionEffectTemplate;
 export const effectTemplates: {
   key: EffectTemplate;
   name: string;
@@ -19,9 +25,10 @@ export const effectTemplates: {
   { key: "color", name: "双色循环", detail: "两色渐变 · 可展开灯序" },
   { key: "multicolor", name: "多色关键帧", detail: "逐帧调色 · 自由过渡" },
   ...positionTemplates,
+  { key: "worldLine", name: "空间直线往返", detail: "共同目标 · 两点之间往返" },
 ];
 export function supportsEffect(fixtures: FixtureView[], kind: EffectTemplate) {
-  if (isPositionTemplate(kind))
+  if (isPositionTemplate(kind) || kind === "worldLine")
     return (
       fixtures.length > 0 &&
       fixtures.every(
@@ -49,6 +56,7 @@ export function createEffect(
   id: string,
   fixtureIds: string[],
 ): SceneEffect {
+  if (kind === "worldLine") return createWorldLine(id, fixtureIds);
   if (isPositionTemplate(kind))
     return createPositionEffect(kind, id, fixtureIds);
   if (kind === "multicolor") {
@@ -107,7 +115,7 @@ export function effectCommands(
     effect.fixtureIds,
     fixtures,
     effect.channels,
-    effect.waveform === "position",
+    effect.waveform === "position" || effect.waveform === "worldLine",
   )[0];
   if (issue) throw new Error(`灯具“${issue.name}”：${issue.reason}`);
   const commands: EditOperation[] = [

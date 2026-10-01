@@ -21,7 +21,9 @@ export function effectTargetIssues(
   ids: string[],
   fixtures: FixtureView[],
   channels: EffectChannel[],
-  requiresPosition = channels.some((c) => c.amplitudeDegrees !== undefined),
+  requiresPosition = channels.some(
+    (c) => c.attribute === "pan" || c.attribute === "tilt",
+  ),
 ): EffectTargetIssue[] {
   if (!ids.length)
     return [{ id: "", name: "灯具", reason: "效果至少需要一台灯具" }];

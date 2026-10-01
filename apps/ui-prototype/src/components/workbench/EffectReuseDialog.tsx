@@ -49,7 +49,8 @@ export function EffectReuseDialog({
         targets,
         fixtures,
         found.effect.channels,
-        found.effect.waveform === "position",
+        found.effect.waveform === "position" ||
+          found.effect.waveform === "worldLine",
       )
     : [];
   function focusResult(index: number) {

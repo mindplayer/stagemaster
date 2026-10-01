@@ -13,6 +13,8 @@
   },
   "include": [
     "src",
+    "tests/world-line.test.ts",
+    "tests/world-line-harness.tsx",
     "tests/timeline-scroll-harness.tsx",
     "tests/marker-motion.test.ts",
     "tests/marker-gesture-harness.tsx",

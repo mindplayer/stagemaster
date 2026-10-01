@@ -2,6 +2,7 @@ import type { ReactNode, Ref } from "react";
 import type { FixtureView } from "../../application-host";
 import { EffectEditor, type EffectHandle } from "./EffectEditor";
 import { PositionEffectEditor } from "./PositionEffectEditor";
+import { WorldLineEffectEditor } from "./WorldLineEffectEditor";
 import type { EffectSelection } from "./useEffectSelection";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 
@@ -37,9 +38,11 @@ export function EffectInspectorPane({
   children: ReactNode;
 }) {
   const Editor =
-    selection?.effect.waveform === "position"
-      ? PositionEffectEditor
-      : EffectEditor;
+    selection?.effect.waveform === "worldLine"
+      ? WorldLineEffectEditor
+      : selection?.effect.waveform === "position"
+        ? PositionEffectEditor
+        : EffectEditor;
   return (
     <>
       {selection && (

@@ -141,6 +141,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "lighting.effects.basic",
             "lighting.effects.keyframes",
             "lighting.effects.position",
+            crate::world_line::CAPABILITY,
             "stage.layout",
             "stage.spaces",
             "stage.rigging",

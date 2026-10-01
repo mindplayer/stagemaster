@@ -49,9 +49,12 @@ pub use fixture_function::{
 pub use function_output::FunctionOutput;
 mod position;
 mod position_effect;
+mod world_line;
+mod world_line_curve;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
 pub use fixture::{FixtureEdit, ProfileChannel, ProfileDefinition, Repatch};
 pub use position::{FixtureZero, PositionAxis, PositionEdit, PositionModel};
+pub use world_line::{TargetBranch, TargetPath};
 mod library;
 mod rigging;
 mod seating;

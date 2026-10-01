@@ -32,7 +32,9 @@ export function EffectInspectorForm({
       noValidate
       className="effect-inspector"
       aria-label="效果属性"
-      onInputCapture={(e) => {
+      // Mark in the bubble phase with the fields' onChange. A capture-phase
+      // render can restore the old controlled value before WebKit delivers it.
+      onInput={(e) => {
         if (e.target instanceof HTMLInputElement)
           e.target.setCustomValidity("");
         if (

@@ -21,8 +21,8 @@ export interface FrameDraft {
 export const valuePercent = (value: number) =>
   String(Number(((value * 100) / 65535).toFixed(4)));
 export function toKeyframes(effect: SceneEffect): SceneEffect {
-  if (effect.waveform === "position")
-    throw new Error("相对位置效果须在运动属性中编辑");
+  if (effect.waveform === "position" || effect.waveform === "worldLine")
+    throw new Error("位置效果须在对应的运动属性中编辑");
   if (effect.waveform === "keyframes") return structuredClone(effect);
   const pulse = effect.waveform === "pulse";
   if (

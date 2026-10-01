@@ -18,6 +18,8 @@ pub struct SceneEffect {
     pub waveform: Waveform,
     pub duty_percent: u8,
     pub channels: Vec<EffectValues>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_path: Option<Box<crate::world_line::TargetPath>>,
 }
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,10 +29,14 @@ pub enum Waveform {
     Pulse,
     Keyframes,
     Position,
+    WorldLine,
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum EffectValues {
+    Target {
+        attribute: String,
+    },
     Range {
         attribute: String,
         low: u16,
@@ -68,6 +74,7 @@ impl EffectValues {
     pub(super) fn attribute(&self) -> &str {
         match self {
             Self::Range { attribute, .. }
+            | Self::Target { attribute }
             | Self::Keyframes { attribute, .. }
             | Self::Position { attribute, .. } => attribute,
         }
@@ -75,7 +82,7 @@ impl EffectValues {
     pub(super) fn frames(&self) -> Option<&[EffectKeyframe]> {
         match self {
             Self::Keyframes { keyframes, .. } => Some(keyframes),
-            Self::Range { .. } | Self::Position { .. } => None,
+            Self::Range { .. } | Self::Position { .. } | Self::Target { .. } => None,
         }
     }
 }
@@ -121,6 +128,8 @@ pub(super) fn apply(root: &mut Value, command: EffectEdit) -> Result<(), String>
                 is_keyframes.then_some("lighting.effects.keyframes"),
                 matches!(effect.waveform, Waveform::Position)
                     .then_some("lighting.effects.position"),
+                matches!(effect.waveform, Waveform::WorldLine)
+                    .then_some(crate::world_line::CAPABILITY),
             ]
             .into_iter()
             .flatten()
@@ -163,6 +172,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         for effect in read(scene) {
             validate_keyframes(root, &effect)?;
             crate::position_effect::validate(root, &effect)?;
+            crate::world_line::validate(root, &effect)?;
             for fixture in &effect.fixture_ids {
                 for channel in &effect.channels {
                     editing::validate_target(root, fixture, channel.attribute())
@@ -202,6 +212,7 @@ pub(super) fn keyframe_count(effects: &[SceneEffect]) -> usize {
                     .iter()
                     .map(|channel| match channel {
                         EffectValues::Position { .. } => crate::position_effect::SAMPLES,
+                        EffectValues::Target { .. } => crate::world_line_curve::SAMPLES,
                         _ => channel.frames().map_or(0, <[EffectKeyframe]>::len),
                     })
                     .sum::<usize>()

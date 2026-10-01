@@ -21,6 +21,22 @@ pub(super) fn compile(
             let order = u64::try_from(order).map_err(|_| "效果灯具超限")?;
             let phase = u64::from(effect.phase_degrees) * 65_536 / 360
                 + u64::from(effect.spread_degrees) * order * 65_536 / (360 * count);
+            let mut world_frames = effect
+                .target_path
+                .as_ref()
+                .map(|path| {
+                    let mut previous = [0; 2];
+                    for (axis, key) in ["pan", "tilt"].iter().enumerate() {
+                        let index = targets
+                            .iter()
+                            .position(|(id, attribute)| id == fixture && attribute == key)
+                            .ok_or("轨迹属性未纳入计划")?;
+                        previous[axis] = values[index];
+                    }
+                    crate::world_line::compile(root, fixture, path, previous)
+                })
+                .transpose()
+                .map_err(|reason| format!("效果“{}”：{reason}", effect.name))?;
             for channel in &effect.channels {
                 let index = targets
                     .iter()
@@ -45,6 +61,10 @@ pub(super) fn compile(
                         crate::position_effect::compile(root, fixture, channel, values[index])
                             .map_err(|reason| format!("效果“{}”：{reason}", effect.name))?,
                     ),
+                    Waveform::WorldLine => Curve::Keyframes(std::mem::take(
+                        &mut world_frames.as_mut().ok_or("空间轨迹缺失")?
+                            [usize::from(channel.attribute() == "tilt")],
+                    )),
                 };
                 compiled.push(EffectChannel {
                     index,

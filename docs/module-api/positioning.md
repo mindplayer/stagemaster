@@ -66,7 +66,7 @@ type PositionCommand =
 
 ## 后续产品接口边界（尚未实现）
 
-EFFECT-007 第一阶段已有独立 `trajectory::LineTrajectory`：显式灯具模型／安装、世界起止点、previous 和可选分支，构造时解析检查整线行程与转轴奇点；`sample(0..1)` 无状态返回连续展开轴角。`derivative_bounds(from,to)` 给出区间内轴角一阶／二阶导数绝对上界（对归一化进度，非电机速度）；线性近似误差不超过二阶上界乘区间长度平方除以 8。用于后续有界编译认证，不直接发送设备，也尚未接工程／界面。参见 [ADR-084](../development/decisions/PRODUCT-ADR-084-world-line-effects.md)。
+EFFECT-007 已有独立 `trajectory::LineTrajectory`：显式灯具模型／安装、世界起止点、previous 和可选分支，构造时解析检查整线行程与转轴奇点；`sample(0..1)` 无状态返回连续展开轴角。`derivative_bounds(from,to)` 给出区间内轴角一阶／二阶导数绝对上界（对归一化进度，非电机速度）；线性近似误差不超过二阶上界乘区间长度平方除以 8。由工程 `worldLine` 效果按余弦进度往返，独立编译器结合导数、相位与通道量化误差认证固定 32 帧；已接桌面编辑、草稿预演和既有执行包，空间层不直接发送设备。参见 [ADR-084](../development/decisions/PRODUCT-ADR-084-world-line-effects.md)。
 
 `PositionIntent` 将在工程契约中分为轴角和空间目标，后者记录坐标系及目标身份，不能同时保存两套互相抢控制的权威值。目标绑定和灯组成员顺序归工程；求解上下文归编译／独立执行；姿态显示归渲染适配。
 

@@ -2840,11 +2840,19 @@
                 },
                 "arc": {
                   "anyOf": [
-                    { "type": "null" },
+                    {
+                      "type": "null"
+                    },
                     {
                       "type": "object",
-                      "required": ["radiusMeters"],
-                      "properties": { "radiusMeters": { "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal" } },
+                      "required": [
+                        "radiusMeters"
+                      ],
+                      "properties": {
+                        "radiusMeters": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        }
+                      },
                       "additionalProperties": false
                     }
                   ]
@@ -3016,7 +3024,8 @@
             "triangle",
             "pulse",
             "keyframes",
-            "position"
+            "position",
+            "worldLine"
           ]
         },
         "dutyPercent": {
@@ -3138,9 +3147,56 @@
                   "phaseDegrees"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "attribute": {
+                    "enum": [
+                      "pan",
+                      "tilt"
+                    ]
+                  }
+                },
+                "required": [
+                  "attribute"
+                ],
+                "additionalProperties": false
               }
             ]
           }
+        },
+        "targetPath": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "line"
+            },
+            "fromMeters": {
+              "$ref": "#/$defs/SpatialVector3"
+            },
+            "toMeters": {
+              "$ref": "#/$defs/SpatialVector3"
+            },
+            "branch": {
+              "enum": [
+                "auto",
+                "front",
+                "back"
+              ]
+            },
+            "maxErrorMeters": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+            }
+          },
+          "required": [
+            "kind",
+            "fromMeters",
+            "toMeters",
+            "branch",
+            "maxErrorMeters"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [

@@ -77,7 +77,7 @@ export function EffectRack({
             title={
               supportsEffect(selectedFixtures, t.key)
                 ? t.detail
-                : `请选择全部支持${isPositionTemplate(t.key) ? "两轴运动模型" : t.key === "color" || t.key === "multicolor" ? "RGB" : "亮度"}的灯具`
+                : `请选择全部支持${isPositionTemplate(t.key) || t.key === "worldLine" ? "两轴运动模型" : t.key === "color" || t.key === "multicolor" ? "RGB" : "亮度"}的灯具`
             }
             onClick={() => {
               const effect = createEffect(t.key, crypto.randomUUID(), selected);
@@ -106,6 +106,7 @@ export function EffectRack({
                   : `展开 ${effect.spreadDegrees}°`}
                 {effect.reverse ? " · 反向" : ""}
                 {effect.waveform === "position" && " · 相对位置"}
+                {effect.waveform === "worldLine" && " · 共同空间目标"}
                 {effect.waveform === "keyframes"
                   ? ` · ${effect.channels[0].keyframes?.length} 帧`
                   : ""}

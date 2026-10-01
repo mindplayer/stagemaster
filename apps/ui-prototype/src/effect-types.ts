@@ -7,9 +7,18 @@ export interface SceneEffect {
   spreadDegrees: number;
   phaseDegrees: number;
   reverse: boolean;
-  waveform: "smooth" | "triangle" | "pulse" | "keyframes" | "position";
+  waveform:
+    "smooth" | "triangle" | "pulse" | "keyframes" | "position" | "worldLine";
   dutyPercent: number;
   channels: EffectChannel[];
+  targetPath?: WorldLinePath;
+}
+export interface WorldLinePath {
+  kind: "line";
+  fromMeters: import("./stage-types").SpatialVector3;
+  toMeters: import("./stage-types").SpatialVector3;
+  branch: "auto" | "front" | "back";
+  maxErrorMeters: string;
 }
 export type EffectAttribute =
   "dimmer" | "red" | "green" | "blue" | "pan" | "tilt";
@@ -19,6 +28,14 @@ export interface EffectKeyframe {
   transition: "hold" | "linear" | "smooth";
 }
 export type EffectChannel = { attribute: EffectAttribute } & (
+  | {
+      low?: never;
+      high?: never;
+      keyframes?: never;
+      amplitudeDegrees?: never;
+      offsetDegrees?: never;
+      phaseDegrees?: never;
+    }
   | {
       low: number;
       high: number;
