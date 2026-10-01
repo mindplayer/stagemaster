@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use stagemaster_playback::{Player, Status};
 use stagemaster_project::{CompiledSequence, Document};
 use std::time::Instant;
+mod draft;
+pub(crate) use draft::{Preparation, Prepared};
 
 #[derive(Deserialize)]
 #[serde(
@@ -13,6 +15,23 @@ use std::time::Instant;
 )]
 pub(crate) enum Request {
     Snapshot,
+    BeginEffectDraft {
+        generation: u32,
+        epoch: u32,
+        scene_id: String,
+        effect: stagemaster_project::SceneEffect,
+        illuminate: bool,
+    },
+    UpdateEffectDraft {
+        generation: u32,
+        epoch: u32,
+        serial: u32,
+        effect: stagemaster_project::SceneEffect,
+        illuminate: bool,
+    },
+    EndEffectDraft {
+        epoch: u32,
+    },
     Load {
         generation: u32,
         sequence_id: String,
@@ -51,6 +70,8 @@ pub(crate) struct Snapshot {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct LoadedView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    draft_effect_id: Option<String>,
     sequence_id: String,
     scene_id: Option<String>,
     name: String,
@@ -69,6 +90,7 @@ struct LoadedView {
     output: stagemaster_project::PreviewOutput,
 }
 struct Loaded {
+    draft: Option<draft::Draft>,
     player: Player,
     output: stagemaster_project::CompiledOutput,
     sequence_id: String,
@@ -174,6 +196,7 @@ impl Preview {
         let player = Player::new(plan, self.now());
         self.clear();
         self.loaded = Some(Loaded {
+            draft: None,
             player,
             output,
             sequence_id: if scene_id.is_some() {
@@ -236,6 +259,7 @@ impl Preview {
             let index = l.player.index();
             let step = index.map(|i| &l.player.plan().steps()[i]);
             Some(LoadedView {
+                draft_effect_id: l.draft.as_ref().map(|d| d.effect_id.clone()),
                 sequence_id: l.sequence_id.clone(),
                 scene_id: l.scene_id.clone(),
                 name: l.name.clone(),
@@ -272,5 +296,7 @@ fn status_name(status: Status) -> &'static str {
     }
 }
 
+#[cfg(test)]
+mod draft_tests;
 #[cfg(test)]
 mod tests;

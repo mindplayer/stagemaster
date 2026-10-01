@@ -119,7 +119,7 @@ export function PreviewPanel({
         <span
           className={`wb-preview-status ${loaded?.status === "running" ? "running" : ""}`}
         >
-          {status}
+          {loaded?.draftEffectId ? `效果草稿 · ${status}` : status}
         </span>
       </div>
       <div className="wb-preview-toolbar">
@@ -212,7 +212,12 @@ export function PreviewPanel({
           </span>
           {loaded && (
             <span>
-              预演版本：{loaded.stale ? "工程修改前" : "与已应用工程一致"}
+              预演版本：
+              {loaded.draftEffectId
+                ? "临时效果草稿"
+                : loaded.stale
+                  ? "工程修改前"
+                  : "与已应用工程一致"}
             </span>
           )}
         </div>

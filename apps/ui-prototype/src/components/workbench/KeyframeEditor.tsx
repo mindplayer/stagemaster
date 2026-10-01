@@ -19,7 +19,7 @@ import {
 } from "../../keyframe-tools";
 import { KeyframeCurve } from "./KeyframeCurve";
 export interface KeyframeHandle {
-  collect(): EffectChannel[];
+  collect(interactive?: boolean): EffectChannel[];
 }
 export const KeyframeEditor = forwardRef<
   KeyframeHandle,
@@ -46,11 +46,11 @@ export const KeyframeEditor = forwardRef<
     attributes.some((k) => k === a),
   );
   useImperativeHandle(ref, () => ({
-    collect() {
+    collect(interactive = true) {
       try {
         return readFrames(frames, attributes);
       } catch (reason) {
-        if (reason instanceof FrameInputError) {
+        if (interactive && reason instanceof FrameInputError) {
           setActive(reason.index);
           setFocusError(reason);
         }

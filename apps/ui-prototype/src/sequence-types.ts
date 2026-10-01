@@ -78,6 +78,7 @@ export interface PreviewSnapshot {
   epoch: number;
   controlSerial: number;
   loaded: null | {
+    draftEffectId?: string;
     sequenceId: string;
     sceneId: string | null;
     name: string;
@@ -100,6 +101,23 @@ export type PreviewCommand =
   | { kind: "execute"; stepId: string }
   | { kind: "next" | "pause" | "resume" | "stop" };
 export type PreviewRequest =
+  | {
+      kind: "beginEffectDraft";
+      generation: number;
+      epoch: number;
+      sceneId: string;
+      effect: import("./effect-types").SceneEffect;
+      illuminate: boolean;
+    }
+  | {
+      kind: "updateEffectDraft";
+      generation: number;
+      epoch: number;
+      serial: number;
+      effect: import("./effect-types").SceneEffect;
+      illuminate: boolean;
+    }
+  | { kind: "endEffectDraft"; epoch: number }
   | { kind: "snapshot" }
   | { kind: "loadScene"; generation: number; sceneId: string }
   | { kind: "load"; generation: number; sequenceId: string }

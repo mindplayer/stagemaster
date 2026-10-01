@@ -138,8 +138,25 @@ async fn preview_request(
 ) -> Result<preview::Snapshot, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<previs::SharedSession>();
-        let mut session = state.lock().map_err(|_| "工程会话发生错误，请重启应用")?;
-        session.preview(request)
+        if matches!(
+            request,
+            preview::Request::BeginEffectDraft { .. } | preview::Request::UpdateEffectDraft { .. }
+        ) {
+            let preparation = state
+                .lock()
+                .map_err(|_| "工程会话发生错误，请重启应用")?
+                .prepare_effect_draft(request)?;
+            let prepared = preparation.compile()?;
+            state
+                .lock()
+                .map_err(|_| "工程会话发生错误，请重启应用")?
+                .finish_effect_draft(prepared)
+        } else {
+            state
+                .lock()
+                .map_err(|_| "工程会话发生错误，请重启应用")?
+                .preview(request)
+        }
     })
     .await
     .map_err(|_| "预览操作未完成".to_string())?

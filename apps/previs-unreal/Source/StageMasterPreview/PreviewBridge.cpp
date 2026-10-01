@@ -1,4 +1,5 @@
 #include "PreviewBridge.h"
+#include "PreviewFrameFreshness.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Serialization/JsonReader.h"
@@ -140,6 +141,9 @@ void FPreviewBridge::Complete(ERequest Kind, FHttpRequestPtr Completed, FHttpRes
     }
     if (Code != 200)
     {
+        // Skip a transient busy frame without blacking out the visualization.
+        // LastFrameAt is deliberately unchanged: Tick still expires it after 2 s.
+        if (HoldBusyFrame(Code, Kind == ERequest::Frame, WasValid, LastFrameAt, FPlatformTime::Seconds())) return;
         FString Reason;
         if (!Object->TryGetStringField(TEXT("message"), Reason) || Reason.IsEmpty() || Reason.Len() > 4096) Reason = TEXT("预演暂不可用，请重试");
         if (Code == 409 || Kind == ERequest::Placement) NeedScene = true;

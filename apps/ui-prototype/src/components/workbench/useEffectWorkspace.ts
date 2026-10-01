@@ -1,3 +1,4 @@
+import { useEffectDraftPreview } from "./useEffectDraftPreview";
 import { useRef, useState } from "react";
 import type {
   ApplicationHost,
@@ -18,14 +19,18 @@ export function useEffectWorkspace({
   edit,
   openPlayback,
   clearError,
+  available,
+  canAudition,
 }: {
   project: ProjectView | null;
   sceneId: string;
   host: ApplicationHost;
   getProject(): ProjectView | null;
-  run(work: () => Promise<void>): Promise<boolean>;
+  run(work: () => Promise<void>, flushFirst?: boolean): Promise<boolean>;
   edit(command: EditCommand): Promise<unknown>;
-  openPlayback(): void;
+  openPlayback(flushDrafts?: boolean): void;
+  available: boolean;
+  canAudition(): boolean;
   clearError(): void;
 }) {
   const editor = useRef<EffectHandle>(null);
@@ -33,7 +38,16 @@ export function useEffectWorkspace({
   const identity = useRef(sceneId);
   identity.current = sceneId;
   const selection = useEffectSelection(project, sceneId);
+  const audition = useEffectDraftPreview({
+    host,
+    editor,
+    target: selection.active?.token,
+    available,
+    canStart: canAudition,
+    openPlayback: () => openPlayback(false),
+  });
   function close() {
+    void audition.end();
     selection.close();
     setPending(false);
     clearError();
@@ -67,6 +81,8 @@ export function useEffectWorkspace({
   }
   return {
     editor,
+    audition: audition.controls,
+    draftChanged: audition.changed,
     pending,
     setPending,
     active: selection.active,

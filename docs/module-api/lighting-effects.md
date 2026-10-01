@@ -69,3 +69,11 @@ TS 编辑契约在 `apps/ui-prototype/src/effect-types.ts`，Rust 对应 `crates
 ## 单场景效果时间偏移（AUDIO-010）
 
 `Plan::with_effect_time_offset(offset_ms)` 消费并返回不可变单场景计划；只允许单步、手动保持、无循环、无延时，偏移不超过 MAX_TIME_MS。`effect_time_offset_ms()` 只读查询。Player 的每条效果先按各自周期对 elapsed 与 offset 取模再合成，保留不同周期与 16 位相位精度；渐变／离散属性仍按局部时钟，零值保持旧行为。设备包编码器对非零偏移明确拒绝，现有包字节与执行语义不升级，元数据预算另有尺寸保护。用途与格式边界见 [ADR-073](../development/decisions/PRODUCT-ADR-073-audio-clip-effect-offset.md)。
+
+## 效果草稿即时预演（EFFECT-004）
+
+按 [ADR-074](../development/decisions/PRODUCT-ADR-074-effect-draft-preview.md)，桌面唯一预演增加 `beginEffectDraft {generation,epoch,sceneId,effect,illuminate}`、`updateEffectDraft {generation,epoch,serial,effect,illuminate}`、`endEffectDraft {epoch}`。begin 显式替换离线播放并停止音乐，update 只作用于同一效果身份，end 恢复进入前已应用的该场景参数，不恢复前一音乐／列表。加载快照用可选 `draftEffectId` 标识临时草稿。
+
+Rust 在短锁内提取 Document 克隆与归属，锁外完成正常编辑校验及单场景编译，重新验证代次／内容版本／预演 epoch／草稿 serial 后安装；无效或过时候选无副作用。更新／恢复保持累计效果时间和暂停状态，停止后更新不会重新启动；参数变化按同一累计时间重算，不承诺周期变化时相位连续。
+
+界面显式“即时预演”，250 ms 合并输入，一个更新在途加一个最新候选；错误保留最近有效参数，不抢焦点。关键帧、普通曲线与双轴共用调度，正式应用／撤销／保存仍走原工程事务。内容变更清除临时预演，退出编辑器按所属 epoch 释放；旧回执不能夺回新播放。预演草稿不写工程、恢复文件或设备包，只有应用形成历史。与现场编程器、总速度主控、多执行器无混同。

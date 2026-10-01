@@ -11,6 +11,7 @@ export function EffectInspectorForm({
   onChange,
   onApply,
   onPreview,
+  audition,
   children,
 }: {
   form: RefObject<HTMLFormElement | null>;
@@ -22,6 +23,7 @@ export function EffectInspectorForm({
   onChange(): void;
   onApply(): Promise<boolean>;
   onPreview(): Promise<boolean>;
+  audition?: import("./useEffectDraftPreview").EffectAuditionControls;
   children: ReactNode;
 }) {
   return (
@@ -65,6 +67,24 @@ export function EffectInspectorForm({
         </button>
         <button disabled={busy || !dirty}>应用效果</button>
       </div>
+      {audition && (
+        <div className="effect-audition">
+          <button
+            type="button"
+            aria-pressed={audition.active}
+            disabled={busy || audition.working}
+            title="仅预演效果草稿；开启会停止音乐，结束恢复原场景参数"
+            onClick={audition.toggle}
+          >
+            {audition.working
+              ? "正在切换预演…"
+              : audition.active
+                ? "结束即时预演"
+                : "即时预演"}
+          </button>
+          {audition.message && <p role="status">{audition.message}</p>}
+        </div>
+      )}
       {error && (
         <p className="wb-library-error" role="alert">
           {error}

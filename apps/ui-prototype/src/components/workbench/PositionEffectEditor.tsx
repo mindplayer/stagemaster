@@ -33,6 +33,8 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       onPending,
       onApply,
       onPreview,
+      audition,
+      onDraftChange,
     },
     ref,
   ) {
@@ -54,6 +56,7 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       dirtyRef.current = true;
       setDirty(true);
       pending.current(true);
+      onDraftChange?.();
       setLocalError("");
     }
     function accept() {
@@ -79,10 +82,10 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
     }, [source, isNew]);
     useEffect(() => () => pending.current(false), []);
     useImperativeHandle(ref, () => ({ collect, accept }));
-    function collect(): EditOperation[] {
-      if (!dirtyRef.current) return [];
+    function collect(interactive = true, force = false): EditOperation[] {
+      if (!force && !dirtyRef.current) return [];
       try {
-        validateEditorForm(form.current);
+        validateEditorForm(form.current, interactive);
         const periodMs = secondsToMs(period, "循环周期");
         if (periodMs < 100 || periodMs > 3_600_000)
           throw new Error("循环周期应在 0.1–3600 秒之间");
@@ -99,7 +102,8 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           false,
         );
       } catch (e) {
-        setLocalError(e instanceof Error ? e.message : String(e));
+        if (interactive)
+          setLocalError(e instanceof Error ? e.message : String(e));
         throw e;
       }
     }
@@ -136,6 +140,7 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
         onChange={mark}
         onApply={onApply}
         onPreview={onPreview}
+        audition={audition}
       >
         <label>
           效果名称

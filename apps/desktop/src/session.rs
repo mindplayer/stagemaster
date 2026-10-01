@@ -11,6 +11,7 @@ mod audio_clip_split_tests;
 mod audio_tests;
 mod files;
 mod output;
+mod preview;
 mod previs;
 #[cfg(test)]
 mod sequence_group_tests;
@@ -94,58 +95,6 @@ impl Session {
         Ok(self.file.as_ref().map(|f| f.path().to_path_buf()))
     }
 
-    pub(crate) fn preview(
-        &mut self,
-        request: crate::preview::Request,
-    ) -> Result<crate::preview::Snapshot, String> {
-        use crate::preview::Request;
-        match request {
-            Request::Snapshot => {}
-            Request::LoadScene {
-                generation,
-                scene_id,
-            } => {
-                self.guard(generation)?;
-                self.audio.clear();
-                self.preview.load_scene(
-                    self.document.as_ref().ok_or("请先打开工程")?,
-                    self.content_version,
-                    &scene_id,
-                )?;
-            }
-            Request::Load {
-                generation,
-                sequence_id,
-            } => {
-                self.guard(generation)?;
-                self.audio.clear();
-                self.preview.load(
-                    self.document.as_ref().ok_or("请先打开工程")?,
-                    self.content_version,
-                    &sequence_id,
-                )?;
-            }
-            Request::Control {
-                epoch,
-                serial,
-                command,
-            } => {
-                self.preview.control(
-                    self.content_version,
-                    epoch,
-                    serial,
-                    command,
-                    self.preview.now(),
-                )?;
-            }
-        }
-        self.preview.snapshot(
-            self.content_version,
-            self.preview.now(),
-            self.output_control.master(),
-        )
-    }
-
     pub(crate) fn snapshot(&self) -> Snapshot {
         Snapshot {
             generation: self.generation,
@@ -219,6 +168,7 @@ impl Session {
                 self.undo.remove(0);
             }
             self.redo.clear();
+            self.preview.clear_draft();
             self.audio.synchronize(&next);
             self.document = Some(next);
             self.previs_edit_allowed = false;
@@ -240,6 +190,7 @@ impl Session {
                 next.use_revision_from(&current);
                 destination.push(current);
             }
+            self.preview.clear_draft();
             self.audio.synchronize(&next);
             self.document = Some(next);
             self.previs_edit_allowed = false;
@@ -250,6 +201,8 @@ impl Session {
     }
 }
 
+#[cfg(test)]
+mod effect_draft_tests;
 #[cfg(test)]
 #[path = "session/tests.rs"]
 mod tests;

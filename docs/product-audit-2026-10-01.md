@@ -140,12 +140,12 @@
 
 ## 实施跟踪（2026-10-01）
 
-下表对齐 AUDIO-011；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
+下表对齐 EFFECT-004；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
 
 | 原问题 | 已实施与验证 | 剩余范围 |
 | --- | --- | --- |
 | U01／U02 | [UX-018](development/tasks/UX-018-scene-editing-flow.md) 属性／常驻灯组，[UX-019](development/tasks/UX-019-context-and-effect-curves.md) 预设／曲线，[UX-027](development/tasks/UX-027-searchable-resources.md) 资源搜索 ；FIXTURE-003B 已接功能选择及预设明细 | 完整光学／控制属性仍取决于 F02 扩展 |
-| U03 | [UX-020](development/tasks/UX-020-docked-effect-editing.md) 非模态草稿、取消／撤销；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 独立双轴角度与运动模板 | 目前显式应用／预演；现场主控、世界目标轨迹后续 |
+| U03 | [UX-020](development/tasks/UX-020-docked-effect-editing.md) 非模态草稿、取消／撤销；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 独立双轴角度与运动模板；[EFFECT-004](development/tasks/EFFECT-004-live-draft-preview.md) 草稿即时预演／错误保持／取消恢复及唯一三维 | 现场主控、世界目标轨迹后续 |
 | U04 | UX-018 显式场景预演与对象／版本；[UX-023](development/tasks/UX-023-previs-session-contention.md) 短时锁竞争，EFFECT-003 修复旧预演错误残留 | 实际现场输出与编排源隔离仍须硬件验收 |
 | U05 | [UX-021](development/tasks/UX-021-execution-view.md) 当前／下一步／选择分离、执行面与跳转保护；[EXEC-001](development/tasks/EXEC-001-preview-output-master.md) 常驻预演亮度总控／熄灯与共享输出 | 多执行器、真实输出主控、临时覆盖与完整应急操作 |
 | U06 | [UX-022](development/tasks/UX-022-audio-lighting-lane.md) 真实灯光段落、共享边界和单次历史；[AUDIO-003](development/tasks/AUDIO-003-lighting-transitions.md) 确定性进入渐变／任意定位；[UX-029](development/tasks/UX-029-audio-seek-feedback.md) 快速定位意图与回执保序；[AUDIO-004](development/tasks/AUDIO-004-marker-group-editing.md) 保留节奏的卡点成组平移／复制／删除；[AUDIO-005](development/tasks/AUDIO-005-local-loop-preview.md) 原生临时局部循环；[AUDIO-006](development/tasks/AUDIO-006-lighting-clips.md) 独立片段／空隙／移动／复制／锁定与显式转换；[AUDIO-007](development/tasks/AUDIO-007-lighting-clip-groups.md) 片段成组移动／复制／删除及隐藏选择；[AUDIO-008](development/tasks/AUDIO-008-lighting-clip-enable.md) 持久停用／恢复及默认值空隙；[AUDIO-009](development/tasks/AUDIO-009-timeline-clip-selection.md) 时间线框选与目录共享选择；[AUDIO-010](development/tasks/AUDIO-010-phase-preserving-split.md) 渐变结束后分割保留效果进度，原生历史／保存重开通过；[AUDIO-011](development/tasks/AUDIO-011-timeline-group-motion.md) 直接整组拖动／吸附／取消及目标输入互斥 | 完整保相位裁切与渐变中分割、框选／拖动自动滚屏、正式演出区段循环、双场景效果持续交叉与多轨 |

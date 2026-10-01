@@ -16,6 +16,8 @@ export function EffectInspectorPane({
   onPending,
   onApply,
   onPreview,
+  audition,
+  onDraftChange,
   children,
 }: {
   selection: EffectSelection | null;
@@ -28,6 +30,8 @@ export function EffectInspectorPane({
   onPending(pending: boolean): void;
   onApply(): Promise<boolean>;
   onPreview(): Promise<boolean>;
+  audition?: import("./useEffectDraftPreview").EffectAuditionControls;
+  onDraftChange?(): void;
   children: ReactNode;
 }) {
   const Editor =
@@ -51,6 +55,8 @@ export function EffectInspectorPane({
           onPending={onPending}
           onApply={onApply}
           onPreview={onPreview}
+          audition={audition}
+          onDraftChange={onDraftChange}
         />
       )}
       <WorkspaceSurface

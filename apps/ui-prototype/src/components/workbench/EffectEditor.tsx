@@ -19,7 +19,7 @@ import { EffectFixtureOrder } from "./EffectFixtureOrder";
 
 import { attributeLabels as labels } from "../../keyframe-tools";
 export interface EffectHandle {
-  collect(): EditOperation[];
+  collect(interactive?: boolean, force?: boolean): EditOperation[];
   accept(): void;
 }
 export interface EffectEditorProps {
@@ -34,6 +34,8 @@ export interface EffectEditorProps {
   onPending(pending: boolean): void;
   onApply(): Promise<boolean>;
   onPreview(): Promise<boolean>;
+  audition?: import("./useEffectDraftPreview").EffectAuditionControls;
+  onDraftChange?(): void;
 }
 export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
   function EffectEditor(
@@ -49,6 +51,8 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       onApply,
       onPending,
       onPreview,
+      audition,
+      onDraftChange,
     },
     ref,
   ) {
@@ -62,6 +66,7 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       dirtyRef.current = true;
       setDirty(true);
       pending.current(true);
+      onDraftChange?.();
       setLocalError("");
     }
     function accept() {
@@ -118,16 +123,16 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       setDraft((d) => ({ ...d, ...patch }));
     };
     useImperativeHandle(ref, () => ({ collect, accept }));
-    function collect(): EditOperation[] {
-      if (!dirtyRef.current) return [];
+    function collect(interactive = true, force = false): EditOperation[] {
+      if (!force && !dirtyRef.current) return [];
       try {
-        validateEditorForm(form.current);
+        validateEditorForm(form.current, interactive);
         const periodMs = secondsToMs(period, "循环周期");
         if (periodMs < 100 || periodMs > 3_600_000)
           throw new Error("循环周期应在 0.1–3600 秒之间");
         const channels =
           draft.waveform === "keyframes"
-            ? keyframes.current!.collect()
+            ? keyframes.current!.collect(interactive)
             : readRanges();
         return effectCommands(
           sceneId,
@@ -143,7 +148,8 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           illuminate,
         );
       } catch (e) {
-        setLocalError(e instanceof Error ? e.message : String(e));
+        if (interactive)
+          setLocalError(e instanceof Error ? e.message : String(e));
         throw e;
       }
     }
@@ -219,6 +225,7 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
         onChange={mark}
         onApply={onApply}
         onPreview={onPreview}
+        audition={audition}
       >
         <label>
           效果名称

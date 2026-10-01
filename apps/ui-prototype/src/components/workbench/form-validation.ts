@@ -1,5 +1,8 @@
 /** Keep browser constraint validation accessible while using product-language messages. */
-export function validateEditorForm(form: HTMLFormElement | null): void {
+export function validateEditorForm(
+  form: HTMLFormElement | null,
+  interactive = true,
+): void {
   if (!form) throw new Error("编辑面板已关闭，请重新选择");
   for (const field of form.querySelectorAll<
     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -25,7 +28,7 @@ export function validateEditorForm(form: HTMLFormElement | null): void {
     else if (!validity.valid) error = `请检查${label}`;
     if (error) {
       field.setCustomValidity(error);
-      field.reportValidity();
+      if (interactive) field.reportValidity();
       throw new Error(error);
     }
   }

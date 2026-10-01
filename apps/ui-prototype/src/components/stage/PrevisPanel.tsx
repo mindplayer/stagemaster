@@ -33,7 +33,7 @@ export function PrevisPanel({
   limitedFixtures?: FixtureView[];
   busy: boolean;
   generation: () => number;
-  run: (work: () => Promise<void>) => Promise<boolean>;
+  run: (work: () => Promise<void>, flushDrafts?: boolean) => Promise<boolean>;
   currentScene?: SceneView;
   followCurrent?: boolean;
   onFollowCurrent?(follow: boolean): void;
@@ -138,7 +138,7 @@ export function PrevisPanel({
                   kind: status?.enabled ? "disable" : "enable",
                 }),
               );
-            })
+            }, !status?.enabled)
           }
         >
           <CubeIcon />

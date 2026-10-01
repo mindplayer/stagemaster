@@ -131,3 +131,18 @@
 .effect-inspector .position-effect-axis .effect-fields {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+.effect-audition {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0;
+}
+.effect-audition button[aria-pressed="true"] {
+  border-color: var(--accent, #63c6ca);
+}
+.effect-audition p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted, #b0b7c3);
+  overflow-wrap: anywhere;
+}

@@ -183,7 +183,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     getProject: () => current.current.project,
     run,
     edit,
-    openPlayback: () => sharedPrevis.current?.openPlayback(),
+    openPlayback: (flushDrafts) =>
+      sharedPrevis.current?.openPlayback(flushDrafts),
+    available: page === "scenes",
+    canAudition: () =>
+      !(pendingRef.current || positionPending || parameterPending ||
+        sequencePending || stagePending || profilePending || audioPending),
     clearError: () => setError(""),
   });
   const audioSceneLink = useAudioSceneLink(
@@ -865,7 +870,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 allowPlacement: page === "stage" && stageView === "three",
                 busy,
                 generation: () => current.current.generation,
-                run: (work) => run(work),
+                run: (work, flushDrafts) => run(work, flushDrafts),
                 selectedId:
                   page === "stage"
                     ? stageSelected
@@ -1286,6 +1291,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                       onPending={effectWorkspace.setPending}
                       onApply={effectWorkspace.apply}
                       onPreview={effectWorkspace.preview}
+                      audition={effectWorkspace.audition}
+                      onDraftChange={effectWorkspace.draftChanged}
                     >
                       <SceneInspector
                         active={page === "scenes" && !!activeScene}

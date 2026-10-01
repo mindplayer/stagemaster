@@ -17,7 +17,7 @@ import { PrevisPanel } from "./PrevisPanel";
 import "./shared-previs.css";
 
 export interface SharedPrevisHandle {
-  openPlayback(): void;
+  openPlayback(flushDrafts?: boolean): void;
 }
 
 /** The only renderer view in a workbench; workspace navigation never remounts it. */
@@ -38,7 +38,7 @@ export const SharedPrevis = forwardRef<
     onReveal?(): void;
     onVisibilityChange?(visible: boolean): void;
     generation(): number;
-    run(work: () => Promise<void>): Promise<boolean>;
+    run(work: () => Promise<void>, flushFirst?: boolean): Promise<boolean>;
   } & PrevisInteractions
 >(function SharedPrevis(
   { contextKey, fixed = false, viewControls, onReveal, ...props },
@@ -57,7 +57,7 @@ export const SharedPrevis = forwardRef<
     setFollowCurrent(false);
   }, [contextKey]);
 
-  function open(playback = false) {
+  function open(playback = false, flushDrafts = true) {
     void props.run(async () => {
       if (playback) {
         await props.host.previs({
@@ -71,9 +71,11 @@ export const SharedPrevis = forwardRef<
       if (!status.enabled) await props.host.previs({ kind: "enable" });
       setVisible(true);
       onReveal?.();
-    });
+    }, flushDrafts);
   }
-  useImperativeHandle(ref, () => ({ openPlayback: () => open(true) }));
+  useImperativeHandle(ref, () => ({
+    openPlayback: (flushDrafts) => open(true, flushDrafts),
+  }));
 
   return (
     <section

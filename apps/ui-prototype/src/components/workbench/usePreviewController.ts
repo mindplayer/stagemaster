@@ -95,7 +95,10 @@ export function usePreviewController({
       // Stop/pause must remain available even when an unrelated editor draft is invalid.
       if (
         (typeof command === "string" ||
-          !["stop", "pause"].includes(command.kind)) &&
+          (!["stop", "pause"].includes(command.kind) &&
+            !(
+              command.kind === "resume" && current.current.loaded?.draftEffectId
+            ))) &&
         !(await beforeAction())
       )
         return;
