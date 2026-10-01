@@ -48,3 +48,5 @@ npm --prefix apps/ui-prototype run desktop:build
 ```
 
 格式与伪接口的验证说明分别见[工程格式](project-format/README.md)和[模块接口](module-api/README.md)。仅通过 Schema／类型检查不能证明服务、鉴权、实时性或物理输出已实现。设备相关构建、真实试验、失败记录与资源限制保留在对应工单，不以本机软件测试代替。
+
+2026-10-01：[SEQUENCE-005](development/tasks/SEQUENCE-005-group-script.md) 已交付批量幕场／台词／备注，保留原值、统一填写和明确清空；与批量时间合成一次事务，含混合值、错误定位、独立取消及隐藏选择保护。606 Rust、252 UI、严格检查／类型／桌面与原生历史／保存重开通过；运行提示快照保持不变。

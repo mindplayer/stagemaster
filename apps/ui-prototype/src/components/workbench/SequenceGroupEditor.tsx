@@ -15,9 +15,9 @@ import { DockPane } from "../layout/DockPane";
 import { ResourcePicker } from "../resources/ResourcePicker";
 import { DeleteDialog } from "./DeleteDialog";
 import {
-  SequenceGroupTiming,
-  type GroupTimingHandle,
-} from "./SequenceGroupTiming";
+  SequenceGroupProperties,
+  type GroupPropertiesHandle,
+} from "./SequenceGroupProperties";
 import { SequenceGroupList } from "./SequenceGroupList";
 import "./sequence-groups.css";
 
@@ -30,11 +30,11 @@ export function SequenceGroupEditor({
   query,
   setQuery,
   onEdit,
-  timingRef,
+  propertiesRef,
   beforeChange,
   onPending,
 }: {
-  timingRef: RefObject<GroupTimingHandle | null>;
+  propertiesRef: RefObject<GroupPropertiesHandle | null>;
   beforeChange(): Promise<boolean>;
   onPending(value: boolean): void;
   sequence: SequenceView;
@@ -102,7 +102,7 @@ export function SequenceGroupEditor({
     setError("");
   }
   async function apply(
-    operation: Exclude<StepGroupOperation, { kind: "timing" }>,
+    operation: Exclude<StepGroupOperation, { kind: "timing" | "script" }>,
   ) {
     if (pending.current || disabled || !ids.length) return;
     pending.current = true;
@@ -276,8 +276,8 @@ export function SequenceGroupEditor({
           )}
           {error && !confirm && <p role="alert">{error}</p>}
           <p role="status">{notice}</p>
-          <SequenceGroupTiming
-            ref={timingRef}
+          <SequenceGroupProperties
+            ref={propertiesRef}
             sequenceId={sequence.id}
             steps={sequence.steps.filter((s) => ids.includes(s.id))}
             busy={disabled}

@@ -1,0 +1,33 @@
+.sequence-group-script {
+  border-top: 1px solid var(--wb-border);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+.sequence-group-script summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.group-script-field {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+.workbench .group-script-field label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+.group-script-field textarea,
+.group-script-field input,
+.group-script-field select {
+  width: 100%;
+  min-width: 0;
+}
+.group-script-field textarea {
+  resize: vertical;
+}
+.group-script-field small {
+  color: var(--wb-muted);
+}

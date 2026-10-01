@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 pub(super) const CAPABILITY: &str = "lighting.sequence-script";
-const MAX_LIST_BYTES: usize = 64 * 1024;
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub(super) const MAX_LIST_BYTES: usize = 64 * 1024;
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StepScript {
     pub section: String,
@@ -13,7 +13,7 @@ pub struct StepScript {
     pub notes: String,
 }
 impl StepScript {
-    fn validate(&self) -> Result<(), String> {
+    pub(super) fn validate(&self) -> Result<(), String> {
         for (label, value, limit) in [
             ("幕／场", &self.section, 80),
             ("台词／动作提示", &self.trigger, 1024),
@@ -31,12 +31,12 @@ impl StepScript {
         }
         Ok(())
     }
-    fn is_empty(&self) -> bool {
+    pub(super) fn is_empty(&self) -> bool {
         [&self.section, &self.trigger, &self.notes]
             .iter()
             .all(|v| v.trim().is_empty())
     }
-    fn bytes(&self) -> usize {
+    pub(super) fn bytes(&self) -> usize {
         self.section.len() + self.trigger.len() + self.notes.len()
     }
 }

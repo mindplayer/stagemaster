@@ -59,6 +59,8 @@ mod sequence;
 mod sequence_groups;
 pub use sequence_groups::StepGroupOperation;
 mod sequence_script;
+mod sequence_script_patch;
+pub use sequence_script_patch::StepScriptPatch;
 mod sequence_timing;
 pub use sequence_timing::{StepAdvance, StepTimingPatch};
 mod stage;

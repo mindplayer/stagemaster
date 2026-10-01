@@ -1,5 +1,7 @@
 # 当前开发状态
 
+SEQUENCE-005 完成（基线 `dfaa86d`，结果为本次 `feat(sequence): edit script prompts across selected steps` 提交）：稀疏批量剧本提示与时间合成事务、明确清空／混合值／取消保护；606 Rust、252 UI、类型／严格检查／桌面及原生筛选外选择、历史、保存重开与独立内容核对通过，见[工单](tasks/SEQUENCE-005-group-script.md)。副本已保存、原 UX-041 未改、音乐 0／UE 关闭／设备断开；持续 goal active，接续执行列表定位。
+
 UX-041 完成（基线 `0af38d2`，结果为本次 `feat(editing): share spatial fixture ordering across groups and effects` 提交）：灯组／各类效果共用世界空间灯序、升降向／未布置保护和选项草稿隔离；249 UI、类型／格式／桌面、61 成员组件及原生取消、历史、保存重开／独立内容核对通过，见[工单](tasks/UX-041-spatial-fixture-order.md)。独立副本已保存，源 UX-040 未改；音乐 0／UE 关闭／设备断开，持续 goal active。
 
 UX-040 完成（基线 `615f68f`，结果为本次 `feat(position): add shared target plane picking` 提交）：共同目标平面选点／精确输入／取消、紧凑布局与独立手势；246 UI、15 Rust 相关回归、类型／格式／桌面及原生 24 灯原子拒绝、历史、保存重开通过，见[工单](tasks/UX-040-common-target-plane.md)。副本已保存，源 REPORT-002 未改；音乐 0／UE 关闭／设备断开，持续 goal active。

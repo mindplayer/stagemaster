@@ -45,6 +45,8 @@
     "tests/parameter-categories-harness.tsx",
     "tests/group-members.test.ts",
     "tests/spatial-fixture-order.test.ts",
+    "tests/sequence-group-script.test.ts",
+    "tests/sequence-properties-harness.tsx",
     "tests/effect-draft-harness.tsx",
     "tests/group-members-harness.tsx",
     "tests/copy-values-preview.test.ts",

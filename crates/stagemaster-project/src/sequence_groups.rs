@@ -16,6 +16,7 @@ pub enum StepGroupOperation {
     Move { before_id: Option<String> },
     Remove {},
     Timing { patch: crate::StepTimingPatch },
+    Script { patch: crate::StepScriptPatch },
 }
 
 pub(super) fn apply(
@@ -39,6 +40,9 @@ pub(super) fn apply(
         return Err("部分所选步骤已不存在，请重新选择".into());
     }
     match operation {
+        StepGroupOperation::Script { patch } => {
+            crate::sequence_script_patch::apply(steps, &selected, &patch)?;
+        }
         StepGroupOperation::Timing { patch } => {
             crate::sequence_timing::apply(steps, &selected, &patch)?;
         }

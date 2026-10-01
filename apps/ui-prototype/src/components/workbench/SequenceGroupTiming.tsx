@@ -68,6 +68,7 @@ export const SequenceGroupTiming = forwardRef<
     <details className="sequence-group-timing" ref={details}>
       <summary>统一时间{draft ? " · 未应用" : ""}</summary>
       <form
+        aria-label="批量时间编辑"
         ref={form}
         noValidate
         onSubmit={(e) => {
@@ -75,7 +76,7 @@ export const SequenceGroupTiming = forwardRef<
           void beforeChange();
         }}
         onKeyDown={(e) => {
-          if (e.key === "Escape") {
+          if (e.key === "Escape" && !busy) {
             e.preventDefault();
             cancel();
           }
@@ -149,7 +150,7 @@ export const SequenceGroupTiming = forwardRef<
           {error && <p role="alert">{error}</p>}
           <div className="wb-form-actions">
             <button className="wb-primary" disabled={!draft} type="submit">
-              应用时间
+              应用批量修改
             </button>
             <button type="button" disabled={!draft} onClick={cancel}>
               取消时间修改

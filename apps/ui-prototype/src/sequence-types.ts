@@ -28,7 +28,8 @@ export interface StepTimingPatch {
 export type StepGroupOperation =
   | { kind: "copy" | "move"; beforeId: string | null }
   | { kind: "remove" }
-  | { kind: "timing"; patch: StepTimingPatch };
+  | { kind: "timing"; patch: StepTimingPatch }
+  | { kind: "script"; patch: Partial<StepScript> };
 export type SequenceEdit =
   | {
       kind: "editSteps";

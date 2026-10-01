@@ -9,7 +9,7 @@ import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { SequenceWorkspaceHeading } from "./SequenceWorkspaceHeading";
 import { SequenceGroupEditor } from "./SequenceGroupEditor";
-import type { GroupTimingHandle } from "./SequenceGroupTiming";
+import type { GroupPropertiesHandle } from "./SequenceGroupProperties";
 import type {
   ApplicationHost,
   EditCommand,
@@ -65,7 +65,7 @@ export const SequenceWorkspace = forwardRef<
   ref,
 ) {
   const [batch, setBatch] = useState(false);
-  const groupTiming = useRef<GroupTimingHandle>(null);
+  const groupProperties = useRef<GroupPropertiesHandle>(null);
   const [position, setPosition] = useState(() => executionPosition(null));
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
   const [stepId, setStepId] = useState(
@@ -106,7 +106,7 @@ export const SequenceWorkspace = forwardRef<
     }
   }
   function cancel() {
-    groupTiming.current?.accept();
+    groupProperties.current?.accept();
     draftRef.current = null;
     setDraft(null);
     setLocalError("");
@@ -114,7 +114,7 @@ export const SequenceWorkspace = forwardRef<
   }
   function collect(): EditOperation[] {
     const d = draftRef.current;
-    const grouped = groupTiming.current?.collect() ?? [];
+    const grouped = groupProperties.current?.collect() ?? [];
     if (!d || !sequence || !step) return grouped;
     try {
       return [...grouped, ...sequenceCommands(d, sequence, step)];
@@ -308,7 +308,7 @@ export const SequenceWorkspace = forwardRef<
                 query={stepQuery}
                 setQuery={setStepQuery}
                 onEdit={edit}
-                timingRef={groupTiming}
+                propertiesRef={groupProperties}
                 beforeChange={beforeChange}
                 onPending={onPending}
               />

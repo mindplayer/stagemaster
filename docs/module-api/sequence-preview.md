@@ -81,3 +81,9 @@ ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不�
 纯 Rust `RateClock::new(now_ms)`、`advance(now_ms)`、`set_rate(now_ms,percent)` 在无 I/O／无分配的固定精度中映射单调时间。内部保留 1/100 毫秒余数，拒绝倒退与溢出；速率变更点以前按旧倍率、以后按新倍率。桌面 Loaded 持有一个映射并供 Player 的控制、监看、UE、草稿替换共用。整个列表的延时／渐变／自动等待／循环及效果一同改变，界面显示的“编排”时间保持原计划尺度。
 
 UI 两个预演面复用 PreviewRateControls，快捷 50／100／200%、精确输入和取消只操作运行状态；setRate 不自动应用工程草稿，不能被误当效果参数。音乐仍由音频采样时钟驱动，音频与列表既有互斥不变。无工程／包格式或固件变更；多执行器、独立效果速率、节拍输入和真实输出主控仍后续。
+
+## 批量剧本提示
+
+[ADR-082](../development/decisions/PRODUCT-ADR-082-sequence-group-script.md) 在 `editSteps` 中增加 `operation: { kind: "script", patch: { section?, trigger?, notes? } }`。省略保留逐步原值，空字符串清除指定字段；此 patch 不接受 null、未知字段或空对象。依既有非空／唯一步骤身份选择，整条命令原子成功或拒绝；复用提示字符数和列表 64 KiB 上限，预检后写回。全空提示移除对象，能力声明自动同步。播放器和设备包不变。
+
+桌面批量属性分别选择保留、统一填写或清空；空白混合值不自动解释成清空。时间与提示句柄统一收集为一个编辑批次，局部取消只清自己的草稿，组合待修改状态取并集；失败保持两个草稿。运行中的剧本提示仍来自已载入快照。

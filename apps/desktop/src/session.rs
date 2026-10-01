@@ -21,6 +21,8 @@ mod profile_file_tests;
 mod report_tests;
 #[cfg(test)]
 mod sequence_group_tests;
+#[cfg(test)]
+mod sequence_script_patch_tests;
 
 #[derive(Default)]
 pub(crate) struct Session {
