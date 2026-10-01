@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-036 完成（基线 `38ad5d6`，结果为本次 `fix(presets): inherit explicit attribute scope when recording` 提交）：记录／更新继承明确范围、空范围不扩大、取消隔离及镜头明细中文；237 UI、类型／格式／桌面、组件失败路径及原生记录／局部更新／历史／保存重开通过，见[工单](tasks/UX-036-preset-scope-continuity.md)。独立 2 预设工程已保存，音乐 0／UE 关闭／设备断开，源 UX-035 未改；持续 goal active，接续快捷属性范围统一。
+
 UX-035 完成（基线 `11dbd8e`，结果为本次 `feat(ui): organize fixture parameters by purpose` 提交）：灯光按用途分类、共同属性计数／固定顺序、全部查看、草稿切换保护与窄栏吸顶；235 UI、类型／格式／桌面、组件失败路径及原生历史／保存重开与 80 灯只读复验通过，见[工单](tasks/UX-035-attribute-categories.md)。当前 AUDIO-014 已保存未改、音乐 0／UE 关闭／设备断开；持续 goal active，接续预设记录范围继承。
 
 FIXTURE-005 完成（基线 `5d80c07`，结果为本次 `feat(fixtures): add continuous lens and iris controls` 提交）：依 ADR-080 贯通变焦／调焦／光圈建档、场景／预设、渐变与包；594 Rust、233 UI、严格检查／类型／格式／桌面和组件／原生取消、历史、预设隔离、保存重开通过，见[工单](tasks/FIXTURE-005-continuous-optics.md)。独立镜头工程已保存、UE 关闭／音乐 0／设备断开，原 STAGE-004 未改。持续 goal active，接续 U01／U10 属性分类。

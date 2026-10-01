@@ -8,9 +8,9 @@ import {
 } from "../../library-tools";
 import type { RecallMode } from "../../library-tools";
 import { uniqueName } from "../../editor-tools";
+import { AttributeMask } from "./AttributeMask";
 import { GroupEditor } from "./GroupEditor";
 import {
-  AttributeMask,
   CopyValuesEditor,
   PresetEditor,
   PresetUsage,
@@ -364,6 +364,7 @@ export function ResourcePool({
       )}
       {dialog?.kind === "preset" && scene && (
         <PresetEditor
+          initialMask={mask}
           preset={project.presets.find((p) => p.id === dialog.id)}
           scene={scene}
           fixtures={fixtures}

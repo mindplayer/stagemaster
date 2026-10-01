@@ -42,6 +42,8 @@
     "tests/mixed-plan-harness.tsx",
     "tests/fixture-optics.test.ts",
     "tests/parameter-categories.test.ts",
-    "tests/parameter-categories-harness.tsx"
+    "tests/parameter-categories-harness.tsx",
+    "tests/preset-scope.test.ts",
+    "tests/preset-scope-harness.tsx"
   ]
 }
