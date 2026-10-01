@@ -2,7 +2,7 @@
 
 状态：完成；结果为本次 `feat(scenes): inspect references and navigate to exact editing locations` 提交；基线 `707daea`；主工作区单写者。持续 goal active，output 不动。
 
-借鉴 MA [ListReference](https://help.malighting.com/grandMA3/2.5/HTML/keyword_listreference.html) 的对象引用检查：场景属性内显示当前工程中每个使用位置，按列表步骤、独立灯光片段、旧卡点绑定分类，支持搜索和有界分页。只列直接引用，不把执行快照或间接跟踪推断成直接引用。停用／锁定片段仍计数；独立片段模式保留的卡点绑定按已有数据如实列出。
+借鉴 MA [ListReference](https://help.malighting.com/grandMA3/2.5/HTML/keyword_listreference.html) 的对象引用检查：场景属性内显示当前工程中每个使用位置，按列表步骤、独立灯光片段、旧卡点绑定分类，支持搜索和有界分页。只列直接引用，不把执行快照或间接跟踪推断成直接引用。停用／锁定片段仍计数；旧卡点模式的场景绑定按已有数据如实列出；独立片段模式按核心规则只有节奏标记，不允许残留场景绑定。
 
 数据从当前 ProjectView 派生，不新增工程字段或 Rust／宿主 API。定位经共享草稿保护，失败保留页面和查询；成功进入编辑模式并选定精确步骤／片段／卡点、解除阻碍定位的筛选，将对象滚入相应容器并聚焦。只改变编辑上下文，不定位播放游标或执行节目；返回场景页仍为原场景。本项先做引用可见与精确导航，删除事务仍由核心校验保护。
 

@@ -3,9 +3,11 @@ import type { useSceneBatchCopy } from "./useSceneBatchCopy";
 export function SceneBatchControls({
   batch,
   visible,
+  onRemove,
 }: {
   batch: ReturnType<typeof useSceneBatchCopy>;
   visible: SceneView[];
+  onRemove(ids: string[]): void;
 }) {
   const hidden = batch.selected.filter(
     (id) => !visible.some((s) => s.id === id),
@@ -38,6 +40,13 @@ export function SceneBatchControls({
         onClick={() => void batch.copy()}
       >
         复制所选场景
+      </button>
+      <button
+        className="wb-danger"
+        disabled={batch.blocked || !batch.selected.length}
+        onClick={() => onRemove([...batch.selected])}
+      >
+        删除所选场景…
       </button>
       {batch.problem && (
         <p role="alert" className="wb-error">

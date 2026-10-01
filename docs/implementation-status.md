@@ -1,5 +1,7 @@
 # 实现状态
 
+[UX-046](development/tasks/UX-046-scene-removal-preflight.md) 已补单／批量场景删除前审阅、引用阻断和使用位置编辑入口；任一被引用即全组保护，成功一次历史，原生保存重开与内容核对通过。
+
 [UX-045](development/tasks/UX-045-scene-usage-navigation.md) 已补场景使用位置、引用搜索与精确编辑导航；可跨步骤执行视图、音乐片段／旧卡点批量模式和筛选找回目标，播放位置保持，错误草稿拒绝。
 
 [UX-044](development/tasks/UX-044-scene-batch-copy.md) 已补场景成组复制、筛选／范围选择及一次历史，复制独立场景和效果身份、保留原引用；共享草稿失败保持选择，保存重开通过。

@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-046 完成（2026-10-02，基线 `379dc44`，结果为本次 `feat(scenes): review references before atomic group removal` 提交）：单／批量场景删除审阅、引用阻断及精确处理入口，固定对象／取消焦点／原子历史；609 Rust、268 UI、严格检查／类型／格式／桌面、原生错误草稿／混合组／撤销保存重开通过，见[工单](tasks/UX-046-scene-removal-preflight.md)。仅删除副本三场景，原内容完整，来源未改；当前 17 场景已保存，无音乐／UE 关闭／设备断开。持续 goal active，接续时间线视图定位。
+
 UX-045 完成（2026-10-02，基线 `707daea`，结果为本次 `feat(scenes): inspect references and navigate to exact editing locations` 提交）：场景直接使用位置／搜索分页、精确步骤／片段／卡点编辑导航、收起面板与筛选／忙时序保护；266 UI、类型／格式／桌面及原生新旧工程草稿拒绝／上下文／播放隔离通过，见[工单](tasks/UX-045-scene-usage-navigation.md)。两个副本与来源哈希一致，当前旧卡点副本已保存、音乐 0／UE 关闭／设备断开；持续 goal active，接续删除预检。
 
 UX-044 完成（基线 `70b13b1`，结果为本次 `feat(scenes): copy selected scenes as one transaction` 提交）：场景成组复制、筛选外计数与范围选择、命名避让和共享草稿保护；264 UI、24 Rust 相关回归、类型／格式／桌面及原生历史／重开／独立内容核对通过，见[工单](tasks/UX-044-scene-batch-copy.md)。三副本保留完整效果且身份独立，来源未改；音乐 0／UE 关闭／设备未连接，持续 goal active，接续场景引用位置。

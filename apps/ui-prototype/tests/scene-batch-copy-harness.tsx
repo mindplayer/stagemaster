@@ -37,6 +37,7 @@ function Harness() {
     >
       <div style={{ width: 320 }}>
         <SceneLibrary
+          onRemoveMany={() => {}}
           ref={library}
           scenes={scenes}
           selected={selected}

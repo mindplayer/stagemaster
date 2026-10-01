@@ -13,6 +13,7 @@ export function SceneLibrary({
   ref,
   beforeChange,
   onCopyMany,
+  onRemoveMany,
   scenes,
   selected,
   query,
@@ -26,6 +27,7 @@ export function SceneLibrary({
   ref?: Ref<SceneLibraryHandle>;
   beforeChange(): Promise<boolean>;
   onCopyMany(ids: string[]): Promise<string[] | null>;
+  onRemoveMany(ids: string[]): void;
   scenes: SceneView[];
   selected: string;
   query: string;
@@ -119,7 +121,13 @@ export function SceneLibrary({
       >
         {batch.active ? "返回单场景编辑" : "批量整理场景"}
       </button>
-      {batch.active && <SceneBatchControls batch={batch} visible={visible} />}
+      {batch.active && (
+        <SceneBatchControls
+          batch={batch}
+          visible={visible}
+          onRemove={onRemoveMany}
+        />
+      )}
       <div
         ref={list}
         className="wb-scene-list"

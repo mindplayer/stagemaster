@@ -1,0 +1,49 @@
+.wb-dialog.scene-removal-dialog {
+  width: min(840px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+.scene-removal-content {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.3fr);
+  gap: 16px;
+}
+.scene-removal-content > section {
+  min-width: 0;
+}
+.scene-removal-content h3 {
+  font-size: 13px;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.scene-removal-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  max-height: 360px;
+  overflow: auto;
+}
+.workbench .scene-removal-list > button {
+  display: grid;
+  justify-content: stretch;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.scene-removal-list small {
+  color: var(--wb-muted);
+}
+.scene-removal-content nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.scene-removal-content .scene-usage {
+  padding: 10px 0;
+}
+@media (max-width: 640px) {
+  .scene-removal-content {
+    grid-template-columns: 1fr;
+  }
+}

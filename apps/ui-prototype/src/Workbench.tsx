@@ -1,3 +1,5 @@
+import { useSceneRemoval } from "./components/workbench/useSceneRemoval";
+import { SceneRemovalDialog } from "./components/workbench/SceneRemovalDialog";
 import { locateSceneUsage as navigateSceneUsage } from "./components/workbench/scene-usage-navigation";
 import { SceneUsagePanel } from "./components/workbench/SceneUsagePanel";
 import { type SceneUsageTarget } from "./components/workbench/scene-usage";
@@ -526,9 +528,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     });
     return ok ? generation : null;
   }
-  function locateSceneUsage(sceneId: string, target: SceneUsageTarget) {
-    if (!project) return;
-    void navigateSceneUsage({
+  async function locateSceneUsage(sceneId: string, target: SceneUsageTarget) {
+    if (!project) return false;
+    return navigateSceneUsage({
       projectId: project.id,
       sceneId,
       target,
@@ -624,6 +626,20 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     },
     clearQuery: () => setSceneQuery(""),
     notice: setNotice,
+  });
+  const sceneRemoval = useSceneRemoval({
+    read: () => current.current.project,
+    run,
+    edit,
+    onRemoved: (ids) => {
+      const p = current.current.project!;
+      if (ids.includes(activeScene?.id ?? "")) {
+        const next = p.scenes[0];
+        setSceneId(next?.id ?? "");
+        setForm(next ? sceneForm(next) : null);
+      } else restoreForm();
+      setNotice(`已删除 ${ids.length} 个场景，可撤销恢复`);
+    },
   });
   const chooseScene = sceneOperations.choose;
   const addScene = sceneOperations.add;
@@ -1048,6 +1064,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                       ref={sceneLibrary}
                       beforeChange={() => run(async () => {})}
                       onCopyMany={sceneOperations.copy}
+                      onRemoveMany={sceneRemoval.request}
                       scenes={project.scenes}
                       selected={activeScene?.id ?? ""}
                       query={sceneQuery}
@@ -1379,8 +1396,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                                 setError("");
                               }}
                               onDelete={() => {
-                                setError("");
-                                setConfirmDelete(true);
+                                if (formRef.current?.kind === "scene") {
+                                  sceneRemoval.request([formRef.current.id]);
+                                } else {
+                                  setError("");
+                                  setConfirmDelete(true);
+                                }
                               }}
                             />
                             {page === "scenes" && activeScene && (
@@ -1449,6 +1470,19 @@ export function Workbench({ host }: { host: ApplicationHost }) {
           operationError={error}
           onClose={() => setShowRecovery(false)}
           onRestore={recover}
+        />
+      )}
+      {project && sceneRemoval.intent?.projectId === project.id && (
+        <SceneRemovalDialog
+          project={project}
+          ids={sceneRemoval.intent.ids}
+          busy={busy}
+          error={[sceneRemoval.problem, error].filter(Boolean).join("\n")}
+          onCancel={sceneRemoval.close}
+          onRemove={() => void sceneRemoval.remove()}
+          onLocate={async (id, target) => {
+            if (await locateSceneUsage(id, target)) sceneRemoval.dismiss();
+          }}
         />
       )}
       {confirmDelete && (
