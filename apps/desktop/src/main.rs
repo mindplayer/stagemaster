@@ -6,6 +6,7 @@ mod installation;
 mod lifecycle;
 mod output_control;
 mod package;
+mod patch_report;
 mod preview;
 mod previs;
 mod recent;
@@ -171,6 +172,7 @@ fn main() {
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
         .manage(package::Service::default())
+        .manage(patch_report::Service::default())
         .manage(devices)
         .manage(installation)
         .setup(|app| {
@@ -241,6 +243,7 @@ fn main() {
             check::check_request,
             package::package_build,
             package::package_export,
+            patch_report::patch_report_export,
             recovery::recovery_request,
             recent::recent_request,
             device::device_request,

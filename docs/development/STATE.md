@@ -1,5 +1,7 @@
 # 当前开发状态
 
+REPORT-001 完成（基线 `469dd1e`，结果为本次 `feat(reports): export versioned fixture patch handoffs` 提交）：依 ADR-078 实现快照 CSV 配灯表、冲突保护与草稿／过期反馈；582 Rust、227 UI、类型／fmt／严格检查／桌面和原生 80 灯内容、取消／历史／跨页验证通过，见[工单](tasks/REPORT-001-patch-report-export.md)。原 AUDIO-014 副本未改，音乐 0／UE 关闭／设备断开；持续 goal active，接续灯具模式跨工程复用。
+
 AUDIO-014 完成（基线 `957e832`，结果为本次 `feat(audio): extend edge scrolling to markers and legacy boundaries` 提交）：卡点／旧段落共用边缘滚动、三像素阈值与生命周期取消；227 UI、类型／格式／桌面、真实组件与隔离保持态、原生撤销／重做／保存重开通过，见[工单](tasks/AUDIO-014-marker-edge-scroll.md)。独立副本卡点 2.622 秒已保存，音乐 0／UE 关闭／设备断开；持续 goal active，接续配灯表交接。
 
 UX-033 完成（基线 `72d5f1b`，结果为本次 `feat(stage): avoid collisions between fixture labels` 提交）：三处平面共享标签避让／选中优先／字素缩略与省略提示；223 UI、类型／格式／桌面、密集组件及原生三视图通过，见[工单](tasks/UX-033-fixture-label-collision.md)。独立工程哈希未改、音乐 0／UE 关闭／设备断开，持续 goal active，接续卡点边缘滚动。

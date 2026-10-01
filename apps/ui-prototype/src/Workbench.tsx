@@ -26,8 +26,7 @@ import { useInstallation } from "./components/installation/useInstallation";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
 import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
-import { PackagePanel } from "./components/workbench/PackagePanel";
-import { ProjectCheckPanel } from "./components/workbench/ProjectCheckPanel";
+import { ProjectDocuments } from "./components/projects/ProjectDocuments";
 import {
   PositionPanel,
   type PositionHandle,
@@ -187,8 +186,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       sharedPrevis.current?.openPlayback(flushDrafts),
     available: page === "scenes",
     canAudition: () =>
-      !(pendingRef.current || positionPending || parameterPending ||
-        sequencePending || stagePending || profilePending || audioPending),
+      !(
+        pendingRef.current ||
+        positionPending ||
+        parameterPending ||
+        sequencePending ||
+        stagePending ||
+        profilePending ||
+        audioPending
+      ),
     clearError: () => setError(""),
   });
   const audioSceneLink = useAudioSceneLink(
@@ -819,13 +825,13 @@ export function Workbench({ host }: { host: ApplicationHost }) {
             }
             toolbar={
               <>
-              <WorkbenchNavigation
-                page={page}
-                project={project}
-                busy={busy}
-                onSelect={switchPage}
-              />
-              <PreviewOutputControls host={host} />
+                <WorkbenchNavigation
+                  page={page}
+                  project={project}
+                  busy={busy}
+                  onSelect={switchPage}
+                />
+                <PreviewOutputControls host={host} />
               </>
             }
           >
@@ -1217,54 +1223,26 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         onAddScene={addScene}
                         onAddFixtures={() => switchPage("fixtures")}
                       />
-                      {page === "settings" && (
-                        <details className="wb-file-details">
-                          <summary>
-                            文件信息 ·{" "}
-                            {snapshot.fileName?.split(/[\\/]/).at(-1) ??
-                              "尚未保存"}
-                          </summary>
-                          <dl className="wb-project-summary">
-                            <dt>工程名称</dt>
-                            <dd>{project.name}</dd>
-                            <dt>文件位置</dt>
-                            <dd>{snapshot.fileName ?? "尚未保存"}</dd>
-                            <dt>灯具</dt>
-                            <dd>{project.fixtures.length} 台</dd>
-                            <dt>场景</dt>
-                            <dd>{project.scenes.length} 个</dd>
-                          </dl>
-                        </details>
-                      )}
-                      <PackagePanel
-                        key={`package:${project.id}`}
-                        host={host}
-                        project={project}
-                        generation={snapshot.generation}
-                        hasDrafts={hasDrafts}
-                        visible={page === "settings"}
-                        busy={busy}
-                        capture={captureCheck}
-                        onLocate={locateCheck}
-                        onInstall={installation.start}
-                        targetExecutionSemantics={
-                          installation.view?.destination.executionSemantics
-                        }
-                        installReason={startInstallationReason(
-                          installation.view,
-                          installation.communicationError,
-                        )}
-                      />
-                      <ProjectCheckPanel
-                        key={`check:${project.id}`}
-                        host={host}
-                        projectId={project.id}
-                        generation={snapshot.generation}
-                        hasDrafts={hasDrafts}
-                        visible={page === "settings"}
-                        busy={busy}
-                        capture={captureCheck}
-                        onLocate={locateCheck}
+                      <ProjectDocuments
+                        key={`documents:${project.id}`}
+                        fileName={snapshot.fileName}
+                        packageProps={{
+                          host,
+                          project,
+                          generation: snapshot.generation,
+                          hasDrafts,
+                          visible: page === "settings",
+                          busy,
+                          capture: captureCheck,
+                          onLocate: locateCheck,
+                          onInstall: installation.start,
+                          targetExecutionSemantics:
+                            installation.view?.destination.executionSemantics,
+                          installReason: startInstallationReason(
+                            installation.view,
+                            installation.communicationError,
+                          ),
+                        }}
                         onSaveResources={(generation) =>
                           save(false, generation)
                         }

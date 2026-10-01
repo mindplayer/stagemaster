@@ -16,11 +16,13 @@ pub use audio::{
 mod check;
 mod compilation;
 mod package;
+mod patch_report;
 pub use check::{
     CheckIssue, CheckLocation, CheckReport, PlanLimits, PlanUsage, ProgramCheck, ProgramStatus,
     Severity,
 };
 pub use package::{PackageBuild, PackageIssue, PackageProgram, PackageReport, PackageSelection};
+pub use patch_report::PatchReport;
 mod editing;
 mod effect_compile;
 mod effects;

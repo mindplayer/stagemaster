@@ -132,7 +132,12 @@ export type ProjectRequest =
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   kind: "desktop" | "browser";
-  output(request: import("./output-control-types").OutputControlRequest): Promise<import("./output-control-types").OutputControlSnapshot>;
+  exportPatchReport(
+    generation: number,
+  ): Promise<import("./report-types").PatchReportExport>;
+  output(
+    request: import("./output-control-types").OutputControlRequest,
+  ): Promise<import("./output-control-types").OutputControlSnapshot>;
   recent(
     request: import("./recent-types").RecentRequest,
   ): Promise<import("./recent-types").RecentProject[]>;
