@@ -1,4 +1,5 @@
 import { PreviewRateControls } from "./PreviewRateControls";
+import { ExecutionKeyboardControls } from "./ExecutionKeyboardControls";
 import { SequenceScriptPrompt } from "./SequenceScript";
 import { useEffect, useState } from "react";
 import {
@@ -19,11 +20,13 @@ export function ExecutionPreview({
   sequence,
   stepId,
   busy,
+  visible,
 }: {
   controller: PreviewController;
   sequence?: SequenceView;
   stepId: string;
   busy: boolean;
+  visible: boolean;
 }) {
   const { snapshot, act, error, working } = controller;
   const loaded = snapshot.loaded;
@@ -152,6 +155,20 @@ export function ExecutionPreview({
           停止
         </button>
       </div>
+      <ExecutionKeyboardControls
+        key={`${snapshot.epoch}:${sequence?.id ?? ""}`}
+        visible={visible}
+        state={{
+          ready,
+          busy: controlsBusy,
+          canNext: loaded?.canNext ?? false,
+          status: loaded?.status ?? "idle",
+        }}
+        onCommand={async (kind) => {
+          if (kind === "next" || kind === "stop") setJump(null);
+          await act({ kind });
+        }}
+      />
       <PreviewRateControls controller={controller} disabled={!ready || busy} />
       <div className="execution-selected" aria-label="所选步骤操作">
         <span>所选步骤</span>

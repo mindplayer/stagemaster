@@ -1,0 +1,36 @@
+.execution-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.execution-keyboard > button {
+  align-self: flex-start;
+}
+.execution-keyboard small {
+  color: var(--wb-muted);
+  line-height: 1.5;
+}
+.execution-keyboard-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid var(--wb-accent);
+  border-radius: 6px;
+  background: #1c343d;
+  font-size: 12px;
+}
+.execution-keyboard-pad:focus-visible {
+  outline: 2px solid var(--wb-accent);
+  outline-offset: 2px;
+}
+.execution-keyboard-pad strong {
+  color: var(--wb-accent);
+}
+.execution-keyboard-pad kbd {
+  font: inherit;
+  padding: 1px 4px;
+  border: 1px solid #60717d;
+  border-radius: 3px;
+}

@@ -72,6 +72,7 @@ export function PreviewPanel({
         sequence={sequence}
         stepId={stepId}
         busy={busy}
+        visible={visible}
       />
     );
   const same =
