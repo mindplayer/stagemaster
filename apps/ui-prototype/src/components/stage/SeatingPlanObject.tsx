@@ -6,14 +6,12 @@ export function SeatingPlanObject({
   name,
   shape,
   selected,
-  labels,
   unit,
 }: {
   id: string;
   name: string;
   shape: SeatingShape;
   selected: boolean;
-  labels: boolean;
   unit: number;
 }) {
   const layout = seatingLayout(shape);
@@ -78,11 +76,6 @@ export function SeatingPlanObject({
         d={`M 0 ${-depth / 2 - 0.1} v -.4 m -.15 .15 l .15 -.15 l .15 .15`}
         strokeWidth={unit * 0.1}
       />
-      {labels && (
-        <text y={depth / 2 + unit * 1.4} fontSize={unit} textAnchor="middle">
-          {name} · {centers.length} 座
-        </text>
-      )}
       <title>
         {name} · {shape.rows} 排 × {shape.columns} 座
       </title>

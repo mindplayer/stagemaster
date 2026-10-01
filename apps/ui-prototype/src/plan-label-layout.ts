@@ -12,6 +12,8 @@ export interface PlanLabelItem {
   width: number;
   priority: number;
   selected: boolean;
+  /** False for geometry anchors without a fixture symbol. */
+  symbol?: boolean;
 }
 export interface PlacedPlanLabel extends LabelBox {
   id: string;
@@ -79,7 +81,7 @@ export function layoutPlanLabels(
         viewport,
       ),
   );
-  for (const i of visible)
+  for (const i of visible.filter((i) => i.symbol !== false))
     grid.add({
       x: i.x - 1.3,
       y: i.y - (i.selected ? 2.2 : 1.3),

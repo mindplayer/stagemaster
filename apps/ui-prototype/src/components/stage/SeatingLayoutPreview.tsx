@@ -23,7 +23,6 @@ export function SeatingLayoutPreview({ shape }: { shape: SeatingShape }) {
         name="座区草稿"
         shape={local}
         selected={false}
-        labels={false}
         unit={margin / 3}
       />
     </svg>

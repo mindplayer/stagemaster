@@ -37,6 +37,8 @@
     "tests/stage-overview-harness.tsx",
     "tests/layout-workspace-harness.tsx",
     "tests/focus-sequence-harness.tsx",
-    "tests/resource-picker-harness.tsx"
+    "tests/resource-picker-harness.tsx",
+    "tests/stage-labels.test.ts",
+    "tests/mixed-plan-harness.tsx"
   ]
 }

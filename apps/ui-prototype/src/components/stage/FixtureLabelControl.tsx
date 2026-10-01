@@ -10,7 +10,7 @@ export function FixtureLabelControl({
     <label className="fixture-label-control">
       标注
       <select
-        aria-label="平面灯位标注"
+        aria-label="平面标注"
         value={value}
         onChange={(e) => onChange(e.target.value as PlanLabelMode)}
       >

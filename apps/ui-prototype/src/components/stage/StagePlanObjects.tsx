@@ -1,3 +1,4 @@
+import { StagePlanLabels } from "./StagePlanLabels";
 import { StageFixtureObjects } from "./StageFixtureObjects";
 import type { LabelBox } from "../../plan-label-layout";
 import type { PlanLabelMode } from "../../fixture-plan-display";
@@ -47,27 +48,7 @@ export function StagePlanObjects({
             points={outline({ kind: "space", value: space })}
             strokeWidth={unit * 0.14}
           />
-          <text
-            className="stage-room-label"
-            x={
-              Math.min(
-                ...objectOutline(drawn({ kind: "space", value: space }))!.map(
-                  (p) => Number(p[0]),
-                ),
-              ) + unit
-            }
-            y={
-              -Math.max(
-                ...objectOutline(drawn({ kind: "space", value: space }))!.map(
-                  (p) => Number(p[1]),
-                ),
-              ) +
-              unit * 2
-            }
-            fontSize={unit * 1.15}
-          >
-            {space.name}
-          </text>
+          <title>{space.name}</title>
         </g>
       ))}
       {stage.constructions
@@ -107,20 +88,6 @@ export function StagePlanObjects({
                   .join(" ")}
                 strokeWidth={unit * 0.18}
               />
-              {labels === "name" && (
-                <text
-                  x={Number(rig.positionMeters.x)}
-                  y={
-                    -Number(rig.positionMeters.y) -
-                    Number(rig.widthMeters) / 2 -
-                    unit * 1.4
-                  }
-                  fontSize={unit}
-                  textAnchor="middle"
-                >
-                  {c.name}
-                </text>
-              )}
               <title>
                 {c.name} · {displayMeters(rig.lengthMeters)} 米 · 标高{" "}
                 {displayMeters(rig.positionMeters.z)} 米
@@ -147,7 +114,6 @@ export function StagePlanObjects({
                 seatingLayout(item.value.shape) ? item.value.shape : c.shape
               }
               selected={isSelected("construction", c.id)}
-              labels={labels === "name"}
               unit={unit}
             />
           );
@@ -158,6 +124,14 @@ export function StagePlanObjects({
         drawn={drawn}
         selectedIds={selectedIds}
         selected={(id) => isSelected("placement", id)}
+        unit={unit}
+      />
+      <StagePlanLabels
+        project={project}
+        stage={stage}
+        drawn={drawn}
+        isSelected={isSelected}
+        selectedIds={selectedIds}
         unit={unit}
         labels={labels}
         viewport={viewport}
