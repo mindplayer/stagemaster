@@ -1,3 +1,4 @@
+import { attributeName } from "../../library-tools";
 import { useState } from "react";
 import type { PreviewSnapshot } from "../../sequence-types";
 import { fixtureAppearance, channelWindow } from "../../sequence-tools";
@@ -24,6 +25,7 @@ export function PreviewOutput({
           return (
             <div className="wb-output-fixture" key={f.id}>
               <span
+                hidden={f.attributes.some((a) => a.function)}
                 className="wb-lamp"
                 style={{
                   background: appearance.color,
@@ -42,6 +44,17 @@ export function PreviewOutput({
                     ? "无独立调光"
                     : `${Math.round(appearance.level * 100)}%`}
                 </small>
+                {f.attributes
+                  .filter((a) => a.function)
+                  .map((a) => (
+                    <small key={a.key}>
+                      {attributeName(a.key)}：{a.function!.name}
+                      {a.function!.position !== null
+                        ? ` · ${Math.round((a.function!.position * 1000) / 65535) / 10}%`
+                        : ""}{" "}
+                      · 通道值 {a.function!.dmxValue}
+                    </small>
+                  ))}
               </div>
             </div>
           );

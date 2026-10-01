@@ -1,6 +1,6 @@
 # 运行模块契约：灯具模式与配适
 
-FIXTURE-002，依据 [ADR-024](../development/decisions/PRODUCT-ADR-024-fixture-authoring.md)。这是已运行接口；不替代 ADR-009 中完整灯具能力设计。
+FIXTURE-002／FIXTURE-003B，依据 [ADR-024](../development/decisions/PRODUCT-ADR-024-fixture-authoring.md)。这是已运行接口；不替代 ADR-009 中完整灯具能力设计。
 
 `stagemaster-project::fixture` 维护定义与实例绑定；`Document::edit(EditCommand::Fixture { command })` 原子校验；Session 提供版本检查／一次历史／预览失效。UI 模式草稿、地址建议和搜索均无真实输出权限。编排编译和 DMX 编码仍用既有 Rust 编译器与 stagemaster-dmx，UE 消费语义光值，不读物理通道顺序。
 
@@ -10,10 +10,11 @@ interface ProfileDefinition {
   positioning?: PositionModel; // 见位置求解契约，缺省为固定灯
   footprint: number; // 1–512，包含空余通道
   channels: {
-    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt";
+    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
     coarse: number; // 从 1 起
     fine: number | null; // 从 1 起，非相邻和细调在前均可
-    defaultValue: number; // 0–65535
+    defaultValue: number | { functionKey: string; position: number }; // 连续值或功能选择
+    functions?: { key: string; name: string; mode: "slot" | "range"; dmxFrom: number; dmxTo: number; dmxDefault: number }[];
   }[];
 }
 type FixtureCommand =
@@ -25,7 +26,7 @@ interface Repatch { universe: number; address: number; gap: number }
 // 宿主发送：{kind:"edit",generation,command:{op:"fixture",command}}
 ```
 
-- 允许调光、完整 RGB、调光加 RGB 三种基础属性集合，可另加成对 pan／tilt 和 positioning；属性、粗细通道不可重复，通道不可超出 footprint。仅全范围线性映射；空余输出 0。
+- 允许调光、完整 RGB、调光加 RGB 三种基础属性集合，可另加成对 pan／tilt 和 positioning；属性、粗细通道不可重复，通道不可超出 footprint。基础属性为全范围线性映射；另支持四类离散功能通道，详见下文。空余输出 0。
 - 粗细不是地址先后顺序。`coarse:5,fine:1` 存为 `encoding:"u16-be",offsets:[4,0]`；例如 0x1234 在相对通道 5 输出 0x12、相对通道 1 输出 0x34。8 位沿用既有归一化转换。
 - 界面百分比草稿保留六位小数，可无损往返 16 位默认值；核心继续接收整数，界面不参与逐帧求值。
 - 新模式 id=null 生成独立 id/revision；原位修改仅允许未使用模式并生成新 revision。复制通过新建命令实现，不继承身份。删除被引用模式拒绝；可撤销。
@@ -36,4 +37,18 @@ interface Repatch { universe: number; address: number; gap: number }
 
 入口为“灯具 → 灯具模式库／替换模式／批量配适”。通道占用图按输出域和线路显示整段 footprint，包含未映射但被灯具占用的通道。地址建议仅为草稿，最终以 Rust 事务为准。模式草稿纳入顶栏保存、导航与关闭检查；取消不写入历史。
 
-边界：仅工程内灯库，尚无跨工程个人库或 GDTF/OFL 文件导入；没有范围功能、快门、复位、轮盘、虚拟调光、多单元。相交正交两轴运动已由 POSITION-001 接入，复杂关节仍未支持。离线播放器仍限单输出域单线路；配适编辑支持其他线路不等同多线路播放已实现。无实灯授权或设备输出。
+边界：仅工程内灯库，尚无跨工程个人库或 GDTF/OFL 文件导入；已支持命名区间的色盘／图案盘／快门／棱镜建档与直接切换，尚无复位、虚拟调光、多单元及跨定义功能映射。相交正交两轴运动已由 POSITION-001 接入，复杂关节仍未支持。离线播放器仍限单输出域单线路；配适编辑支持其他线路不等同多线路播放已实现。无实灯授权或设备输出。
+
+## 功能区间（FIXTURE-003B）
+
+依 [ADR-060](../development/decisions/PRODUCT-ADR-060-fixture-function-ranges.md)，Rust `fixture_function` 负责有界表校验与整数转换，`fixture_value` 负责工程适配，`fixture_view`／`function_output` 负责只读投影。每个支持的功能属性最多一个物理通道（可含粗细），1–64 个不重叠区间；定义单位是原生 8／16 位。保留空隙不能被选择；固定档位使用代表值且 position 必须为 0；区间调节按 0–65535 比例映射，全部经过最终 Rust 校验。
+
+- 格式能力 `lighting.fixture-functions@1`；属性及默认／场景／预设值的 kind 为 `function`。旧工程和值类型保持原样。
+- 编辑命令 `{op:"setSceneFunctionValue",sceneId,fixtureId,attribute,selection:{functionKey,position}}` 纳入原子批次和历史；释放／清除沿用 setSceneValue 的 mode。普通数值不能写入功能属性。
+- `FixtureView.attributes[].function` 包含 functions、default、fine；`SceneView.values[].functionValue` 保留已解析预设的语义选择。旧数值字段是编码后的输出监看值，不用于重新记录预设。
+- 实际播放 `AttributeOutput.function` 给出 key、name、dmxValue 和按编码结果回算的区间位置（档位为 null）；量化后位置可能不同于原始编辑位置。没有第二个 TS 播放求值器。
+- 功能属性编译为直接切换索引，跟随列表延时而不穿越中间区间，连续亮度／双轴仍渐变。动态函数叠加拒绝。带此类映射的包要求执行语义 2；旧文件和普通节目包仍保持原兼容性。
+- 安全换灯要求功能表完全一致（功能身份、名称、区间、代表值、顺序）；物理粗细通道可变。多灯界面只显示定义一致的共同功能。跨厂商语义转换仍需将来的映射确认，不能根据中文名称猜测。
+- 模式编辑拆为元信息、轴行程、物理映射、功能区间和分布组件；更换基础组合保留已配置的轴与功能。场景连续参数与功能参数分别显示，共用父级草稿、应用、取消及历史。
+
+三维暂仅为这些灯具展示灯体和朝向，隐藏尚无模型的光束并列明受影响灯具；输出明细仍显示完整的实际通道。此边界见[预演接口](previsualization.md)，不等同真实光学验证。

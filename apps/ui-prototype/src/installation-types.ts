@@ -19,6 +19,7 @@ export interface InstallationTask {
     bytes: number;
     programs: number;
     loaderBytes: number;
+    executionSemantics?: number;
   };
   deviceId: string;
   deviceName: string;
@@ -38,6 +39,7 @@ export interface InstallationView {
     name: string | null;
     deviceId: string | null;
     allowed: boolean;
+    executionSemantics?: number;
     reason: string | null;
   };
 }

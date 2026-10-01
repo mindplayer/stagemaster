@@ -74,6 +74,14 @@ pub struct AttributeView {
     pub key: String,
     pub label: String,
     pub default_value: u64,
+    pub function: Option<FunctionAttributeView>,
+}
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FunctionAttributeView {
+    pub functions: Vec<crate::FunctionDefinition>,
+    pub default: crate::FunctionSelection,
+    pub fine: bool,
 }
 #[derive(Serialize)]
 pub struct SceneView {
@@ -91,6 +99,7 @@ pub struct SceneValue {
     pub value: Option<u64>,
     pub preset_name: Option<String>,
     pub preset_id: Option<String>,
+    pub function_value: Option<crate::FunctionSelection>,
 }
 #[derive(Serialize)]
 pub struct SequenceView {
@@ -160,7 +169,10 @@ pub(super) fn project(root: &Value) -> ProjectView {
                     .collect(),
             })
             .collect(),
-        profiles: array(lighting, "profiles").iter().map(profile).collect(),
+        profiles: array(lighting, "profiles")
+            .iter()
+            .map(crate::fixture_view::profile)
+            .collect(),
         domains: array(root, "domains")
             .iter()
             .map(|d| NamedView {
@@ -218,7 +230,11 @@ fn fixture(root: &Value, fixture: &Value) -> FixtureView {
             .map(|a| AttributeView {
                 key: text(a, "key").into(),
                 label: attribute_label(text(a, "key")).into(),
-                default_value: a["default"]["value"].as_u64().unwrap_or_default(),
+                default_value: u64::from(
+                    crate::fixture_value::encode(profile, text(a, "key"), &a["default"])
+                        .expect("validated default"),
+                ),
+                function: crate::fixture_view::function_attribute(profile, a),
             })
             .collect(),
     }
@@ -228,7 +244,19 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
     let preset = array(lighting, "presets")
         .iter()
         .find(|p| p["id"] == source["presetId"]);
-    let value = crate::library::resolved_value(lighting, entry).and_then(|v| v["value"].as_u64());
+    let resolved = crate::library::resolved_value(lighting, entry);
+    let profile = crate::fixture_value::profile(lighting, text(&entry["target"], "fixtureId"))
+        .expect("validated fixture");
+    let value = resolved.as_ref().map(|v| {
+        u64::from(
+            crate::fixture_value::encode(profile, text(&entry["target"], "attribute"), v)
+                .expect("validated value"),
+        )
+    });
+    let function_value = resolved
+        .as_ref()
+        .filter(|v| v["kind"] == "function")
+        .map(|v| crate::fixture_value::selection(v).expect("validated selection"));
     SceneValue {
         fixture_id: text(&entry["target"], "fixtureId").into(),
         attribute: text(&entry["target"], "attribute").into(),
@@ -240,6 +268,7 @@ fn scene_value(lighting: &Value, entry: &Value) -> SceneValue {
         value,
         preset_name: preset.map(|p| text(p, "name").into()),
         preset_id: preset.map(|p| text(p, "id").into()),
+        function_value,
     }
 }
 pub(super) fn attribute_label(key: &str) -> &str {
@@ -250,6 +279,10 @@ pub(super) fn attribute_label(key: &str) -> &str {
         "red" => "红色",
         "green" => "绿色",
         "blue" => "蓝色",
+        "color-wheel" => "色盘",
+        "gobo-wheel" => "图案盘",
+        "shutter" => "快门与频闪",
+        "prism" => "棱镜",
         _ => key,
     }
 }
@@ -290,50 +323,23 @@ fn preset(lighting: &Value, preset: &Value) -> PresetView {
                 fixture_id: text(&v["target"], "fixtureId").into(),
                 attribute: text(&v["target"], "attribute").into(),
                 mode: "literal".into(),
-                value: v["value"]["value"].as_u64(),
+                value: Some(u64::from(
+                    crate::fixture_value::encode(
+                        crate::fixture_value::profile(lighting, text(&v["target"], "fixtureId"))
+                            .expect("validated fixture"),
+                        text(&v["target"], "attribute"),
+                        &v["value"],
+                    )
+                    .expect("validated value"),
+                )),
+                function_value: (v["value"]["kind"] == "function").then(|| {
+                    crate::fixture_value::selection(&v["value"]).expect("validated selection")
+                }),
                 preset_id: None,
                 preset_name: None,
             })
             .collect(),
         used_by_scenes,
         used_by_sequences,
-    }
-}
-
-fn profile(p: &Value) -> ProfileView {
-    ProfileView {
-        positioning: crate::position::model(p).expect("validated model"),
-        revision: text(p, "revision").into(),
-        manufacturer: text(p, "manufacturer").into(),
-        model: text(p, "model").into(),
-        mode: text(p, "mode").into(),
-        authorable: crate::fixture::supported_keys(
-            array(p, "attributes").iter().map(|a| text(a, "key")),
-        ) && (array(p, "attributes").iter().any(|a| a["key"] == "pan")
-            == p.get("positioning").is_some())
-            && array(p, "attributes")
-                .iter()
-                .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),
-        channels: array(p, "channels")
-            .iter()
-            .map(|c| crate::ProfileChannel {
-                attribute: text(c, "attribute").into(),
-                coarse: u16::try_from(c["offsets"][0].as_u64().unwrap_or_default())
-                    .expect("validated offset")
-                    + 1,
-                fine: c["offsets"][1]
-                    .as_u64()
-                    .map(|n| u16::try_from(n).expect("validated offset") + 1),
-                default_value: array(p, "attributes")
-                    .iter()
-                    .find(|a| a["key"] == c["attribute"])
-                    .and_then(|a| a["default"]["value"].as_u64())
-                    .and_then(|n| u16::try_from(n).ok())
-                    .expect("validated default"),
-            })
-            .collect(),
-        id: text(p, "id").into(),
-        name: text(p, "name").into(),
-        footprint: p["footprint"].as_u64().unwrap_or_default(),
     }
 }

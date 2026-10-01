@@ -68,6 +68,12 @@ pub enum EditCommand {
     RemoveScene {
         id: String,
     },
+    SetSceneFunctionValue {
+        scene_id: String,
+        fixture_id: String,
+        attribute: String,
+        selection: crate::FunctionSelection,
+    },
     SetSceneValue {
         scene_id: String,
         fixture_id: String,
@@ -76,7 +82,7 @@ pub enum EditCommand {
         value: u16,
     },
 }
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ValueMode {
     Literal,
@@ -156,6 +162,14 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
             find(list(root, "scenes")?, &id)?["name"] = name.into();
         }
         EditCommand::RemoveScene { id } => remove(list(root, "scenes")?, &id)?,
+        EditCommand::SetSceneFunctionValue {
+            scene_id,
+            fixture_id,
+            attribute,
+            selection,
+        } => {
+            crate::fixture_value::set_scene(root, &scene_id, &fixture_id, &attribute, &selection)?;
+        }
         EditCommand::SetSceneValue {
             scene_id,
             fixture_id,
@@ -163,27 +177,14 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
             mode,
             value,
         } => {
-            validate_target(root, &fixture_id, &attribute)?;
-            let scene = find(list(root, "scenes")?, &scene_id)?;
-            let entries = scene["assignments"].as_array_mut().ok_or("场景属性无效")?;
-            let target = json!({"fixtureId":fixture_id,"attribute":attribute});
-            let position = entries.iter().position(|entry| entry["target"] == target);
-            if matches!(mode, ValueMode::Remove) {
-                if let Some(index) = position {
-                    entries.remove(index);
-                }
-            } else {
-                let next = if matches!(mode, ValueMode::Release) {
-                    json!({"target":target,"operation":"release"})
-                } else {
-                    json!({"target":target,"operation":"set","source":{"kind":"literal","value":{"kind":"normalized","value":value}}})
-                };
-                if let Some(index) = position {
-                    entries[index] = next;
-                } else {
-                    entries.push(next);
-                }
-            }
+            set_scene_entry(
+                root,
+                &scene_id,
+                &fixture_id,
+                &attribute,
+                mode,
+                &json!({"kind":"normalized","value":value}),
+            )?;
         }
     }
     Ok(())
@@ -253,5 +254,37 @@ fn add_scene(root: &mut Value, name: &str) -> Result<(), String> {
         }
     }
     list(root, "scenes")?.push(json!({"id":id(),"name":name,"assignments":assignments}));
+    Ok(())
+}
+
+pub(super) fn set_scene_entry(
+    root: &mut Value,
+    scene_id: &str,
+    fixture_id: &str,
+    attribute: &str,
+    mode: ValueMode,
+    value: &Value,
+) -> Result<(), String> {
+    validate_target(root, fixture_id, attribute)?;
+    let scene = find(list(root, "scenes")?, scene_id)?;
+    let entries = scene["assignments"].as_array_mut().ok_or("场景属性无效")?;
+    let target = json!({"fixtureId":fixture_id,"attribute":attribute});
+    let position = entries.iter().position(|entry| entry["target"] == target);
+    if matches!(mode, ValueMode::Remove) {
+        if let Some(index) = position {
+            entries.remove(index);
+        }
+    } else {
+        let next = if matches!(mode, ValueMode::Release) {
+            json!({"target":target,"operation":"release"})
+        } else {
+            json!({"target":target,"operation":"set","source":{"kind":"literal","value":value}})
+        };
+        if let Some(index) = position {
+            entries[index] = next;
+        } else {
+            entries.push(next);
+        }
+    }
     Ok(())
 }

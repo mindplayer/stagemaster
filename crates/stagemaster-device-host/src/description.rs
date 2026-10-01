@@ -23,6 +23,7 @@ pub struct DeviceDescription {
 #[serde(rename_all = "camelCase")]
 pub struct DeviceLimits {
     pub package_version: u16,
+    pub execution_semantics: u16,
     pub transfer_version: u16,
     pub package_bytes: u32,
     pub programs: u16,
@@ -58,6 +59,7 @@ impl DeviceDescription {
             declared_functions: [
                 (cap::DIAGNOSTICS, "连接诊断"),
                 (cap::CATALOG, "节目目录"),
+                (cap::PACKAGE_SEMANTICS_2, "离散功能节目"),
                 (cap::INSTALLATION, "节目安装"),
                 (cap::PLAYBACK, "节目播放"),
                 (cap::DMX_OUTPUT, "DMX 输出"),
@@ -69,6 +71,11 @@ impl DeviceDescription {
             authentication_method: value.authentication,
             limits: DeviceLimits {
                 package_version: l.package_version,
+                execution_semantics: if value.declares(cap::PACKAGE_SEMANTICS_2) {
+                    2
+                } else {
+                    u16::from(value.declares(cap::CATALOG))
+                },
                 transfer_version: l.transfer_version,
                 package_bytes: l.package_bytes,
                 programs: l.programs,

@@ -9,6 +9,7 @@ import {
   attributeName,
   matchingValues,
   scopeAttributes,
+  sceneValueLabel,
 } from "../../library-tools";
 import { LibraryDialog } from "./LibraryDialog";
 export function AttributeMask({
@@ -206,7 +207,7 @@ export function ValueTable({
                   v.fixtureId}
               </td>
               <td>{attributeName(v.attribute)}</td>
-              <td>{(((v.value ?? 0) / 65535) * 100).toFixed(2)}%</td>
+              <td>{sceneValueLabel(v, fixtures)}</td>
             </tr>
           ))}
         </tbody>

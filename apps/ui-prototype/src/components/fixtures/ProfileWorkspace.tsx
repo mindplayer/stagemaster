@@ -1,3 +1,8 @@
+import { ProfileMetadata } from "./ProfileMetadata";
+import { ProfileMotionFields } from "./ProfileMotionFields";
+import { ProfileLinearChannels } from "./ProfileLinearChannels";
+import { ProfileFunctionChannels } from "./ProfileFunctionChannels";
+import { ChannelStrip } from "./ProfileChannelStrip";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type {
@@ -6,9 +11,7 @@ import type {
   ProjectView,
 } from "../../application-host";
 import {
-  withMotion,
   FixtureFieldError,
-  channelLabels,
   profileDefinition,
   profileDraft,
   profileMatches,
@@ -74,8 +77,8 @@ export const ProfileWorkspace = forwardRef<
           reason.field,
         ) as HTMLInputElement | null;
         field?.focus();
-        field?.setCustomValidity(reason.message);
-        field?.reportValidity();
+        field?.setCustomValidity?.(reason.message);
+        field?.reportValidity?.();
       }
       throw reason;
     }
@@ -98,29 +101,6 @@ export const ProfileWorkspace = forwardRef<
   }
   const shown = project.profiles.filter((p) => profileMatches(p, query));
   const value = draft ?? (profile ? profileDraft(profile) : null);
-  const numberInput = (
-    name: string,
-    label: string,
-    raw: string,
-    min: number,
-    max: number,
-    change: (v: string) => void,
-  ) => (
-    <label>
-      {label}
-      <input
-        name={name}
-        aria-label={label}
-        type="number"
-        min={min}
-        max={max}
-        step={name.endsWith("percent") ? "any" : 1}
-        value={raw}
-        required
-        onChange={(e) => change(e.target.value)}
-      />
-    </label>
-  );
   return (
     <WorkspaceSurface
       visible={visible}
@@ -200,7 +180,10 @@ export const ProfileWorkspace = forwardRef<
                 void beforeChange();
               }}
               onInputCapture={(e) => {
-                if (e.target instanceof HTMLInputElement)
+                if (
+                  e.target instanceof HTMLInputElement ||
+                  e.target instanceof HTMLSelectElement
+                )
                   e.target.setCustomValidity("");
               }}
               onKeyDown={(e) => {
@@ -261,225 +244,17 @@ export const ProfileWorkspace = forwardRef<
               ) : (
                 <>
                   <fieldset disabled={busy || !draft}>
-                    <div className="profile-meta">
-                      {(
-                        [
-                          ["name", "模式名称"],
-                          ["manufacturer", "厂家"],
-                          ["model", "型号"],
-                          ["mode", "模式标识"],
-                        ] as const
-                      ).map(([key, label]) => (
-                        <label key={key}>
-                          {label}
-                          <input
-                            name={key}
-                            aria-label={label}
-                            required
-                            maxLength={256}
-                            value={value[key]}
-                            onChange={(e) =>
-                              setDraft({ ...value, [key]: e.target.value })
-                            }
-                          />
-                        </label>
-                      ))}
-                      {numberInput(
-                        "footprint",
-                        "占用通道数",
-                        value.footprint,
-                        1,
-                        512,
-                        (v) => setDraft({ ...value, footprint: v }),
-                      )}
-                      <label>
-                        功能组合
-                        <select
-                          name="family"
-                          aria-label="功能组合"
-                          value={
-                            value.channels.filter(
-                              (c) =>
-                                c.attribute !== "pan" && c.attribute !== "tilt",
-                            ).length === 1
-                              ? "dimmer"
-                              : value.channels.filter(
-                                    (c) =>
-                                      c.attribute !== "pan" &&
-                                      c.attribute !== "tilt",
-                                  ).length === 3
-                                ? "rgb"
-                                : "rgbd"
-                          }
-                          onChange={(e) => {
-                            const keys =
-                              e.target.value === "dimmer"
-                                ? ["dimmer"]
-                                : e.target.value === "rgb"
-                                  ? ["red", "green", "blue"]
-                                  : ["dimmer", "red", "green", "blue"];
-                            const next: ProfileDraft = {
-                              ...value,
-                              footprint: String(keys.length),
-                              channels: keys.map((attribute, i) => ({
-                                attribute,
-                                coarse: String(i + 1),
-                                fine: "",
-                                bits: "8",
-                                percent: "0",
-                              })),
-                            };
-                            const physical = value.positioning;
-                            const moved = physical
-                              ? withMotion(next, true)
-                              : next;
-                            setDraft({ ...moved, positioning: physical });
-                          }}
-                        >
-                          <option value="dimmer">调光</option>
-                          <option value="rgb">RGB 三原色</option>
-                          <option value="rgbd">调光与 RGB</option>
-                        </select>
-                      </label>
-                    </div>
-                    <label className="profile-motion-toggle">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(value.positioning)}
-                        onChange={(e) =>
-                          setDraft(withMotion(value, e.target.checked))
-                        }
-                      />
-                      两轴摇头灯
-                    </label>
-                    {value.positioning && (
-                      <section className="profile-motion">
-                        <h3>轴行程与输出方向</h3>
-                        <p className="wb-dim">
-                          按厂家通道表填写物理角度。零角光束沿灯具局部下方；安装朝向在舞台设置。此模型仅支持相交正交两轴。
-                        </p>
-                        {(["pan", "tilt"] as const).map((axis) => (
-                          <div key={axis} className="profile-meta">
-                            {(["minDegrees", "maxDegrees"] as const).map(
-                              (key) => (
-                                <label key={key}>
-                                  {channelLabels[axis]}
-                                  {key === "minDegrees" ? "最小" : "最大"}
-                                  角度（°）
-                                  <input
-                                    name={`${axis}-${key}`}
-                                    aria-label={`${channelLabels[axis]}${key === "minDegrees" ? "最小" : "最大"}角度`}
-                                    value={value.positioning![axis][key]}
-                                    onChange={(e) =>
-                                      setDraft({
-                                        ...value,
-                                        positioning: {
-                                          ...value.positioning!,
-                                          [axis]: {
-                                            ...value.positioning![axis],
-                                            [key]: e.target.value,
-                                          },
-                                        },
-                                      })
-                                    }
-                                  />
-                                </label>
-                              ),
-                            )}
-                            <label>
-                              {channelLabels[axis]}输出映射
-                              <select
-                                aria-label={`${channelLabels[axis]}输出映射`}
-                                value={
-                                  value.positioning![axis].reversed
-                                    ? "reverse"
-                                    : "forward"
-                                }
-                                onChange={(e) =>
-                                  setDraft({
-                                    ...value,
-                                    positioning: {
-                                      ...value.positioning!,
-                                      [axis]: {
-                                        ...value.positioning![axis],
-                                        reversed: e.target.value === "reverse",
-                                      },
-                                    },
-                                  })
-                                }
-                              >
-                                <option value="forward">低值 → 最小角度</option>
-                                <option value="reverse">低值 → 最大角度</option>
-                              </select>
-                            </label>
-                          </div>
-                        ))}
-                      </section>
-                    )}
-                    <h3>属性与物理通道</h3>
-                    <div className="profile-channels">
-                      {value.channels.map((c, i) => {
-                        const change = (patch: Partial<typeof c>) =>
-                          setDraft({
-                            ...value,
-                            channels: value.channels.map((old, index) =>
-                              index === i ? { ...old, ...patch } : old,
-                            ),
-                          });
-                        return (
-                          <div className="profile-channel" key={c.attribute}>
-                            <strong>
-                              {channelLabels[c.attribute] ?? c.attribute}
-                            </strong>
-                            <label>
-                              精度
-                              <select
-                                aria-label={`${channelLabels[c.attribute]}精度`}
-                                value={c.bits}
-                                onChange={(e) =>
-                                  change({ bits: e.target.value as "8" | "16" })
-                                }
-                              >
-                                <option value="8">8 位</option>
-                                <option value="16">16 位</option>
-                              </select>
-                            </label>
-                            {numberInput(
-                              `channel-${i}-coarse`,
-                              `${channelLabels[c.attribute]}粗调通道`,
-                              c.coarse,
-                              1,
-                              512,
-                              (v) => change({ coarse: v }),
-                            )}
-                            {c.bits === "16" ? (
-                              numberInput(
-                                `channel-${i}-fine`,
-                                `${channelLabels[c.attribute]}细调通道`,
-                                c.fine,
-                                1,
-                                512,
-                                (v) => change({ fine: v }),
-                              )
-                            ) : (
-                              <span className="wb-dim">—</span>
-                            )}
-                            {numberInput(
-                              `channel-${i}-percent`,
-                              `${channelLabels[c.attribute]}默认值（%）`,
-                              c.percent,
-                              0,
-                              100,
-                              (v) => change({ percent: v }),
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <ProfileMetadata value={value} setDraft={setDraft} />
+                    <ProfileMotionFields value={value} setDraft={setDraft} />
+                    <ProfileLinearChannels value={value} setDraft={setDraft} />
+                    <ProfileFunctionChannels
+                      value={value}
+                      setDraft={setDraft}
+                    />
                   </fieldset>
                   <p className="wb-dim">
-                    未映射通道输出 0。仅适用于全范围线性调光和
-                    RGB，以及已定义行程的水平／垂直轴；频闪、复位、色盘和外部电机需专用定义。
+                    未映射通道输出
+                    0。复位、灯泡控制和外部电机不属于当前模式编辑范围。
                   </p>
                   <ChannelStrip draft={value} />
                 </>
@@ -541,36 +316,3 @@ export const ProfileWorkspace = forwardRef<
     </WorkspaceSurface>
   );
 });
-function ChannelStrip({ draft }: { draft: ProfileDraft }) {
-  const width = Number(draft.footprint);
-  if (!Number.isInteger(width) || width < 1 || width > 512) return null;
-  const slots = Array.from({ length: width }, (_, i) =>
-    draft.channels.flatMap((c) => [
-      ...(Number(c.coarse) === i + 1
-        ? [`${channelLabels[c.attribute]}粗调`]
-        : []),
-      ...(c.bits === "16" && Number(c.fine) === i + 1
-        ? [`${channelLabels[c.attribute]}细调`]
-        : []),
-    ]),
-  );
-  return (
-    <section className="profile-strip" aria-label="模式通道分布">
-      <h3>通道分布</h3>
-      <div>
-        {slots.map((labels, i) => (
-          <span
-            key={i}
-            className={
-              labels.length > 1 ? "conflict" : labels.length ? "mapped" : ""
-            }
-            title={labels.join(" / ") || "未映射，输出 0"}
-          >
-            <b>{i + 1}</b>
-            <small>{labels.join(" / ") || "空余"}</small>
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}

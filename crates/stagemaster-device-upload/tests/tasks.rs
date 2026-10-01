@@ -242,3 +242,50 @@ fn transfer_cursor_only_exists_between_confirmed_messages() {
     upload.disconnect();
     assert_eq!(upload.next_request_id(), None);
 }
+
+#[tokio::test(start_paused = true)]
+async fn discrete_package_is_rejected_before_any_send_until_the_target_declares_support() {
+    use serde_json::json;
+    use stagemaster_project::{Document, EditCommand, PackageSelection};
+    let mut doc = Document::new("功能版本验收").unwrap();
+    let mut edit = |value| {
+        doc.edit(serde_json::from_value::<EditCommand>(value).unwrap())
+            .unwrap();
+    };
+    edit(
+        json!({"op":"fixture","command":{"op":"saveProfile","definition":{
+        "name":"快门测试","manufacturer":"验证","model":"快门","mode":"二通道","footprint":2,
+        "channels":[{"attribute":"dimmer","coarse":1,"fine":null,"defaultValue":0},
+        {"attribute":"shutter","coarse":2,"fine":null,"defaultValue":{"functionKey":"open","position":0},
+        "functions":[{"key":"open","name":"常开","mode":"slot","dmxFrom":0,"dmxTo":255,"dmxDefault":20}]}]}}}),
+    );
+    let view = doc.view();
+    doc.edit(serde_json::from_value(json!({"op":"addFixture","name":"验证灯",
+        "profileId":view.profiles.last().unwrap().id,"domainId":view.domains[0].id,"universe":1,"address":1})).unwrap()).unwrap();
+    doc.edit(EditCommand::AddScene {
+        name: "节目".into(),
+    })
+    .unwrap();
+    let built = doc
+        .build_package(&[PackageSelection::Scene {
+            id: doc.view().scenes[0].id.clone(),
+        }])
+        .unwrap();
+    assert_eq!(built.report.execution_semantics, 2);
+    let bytes: std::sync::Arc<[u8]> = built.bytes.into();
+    let (host, state) = setup();
+    let prepared = Prepared::new(bytes.clone()).unwrap();
+    assert_eq!(prepared.info().execution_semantics, 2);
+    assert!(
+        host.start(prepared, 1, DEVICE)
+            .unwrap_err()
+            .contains("固件")
+    );
+    assert!(state.lock().unwrap().commands.is_empty());
+    assert!(host.snapshot().unwrap().task.is_none());
+    state.lock().unwrap().target.limits.execution_semantics = 2;
+    host.start(Prepared::new(bytes).unwrap(), 1, DEVICE)
+        .unwrap();
+    assert_eq!(finished(&host).await.task.unwrap().phase, Phase::Installed);
+    host.shutdown().await.unwrap();
+}

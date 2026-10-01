@@ -1,3 +1,4 @@
+import { packageTargetReason } from "../../installation-tools";
 import { useEffect, useRef, useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { CheckLocation } from "../../check-types";
@@ -26,7 +27,8 @@ export function PackagePanel({
   capture,
   onLocate,
   onInstall,
-  installReason,
+  installReason: destinationReason,
+  targetExecutionSemantics,
 }: {
   host: ApplicationHost;
   project: ProjectView;
@@ -38,6 +40,7 @@ export function PackagePanel({
   onLocate(location: CheckLocation, generation: number): Promise<boolean>;
   onInstall(generation: number, token: string): Promise<void>;
   installReason: string | null;
+  targetExecutionSemantics?: number;
 }) {
   const [selected, setSelected] = useState<PackageSelection[]>([]);
   const [query, setQuery] = useState("");
@@ -82,6 +85,11 @@ export function PackagePanel({
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const activePage = Math.min(page, pages - 1);
   const report = result?.report;
+  const installReason =
+    destinationReason ||
+    (report
+      ? packageTargetReason(report.executionSemantics, targetExecutionSemantics)
+      : null);
   const programOrder = new Map(candidates.map((p, i) => [packageKey(p), i]));
   const reportPrograms = [...(report?.programs ?? [])].sort((a, b) => {
     const index = (p: typeof a) =>

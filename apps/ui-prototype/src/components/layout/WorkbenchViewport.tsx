@@ -8,7 +8,7 @@ import type { WorkbenchPage } from "./WorkbenchNavigation";
 type View = "plan" | "three";
 type PreviewProps = Omit<
   ComponentPropsWithoutRef<typeof SharedPrevis>,
-  "viewControls" | "contextKey" | "onReveal"
+  "viewControls" | "contextKey" | "onReveal" | "limitedFixtures"
 >;
 export const WorkbenchViewport = forwardRef<
   SharedPrevisHandle,
@@ -67,6 +67,11 @@ export const WorkbenchViewport = forwardRef<
       >
         <SharedPrevis
           {...preview}
+          limitedFixtures={project.fixtures.filter(
+            (f) =>
+              f.attributes.some((a) => a.function) &&
+              project.stage.placements.some((p) => p.fixtureId === f.id),
+          )}
           ref={ref}
           fixed
           viewControls={controls}

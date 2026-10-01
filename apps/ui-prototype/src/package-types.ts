@@ -25,6 +25,7 @@ export interface PackageReport {
   universe: number;
   catalogResidentBytes: number;
   maxLoaderBytes: number;
+  executionSemantics?: number;
   programs: PackageProgram[];
 }
 export interface PackageResult {

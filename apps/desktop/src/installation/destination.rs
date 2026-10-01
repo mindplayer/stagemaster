@@ -7,6 +7,7 @@ use stagemaster_device_upload::Connection;
 pub(super) struct Destination {
     revision: u64,
     epoch: u32,
+    execution_semantics: u16,
     name: Option<String>,
     device_id: Option<String>,
     allowed: bool,
@@ -24,6 +25,10 @@ pub(super) fn read(connection: &crate::device::Connections) -> Result<Destinatio
     Ok(Destination {
         revision: state.revision,
         epoch: state.epoch,
+        execution_semantics: state
+            .description
+            .as_ref()
+            .map_or(0, |d| d.limits.execution_semantics),
         name: state.selected.map(|d| d.name),
         device_id: state.description.map(|d| d.device_id),
         allowed: availability.is_ok(),

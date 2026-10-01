@@ -20,6 +20,9 @@ impl Target {
         if l.package_version != 1 {
             return Err("设备不支持当前播放包版本".into());
         }
+        if info.execution_semantics > l.execution_semantics {
+            return Err("此设备固件不支持节目的灯具功能，请更新设备固件后再下发".into());
+        }
         if info.bytes > l.package_bytes as usize
             || info.bytes > l.slot_bytes as usize
             || info.programs > usize::from(l.programs)

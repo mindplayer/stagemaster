@@ -46,6 +46,7 @@ impl Identity {
             Description {
                 capabilities: capability::DIAGNOSTICS
                     | capability::CATALOG
+                    | capability::PACKAGE_SEMANTICS_2
                     | capability::INSTALLATION,
                 authentication: if cfg!(feature = "application-gatt") {
                     stagemaster_device_link::management::AUTHENTICATED_APPLICATION

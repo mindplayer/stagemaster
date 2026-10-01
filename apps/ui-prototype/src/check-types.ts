@@ -17,6 +17,7 @@ export interface PlanLimits {
 export interface PlanUsage extends PlanLimits {
   valueBufferBytes: number;
   effectBufferBytes: number;
+  snapBufferBytes?: number;
 }
 export interface ProgramCheck {
   name: string;

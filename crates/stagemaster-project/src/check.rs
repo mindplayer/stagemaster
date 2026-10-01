@@ -45,6 +45,7 @@ pub struct PlanUsage {
     pub target_values: usize,
     pub effect_channels: usize,
     pub keyframes: usize,
+    pub snap_buffer_bytes: usize,
     pub value_buffer_bytes: usize,
     pub effect_buffer_bytes: usize,
 }
@@ -56,6 +57,7 @@ impl From<&Plan> for PlanUsage {
             target_values: plan.defaults().len() * plan.steps().len(),
             effect_channels: plan.effect_channel_count(),
             keyframes: plan.keyframe_count(),
+            snap_buffer_bytes: plan.snap_buffer_bytes(),
             value_buffer_bytes: plan.value_buffer_bytes(),
             effect_buffer_bytes: plan.effect_buffer_bytes(),
         }

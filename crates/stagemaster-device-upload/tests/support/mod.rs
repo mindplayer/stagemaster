@@ -109,6 +109,7 @@ pub fn setup() -> (Service<Link>, Arc<Mutex<State>>) {
         },
         limits: DeviceLimits {
             package_version: 1,
+            execution_semantics: 1,
             transfer_version: 1,
             package_bytes: 2 * 1024 * 1024,
             programs: 64,

@@ -58,8 +58,22 @@ export function resumeInstallationReason(
   if (task.running || installationFinished(task.phase))
     return "当前任务不需要恢复";
   if (!destination.allowed) return destination.reason || "设备尚未取得安装权限";
+  if (
+    (task.package.executionSemantics ?? 1) >
+    (destination.executionSemantics ?? 1)
+  )
+    return "此设备固件不支持节目的灯具功能，请更新设备固件后再下发";
   if (destination.deviceId !== task.deviceId) return "请连接原定安装设备";
   if (task.phase === "reconnect" && task.connectionEpoch === destination.epoch)
     return "请先断开并重新连接原设备";
   return null;
+}
+
+export function packageTargetReason(
+  required = 1,
+  supported = 1,
+): string | null {
+  return required > supported
+    ? "此设备固件不支持节目的灯具功能，请更新设备固件后再下发"
+    : null;
 }

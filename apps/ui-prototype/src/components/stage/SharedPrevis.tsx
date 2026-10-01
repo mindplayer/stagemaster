@@ -7,7 +7,11 @@ import {
   type ReactNode,
 } from "react";
 import { CubeIcon } from "@phosphor-icons/react";
-import type { ApplicationHost, SceneView } from "../../application-host";
+import type {
+  ApplicationHost,
+  SceneView,
+  FixtureView,
+} from "../../application-host";
 import type { PrevisInteractions } from "../../previs-types";
 import { PrevisPanel } from "./PrevisPanel";
 import "./shared-previs.css";
@@ -22,6 +26,7 @@ export const SharedPrevis = forwardRef<
   {
     host: ApplicationHost;
     scenes: SceneView[];
+    limitedFixtures?: FixtureView[];
     currentScene?: SceneView;
     contextKey: string;
     allowPlacement: boolean;

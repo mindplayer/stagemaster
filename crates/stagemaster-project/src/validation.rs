@@ -52,6 +52,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         lookup(&profiles, text(fixture, "profileId"), "灯具档案")?;
         lookup(&domains, text(fixture, "domainId"), "灯光输出域")?;
     }
+    crate::fixture_value::validate(root)?;
     validate_patches(lighting, &fixtures, &profiles)?;
     for group in array(lighting, "groups") {
         for id in array(group, "fixtureIds") {
@@ -61,21 +62,29 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     for preset in presets.values() {
         let mut targets = BTreeSet::new();
         for entry in array(preset, "values") {
-            validate_target(&entry["target"], &fixtures, &profiles)?;
+            let profile = validate_target(&entry["target"], &fixtures, &profiles)?;
             unique_target(&entry["target"], &mut targets)?;
-            normalized(&entry["value"])?;
+            crate::fixture_value::encode(
+                profile,
+                text(&entry["target"], "attribute"),
+                &entry["value"],
+            )?;
         }
     }
     for scene in array(lighting, "scenes") {
         let mut targets = BTreeSet::new();
         for entry in array(scene, "assignments") {
-            validate_target(&entry["target"], &fixtures, &profiles)?;
+            let profile = validate_target(&entry["target"], &fixtures, &profiles)?;
             unique_target(&entry["target"], &mut targets)?;
             if entry["operation"] == "release" {
                 continue;
             }
             if entry["source"]["kind"] == "literal" {
-                normalized(&entry["source"]["value"])?;
+                crate::fixture_value::encode(
+                    profile,
+                    text(&entry["target"], "attribute"),
+                    &entry["source"]["value"],
+                )?;
             } else {
                 let preset = lookup(&presets, text(&entry["source"], "presetId"), "场景预设")?;
                 if !array(preset, "values")
@@ -121,6 +130,7 @@ fn supported(root: &Value) -> Result<(), String> {
         if ![
             "media.audio-editing",
             "lighting.basic",
+            crate::fixture_value::CAPABILITY,
             "lighting.positioning",
             "lighting.effects.basic",
             "lighting.effects.keyframes",
@@ -207,20 +217,12 @@ fn lookup<'a>(
         .copied()
         .ok_or_else(|| format!("{kind}引用不存在或类型不符：{id}"))
 }
-fn normalized(value: &Value) -> Result<(), String> {
-    if value["kind"] != "normalized" {
-        return Err("当前灯光编辑仅支持归一化属性".into());
-    }
-    Ok(())
-}
 fn validate_profile(profile: &Value) -> Result<(), String> {
     if profile.get("sourceResourceId").is_some() {
         return Err("当前版本不支持外部灯具档案资源".into());
     }
     let mut attributes = BTreeSet::new();
     for attribute in array(profile, "attributes") {
-        normalized(&attribute["valueType"])?;
-        normalized(&attribute["default"])?;
         if !attributes.insert(text(attribute, "key")) {
             return Err("灯具档案属性重复".into());
         }
@@ -250,11 +252,11 @@ fn validate_profile(profile: &Value) -> Result<(), String> {
     }
     Ok(())
 }
-fn validate_target(
+fn validate_target<'a>(
     target: &Value,
     fixtures: &BTreeMap<&str, &Value>,
-    profiles: &BTreeMap<&str, &Value>,
-) -> Result<(), String> {
+    profiles: &BTreeMap<&str, &'a Value>,
+) -> Result<&'a Value, String> {
     let fixture = lookup(fixtures, text(target, "fixtureId"), "属性目标灯具")?;
     let profile = lookup(profiles, text(fixture, "profileId"), "灯具档案")?;
     if !array(profile, "attributes")
@@ -267,7 +269,7 @@ fn validate_target(
             text(target, "attribute")
         ));
     }
-    Ok(())
+    Ok(profile)
 }
 fn unique_target<'a>(
     target: &'a Value,

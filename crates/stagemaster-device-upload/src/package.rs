@@ -16,6 +16,7 @@ impl ReadAt for Bytes {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
+    pub execution_semantics: u16,
     pub project_name: String,
     pub project_id: String,
     pub revision_id: String,
@@ -36,6 +37,7 @@ impl Prepared {
         let archive = Archive::open(bytes.as_ref()).map_err(|e| e.to_string())?;
         let source = archive.source();
         let info = PackageInfo {
+            execution_semantics: archive.semantics(),
             project_name: source.project_name.clone(),
             project_id: hex(&source.project_id),
             revision_id: hex(&source.revision_id),

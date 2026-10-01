@@ -11,7 +11,9 @@ pub struct ProfileChannel {
     /// User-facing, one-based physical channel numbers. Fine may precede coarse.
     pub coarse: u16,
     pub fine: Option<u16>,
-    pub default_value: u16,
+    pub default_value: crate::ProfileDefault,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub functions: Option<Vec<crate::FunctionDefinition>>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -60,6 +62,10 @@ pub enum FixtureEdit {
 pub(super) fn supported_keys<'a>(keys: impl Iterator<Item = &'a str>) -> bool {
     let mut keys = keys.collect::<Vec<_>>();
     keys.sort_unstable();
+    if keys.windows(2).any(|p| p[0] == p[1]) {
+        return false;
+    }
+    keys.retain(|k| !crate::fixture_value::is_function_key(k));
     if keys.contains(&"pan") || keys.contains(&"tilt") {
         if keys.iter().filter(|&&k| k == "pan" || k == "tilt").count() != 2
             || !keys.contains(&"pan")
@@ -99,6 +105,13 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     }
     let mut occupied = BTreeSet::new();
     for channel in &def.channels {
+        if crate::fixture_value::is_function_key(&channel.attribute) && channel.functions.is_none()
+        {
+            return Err(format!(
+                "{}需要定义功能区间",
+                crate::view::attribute_label(&channel.attribute)
+            ));
+        }
         for number in std::iter::once(channel.coarse).chain(channel.fine) {
             if number == 0 || number > def.footprint {
                 return Err(format!(
@@ -113,9 +126,14 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
         }
     }
     let mut profile = json!({"id":profile_id,"revision":id(),"name":def.name.trim(),"manufacturer":def.manufacturer.trim(),"model":def.model.trim(),"mode":def.mode.trim(),"footprint":def.footprint,
-        "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":"normalized"},"default":{"kind":"normalized","value":c.default_value},"mix":if c.attribute=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
+        "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":if c.functions.is_some() {"function"} else {"normalized"}},"default":crate::fixture_value::stored_default(&c.default_value),"mix":if c.attribute=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
         "channels":def.channels.iter().map(|c|json!({"attribute":c.attribute,"encoding":if c.fine.is_some(){"u16-be"}else{"u8"},"offsets":std::iter::once(c.coarse).chain(c.fine).map(|n|n-1).collect::<Vec<_>>()})).collect::<Vec<_>>()
     });
+    for (i, channel) in def.channels.iter().enumerate() {
+        if let Some(functions) = &channel.functions {
+            profile["channels"][i]["functions"] = json!(functions);
+        }
+    }
     if let Some(m) = &def.positioning {
         profile["positioning"] = json!(m);
     }
@@ -135,7 +153,7 @@ fn unused(root: &Value, profile_id: &str) -> Result<(), String> {
     }
     Ok(())
 }
-fn selection(root: &Value, ids: &[String]) -> Result<(), String> {
+pub(super) fn selection(root: &Value, ids: &[String]) -> Result<(), String> {
     if ids.is_empty() || ids.len() > 256 || ids.iter().collect::<BTreeSet<_>>().len() != ids.len() {
         return Err("请选择 1–256 台不重复的灯具".into());
     }
@@ -149,7 +167,7 @@ fn selection(root: &Value, ids: &[String]) -> Result<(), String> {
     }
     Ok(())
 }
-fn repatch(root: &mut Value, ids: &[String], layout: &Repatch) -> Result<(), String> {
+pub(super) fn repatch(root: &mut Value, ids: &[String], layout: &Repatch) -> Result<(), String> {
     if layout.universe == 0 || !(1..=512).contains(&layout.address) || layout.gap > 511 {
         return Err("线路、起始地址或间隔超出范围".into());
     }
@@ -191,6 +209,9 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             id: existing,
             definition,
         } => {
+            if definition.channels.iter().any(|c| c.functions.is_some()) {
+                crate::fixture_value::require(root);
+            }
             if definition.positioning.is_some() {
                 crate::position::require(root);
             }
@@ -218,60 +239,7 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             profile_id,
             layout,
         } => {
-            selection(root, &fixture_ids)?;
-            let profiles = array(&root["lighting"], "profiles");
-            let target = profiles
-                .iter()
-                .find(|p| p["id"] == profile_id)
-                .ok_or("目标模式不存在")?;
-            let keys = |p: &Value| {
-                array(p, "attributes")
-                    .iter()
-                    .map(|a| text(a, "key").to_owned())
-                    .collect::<BTreeSet<_>>()
-            };
-            let target_keys = keys(target);
-            if !supported_keys(target_keys.iter().map(String::as_str)) {
-                return Err("目标模式尚不支持安全替换".into());
-            }
-            for id in &fixture_ids {
-                let fixture = array(&root["lighting"], "fixtures")
-                    .iter()
-                    .find(|f| f["id"] == *id)
-                    .ok_or("灯具不存在")?;
-                let old = profiles
-                    .iter()
-                    .find(|p| p["id"] == fixture["profileId"])
-                    .ok_or("原模式不存在")?;
-                if old.get("positioning") != target.get("positioning") {
-                    return Err(
-                        "运动模型不同，不能保持已记录轴角；请单独建立新的灯具并重新对焦".into(),
-                    );
-                }
-                if keys(old) != target_keys {
-                    return Err(format!(
-                        "灯具“{}”与目标模式的属性不一致，不能保留全部编排",
-                        text(fixture, "name")
-                    ));
-                }
-                // Even known attribute names must retain their normalized type and mixing meaning.
-                for a in array(old, "attributes") {
-                    let b = array(target, "attributes")
-                        .iter()
-                        .find(|b| b["key"] == a["key"])
-                        .ok_or("目标属性不存在")?;
-                    if a["valueType"] != b["valueType"] || a["mix"] != b["mix"] {
-                        return Err("属性的数据类型或混合方式不一致，不能安全替换".into());
-                    }
-                }
-            }
-            for id in &fixture_ids {
-                editing::find(editing::list(root, "fixtures")?, id)?["profileId"] =
-                    profile_id.clone().into();
-            }
-            if let Some(layout) = layout {
-                repatch(root, &fixture_ids, &layout)?;
-            }
+            crate::fixture_exchange::apply(root, &fixture_ids, &profile_id, layout)?;
         }
     }
     Ok(())

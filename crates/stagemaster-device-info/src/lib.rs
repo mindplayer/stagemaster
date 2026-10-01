@@ -12,7 +12,10 @@ pub mod capability {
     pub const INSTALLATION: u32 = 1 << 2;
     pub const PLAYBACK: u32 = 1 << 3;
     pub const DMX_OUTPUT: u32 = 1 << 4;
-    pub const KNOWN: u32 = DIAGNOSTICS | CATALOG | INSTALLATION | PLAYBACK | DMX_OUTPUT;
+    /// Catalogue/installation can parse execution semantics 2; does not imply live output.
+    pub const PACKAGE_SEMANTICS_2: u32 = 1 << 5;
+    pub const KNOWN: u32 =
+        DIAGNOSTICS | CATALOG | INSTALLATION | PLAYBACK | DMX_OUTPUT | PACKAGE_SEMANTICS_2;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -129,7 +132,7 @@ impl Description {
         let install = self.declares(INSTALLATION);
         let playback = self.declares(PLAYBACK);
         if !self.declares(DIAGNOSTICS)
-            || ((install || playback) && !catalog)
+            || ((install || playback || self.declares(capability::PACKAGE_SEMANTICS_2)) && !catalog)
             || (self.declares(DMX_OUTPUT) && !playback)
             || (install && self.authentication == 0)
         {

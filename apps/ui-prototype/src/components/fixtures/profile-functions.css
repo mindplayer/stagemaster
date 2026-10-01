@@ -1,0 +1,63 @@
+.profile-functions > .profile-actions {
+  flex-wrap: wrap;
+}
+.profile-function-card {
+  border: 1px solid #344251;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 14px;
+}
+.profile-function-card .profile-channel {
+  padding-top: 0;
+}
+.profile-function-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 1.6fr) minmax(100px, 1.3fr) repeat(
+      3,
+      minmax(65px, 1fr)
+    ) auto;
+  gap: 8px;
+  align-items: end;
+  margin-top: 12px;
+}
+.profile-function-row button {
+  min-height: 36px;
+}
+.profile-function-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: end;
+  margin-top: 16px;
+}
+.profile-function-footer label {
+  min-width: 160px;
+}
+@media (max-width: 1050px) {
+  .profile-function-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: 12px;
+    border-bottom: 1px solid #29323c;
+  }
+}
+.wb-function-parameter > select {
+  width: 100%;
+  min-width: 0;
+  margin: 6px 0;
+  background: #141d27;
+  color: #e5edf5;
+  border: 1px solid #344251;
+  border-radius: 6px;
+  padding: 8px;
+}
+.wb-function-position {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.wb-function-position input {
+  width: 90px;
+}

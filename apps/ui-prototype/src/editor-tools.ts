@@ -1,3 +1,8 @@
+import { sameFunctions } from "./fixture-function-types.ts";
+import {
+  functionDraftValue,
+  type FunctionParameterDraft,
+} from "./function-parameter-tools.ts";
 import type {
   EditOperation,
   FixtureView,
@@ -42,7 +47,13 @@ export function availableAddress(
 export function commonAttributes(fixtures: FixtureView[]) {
   return (
     fixtures[0]?.attributes.filter((a) =>
-      fixtures.every((f) => f.attributes.some((b) => b.key === a.key)),
+      fixtures.every((f) =>
+        f.attributes.some(
+          (b) =>
+            b.key === a.key &&
+            sameFunctions(a.function?.functions, b.function?.functions),
+        ),
+      ),
     ) ?? []
   );
 }
@@ -91,7 +102,8 @@ export function selectRange(
       : [...selected, id]
     : [id];
 }
-export type ParameterDraft = number | string | { mode: "release" | "remove" };
+export type ParameterDraft =
+  number | string | { mode: "release" | "remove" } | FunctionParameterDraft;
 export function parameterCommands(
   sceneId: string,
   fixtures: FixtureView[],
@@ -102,6 +114,20 @@ export function parameterCommands(
   for (const [attribute, draft] of Object.entries(drafts)) {
     const spec = attributes.find((a) => a.key === attribute);
     if (!spec) throw new Error("选择范围已变化，请重新编辑");
+    if (typeof draft === "object" && "function" in draft) {
+      const selection = functionDraftValue(spec, draft);
+      for (const fixture of fixtures)
+        commands.push({
+          op: "setSceneFunctionValue",
+          sceneId,
+          fixtureId: fixture.id,
+          attribute,
+          selection,
+        });
+      continue;
+    }
+    if (spec.function && typeof draft !== "object")
+      throw new Error(`${spec.label}需要选择一个功能`);
     let value = 0;
     let mode: "literal" | "release" | "remove" = "literal";
     if (typeof draft === "object") mode = draft.mode;

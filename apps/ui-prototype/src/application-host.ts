@@ -50,6 +50,13 @@ export type EditOperation =
   | { op: "renameScene"; id: string; name: string }
   | { op: "removeScene"; id: string }
   | {
+      op: "setSceneFunctionValue";
+      sceneId: string;
+      fixtureId: string;
+      attribute: string;
+      selection: import("./fixture-function-types").FunctionSelection;
+    }
+  | {
       op: "setSceneValue";
       sceneId: string;
       fixtureId: string;
@@ -69,7 +76,12 @@ export interface FixtureView {
   footprint: number;
   universe: number | null;
   address: number | null;
-  attributes: { key: string; label: string; defaultValue: number }[];
+  attributes: {
+    key: string;
+    label: string;
+    defaultValue: number;
+    function?: import("./fixture-function-types").FunctionAttribute | null;
+  }[];
 }
 export interface SceneView {
   id: string;
@@ -80,6 +92,7 @@ export interface SceneView {
     attribute: string;
     mode: string;
     value: number | null;
+    functionValue?: import("./fixture-function-types").FunctionSelection | null;
     presetName: string | null;
     presetId: string | null;
   }[];

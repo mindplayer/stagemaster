@@ -1,3 +1,4 @@
+import { auditFixtureFunctions } from "./fixture-function-audit.mjs";
 import { auditAudioEditing } from './audio-audit.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -109,6 +110,7 @@ function acyclic(items, edges, label) {
 
 export function auditProject(p) {
   validateStructure(p);
+  auditFixtureFunctions(p);
   const objects = new Map();
   const add = (kind, values = []) => {
     for (const value of values) {
@@ -157,7 +159,7 @@ export function auditProject(p) {
     const offsets = [];
     for (const a of profile.attributes) assert(matches(a.valueType, a.default), '档案默认值类型不符');
     for (const c of profile.channels) {
-      assert(profile.attributes.some(a => a.key === c.attribute && a.valueType.kind === 'normalized'), '本草案 DMX 映射仅支持归一化属性');
+      assert(profile.attributes.some(a => a.key === c.attribute && ['normalized', 'function'].includes(a.valueType.kind)), 'DMX 映射仅支持归一化或功能属性');
       assert(c.offsets.length === (c.encoding === 'u8' ? 1 : 2), '通道编码宽度错误');
       assert(c.offsets.every(x => x < profile.footprint), '档案通道越界'); offsets.push(...c.offsets);
     }

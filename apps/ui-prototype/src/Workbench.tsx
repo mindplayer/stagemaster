@@ -1238,6 +1238,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         capture={captureCheck}
                         onLocate={locateCheck}
                         onInstall={installation.start}
+                        targetExecutionSemantics={
+                          installation.view?.destination.executionSemantics
+                        }
                         installReason={startInstallationReason(
                           installation.view,
                           installation.communicationError,

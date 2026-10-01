@@ -1,6 +1,18 @@
+import {
+  FixtureFieldError,
+  fixtureInteger as integer,
+} from "./fixture-field-error.ts";
+export { FixtureFieldError } from "./fixture-field-error.ts";
+import { functionLabels, sameFunctions } from "./fixture-function-types.ts";
+import {
+  functionsDraft,
+  functionDefinition,
+} from "./fixture-function-draft.ts";
+import type { ChannelDraft } from "./fixture-function-draft";
 import type { FixtureView, ProjectView } from "./application-host";
 import type { ProfileDefinition, Repatch } from "./fixture-types";
 export const channelLabels: Record<string, string> = {
+  ...functionLabels,
   dimmer: "亮度",
   pan: "水平轴",
   tilt: "垂直轴",
@@ -10,23 +22,10 @@ export const channelLabels: Record<string, string> = {
 };
 export type ProfileDraft = Omit<ProfileDefinition, "footprint" | "channels"> & {
   footprint: string;
-  channels: {
-    attribute: string;
-    coarse: string;
-    fine: string;
-    bits: "8" | "16";
-    percent: string;
-  }[];
+  channels: ChannelDraft[];
 };
-export class FixtureFieldError extends Error {
-  field: string;
-  constructor(field: string, message: string) {
-    super(message);
-    this.field = field;
-  }
-}
 export function profileDraft(profile?: ProfileDefinition): ProfileDraft {
-  const p = profile ?? {
+  const p: ProfileDefinition = profile ?? {
     name: "新灯具模式",
     manufacturer: "自定义",
     model: "新灯具",
@@ -51,20 +50,24 @@ export function profileDraft(profile?: ProfileDefinition): ProfileDraft {
       coarse: String(c.coarse),
       fine: c.fine === null ? "" : String(c.fine),
       bits: c.fine === null ? "8" : "16",
-      percent: String(Number(((c.defaultValue * 100) / 65535).toFixed(6))),
+      percent:
+        typeof c.defaultValue === "number"
+          ? String(Number(((c.defaultValue * 100) / 65535).toFixed(6)))
+          : "0",
+      ...(c.functions
+        ? {
+            functions: functionsDraft(c.functions),
+            defaultFunction:
+              typeof c.defaultValue === "object"
+                ? {
+                    functionKey: c.defaultValue.functionKey,
+                    position: String(c.defaultValue.position),
+                  }
+                : undefined,
+          }
+        : {}),
     })),
   };
-}
-function integer(
-  value: string,
-  min: number,
-  max: number,
-  field: string,
-  label: string,
-) {
-  if (!/^\d+$/.test(value.trim()) || Number(value) < min || Number(value) > max)
-    throw new FixtureFieldError(field, `${label}需要填写 ${min}–${max} 的整数`);
-  return Number(value);
 }
 export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const meta = {} as Pick<
@@ -85,6 +88,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const footprint = integer(draft.footprint, 1, 512, "footprint", "模式占用");
   const keys = draft.channels
     .map((c) => c.attribute)
+    .filter((k) => !(k in functionLabels))
     .filter((k) => !draft.positioning || (k !== "pan" && k !== "tilt"))
     .sort()
     .join(",");
@@ -116,6 +120,11 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
         );
     }
   }
+  if (
+    new Set(draft.channels.map((c) => c.attribute)).size !==
+    draft.channels.length
+  )
+    throw new FixtureFieldError("family", "同一种属性只能定义一次");
   const occupied = new Set<number>();
   const channels = draft.channels.map((c, i) => {
     const slot = (raw: string, part: "coarse" | "fine") => {
@@ -129,6 +138,18 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     };
     const coarse = slot(c.coarse, "coarse"),
       fine = c.bits === "16" ? slot(c.fine, "fine") : null;
+    if (c.attribute in functionLabels)
+      return {
+        attribute: c.attribute,
+        coarse,
+        fine,
+        ...functionDefinition(c, i),
+      };
+    if (c.functions)
+      throw new FixtureFieldError(
+        `channel-${i}-coarse`,
+        "此属性不支持功能区间",
+      );
     if (!/^\d+(\.\d+)?$/.test(c.percent.trim()) || Number(c.percent) > 100)
       throw new FixtureFieldError(
         `channel-${i}-percent`,
@@ -165,6 +186,12 @@ export function compatibleProfile(
     .join(",");
   return fixtures.every(
     (f) =>
+      f.attributes.every((a) =>
+        sameFunctions(
+          a.function?.functions,
+          p.channels.find((c) => c.attribute === a.key)?.functions,
+        ),
+      ) &&
       Boolean(f.positioning) === Boolean(p.positioning) &&
       (!f.positioning ||
         (f.positioning.kind === p.positioning!.kind &&

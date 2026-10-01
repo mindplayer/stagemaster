@@ -44,6 +44,11 @@ export function PackageResults({
               最大参考装载峰值 / {size(report.maxLoaderBytes)}
             </span>
           </div>
+          {(report.executionSemantics ?? 1) >= 2 && (
+            <p className="wb-package-caption">
+              此包包含直接切换的灯具功能，需要支持功能节目的设备固件。
+            </p>
+          )}
           <div className="wb-package-results">
             {reportPrograms
               .slice(activeResultPage * PAGE, (activeResultPage + 1) * PAGE)

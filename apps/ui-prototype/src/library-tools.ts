@@ -1,3 +1,4 @@
+import { functionLabels } from "./fixture-function-types.ts";
 import type { FixtureView, SceneView } from "./application-host";
 import type { PresetView } from "./library-types";
 export type RecallMode = "replace" | "add" | "subtract";
@@ -61,6 +62,7 @@ export function presetCoverage(
 }
 export const attributeName = (key: string) =>
   ({
+    ...functionLabels,
     dimmer: "亮度",
     red: "红色",
     green: "绿色",
@@ -68,3 +70,26 @@ export const attributeName = (key: string) =>
     pan: "水平",
     tilt: "垂直",
   })[key] ?? key;
+
+export function sceneValueLabel(
+  value: SceneView["values"][number],
+  fixtures: FixtureView[],
+): string {
+  if (value.mode === "release") return "释放";
+  if (value.functionValue) {
+    const selection = value.functionValue;
+    const definition = fixtures
+      .find((fixture) => fixture.id === value.fixtureId)
+      ?.attributes.find((attribute) => attribute.key === value.attribute)
+      ?.function?.functions.find(
+        (entry) => entry.key === selection.functionKey,
+      );
+    if (!definition) return "功能定义不可用";
+    return definition.mode === "slot"
+      ? definition.name
+      : `${definition.name} · ${((selection.position / 65535) * 100).toFixed(2)}%`;
+  }
+  return value.value === null
+    ? "未记录"
+    : `${((value.value / 65535) * 100).toFixed(2)}%`;
+}

@@ -139,3 +139,20 @@ fn stable_id_uses_factory_identity_without_wireless_or_boot_state() {
         assert_eq!(esp32_device_id(invalid), Err(Error::Identity));
     }
 }
+
+#[test]
+fn function_package_capability_requires_catalogue_and_roundtrips_without_claiming_output() {
+    let mut info = Description::decode(&FULL).unwrap();
+    info.capabilities &= !(c::PLAYBACK | c::DMX_OUTPUT);
+    info.limits.universes = 0;
+    info.limits.loader_bytes = 0;
+    info.limits.frame_ms = 0;
+    info.capabilities |= c::PACKAGE_SEMANTICS_2;
+    let decoded = Description::decode(&info.encode().unwrap()).unwrap();
+    assert!(decoded.declares(c::PACKAGE_SEMANTICS_2));
+    assert!(!decoded.declares(c::DMX_OUTPUT));
+    assert!(!decoded.declares(c::PLAYBACK));
+    assert_eq!(decoded.unknown_capabilities(), 0);
+    info.capabilities = c::DIAGNOSTICS | c::PACKAGE_SEMANTICS_2;
+    assert_eq!(info.validate(), Err(Error::Capabilities));
+}

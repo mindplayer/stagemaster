@@ -306,6 +306,8 @@ export function ProjectCheckPanel({
                         {program.usage.valueBufferBytes.toLocaleString()}{" "}
                         字节；本机效果数据{" "}
                         {program.usage.effectBufferBytes.toLocaleString()}{" "}
+                        字节；功能切换索引{" "}
+                        {(program.usage.snapBufferBytes ?? 0).toLocaleString()}{" "}
                         字节。均不含完整运行开销，不代表设备文件体积或可用内存。
                       </p>
                     </details>

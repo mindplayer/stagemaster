@@ -31,6 +31,7 @@ export interface DeviceDescription {
   authenticationMethod: number;
   limits: {
     packageVersion: number;
+    executionSemantics?: number;
     transferVersion: number;
     packageBytes: number;
     programs: number;

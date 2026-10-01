@@ -3,7 +3,8 @@ export interface ProfileChannel {
   attribute: string;
   coarse: number;
   fine: number | null;
-  defaultValue: number;
+  defaultValue: number | import("./fixture-function-types").FunctionSelection;
+  functions?: import("./fixture-function-types").FunctionDefinition[];
 }
 export interface ProfileDefinition {
   positioning?: PositionModel | null;

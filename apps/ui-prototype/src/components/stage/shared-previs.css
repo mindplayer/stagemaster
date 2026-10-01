@@ -20,3 +20,18 @@
 .wb-shared-previs .previs-footer {
   font-size: 11px;
 }
+
+.previs-limitations {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #d8bc82;
+  background: #29271f;
+}
+.previs-limitations summary {
+  cursor: pointer;
+}
+.previs-limitations p {
+  max-height: 80px;
+  overflow: auto;
+  margin: 8px 0;
+}

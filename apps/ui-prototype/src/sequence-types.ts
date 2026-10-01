@@ -33,7 +33,16 @@ export interface FixtureOutput {
   id: string;
   name: string;
   address: number;
-  attributes: { key: string; value: number }[];
+  attributes: {
+    key: string;
+    value: number;
+    function?: {
+      key: string;
+      name: string;
+      dmxValue: number;
+      position: number | null;
+    };
+  }[];
 }
 export interface PreviewSnapshot {
   epoch: number;

@@ -190,6 +190,28 @@
             "value"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "function"
+            },
+            "functionKey": {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Key"
+            },
+            "position": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            }
+          },
+          "required": [
+            "kind",
+            "functionKey",
+            "position"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -203,7 +225,8 @@
                 "normalized",
                 "boolean",
                 "integer",
-                "text"
+                "text",
+                "function"
               ]
             }
           },

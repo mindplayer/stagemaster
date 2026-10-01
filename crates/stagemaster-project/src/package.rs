@@ -61,6 +61,7 @@ pub struct PackageProgram {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageReport {
+    pub execution_semantics: u16,
     pub project_id: String,
     pub revision_id: String,
     pub source_digest: String,
@@ -200,6 +201,7 @@ fn report(archive: &Archive) -> PackageReport {
     };
     let source = archive.source();
     PackageReport {
+        execution_semantics: archive.semantics(),
         project_id: Uuid::from_bytes(source.project_id).to_string(),
         revision_id: Uuid::from_bytes(source.revision_id).to_string(),
         source_digest: hex(&source.snapshot_digest),

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { PrevisViewport } from "./PrevisViewport";
 import { CubeIcon } from "@phosphor-icons/react";
-import type { ApplicationHost, SceneView } from "../../application-host";
+import type {
+  ApplicationHost,
+  SceneView,
+  FixtureView,
+} from "../../application-host";
 import type {
   PrevisSource,
   PrevisStatus,
@@ -11,6 +15,7 @@ import type {
 /** A view onto the host's single renderer. Source changes never execute playback. */
 export function PrevisPanel({
   host,
+  limitedFixtures = [],
   scenes,
   busy,
   generation,
@@ -24,6 +29,7 @@ export function PrevisPanel({
 }: {
   host: ApplicationHost;
   scenes: SceneView[];
+  limitedFixtures?: FixtureView[];
   busy: boolean;
   generation: () => number;
   run: (work: () => Promise<void>) => Promise<boolean>;
@@ -169,6 +175,17 @@ export function PrevisPanel({
                 : "三维已关闭")}
         </span>
       </section>
+      {!!limitedFixtures.length && (
+        <details className="previs-limitations">
+          <summary>
+            {limitedFixtures.length} 台灯具仅显示灯位与朝向，功能光束暂未模拟
+          </summary>
+          <p>{limitedFixtures.map((f) => f.name).join("、")}</p>
+          <p>
+            色盘、图案、快门和棱镜尚无光学模型，因此隐藏这些灯具的光束。实际通道值以播放监看为准。
+          </p>
+        </details>
+      )}
       <PrevisViewport
         url={status?.viewerUrl ?? null}
         busy={busy}

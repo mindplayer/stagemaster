@@ -16,6 +16,17 @@ mod effect_compile;
 mod effects;
 mod encoding;
 mod fixture;
+mod fixture_exchange;
+mod fixture_function;
+mod fixture_value;
+mod fixture_view;
+mod function_output;
+mod output;
+pub use fixture_function::{
+    FunctionDefinition, FunctionMode, FunctionSelection, FunctionTable, MAX_CHANNEL_FUNCTIONS,
+    ProfileDefault,
+};
+pub use function_output::FunctionOutput;
 mod position;
 mod position_effect;
 pub use effects::{EffectEdit, EffectKeyframe, EffectValues, SceneEffect, Transition, Waveform};
@@ -25,9 +36,8 @@ mod library;
 mod rigging;
 mod sequence;
 mod stage;
-pub use compilation::{
-    AttributeOutput, CompiledOutput, CompiledSequence, CompiledStep, FixtureOutput, PreviewOutput,
-};
+pub use compilation::{CompiledSequence, CompiledStep};
+pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};
 pub use rigging::{RigAttachment, RigKind, RigLayout, RigShape};
 pub use sequence::{Repeat, SequenceEdit, Tracking};
 pub use stage::{
