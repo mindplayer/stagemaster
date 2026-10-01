@@ -1,0 +1,30 @@
+.copy-value-targets {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.copy-value-targets small {
+  color: var(--wb-muted);
+}
+.copy-value-target-list {
+  max-height: 210px;
+  overflow-y: auto;
+}
+.workbench .copy-value-target {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--wb-border);
+}
+.copy-value-target span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.copy-value-targets .copy-value-issue,
+.copy-value-issue {
+  color: var(--wb-warning, #e7bc7b);
+}

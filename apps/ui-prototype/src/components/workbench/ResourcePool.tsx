@@ -1,3 +1,4 @@
+import { CopyValuesEditor } from "./CopyValuesEditor";
 import { useState } from "react";
 import type { ProjectView, SceneView } from "../../application-host";
 import type { LibraryEdit, ResourceKind } from "../../library-types";
@@ -10,12 +11,7 @@ import type { RecallMode } from "../../library-tools";
 import { uniqueName } from "../../editor-tools";
 import { AttributeMask } from "./AttributeMask";
 import { GroupEditor } from "./GroupEditor";
-import {
-  CopyValuesEditor,
-  PresetEditor,
-  PresetUsage,
-  ValueTable,
-} from "./PresetEditor";
+import { PresetEditor, PresetUsage, ValueTable } from "./PresetEditor";
 import type { ResourceDialog } from "./resource-dialog-types";
 import { ManageResource } from "./ManageResource";
 

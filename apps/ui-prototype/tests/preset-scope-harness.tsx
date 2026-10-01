@@ -57,7 +57,22 @@ const baseProject: ProjectView = {
   ],
 };
 const full = new URLSearchParams(location.search).has("full");
-const project = full ? withFullScopeFixtures(baseProject) : baseProject;
+const scopedProject = full ? withFullScopeFixtures(baseProject) : baseProject;
+const project = new URLSearchParams(location.search).has("copy")
+  ? {
+      ...scopedProject,
+      fixtures: [
+        ...scopedProject.fixtures,
+        ...Array.from({ length: 61 }, (_, i) => ({
+          ...scopedProject.fixtures[0],
+          id: `receiver-${i + 1}`,
+          name: `接收灯 ${String(i + 1).padStart(2, "0")}`,
+          universe: 2 + Math.floor(i / 50),
+          address: (i % 50) * 10 + 1,
+        })),
+      ],
+    }
+  : scopedProject;
 function Harness() {
   const [selection, setSelection] = useState("all");
   const selected = project.fixtures

@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-038 完成（基线 `eecab5f`，结果为本次 `feat(library): preview copied values and validate destinations` 提交）：复制源内容／目标预检、逐灯勾选／搜索分页及来源交集保护；242 UI、9 Rust 相关回归、类型／格式／桌面、多灯组件与原生历史／保存重开通过，见[工单](tasks/UX-038-copy-values-preflight.md)。独立三灯副本已保存、音乐 0／UE 关闭／设备断开，源 UX-037 未改；持续 goal active，接续灯组批量整理。
+
 UX-037 完成（基线 `6bba45a`，结果为本次 `feat(presets): share attribute scopes across editing tools` 提交）：快捷预设／记录／更新／复制共用范围，颜色含色盘、亮度隔离频闪、空选与能力变化保护；239 UI、类型／格式／桌面、实际组件命令及原生历史／保存重开通过，见[工单](tasks/UX-037-shared-preset-scopes.md)。独立三预设副本已保存、音乐 0／UE 关闭／设备断开，源 UX-036 未改；持续 goal active，接续复制属性预检。
 
 UX-036 完成（基线 `38ad5d6`，结果为本次 `fix(presets): inherit explicit attribute scope when recording` 提交）：记录／更新继承明确范围、空范围不扩大、取消隔离及镜头明细中文；237 UI、类型／格式／桌面、组件失败路径及原生记录／局部更新／历史／保存重开通过，见[工单](tasks/UX-036-preset-scope-continuity.md)。独立 2 预设工程已保存，音乐 0／UE 关闭／设备断开，源 UX-035 未改；持续 goal active，接续快捷属性范围统一。
