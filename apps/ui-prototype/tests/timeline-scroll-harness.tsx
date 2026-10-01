@@ -1,0 +1,184 @@
+// Isolated real waveform/lane components. No sound, files, engine or device I/O.
+import { useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { AudioWaveform } from "../src/components/audio/AudioWaveform";
+import { clipsInRange } from "../src/components/audio/clip-selection";
+import type {
+  AudioTimeline,
+  AudioPosition,
+  AudioWaveform as Wave,
+} from "../src/audio-types";
+import "../src/base.css";
+import "../src/components/audio/audio.css";
+const initial: AudioTimeline = {
+  asset: {
+    digest: "ab".repeat(32),
+    fileName: "手势隔离验收",
+    extension: "wav",
+    durationMs: 60000,
+  },
+  inMs: 0,
+  outMs: 60000,
+  markers: [],
+  lightingClips: [
+    {
+      id: "one",
+      name: "金色",
+      sceneId: "s",
+      startMs: 1000,
+      endMs: 2000,
+      fadeMs: 0,
+      locked: false,
+    },
+    {
+      id: "two",
+      name: "蓝色",
+      sceneId: "s",
+      startMs: 3000,
+      endMs: 4000,
+      fadeMs: 0,
+      locked: false,
+    },
+    {
+      id: "three",
+      name: "后段",
+      sceneId: "s",
+      startMs: 40000,
+      endMs: 42000,
+      fadeMs: 0,
+      locked: false,
+    },
+    {
+      id: "locked",
+      name: "固定段",
+      sceneId: "s",
+      startMs: 50000,
+      endMs: 52000,
+      fadeMs: 0,
+      locked: true,
+    },
+  ],
+};
+const waveform = {
+  durationMs: 60000,
+  bucketMs: 10,
+  channels: [
+    Array.from(
+      { length: 12000 },
+      (_, i) => (i % 2 ? 1 : -1) * (0.1 + Math.abs(Math.sin(i / 180)) * 0.7),
+    ),
+  ],
+} satisfies Wave;
+function Harness() {
+  const [track, setTrack] = useState(initial),
+    [selected, setSelected] = useState("one"),
+    [ids, setIds] = useState<string[]>([]);
+  const [batch, setBatch] = useState(false),
+    [visible, setVisible] = useState(true),
+    [moves, setMoves] = useState(0),
+    [seeks, setSeeks] = useState(0);
+  const sample = useRef<{ position: AudioPosition; at: number }>({
+    position: {
+      positionMs: 505,
+      playing: false,
+      durationMs: 60000,
+      volumePercent: 100,
+      problem: null,
+    } satisfies AudioPosition,
+    at: performance.now(),
+  });
+  return (
+    <main style={{ padding: 24, width: 900 }}>
+      <button
+        onClick={() => {
+          setTrack(initial);
+          setMoves(0);
+          setIds([]);
+        }}
+      >
+        还原
+      </button>
+      <button onClick={() => setVisible((v) => !v)}>切换显示</button>
+      <button
+        onClick={() => {
+          sample.current = {
+            position: {
+              ...sample.current.position,
+              playing: !sample.current.position.playing,
+            },
+            at: performance.now(),
+          };
+        }}
+      >
+        切换播放
+      </button>
+      <output role="status">
+        提交 {moves} 次；定位 {seeks} 次；选择 {ids.join(",")}；
+        {track
+          .lightingClips!.map((c) => `${c.name} ${c.startMs}—${c.endMs}`)
+          .join("；")}
+      </output>
+      <div style={{ display: visible ? "block" : "none" }}>
+        <AudioWaveform
+          track={track}
+          scenes={[]}
+          waveform={waveform}
+          sample={sample}
+          selected={selected}
+          disabled={!visible}
+          compact
+          onSeek={() => setSeeks((v) => v + 1)}
+          onSelect={setSelected}
+          onMove={() => {}}
+          onClipMove={(clip) => {
+            setTrack({
+              ...track,
+              lightingClips: track.lightingClips!.map((c) =>
+                c.id === clip.id ? clip : c,
+              ),
+            });
+            setMoves((v) => v + 1);
+          }}
+          clipSelection={{
+            active: batch,
+            ids,
+            onMode: () => setBatch((v) => !v),
+            onClear: () => setIds([]),
+            onPick: (id) =>
+              setIds((v) =>
+                v.includes(id) ? v.filter((i) => i !== id) : [...v, id],
+              ),
+            onRange: (a, b, append) =>
+              setIds([
+                ...new Set([
+                  ...(append ? ids : []),
+                  ...clipsInRange(track.lightingClips!, a, b),
+                ]),
+              ]),
+            onMove: (chosen, destination) => {
+              const start = Math.min(
+                ...track
+                  .lightingClips!.filter((c) => chosen.includes(c.id))
+                  .map((c) => c.startMs),
+              );
+              setTrack({
+                ...track,
+                lightingClips: track.lightingClips!.map((c) =>
+                  chosen.includes(c.id)
+                    ? {
+                        ...c,
+                        startMs: c.startMs + destination - start,
+                        endMs: c.endMs + destination - start,
+                      }
+                    : c,
+                ),
+              });
+              setMoves((v) => v + 1);
+            },
+          }}
+        />
+      </div>
+    </main>
+  );
+}
+createRoot(document.getElementById("root")!).render(<Harness />);

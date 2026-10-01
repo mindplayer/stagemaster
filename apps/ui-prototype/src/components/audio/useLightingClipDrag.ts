@@ -1,3 +1,5 @@
+import { useTimelineEdgeScroll } from "./useTimelineEdgeScroll";
+import { timelinePoint } from "./timeline-edge-scroll";
 import {
   useEffect,
   useRef,
@@ -13,6 +15,9 @@ type Drag = {
   clip: AudioLightingClip;
   mode: ClipMotion;
   x: number;
+  clientX: number;
+  clientY: number;
+  anchor: number;
   moved: boolean;
   next: AudioLightingClip;
 };
@@ -25,6 +30,7 @@ export function useLightingClipDrag(
   snap: boolean,
   onSelect: (id: string) => void,
   onMove: (clip: AudioLightingClip) => void,
+  onPan?: (pixels: number) => void,
 ) {
   const active = useRef<Drag | null>(null);
   const [draft, setDraft] = useState<Drag | null>(null);
@@ -33,26 +39,44 @@ export function useLightingClipDrag(
     active.current = null;
     setDraft(null);
   }
-  useEffect(cancel, [
-    track,
-    disabled,
-    viewport.start,
-    viewport.end,
-    viewport.width,
-  ]);
-  useEffect(() => {
-    window.addEventListener("blur", cancel);
-    return () => window.removeEventListener("blur", cancel);
-  }, []);
+  useEffect(cancel, [track, disabled]);
   const proposal = (d: Drag, x: number) =>
     moveLightingClip(
       track,
       d.clip,
       d.mode,
-      (x - d.x) / pixels,
+      point(x) - d.anchor,
       snap,
       8 / pixels,
     );
+  const point = (x: number) =>
+    timelinePoint(
+      x,
+      surface.current?.getBoundingClientRect().left ?? 0,
+      viewport,
+    );
+  function update(clientX: number, clientY: number) {
+    const d = active.current;
+    if (!d) return;
+    const moved = d.moved || Math.abs(clientX - d.x) >= 3;
+    active.current = {
+      ...d,
+      clientX,
+      clientY,
+      moved,
+      next: moved ? proposal(d, clientX) : d.clip,
+    };
+    setDraft(active.current);
+  }
+  useTimelineEdgeScroll(
+    surface,
+    viewport,
+    track.outMs - track.inMs,
+    draft,
+    onPan,
+    update,
+    cancel,
+  );
   return {
     draft,
     cancel,
@@ -69,6 +93,9 @@ export function useLightingClipDrag(
         clip,
         mode,
         x: e.clientX,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        anchor: point(e.clientX),
         moved: false,
         next: clip,
       };
@@ -77,13 +104,7 @@ export function useLightingClipDrag(
     move(e: PointerEvent) {
       const d = active.current;
       if (!d || d.pointer !== e.pointerId) return;
-      const moved = d.moved || Math.abs(e.clientX - d.x) >= 3;
-      active.current = {
-        ...d,
-        moved,
-        next: moved ? proposal(d, e.clientX) : d.clip,
-      };
-      setDraft(active.current);
+      update(e.clientX, e.clientY);
     },
     end(e: PointerEvent) {
       const d = active.current;

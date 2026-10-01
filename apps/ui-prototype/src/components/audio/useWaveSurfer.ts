@@ -179,7 +179,7 @@ export function useWaveSurfer(
   function pan(pixels: number) {
     const wave = instance.current;
     if (!wave) return;
-    wave.setScroll(wave.getScroll() + pixels);
+    if (pixels !== 0) wave.setScroll(wave.getScroll() + pixels);
     manualUntil.current = performance.now() + 1500;
   }
   return {

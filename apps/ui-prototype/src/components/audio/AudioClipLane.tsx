@@ -21,9 +21,11 @@ export function AudioClipLane({
   onSelect,
   onSeek,
   onMove,
+  onPan,
   clipSelection,
 }: {
   clipSelection?: ClipLaneSelection;
+  onPan?(pixels: number): void;
   track: AudioTimeline;
   scenes: SceneView[];
   viewport: WaveViewport;
@@ -48,6 +50,7 @@ export function AudioClipLane({
     clipSelection,
     disabled || !group || !moveTool || !!clipSelection?.movementBlocked,
     snap,
+    onPan,
   );
   const moving = useLightingClipDrag(
     surface,
@@ -57,6 +60,7 @@ export function AudioClipLane({
     snap,
     onSelect,
     onMove,
+    onPan,
   );
   const marquee = useClipMarquee(
     surface,
@@ -64,6 +68,8 @@ export function AudioClipLane({
     clipSelection,
     disabled || moveTool,
     track,
+    track.outMs - track.inMs,
+    onPan,
   );
   const pixels = viewport.width / Math.max(1, viewport.end - viewport.start);
   const blockedMotion = group ? clipSelection?.movementBlocked : "";
@@ -76,6 +82,10 @@ export function AudioClipLane({
         (moving.draft?.clip.id === c.id ? moving.draft.next : c),
     )
     .sort((a, b) => a.startMs - b.startMs);
+  const movingClip = moving.draft?.moved ? moving.draft.next : null;
+  const singleStatus = movingClip
+    ? `${movingClip.name} · ${audioTime(movingClip.startMs)} — ${audioTime(movingClip.endMs)} · 松手应用`
+    : "";
   const box = marquee.draft?.moved ? marquee.draft : null;
   const selectionIds = box
     ? [
@@ -186,16 +196,17 @@ export function AudioClipLane({
           setMoveTool(value);
         }}
       />
-      {(blockedMotion || proposed || movingGroup.problem) && (
+      {(blockedMotion || proposed || movingGroup.problem || singleStatus) && (
         <div
           className="audio-clip-motion-status"
           data-error={!!(proposed?.problem || movingGroup.problem)}
           role="status"
-          aria-live={proposed ? "off" : "polite"}
+          aria-live={proposed || movingClip ? "off" : "polite"}
         >
           {blockedMotion ||
             proposed?.problem ||
             movingGroup.problem ||
+            singleStatus ||
             `移动 ${proposed!.ids.length} 段 · 起点 ${audioTime(proposed!.destination)} · 松手应用`}
         </div>
       )}

@@ -165,6 +165,10 @@ export function WaveformMarkers({
         if (marker) onSelect(marker.id);
       }}
       onPointerMove={(e) => {
+        if ((e.target as HTMLElement).closest(".audio-lighting-lane")) {
+          setHover(null);
+          return;
+        }
         const raw = point(e.clientX);
         setHover(Math.max(0, Math.min(duration, raw)));
         const d = active.current;
@@ -220,6 +224,7 @@ export function WaveformMarkers({
       })}
       {scenes && track.lightingClips && onClipMove ? (
         <AudioClipLane
+          onPan={onPan}
           clipSelection={clipSelection}
           track={track}
           scenes={scenes}

@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-012 完成（基线 `5497af5`，结果为本次 `feat(audio): scroll the timeline during clip gestures` 提交）：独立片段单段／裁切／整组／框选边缘滚动、累计锚点、取消及播放跟随退让；198 UI、类型／桌面／格式与组件真实按住手势／原生历史保存重开通过，见[工单](tasks/AUDIO-012-timeline-edge-scroll.md)。独立副本第三片段 3.393–4.133 秒已保存，音乐 0、UE 关闭、设备断开。持续 goal active，接续弧形观众座区。
+
 EFFECT-004 完成（基线 `7422578`，结果为本次 `feat(effects): preview drafts without committing project changes` 提交）：依 ADR-074 实现不改工程的效果草稿即时预演、错误保持、取消恢复、单例归属与锁外编译；UE 短暂忙帧保持仍受 2 秒上限约束。553 Rust／最终 64 桌面、195 UI、类型／fmt／严格检查／桌面／UE 构建与 5 UE 自动化、原生编辑／机械行程拒绝／取消历史／保存重开通过，见[工单](tasks/EFFECT-004-live-draft-preview.md)。独立副本已保存，仅第三场景第一周期 4.136 秒；音乐停止、UE 关闭、设备断开，原工程未改。持续 goal active，接续时间线边缘滚动。
 
 AUDIO-011 完成（基线 `415885c`，结果为本次 `feat(audio): move selected clips directly on the timeline` 提交）：整组拖动／吸附／键盘、显式工具、锁定与重叠、目标输入互斥及取消；190 UI、类型／桌面、4 Rust 回归和真实手势／原生隐藏选择／暂停游标／历史／保存重开通过，见[工单](tasks/AUDIO-011-timeline-group-motion.md)。独立副本两段为 4.310／5.250 秒且已保存；原生锁定片段／错误组输入的键盘焦点与音乐隔离复验通过。音乐 0、UE 关闭、设备断开，持续 goal active，接续效果编辑预演。

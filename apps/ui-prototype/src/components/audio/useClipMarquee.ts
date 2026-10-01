@@ -1,3 +1,5 @@
+import { useTimelineEdgeScroll } from "./useTimelineEdgeScroll";
+import { timelinePoint } from "./timeline-edge-scroll";
 import {
   useEffect,
   useRef,
@@ -12,6 +14,8 @@ type Marquee = {
   start: number;
   end: number;
   x: number;
+  clientX: number;
+  clientY: number;
   moved: boolean;
   append: boolean;
   id?: string;
@@ -23,6 +27,8 @@ export function useClipMarquee(
   selection: ClipLaneSelection | undefined,
   disabled: boolean,
   revision: unknown,
+  duration: number,
+  onPan?: (pixels: number) => void,
 ) {
   const active = useRef<Marquee | null>(null);
   const [draft, setDraft] = useState<Marquee | null>(null);
@@ -30,27 +36,34 @@ export function useClipMarquee(
     active.current = null;
     setDraft(null);
   }
-  useEffect(cancel, [
-    disabled,
-    selection?.active,
-    viewport.start,
-    viewport.end,
-    viewport.width,
-    revision,
-  ]);
-  useEffect(() => {
-    window.addEventListener("blur", cancel);
-    return () => window.removeEventListener("blur", cancel);
-  }, []);
-  function point(x: number) {
-    const left = surface.current?.getBoundingClientRect().left ?? 0;
-    return (
-      viewport.start +
-      (Math.max(0, Math.min(viewport.width, x - left)) /
-        Math.max(1, viewport.width)) *
-        (viewport.end - viewport.start)
+  useEffect(cancel, [disabled, selection?.active, revision]);
+  const point = (x: number) =>
+    timelinePoint(
+      x,
+      surface.current?.getBoundingClientRect().left ?? 0,
+      viewport,
     );
+  function update(clientX: number, clientY: number) {
+    const d = active.current;
+    if (!d) return;
+    active.current = {
+      ...d,
+      clientX,
+      clientY,
+      end: point(clientX),
+      moved: d.moved || Math.abs(clientX - d.x) >= 3,
+    };
+    setDraft(active.current);
   }
+  useTimelineEdgeScroll(
+    surface,
+    viewport,
+    duration,
+    draft,
+    onPan,
+    update,
+    cancel,
+  );
   return {
     draft,
     cancel,
@@ -66,6 +79,8 @@ export function useClipMarquee(
         start: point(e.clientX),
         end: point(e.clientX),
         x: e.clientX,
+        clientX: e.clientX,
+        clientY: e.clientY,
         moved: false,
         append: e.shiftKey,
         id,
@@ -75,12 +90,7 @@ export function useClipMarquee(
     move(e: PointerEvent) {
       const d = active.current;
       if (!d || d.pointer !== e.pointerId) return;
-      active.current = {
-        ...d,
-        end: point(e.clientX),
-        moved: d.moved || Math.abs(e.clientX - d.x) >= 3,
-      };
-      setDraft(active.current);
+      update(e.clientX, e.clientY);
     },
     end(e: PointerEvent) {
       const d = active.current;

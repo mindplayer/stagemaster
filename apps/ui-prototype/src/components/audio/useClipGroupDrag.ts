@@ -1,3 +1,5 @@
+import { useTimelineEdgeScroll } from "./useTimelineEdgeScroll";
+import { timelinePoint } from "./timeline-edge-scroll";
 import {
   useEffect,
   useRef,
@@ -12,6 +14,9 @@ import { moveClipGroup, type ClipGroupMotion } from "./clip-group-motion";
 type Gesture = {
   pointer: number;
   x: number;
+  clientX: number;
+  clientY: number;
+  anchor: number;
   moved: boolean;
   id: string;
   ids: string[];
@@ -25,6 +30,7 @@ export function useClipGroupDrag(
   selection: ClipLaneSelection | undefined,
   disabled: boolean,
   snap: boolean,
+  onPan?: (pixels: number) => void,
 ) {
   const active = useRef<Gesture | null>(null);
   const [draft, setDraft] = useState<Gesture | null>(null);
@@ -39,25 +45,42 @@ export function useClipGroupDrag(
   useEffect(() => {
     cancel();
     setProblem("");
-  }, [
-    track,
-    disabled,
-    signature,
-    viewport.start,
-    viewport.end,
-    viewport.width,
-  ]);
-  useEffect(() => {
-    window.addEventListener("blur", cancel);
-    return () => window.removeEventListener("blur", cancel);
-  }, []);
+  }, [track, disabled, signature]);
   const propose = (d: Gesture, x: number) =>
-    moveClipGroup(track, d.ids, (x - d.x) / pixels, snap ? 8 / pixels : 0);
+    moveClipGroup(track, d.ids, point(x) - d.anchor, snap ? 8 / pixels : 0);
   function commit(next: ClipGroupMotion) {
     setProblem(next.problem);
     if (!next.problem && next.delta !== 0)
       selection?.onMove(next.ids, next.destination);
   }
+  const point = (x: number) =>
+    timelinePoint(
+      x,
+      surface.current?.getBoundingClientRect().left ?? 0,
+      viewport,
+    );
+  function update(clientX: number, clientY: number) {
+    const d = active.current;
+    if (!d) return;
+    const moved = d.moved || Math.abs(clientX - d.x) >= 3;
+    active.current = {
+      ...d,
+      clientX,
+      clientY,
+      moved,
+      next: moved ? propose(d, clientX) : d.next,
+    };
+    setDraft(active.current);
+  }
+  useTimelineEdgeScroll(
+    surface,
+    viewport,
+    track.outMs - track.inMs,
+    draft,
+    onPan,
+    update,
+    cancel,
+  );
   return {
     draft,
     problem,
@@ -85,6 +108,9 @@ export function useClipGroupDrag(
       active.current = {
         pointer: e.pointerId,
         x: e.clientX,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        anchor: point(e.clientX),
         moved: false,
         id,
         ids: [...selection.ids],
@@ -95,13 +121,7 @@ export function useClipGroupDrag(
     move(e: PointerEvent) {
       const d = active.current;
       if (!d || d.pointer !== e.pointerId) return;
-      const moved = d.moved || Math.abs(e.clientX - d.x) >= 3;
-      active.current = {
-        ...d,
-        moved,
-        next: moved ? propose(d, e.clientX) : d.next,
-      };
-      setDraft(active.current);
+      update(e.clientX, e.clientY);
     },
     end(e: PointerEvent) {
       const d = active.current;
