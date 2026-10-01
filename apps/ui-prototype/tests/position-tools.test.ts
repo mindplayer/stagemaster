@@ -63,3 +63,43 @@ test("换灯候选不能把已记录的位置解释为另一种运动映射", ()
   definition.positioning!.tilt.minDegrees = "-90";
   assert.equal(compatibleProfile([f], definition), false);
 });
+
+test("目标平面按世界坐标向上为正，缩放和非等比视口保持点位", async () => {
+  const { aimPointAt } =
+    await import("../src/components/fixtures/aim-point.ts");
+  const camera = { x: 5, y: 3, width: 20 },
+    rect = { left: 10, top: 20, width: 400, height: 200 };
+  assert.deepEqual(aimPointAt(camera, 2, rect, 210, 120), { x: 5, y: 3 });
+  assert.deepEqual(aimPointAt(camera, 2, rect, 310, 70), { x: 10, y: 5.5 });
+  assert.deepEqual(aimPointAt({ ...camera, width: 10 }, 2, rect, 310, 70), {
+    x: 7.5,
+    y: 4.25,
+  });
+  assert.deepEqual(aimPointAt(camera, 1, rect, 310, 20), { x: 15, y: 13 });
+  assert.deepEqual(aimPointAt(camera, 2, rect, -999, 999), { x: -5, y: -2 });
+  assert.equal(aimPointAt(camera, 2, { ...rect, width: 0 }, 0, 0), null);
+  assert.equal(aimPointAt({ ...camera, x: 100001 }, 2, rect, 210, 120), null);
+  assert.equal(aimPointAt(camera, NaN, rect, 210, 120), null);
+});
+
+test("目标坐标草稿拒绝空值与非十进制，键盘毫米精度且有界", async () => {
+  const { readAimPoint, nudgeAimPoint, pointFields } =
+    await import("../src/components/fixtures/aim-point.ts");
+  for (const value of ["", " ", "1e3", "NaN", "100001", "1."])
+    assert.equal(readAimPoint(value, "0"), null);
+  assert.deepEqual(readAimPoint(" -2.25 ", "3.5"), { x: -2.25, y: 3.5 });
+  assert.deepEqual(nudgeAimPoint({ x: 0, y: 0 }, "ArrowUp", false), {
+    x: 0,
+    y: 0.1,
+  });
+  assert.deepEqual(nudgeAimPoint({ x: 0.09, y: 0 }, "ArrowRight", true), {
+    x: 0.1,
+    y: 0,
+  });
+  assert.deepEqual(nudgeAimPoint({ x: 100000, y: 0 }, "ArrowRight", false), {
+    x: 100000,
+    y: 0,
+  });
+  assert.equal(nudgeAimPoint({ x: 0, y: 0 }, "Enter", false), null);
+  assert.deepEqual(pointFields({ x: 1.25, y: 0 }), { x: "1.25", y: "0" });
+});

@@ -7,9 +7,10 @@ import type {
   SceneView,
 } from "../../application-host";
 import type { PositionEdit } from "../../position-types";
-import { attributeState } from "../../editor-tools";
+import { PositionReadout } from "./PositionReadout";
+import { AimTargetFields } from "./AimTargetFields";
 import { FixtureFieldError } from "../../fixture-tools";
-import { positionDecimal, axisReadout } from "../../position-tools";
+import { positionDecimal } from "../../position-tools";
 export interface PositionHandle {
   collect(): EditOperation[];
   accept(): void;
@@ -45,6 +46,7 @@ export function PositionPanel({
     panZero: "",
     tiltZero: "",
   });
+  const accepted = useRef(values);
   const current = useRef(values),
     pending = useRef(false),
     [dirty, setDirty] = useState(false),
@@ -59,14 +61,18 @@ export function PositionPanel({
     setDirty(changed);
     onPending(changed);
   }
-  function accept() {
-    change(
-      { ...current.current, pan: "", tilt: "", panZero: "", tiltZero: "" },
-      false,
-    );
+  function reset(next: typeof values) {
+    change({ ...next, pan: "", tilt: "", panZero: "", tiltZero: "" }, false);
     form.current
       ?.querySelectorAll<HTMLInputElement>("input")
       .forEach((el) => el.setCustomValidity(""));
+  }
+  function accept() {
+    accepted.current = current.current;
+    reset(current.current);
+  }
+  function cancel() {
+    reset(accepted.current);
   }
   function collect(): EditOperation[] {
     if (!pending.current) return [];
@@ -177,7 +183,7 @@ export function PositionPanel({
     <form
       ref={form}
       noValidate
-      className="wb-parameters position-panel"
+      className={`wb-parameters position-panel position-${mode}`}
       onSubmit={(e) => {
         e.preventDefault();
         if (mode === "aim") change({ ...current.current });
@@ -190,7 +196,7 @@ export function PositionPanel({
       onKeyDown={(e) => {
         if (e.key === "Escape" && !busy) {
           e.preventDefault();
-          accept();
+          cancel();
         }
       }}
     >
@@ -230,65 +236,25 @@ export function PositionPanel({
                   {input("pan", "水平角（°）", "留空保持")}
                   {input("tilt", "垂直角（°）", "留空保持")}
                 </div>
-                <details className="position-readout-details">
-                  <summary>逐灯角度 · {heads.length} 台</summary>
-                  <div className="position-readout">
-                    {heads.map((f) => (
-                      <p key={f.id}>
-                        <strong>{f.name}</strong>
-                        <span>
-                          {(["pan", "tilt"] as const)
-                            .map((key) => {
-                              const a = attributeState(scene, [f], key),
-                                channel = project.profiles
-                                  .find((p) => p.id === f.profileId)
-                                  ?.channels.find((c) => c.attribute === key);
-                              const status =
-                                a.mode === "release"
-                                  ? "释放"
-                                  : a.mode === "absent"
-                                    ? "未记录"
-                                    : a.mode === "preset"
-                                      ? `预设 · ${a.presetName}`
-                                      : "已记录";
-                              return `${key === "pan" ? "水平" : "垂直"} ${axisReadout(f.positioning![key], a.value, Boolean(channel?.fine)).toFixed(2)}°（${status}）`;
-                            })
-                            .join(" · ")}
-                        </span>
-                      </p>
-                    ))}
-                  </div>
-                </details>
+                <PositionReadout {...{ project, heads, scene }} />
               </>
             )}
             {mode === "aim" && (
-              <>
-                <p className="wb-dim">
-                  输入同一个世界坐标点，每台灯单独求解。应用后记录轴角；后续移动灯位不会自动追踪此点。
-                </p>
-                <div className="position-fields">
-                  {input("x", "目标 X（米）")}
-                  {input("y", "目标 Y（米）")}
-                  {input("z", "目标高度（米）")}
-                </div>
-                <label>
-                  解分支
-                  <select
-                    aria-label="指向分支"
-                    value={values.branch}
-                    onChange={(e) =>
-                      change({ ...current.current, branch: e.target.value })
-                    }
-                  >
-                    <option value="">最短轴角变化</option>
-                    <option value="front">正向解</option>
-                    <option value="back">翻转解</option>
-                  </select>
-                </label>
-                <p className="wb-dim">
-                  精度受通道位数限制；场景之间按轴角渐变，不保证空间直线路径。
-                </p>
-              </>
+              <AimTargetFields
+                project={project}
+                fixtureIds={heads.map((f) => f.id)}
+                values={values}
+                busy={busy}
+                onChange={(patch) => {
+                  change({ ...current.current, ...patch });
+                  for (const key of Object.keys(patch))
+                    (
+                      form.current?.elements.namedItem(
+                        key,
+                      ) as HTMLInputElement | null
+                    )?.setCustomValidity("");
+                }}
+              />
             )}
             {mode === "calibrate" && (
               <>
@@ -347,7 +313,7 @@ export function PositionPanel({
                   {label}
                 </button>
               ))}
-            <button type="button" disabled={busy || !dirty} onClick={accept}>
+            <button type="button" disabled={busy || !dirty} onClick={cancel}>
               取消修改
             </button>
             <button

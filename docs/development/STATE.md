@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-040 完成（基线 `615f68f`，结果为本次 `feat(position): add shared target plane picking` 提交）：共同目标平面选点／精确输入／取消、紧凑布局与独立手势；246 UI、15 Rust 相关回归、类型／格式／桌面及原生 24 灯原子拒绝、历史、保存重开通过，见[工单](tasks/UX-040-common-target-plane.md)。副本已保存，源 REPORT-002 未改；音乐 0／UE 关闭／设备断开，持续 goal active。
+
 REPORT-002 完成（基线 `c47b14c`，结果为本次 `feat(reports): export authored sequence call sheets` 提交）：依 ADR-081 增加 22 列剧本节目单、共享 CSV／文件与导出请求保护，修复取消草稿后错误边框；600 Rust、244 UI、类型／fmt／严格检查／桌面、组件与原生六步内容／取消／跨页／历史保护通过，见[工单](tasks/REPORT-002-sequence-report-export.md)。独立副本未改，音乐 0／UE 关闭／设备未连接；持续 goal active。
 
 UX-039 完成（基线 `db65274`，结果为本次 `feat(groups): add batch membership and shared fixture ordering` 提交）：灯组批量增减／搜索分页／共享排序与资源搜索回车保护；244 UI、类型／格式／桌面、123 灯组件及原生 80 灯历史／有序召回／保存重开通过，见[工单](tasks/UX-039-group-member-workflow.md)。独立副本已保存、音乐 0／UE 关闭／设备断开，源 EXEC-003 未改；持续 goal active，接续场景列表交接资料。

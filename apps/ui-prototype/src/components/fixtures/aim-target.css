@@ -1,0 +1,75 @@
+.aim-target-plane {
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px 0;
+  min-width: 0;
+}
+.aim-target-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+}
+.workbench .aim-target-tools button {
+  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 7px;
+}
+.aim-target-tools button[aria-pressed="true"] {
+  background: #21464b;
+  border-color: #5ac9c0;
+}
+.aim-target-plane .aim-canvas {
+  display: block;
+  width: 100%;
+  height: 160px;
+  min-height: 0;
+  touch-action: none;
+  background: #0b1118;
+  cursor: crosshair;
+}
+.aim-target-plane .aim-canvas.is-pan {
+  cursor: grab;
+}
+.aim-target-plane .aim-canvas[aria-disabled="true"] {
+  cursor: default;
+}
+.aim-cross {
+  fill: #10272a;
+  fill-opacity: 0.7;
+  stroke: #8df3e6;
+}
+.aim-target-readout,
+.aim-target-plane > small {
+  display: block;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.aim-target-readout {
+  font-variant-numeric: tabular-nums;
+  color: #b4f4ed;
+}
+.aim-target-plane > small {
+  color: var(--wb-muted);
+  line-height: 1.5;
+}
+
+.position-aim .position-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.aim-target-settings summary {
+  color: var(--wb-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 0;
+}
+.position-aim > .profile-actions {
+  position: sticky;
+  bottom: -14px;
+  background: var(--wb-panel);
+  border-top: 1px solid var(--wb-border);
+  padding: 8px 0;
+  z-index: 2;
+}
