@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-013 完成（基线 `af76c72`，结果为本次 `feat(audio): preserve effect progress when trimming clips` 提交）：依 ADR-077 增加显式裁切事务、源范围保护及精确时间模式；571 Rust＋历史 1、218 UI、113 格式、类型／fmt／严格检查／桌面与组件／原生取消历史保存重开通过，见[工单](tasks/AUDIO-013-phase-preserving-trim.md)。副本首段开始／效果起点均 333 毫秒已保存，原工程未改；音乐 0／UE 关闭／设备断开。持续 goal active，接续灯位标签避让。
+
 EFFECT-006 完成（基线 `e98b7e4`，结果为本次 `feat(effects): author effect periods in beats` 提交）：共享周期控件、按拍换算与有界手动敲拍；214 UI、类型／格式／桌面与组件、原生即时预演／取消／历史／保存重开通过，见[工单](tasks/EFFECT-006-beat-period.md)。独立副本首周期 4 秒已保存，原工程未改；UE／音乐停止、设备断开。持续 goal active，接续时间线裁切。
 
 EFFECT-005 完成（基线 `f1af06f`，结果为本次 `feat(effects): clarify reuse targets and add batch fixture ordering` 提交）：复用来源／目标问题、分页键盘搜索、四类整组灯序及搜索草稿隔离。209 UI、类型／格式／桌面及浏览器与原生取消／历史／保存重开通过，见[工单](tasks/EFFECT-005-reuse-and-order.md)。独立副本新增一个停用 24 灯奇偶副本并保存，原工程未改；UE／音乐关闭、设备断开，持续 goal active。

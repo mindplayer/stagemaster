@@ -33,25 +33,8 @@ pub(super) fn apply(track: &mut AudioTimeline, command: AudioEdit) -> Result<(),
                 effect_offset_ms: 0,
             });
         }
-        AudioEdit::PutLightingClip { clip } => {
-            let previous = clips
-                .iter_mut()
-                .find(|c| c.id == clip.id)
-                .ok_or("此灯光片段已不存在")?;
-            if previous.locked {
-                return Err("此灯光片段已锁定，请先解锁".into());
-            }
-            if clip.locked != previous.locked {
-                return Err("请使用片段锁定操作修改锁状态".into());
-            }
-            if clip.enabled != previous.enabled {
-                return Err("请使用片段停用或恢复操作修改状态".into());
-            }
-            if clip.effect_offset_ms != previous.effect_offset_ms {
-                return Err("请使用片段分割或重置效果起点操作修改源时间".into());
-            }
-            *previous = clip;
-        }
+        AudioEdit::PutLightingClip { clip } => replace(clips, clip, false)?,
+        AudioEdit::TrimLightingClip { clip } => replace(clips, clip, true)?,
         AudioEdit::CopyLightingClip { id, start_ms } => {
             if clips.len() >= MAX_LIGHTING_CLIPS {
                 return Err("复制后超过 512 个灯光片段".into());
@@ -123,5 +106,43 @@ fn convert(track: &mut AudioTimeline) -> Result<(), String> {
         marker.scene_id = None;
         marker.fade_ms = 0;
     }
+    Ok(())
+}
+
+fn replace(
+    clips: &mut [AudioLightingClip],
+    mut clip: AudioLightingClip,
+    trim: bool,
+) -> Result<(), String> {
+    let previous = clips
+        .iter_mut()
+        .find(|c| c.id == clip.id)
+        .ok_or("此灯光片段已不存在")?;
+    if previous.locked {
+        return Err("此灯光片段已锁定，请先解锁".into());
+    }
+    if clip.locked != previous.locked {
+        return Err("请使用片段锁定操作修改锁状态".into());
+    }
+    if clip.enabled != previous.enabled {
+        return Err("请使用片段停用或恢复操作修改状态".into());
+    }
+    if clip.effect_offset_ms != previous.effect_offset_ms {
+        return Err("请使用片段裁切、分割或重置效果起点操作修改源时间".into());
+    }
+    if trim {
+        clip.effect_offset_ms = if clip.start_ms >= previous.start_ms {
+            previous
+                .effect_offset_ms
+                .checked_add(clip.start_ms - previous.start_ms)
+                .ok_or("裁切后的效果起点超出范围")?
+        } else {
+            previous
+                .effect_offset_ms
+                .checked_sub(previous.start_ms - clip.start_ms)
+                .ok_or("裁切开始不能早于效果源零点，请使用重新安排或移动片段")?
+        };
+    }
+    *previous = clip;
     Ok(())
 }

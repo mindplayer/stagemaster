@@ -95,6 +95,9 @@ pub enum AudioEdit {
         end_ms: u64,
         fade_ms: u64,
     },
+    TrimLightingClip {
+        clip: crate::AudioLightingClip,
+    },
     PutLightingClip {
         clip: crate::AudioLightingClip,
     },
@@ -157,6 +160,7 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
     match command {
         command @ (AudioEdit::ConvertLightingClips
         | AudioEdit::AddLightingClip { .. }
+        | AudioEdit::TrimLightingClip { .. }
         | AudioEdit::PutLightingClip { .. }
         | AudioEdit::CopyLightingClip { .. }
         | AudioEdit::RemoveLightingClip { .. }

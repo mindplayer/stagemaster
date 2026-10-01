@@ -48,7 +48,7 @@ export function WaveformMarkers({
   sample: RefObject<{ position: AudioPosition; at: number }>;
   preview: RefObject<number | null>;
   onMove(marker: AudioMarker): void;
-  onClipMove?(clip: AudioLightingClip): void;
+  onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
   onSeek(time: number): void;
   onSelect(id: string): void;

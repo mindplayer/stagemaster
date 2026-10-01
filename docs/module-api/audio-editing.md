@@ -96,7 +96,9 @@ WaveSurfer.js 7.12.12 只负责波形、时间刻度、全曲概览，库不接�
 
 [AUDIO-010 / ADR-073](../development/decisions/PRODUCT-ADR-073-audio-clip-effect-offset.md)：`effectOffsetMs` 缺省 0，非零须 `media.audio-clip-offset@1`，偏移加片段长度不得超过 3,600,000 毫秒。只偏移动效采样，不改变局部渐变或音乐游标；前段边界采样也使用其偏移。
 
-`splitLightingClip {id,timeMs}` 只接受片段内部、进入渐变已完成的位置，左段身份不变，右段新身份／零进入渐变／累积源偏移，原启停保持，锁定及容量错误原子拒绝；一次历史、可以重开恢复。`resetLightingClipEffectOffset {id}` 显式归零；普通 put 不得改写偏移。复制／成组移动保留源偏移。界面精确输入、读取原生播放头、取消输入、错误定位与结果选择均接同一命令，不把插值显示时刻用作分割时间。完整保相位裁切与渐变内分割尚未开放。
+`splitLightingClip {id,timeMs}` 只接受片段内部、进入渐变已完成的位置，左段身份不变，右段新身份／零进入渐变／累积源偏移，原启停保持，锁定及容量错误原子拒绝；一次历史、可以重开恢复。`resetLightingClipEffectOffset {id}` 显式归零；普通 put 不得改写偏移。复制／成组移动保留源偏移。界面精确输入、读取原生播放头、取消输入、错误定位与结果选择均接同一命令，不把插值显示时刻用作分割时间。完整历史渐变内分割尚未开放。
+
+[AUDIO-013 / ADR-077](../development/decisions/PRODUCT-ADR-077-audio-clip-trimming.md)：`trimLightingClip {clip}` 同普通 put 接受完整对象草稿、拒绝直接改源偏移；核心计算新偏移为旧偏移＋开始位置差，负源时间／溢出／重叠／源范围超过一小时原子拒绝。端点手势使用此命令，整体移动仍用 put。属性页显式选择重新安排或裁切；渐变跟随新边界，保留的是动态效果进度，不是历史渐变输出。仅复用现有偏移能力与格式。
 
 ### AUDIO-011：时间线组移动手势
 

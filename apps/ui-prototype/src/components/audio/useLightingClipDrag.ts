@@ -29,7 +29,7 @@ export function useLightingClipDrag(
   disabled: boolean,
   snap: boolean,
   onSelect: (id: string) => void,
-  onMove: (clip: AudioLightingClip) => void,
+  onMove: (clip: AudioLightingClip, mode: ClipMotion) => void,
   onPan?: (pixels: number) => void,
 ) {
   const active = useRef<Drag | null>(null);
@@ -117,7 +117,7 @@ export function useLightingClipDrag(
       if (surface.current?.hasPointerCapture(e.pointerId))
         surface.current.releasePointerCapture(e.pointerId);
       if (next.startMs !== d.clip.startMs || next.endMs !== d.clip.endMs)
-        onMove(next);
+        onMove(next, d.mode);
     },
   };
 }

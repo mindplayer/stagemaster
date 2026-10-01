@@ -1,3 +1,4 @@
+import { trimmedEffectOffset } from "../src/components/audio/clip-trim-tools";
 // Isolated real waveform/lane components. No sound, files, engine or device I/O.
 import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -88,7 +89,7 @@ function Harness() {
     at: performance.now(),
   });
   return (
-    <main style={{ padding: 24, width: 900 }}>
+    <main className="workbench" style={{ padding: 24, width: 900 }}>
       <button
         onClick={() => {
           setTrack(initial);
@@ -115,7 +116,10 @@ function Harness() {
       <output role="status">
         提交 {moves} 次；定位 {seeks} 次；选择 {ids.join(",")}；
         {track
-          .lightingClips!.map((c) => `${c.name} ${c.startMs}—${c.endMs}`)
+          .lightingClips!.map(
+            (c) =>
+              `${c.name} ${c.startMs}—${c.endMs}（效果起点 ${c.effectOffsetMs ?? 0}）`,
+          )
           .join("；")}
       </output>
       <div style={{ display: visible ? "block" : "none" }}>
@@ -130,7 +134,15 @@ function Harness() {
           onSeek={() => setSeeks((v) => v + 1)}
           onSelect={setSelected}
           onMove={() => {}}
-          onClipMove={(clip) => {
+          onClipMove={(clip, mode) => {
+            const previous = track.lightingClips!.find(
+              (c) => c.id === clip.id,
+            )!;
+            if (mode !== "move")
+              clip = {
+                ...clip,
+                effectOffsetMs: trimmedEffectOffset(previous, clip.startMs),
+              };
             setTrack({
               ...track,
               lightingClips: track.lightingClips!.map((c) =>

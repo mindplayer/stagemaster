@@ -20,11 +20,17 @@ export function moveLightingClip(
     track.outMs - track.inMs;
   const length = original.endMs - original.startMs;
   const origin = mode === "end" ? original.endMs : original.startMs;
+  const offset = original.effectOffsetMs ?? 0;
+  const sourceEndLimit = original.startMs + 3_600_000 - offset;
   const min =
-    mode === "end" ? original.startMs + Math.max(1, original.fadeMs) : previous;
+    mode === "end"
+      ? original.startMs + Math.max(1, original.fadeMs)
+      : mode === "start"
+        ? Math.max(previous, original.startMs - offset)
+        : previous;
   const max =
     mode === "end"
-      ? next
+      ? Math.min(next, sourceEndLimit)
       : mode === "move"
         ? next - length
         : original.endMs - Math.max(1, original.fadeMs);

@@ -4,11 +4,13 @@ import type {
   AudioTimeline,
 } from "../../audio-types.ts";
 import { audioMilliseconds } from "../../audio-tools.ts";
+import { trimmedEffectOffset } from "./clip-trim-tools.ts";
 import { AudioDraftError } from "./audio-draft-error.ts";
 export interface ClipDraft {
   kind: "clip";
   id: string | null;
   copy: boolean;
+  preserveProgress?: boolean;
   name: string;
   sceneId: string;
   start: string;
@@ -93,10 +95,22 @@ export function collectClipDraft(
         : {}),
       ...(source?.enabled === false ? { enabled: false } : {}),
     };
-    validateClip(clip, track, d.copy ? "" : clip.id);
+    const preserving = !!d.preserveProgress && !!source && !d.copy;
+    const offset = preserving
+      ? trimmedEffectOffset(source, startMs)
+      : clip.effectOffsetMs;
+    validateClip(
+      { ...clip, effectOffsetMs: offset },
+      track,
+      d.copy ? "" : clip.id,
+    );
     if (d.copy && source)
       return { kind: "copyLightingClip", id: source.id, startMs };
-    if (d.id) return { kind: "putLightingClip", clip };
+    if (d.id)
+      return {
+        kind: preserving ? "trimLightingClip" : "putLightingClip",
+        clip,
+      };
     if (track.lightingClips.length >= 512)
       throw new Error("灯光片段最多 512 个");
     return {

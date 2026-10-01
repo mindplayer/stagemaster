@@ -1,3 +1,4 @@
+import { clipMotionCommand } from "./clip-trim-tools";
 import { useClipSelection } from "./useClipSelection";
 import { clipsInRange } from "./clip-selection";
 import { AudioResourceHeader } from "./AudioResourceHeader";
@@ -333,8 +334,8 @@ export const AudioWorkspace = forwardRef<
                         action: { kind: "move", destinationMs },
                       }),
                   }}
-                  onClipMove={(clip) =>
-                    void edit({ kind: "putLightingClip", clip })
+                  onClipMove={(clip, mode) =>
+                    void edit(clipMotionCommand(clip, mode))
                   }
                 />
               </>

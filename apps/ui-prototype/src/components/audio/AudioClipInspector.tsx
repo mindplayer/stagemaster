@@ -1,3 +1,4 @@
+import { AudioClipTimeMode } from "./AudioClipTimeMode";
 import { AudioClipSplit } from "./AudioClipSplit";
 import type { ClipSplitActions } from "./clip-split-tools";
 import type { RefObject } from "react";
@@ -111,6 +112,14 @@ export function AudioClipInspector({
           ))}
         </select>
       </label>
+      {clip && !data.copy && (
+        <AudioClipTimeMode
+          data={data}
+          clip={clip}
+          disabled={blocked}
+          onChange={onChange}
+        />
+      )}
       {(
         [
           ["start", "clipStart", "开始（秒）"],
@@ -143,7 +152,7 @@ export function AudioClipInspector({
           ? "复制保留原片段时长、渐变和启停状态，副本解除锁定。"
           : locked
             ? "已锁定位置与内容，解锁后可修改。"
-            : "单轨片段不能重叠。移动或改变开始时间，效果均从本片段的效果起点运行。"}
+            : "单轨片段不能重叠，进入渐变不能超过新片段长度。"}
       </p>
       <div className="wb-actions">
         <button type="submit" className="primary" disabled={blocked || !dirty}>

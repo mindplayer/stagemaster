@@ -1,0 +1,13 @@
+.audio-clip-time-mode {
+  display: grid;
+  gap: 7px;
+}
+.audio-clip-time-mode small {
+  color: var(--wb-muted);
+  line-height: 1.5;
+}
+.audio-clip-time-mode output {
+  color: #b9e5d9;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}

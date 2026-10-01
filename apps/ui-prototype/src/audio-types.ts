@@ -78,6 +78,7 @@ export type AudioEdit =
       endMs: number;
       fadeMs: number;
     }
+  | { kind: "trimLightingClip"; clip: AudioLightingClip }
   | { kind: "putLightingClip"; clip: AudioLightingClip }
   | { kind: "copyLightingClip"; id: string; startMs: number }
   | { kind: "removeLightingClip"; id: string }

@@ -54,7 +54,7 @@ export function AudioClipLaneHeader({
             (moving
               ? "拖动所选 · ← → 微调 · Shift 1 秒 · Esc 取消"
               : "单击增减 · Shift 连选／追加框选 · Esc 取消")
-          : "拖动移动 · 两端调整长度 · 空隙为默认值"}
+          : "拖动移动 · 两端裁切保留效果进度"}
       </span>
     </header>
   );

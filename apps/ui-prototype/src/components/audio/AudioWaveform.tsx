@@ -42,7 +42,7 @@ export function AudioWaveform({
   onSeek(time: number): void;
   onSelect(id: string): void;
   onMove(marker: AudioMarker): void;
-  onClipMove?(clip: AudioLightingClip): void;
+  onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
 }) {
   const duration = track.outMs - track.inMs;

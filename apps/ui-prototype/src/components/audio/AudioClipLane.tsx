@@ -1,3 +1,4 @@
+import { trimmedEffectOffset } from "./clip-trim-tools";
 import { useClipGroupDrag } from "./useClipGroupDrag";
 import { AudioClipLaneHeader } from "./AudioClipLaneHeader";
 import { useLightingClipDrag } from "./useLightingClipDrag";
@@ -35,7 +36,7 @@ export function AudioClipLane({
   cursor: RefObject<HTMLDivElement | null>;
   onSelect(id: string): void;
   onSeek(time: number): void;
-  onMove(clip: AudioLightingClip): void;
+  onMove(clip: AudioLightingClip, mode: ClipMotion): void;
 }) {
   const surface = useRef<HTMLDivElement>(null);
   const group = !!clipSelection?.active;
@@ -84,7 +85,7 @@ export function AudioClipLane({
     .sort((a, b) => a.startMs - b.startMs);
   const movingClip = moving.draft?.moved ? moving.draft.next : null;
   const singleStatus = movingClip
-    ? `${movingClip.name} · ${audioTime(movingClip.startMs)} — ${audioTime(movingClip.endMs)} · 松手应用`
+    ? `${movingClip.name} · ${audioTime(movingClip.startMs)} — ${audioTime(movingClip.endMs)} · ${moving.draft?.mode === "start" ? `效果起点 ${(trimmedEffectOffset(moving.draft.clip, movingClip.startMs) / 1000).toFixed(3)} 秒 · ` : ""}松手应用`
     : "";
   const box = marquee.draft?.moved ? marquee.draft : null;
   const selectionIds = box
@@ -162,7 +163,8 @@ export function AudioClipLane({
         mode,
         (e.key === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 1000 : 10),
       );
-      if (next.startMs !== c.startMs || next.endMs !== c.endMs) onMove(next);
+      if (next.startMs !== c.startMs || next.endMs !== c.endMs)
+        onMove(next, mode);
     }
   }
   return (
