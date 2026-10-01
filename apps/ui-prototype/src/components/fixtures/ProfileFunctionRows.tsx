@@ -1,14 +1,17 @@
+import { ProfileWheelAppearance } from "./ProfileWheelAppearance";
 import type { FunctionDraft } from "../../fixture-function-draft";
 export function ProfileFunctionRows({
   functions,
   prefix,
   channelLabel,
+  colorWheel,
   max,
   onChange,
 }: {
   functions: FunctionDraft[];
   prefix: string;
   channelLabel: string;
+  colorWheel: boolean;
   max: number;
   onChange(functions: FunctionDraft[]): void;
 }) {
@@ -37,6 +40,7 @@ export function ProfileFunctionRows({
             <label>
               控制方式
               <select
+                name={`${field}-mode`}
                 value={f.mode}
                 aria-label={`${channelLabel}功能 ${j + 1} 控制方式`}
                 onChange={(e) =>
@@ -76,6 +80,14 @@ export function ProfileFunctionRows({
             >
               删除
             </button>
+            {colorWheel && (f.mode === "slot" || f.appearance) && (
+              <ProfileWheelAppearance
+                field={field}
+                label={`${channelLabel}功能 ${j + 1} `}
+                value={f.appearance}
+                onChange={(appearance) => change({ appearance })}
+              />
+            )}
           </div>
         );
       })}

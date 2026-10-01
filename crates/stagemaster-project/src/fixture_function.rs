@@ -19,6 +19,8 @@ pub struct FunctionDefinition {
     pub dmx_from: u16,
     pub dmx_to: u16,
     pub dmx_default: u16,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub appearance: Option<crate::WheelAppearance>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -79,6 +81,12 @@ impl<'a> FunctionTable<'a> {
                     "功能“{}”的区间或代表值无效：应在 0–{maximum} 内，连续区间起点须小于终点",
                     function.name
                 ));
+            }
+            if let Some(appearance) = &function.appearance {
+                if function.mode != FunctionMode::Slot {
+                    return Err("连续区间不能标记固定色盘外观".into());
+                }
+                appearance.validate()?;
             }
             for previous in &functions[..index] {
                 if previous.key == function.key {

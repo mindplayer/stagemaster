@@ -1,0 +1,75 @@
+.wheel-swatch {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid #708091;
+  background: #1c2530;
+  color: #bdc9d6;
+  align-items: stretch;
+  justify-content: center;
+}
+.wheel-swatch i {
+  flex: 1;
+  min-width: 0;
+}
+.wheel-swatch > span {
+  align-self: center;
+}
+.wheel-swatch.is-open {
+  background: #e3e8ed;
+  color: #243747;
+}
+.profile-wheel-appearance {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #16212c;
+}
+.profile-wheel-appearance .wheel-swatch {
+  align-self: center;
+}
+.profile-wheel-appearance label {
+  min-width: 100px;
+}
+.wheel-color-input {
+  display: flex;
+  align-items: end;
+  gap: 6px;
+}
+.wheel-color-input input[type="color"] {
+  padding: 3px;
+  width: 36px;
+  height: 36px;
+}
+.wheel-color-input input[type="text"] {
+  width: 100px;
+  font-family: monospace;
+}
+.wheel-slot-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 8px 0;
+}
+.wheel-slot-choices button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  padding: 6px;
+  min-height: 40px;
+  overflow-wrap: anywhere;
+}
+.wheel-slot-choices button[aria-pressed="true"] {
+  border-color: #71baec;
+  background: #214663;
+}

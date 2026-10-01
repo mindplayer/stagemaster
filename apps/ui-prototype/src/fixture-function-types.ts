@@ -1,3 +1,4 @@
+import { sameAppearance, type WheelAppearance } from "./wheel-appearance.ts";
 export interface FunctionDefinition {
   key: string;
   name: string;
@@ -5,6 +6,7 @@ export interface FunctionDefinition {
   dmxFrom: number;
   dmxTo: number;
   dmxDefault: number;
+  appearance?: WheelAppearance;
 }
 export interface FunctionSelection {
   functionKey: string;
@@ -47,8 +49,30 @@ export function sameFunctions(
         f.mode === g.mode &&
         f.dmxFrom === g.dmxFrom &&
         f.dmxTo === g.dmxTo &&
-        f.dmxDefault === g.dmxDefault
+        f.dmxDefault === g.dmxDefault &&
+        sameAppearance(f.appearance, g.appearance)
       );
     })
+  );
+}
+
+/** Explicit mode exchange preserves control slots; it does not promise the same visible color. */
+export function sameFunctionMapping(
+  a?: FunctionDefinition[],
+  b?: FunctionDefinition[],
+) {
+  if (!a || !b) return a === b;
+  return (
+    a.length === b.length &&
+    a.every((f) =>
+      b.some(
+        (g) =>
+          f.key === g.key &&
+          f.mode === g.mode &&
+          f.dmxFrom === g.dmxFrom &&
+          f.dmxTo === g.dmxTo &&
+          f.dmxDefault === g.dmxDefault,
+      ),
+    )
   );
 }

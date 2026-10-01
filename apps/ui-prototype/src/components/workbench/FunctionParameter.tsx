@@ -1,3 +1,4 @@
+import { WheelSlotChoices } from "./WheelSlotChoices";
 import type { FixtureView, SceneView } from "../../application-host";
 import type { ParameterDraft } from "../../editor-tools";
 import { initialFunction } from "../../fixture-function-types";
@@ -78,6 +79,16 @@ export function FunctionParameter({
           </option>
         ))}
       </select>
+      {attribute.key === "color-wheel" && (
+        <WheelSlotChoices
+          functions={spec.functions}
+          selected={mixed ? undefined : selection.functionKey}
+          onSelect={(f) => {
+            put(attribute.key, { function: initialFunction(f) });
+            onApply();
+          }}
+        />
+      )}
       {!mixed && chosen?.mode === "range" && (
         <label className="wb-function-position">
           区间位置

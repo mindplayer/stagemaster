@@ -21,6 +21,10 @@ export function auditFixtureFunctions(project) {
       assert(c.functions?.length > 0, '功能通道缺少区间');
       const maximum = c.encoding === 'u8' ? 255 : 65535, seen = new Set();
       c.functions.forEach((f, i) => {
+        if (f.appearance) {
+          assert(project.requires.some(c => c.key === 'lighting.fixture-wheel-appearance' && c.version === 1), '色盘外观缺少能力声明');
+          assert(c.attribute === 'color-wheel' && f.mode === 'slot', '外观只能用于色盘固定档位');
+        }
         assert(!seen.has(f.key), '功能标识重复'); seen.add(f.key);
         assert(f.name.trim().length > 0 && !/[\u0000-\u001f\u007f]/.test(f.name), '功能名称无效');
         assert(f.dmxFrom <= f.dmxTo && f.dmxTo <= maximum && (f.mode !== 'range' || f.dmxFrom < f.dmxTo), '功能区间或精度无效');

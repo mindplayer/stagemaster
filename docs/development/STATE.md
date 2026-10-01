@@ -1,5 +1,7 @@
 # 当前开发状态
 
+FIXTURE-007 完成（基线 `ee709fb`，结果为本次 `feat(fixtures): author custom wheel appearances and isolated variants` 提交）：MA／Titan／GDTF 机制落实为 14 档批量建档、通光／单色／半色、独立变体及选定灯替换，642 Rust／280 UI／122 格式、严格检查／桌面及原生历史／保存重开通过；见[工单](tasks/FIXTURE-007-custom-wheel-appearance.md)／[ADR-088](decisions/PRODUCT-ADR-088-custom-wheel-appearances.md)。当前独立验收工程已保存、设备未连／UE 关闭／音乐 0；持续 goal 接续变体通道差异审阅。
+
 FIXTURE-006 第一增量完成（基线 `028362d`，结果为本次 `feat(fixtures): separate channel mapping from physical geometry` 提交）：真实说明书归档、通道与物理模型解耦，638 Rust／276 UI／严格检查／桌面及原生历史、保存重开通过；实际灯具完整适配仍待多光源／控制宏，用户新增定制色盘优先接续，见[工单](tasks/FIXTURE-006-real-fixture-intake.md)／[ADR-087](decisions/PRODUCT-ADR-087-fixture-mapping-without-geometry.md)。POSITION-003 保留为后续校准增量；持续 goal active。
 
 POSITION-003 已设计、待实施（基线 `028362d`）：摇头灯参考点保存、模式修订保护与 Rust 射线偏差检查，见[工单](tasks/POSITION-003-reference-checks.md)／[ADR-086](decisions/PRODUCT-ADR-086-position-reference-checks.md)；持续 goal active。

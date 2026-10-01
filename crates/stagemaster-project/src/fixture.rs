@@ -212,6 +212,7 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             id: existing,
             definition,
         } => {
+            crate::fixture_appearance::require(root, &definition);
             if definition.channels.iter().any(|c| c.functions.is_some()) {
                 crate::fixture_value::require(root);
             }

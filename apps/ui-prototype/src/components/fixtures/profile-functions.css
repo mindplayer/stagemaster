@@ -12,10 +12,9 @@
 }
 .profile-function-row {
   display: grid;
-  grid-template-columns: minmax(110px, 1.6fr) minmax(100px, 1.3fr) repeat(
-      3,
-      minmax(65px, 1fr)
-    ) auto;
+  grid-template-columns:
+    minmax(110px, 1.6fr) minmax(100px, 1.3fr) repeat(3, minmax(65px, 1fr))
+    auto;
   gap: 8px;
   align-items: end;
   margin-top: 12px;
@@ -60,4 +59,32 @@
 }
 .wb-function-position input {
   width: 90px;
+}
+
+.profile-slot-batch {
+  margin: 10px 0;
+}
+.slot-batch-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #344251;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.slot-batch-fields > label:last-of-type,
+.slot-batch-fields > p,
+.slot-batch-fields > .profile-actions,
+.slot-batch-preview {
+  grid-column: 1 / -1;
+}
+.slot-batch-preview {
+  color: #b7c7d7;
+  font-size: 12px;
+}
+.slot-batch-preview ol {
+  max-height: 140px;
+  overflow: auto;
+  padding-left: 24px;
 }

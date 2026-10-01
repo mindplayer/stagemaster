@@ -146,7 +146,7 @@ export function PatchDialog({
                 </select>
               </label>
               <p className="wb-dim">
-                保留场景、效果、灯组与灯位。默认值采用新模式定义，未记录或释放的属性可能改变。仅支持相同属性集合。
+                保留场景、效果、灯组与灯位。只替换所选灯具；功能档位保留原控制值，名称与色块采用新版本，不保证实际颜色相同。默认值采用新模式定义，未记录或释放的属性可能改变。
               </p>
               <label className="patch-check">
                 <input

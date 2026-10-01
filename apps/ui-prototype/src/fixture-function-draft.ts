@@ -1,3 +1,4 @@
+import { checkedAppearance } from "./wheel-appearance.ts";
 import type {
   FunctionDefinition,
   FunctionSelection,
@@ -81,7 +82,21 @@ export function functionDefinition(
       `${field}-dmxDefault`,
       "代表值",
     );
-    return { key: f.key, name, mode: f.mode, dmxFrom, dmxTo, dmxDefault };
+    const appearance = checkedAppearance(
+      f.appearance,
+      c.attribute,
+      f.mode,
+      field,
+    );
+    return {
+      key: f.key,
+      name,
+      mode: f.mode,
+      dmxFrom,
+      dmxTo,
+      dmxDefault,
+      ...(appearance ? { appearance } : {}),
+    };
   });
   for (let j = 0; j < functions.length; j++) {
     const f = functions[j];

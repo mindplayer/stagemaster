@@ -49,7 +49,14 @@ pub(super) fn apply(
                 .iter()
                 .find(|c| c["attribute"] == channel["attribute"])
                 .ok_or("目标属性没有通道映射")?;
-            if channel.get("functions") != other.get("functions") {
+            let old_functions = crate::fixture_value::functions(channel)?;
+            let new_functions = crate::fixture_value::functions(other)?;
+            let compatible = match (&old_functions, &new_functions) {
+                (None, None) => true,
+                (Some(a), Some(b)) => crate::fixture_appearance::same_mapping(a, b),
+                _ => false,
+            };
+            if !compatible {
                 return Err("功能区间定义不同，不能直接保留编排；请先建立明确的功能映射".into());
             }
         }

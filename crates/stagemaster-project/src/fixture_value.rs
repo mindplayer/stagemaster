@@ -81,6 +81,7 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
             return Err("功能属性仅支持色盘、图案盘、快门和棱镜，并采用后值优先".into());
         }
         let functions = functions(channel)?.ok_or("功能属性缺少区间定义")?;
+        crate::fixture_appearance::validate_channel(key, &functions)?;
         FunctionTable::new(&functions, channel["encoding"] == "u16-be")?.encode(&selection(value)?)
     } else {
         if channel.get("functions").is_some() {
@@ -97,6 +98,7 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
 }
 /// Validate defaults and require an explicit capability even for unused profiles.
 pub(super) fn validate(root: &Value) -> Result<(), String> {
+    crate::fixture_appearance::validate(root)?;
     let mut present = false;
     for profile in array(&root["lighting"], "profiles") {
         for attribute in array(profile, "attributes") {

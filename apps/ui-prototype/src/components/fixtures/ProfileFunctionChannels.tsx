@@ -1,3 +1,4 @@
+import { ProfileSlotBatch } from "./ProfileSlotBatch";
 import type { ProfileDraft } from "../../fixture-tools";
 import {
   addFunctionChannel,
@@ -65,9 +66,21 @@ export function ProfileFunctionChannels({
                 移除{label}
               </button>
             </ProfileChannelFields>
+            {c.attribute === "color-wheel" && (
+              <p className="wb-dim">
+                按实际档位标记；色块仅作屏幕识别，未确认的档位保持未标记。自动换色区间单独定义。
+              </p>
+            )}
+            <ProfileSlotBatch
+              channel={c}
+              prefix={prefix}
+              label={label}
+              onChange={change}
+            />
             <ProfileFunctionRows
               prefix={prefix}
               channelLabel={label}
+              colorWheel={c.attribute === "color-wheel"}
               max={c.bits === "16" ? 65535 : 255}
               functions={functions}
               onChange={(next) => change({ functions: next })}

@@ -5,7 +5,10 @@ import {
 export { FixtureFieldError } from "./fixture-field-error.ts";
 export { withMotion } from "./profile-motion.ts";
 import { opticsLabels } from "./fixture-optics.ts";
-import { functionLabels, sameFunctions } from "./fixture-function-types.ts";
+import {
+  functionLabels,
+  sameFunctionMapping,
+} from "./fixture-function-types.ts";
 import {
   functionsDraft,
   functionDefinition,
@@ -195,7 +198,7 @@ export function compatibleProfile(
   return fixtures.every(
     (f) =>
       f.attributes.every((a) =>
-        sameFunctions(
+        sameFunctionMapping(
           a.function?.functions,
           p.channels.find((c) => c.attribute === a.key)?.functions,
         ),

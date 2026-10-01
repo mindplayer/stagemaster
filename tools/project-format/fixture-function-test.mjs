@@ -27,3 +27,21 @@ for (const [name, mutate, pattern] of [
   ['重复功能键', p => p.lighting.profiles[0].channels.at(-1).functions[1].key = 'open', /重复/],
   ['越界区间位置', p => p.lighting.scenes[0].assignments.at(-1).source.value.position = 65536, /Schema/],
 ]) test(`功能区间拒绝${name}`, () => { const p = document(); mutate(p); assert.throws(() => auditProject(p), pattern); });
+
+test('色盘外观可选且严格限于固定档位，要求显式能力', () => {
+  const p = document(), profile = p.lighting.profiles[0];
+  const channel = profile.channels.at(-1), attribute = profile.attributes.at(-1);
+  channel.attribute = attribute.key = 'color-wheel';
+  p.lighting.scenes[0].assignments.at(-1).target.attribute = 'color-wheel';
+  channel.functions[0].appearance = {kind:'color',colors:['#ff0000','#0000FF']};
+  p.requires.push({key:'lighting.fixture-wheel-appearance',version:1});
+  assert.doesNotThrow(() => auditProject(p));
+  const noCapability = structuredClone(p); noCapability.requires.pop();
+  assert.throws(() => auditProject(noCapability), /外观缺少能力/);
+  for (const colors of [[], ['red'], ['#ffffff','#000000','#ff0000']]) {
+    const invalid = structuredClone(p); invalid.lighting.profiles[0].channels.at(-1).functions[0].appearance.colors = colors;
+    assert.throws(() => auditProject(invalid), /Schema/);
+  }
+  channel.functions[1].appearance = {kind:'open'};
+  assert.throws(() => auditProject(p), /固定档位/);
+});

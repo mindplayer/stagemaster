@@ -12,6 +12,7 @@ fn functions() -> Vec<F> {
             dmx_from: 0,
             dmx_to: 7,
             dmx_default: 0,
+            appearance: None,
         },
         F {
             key: "open".into(),
@@ -20,6 +21,7 @@ fn functions() -> Vec<F> {
             dmx_from: 8,
             dmx_to: 15,
             dmx_default: 10,
+            appearance: None,
         },
         F {
             key: "strobe".into(),
@@ -28,6 +30,7 @@ fn functions() -> Vec<F> {
             dmx_from: 32,
             dmx_to: 200,
             dmx_default: 50,
+            appearance: None,
         },
     ]
 }
@@ -98,6 +101,7 @@ fn representatives_roundtrip_for_every_native_byte_and_full_word() {
                 dmx_from: 0,
                 dmx_to: to,
                 dmx_default: value,
+                appearance: None,
             }];
             let table = FunctionTable::new(&fs, fine).unwrap();
             assert_eq!(

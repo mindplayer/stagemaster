@@ -3429,6 +3429,9 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 65535
+        },
+        "appearance": {
+          "$ref": "#/$defs/WheelAppearance"
         }
       },
       "required": [
@@ -3514,6 +3517,44 @@
         "locked"
       ],
       "additionalProperties": false
+    },
+    "WheelAppearance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "open"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "color"
+            },
+            "colors": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2,
+              "items": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "colors"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

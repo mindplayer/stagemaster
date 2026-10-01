@@ -14,7 +14,7 @@ interface ProfileDefinition {
     coarse: number; // 从 1 起
     fine: number | null; // 从 1 起，非相邻和细调在前均可
     defaultValue: number | { functionKey: string; position: number }; // 连续值或功能选择
-    functions?: { key: string; name: string; mode: "slot" | "range"; dmxFrom: number; dmxTo: number; dmxDefault: number }[];
+    functions?: { key: string; name: string; mode: "slot" | "range"; dmxFrom: number; dmxTo: number; dmxDefault: number; appearance?: { kind: "open" } | { kind: "color"; colors: string[] } }[];
   }[];
 }
 type FixtureCommand =
@@ -50,7 +50,7 @@ interface Repatch { universe: number; address: number; gap: number }
 - `FixtureView.attributes[].function` 包含 functions、default、fine；`SceneView.values[].functionValue` 保留已解析预设的语义选择。旧数值字段是编码后的输出监看值，不用于重新记录预设。
 - 实际播放 `AttributeOutput.function` 给出 key、name、dmxValue 和按编码结果回算的区间位置（档位为 null）；量化后位置可能不同于原始编辑位置。没有第二个 TS 播放求值器。
 - 功能属性编译为直接切换索引，跟随列表延时而不穿越中间区间，连续亮度／双轴仍渐变。动态函数叠加拒绝。带此类映射的包要求执行语义 2；旧文件和普通节目包仍保持原兼容性。
-- 安全换灯要求功能表完全一致（功能身份、名称、区间、代表值、顺序）；物理粗细通道可变。多灯界面只显示定义一致的共同功能。跨厂商语义转换仍需将来的映射确认，不能根据中文名称猜测。
+- 显式换灯要求功能控制映射一致（功能身份、控制方式、区间、代表值）；FIXTURE-007 允许名称、外观及表行顺序不同，保留控制值而不保证实际颜色。物理粗细通道可变，按目标精度重新编码。多灯界面只显示定义一致的共同功能。跨厂商语义转换仍需将来的映射确认，不能根据中文名称猜测。
 - 模式编辑拆为元信息、轴行程、物理映射、功能区间和分布组件；更换基础组合保留已配置的轴与功能。场景连续参数与功能参数分别显示，共用父级草稿、应用、取消及历史。
 
 三维暂仅为这些灯具展示灯体和朝向，隐藏尚无模型的光束并列明受影响灯具；输出明细仍显示完整的实际通道。此边界见[预演接口](previsualization.md)，不等同真实光学验证。
@@ -68,3 +68,12 @@ interface Repatch { universe: number; address: number; gap: number }
 依 [ADR-087](../development/decisions/PRODUCT-ADR-087-fixture-mapping-without-geometry.md)，有两轴通道但没有物理模型的模式可建档、编排和无损导入导出，角度／指向／翻转／零偏操作拒绝。模型存在时仍必须具备完整两轴；旧工程和包语义不变。界面“定义轴行程与方向”独立于“两轴摇头灯”，新角度字段留空；取消保留原档案。已布置且无物理模型的灯具在三维预演时给出具名错误，不猜测几何。
 
 来自[实际 18／11 通道资料](../fixtures/user-supplied/README.md)的已知行程、未知零位、颜色档位及控制宏分别记录。本增量没有把未支持的多个光源或持时命令发布为可执行模式。
+
+
+## 自定义色盘外观（FIXTURE-007）
+
+依 [ADR-088](../development/decisions/PRODUCT-ADR-088-custom-wheel-appearances.md)，`fixture_appearance` 管外观严格校验和能力声明；`appearance` 仅用于 `color-wheel` 的固定档位，缺省=未标记，`open`=通光，`color.colors` 为 1–2 个 `#RRGGBB` 屏幕近似色（单色／半色）。禁止把自动换色区间标成固定色块；图案资源和物理色度不在此字段里混用。
+
+带外观工程需要 `lighting.fixture-wheel-appearance@1`，建档命令自动声明；独立模式文件保留全部外观，导入生成独立模式，旧读取器严格拒绝新字段。执行包保持原有语义，色块不进入 DMX 映射，不增加 ESP32 显示数据负担。
+
+UI `planSlotBatch` 预检原生起点／宽度／数量、64 功能上限和重叠；`addSlotBatch` 仅显式加入草稿，可替换唯一未编辑的初始空白行并保持默认身份，其余功能与默认选择保留。复制模式保持功能键，保存产生独立模式身份，再经 `exchange` 指定目标灯具。外观差异使多灯共同功能不再合并显示；复制控制值或模式替换不是跨色盘颜色匹配。改变 DMX 区间／代表值仍需要未来明确功能映射，不以改色块绕过。
