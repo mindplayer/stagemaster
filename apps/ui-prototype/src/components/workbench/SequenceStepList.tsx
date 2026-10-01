@@ -24,6 +24,7 @@ export function SequenceStepList({
         <button
           aria-pressed={s.id === selectedId}
           key={s.id}
+          data-reveal-id={s.id}
           disabled={busy}
           className={s.id === selectedId ? "active" : ""}
           data-running={position?.currentId === s.id}

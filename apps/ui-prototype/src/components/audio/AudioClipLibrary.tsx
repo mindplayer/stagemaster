@@ -4,7 +4,8 @@ import { AudioClipBatch, type ClipGroupEditor } from "./AudioClipBatch";
 import { filteredClips, type ClipStateFilter } from "./clip-group-tools";
 import type { AudioEdit } from "../../audio-types";
 import type { ProjectView } from "../../application-host";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import type { RevealItem } from "../layout/useRevealItem";
 import type { AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
 import { audioTime } from "../../audio-tools";
@@ -24,8 +25,10 @@ export function AudioClipLibrary({
   selectionState,
   onGroupPending,
   groupEditor,
+  revealRequest,
 }: {
   groupEditor?: ClipGroupEditor;
+  revealRequest?: RevealItem | null;
   onGroupPending?(pending: boolean): void;
   selectionState: ClipSelection;
   batch: boolean;
@@ -43,6 +46,12 @@ export function AudioClipLibrary({
 }) {
   const [query, setQuery] = useState("");
   const [stateFilter, setStateFilter] = useState<ClipStateFilter>("all");
+  useLayoutEffect(() => {
+    if (revealRequest) {
+      setQuery("");
+      setStateFilter("all");
+    }
+  }, [revealRequest]);
   const clips = track.lightingClips;
   if (!clips)
     return (
@@ -110,6 +119,7 @@ export function AudioClipLibrary({
             {items.map((c) => (
               <button
                 key={c.id}
+                data-reveal-id={c.id}
                 aria-pressed={selected === c.id}
                 className={`${selected === c.id ? "selected" : ""} ${c.enabled === false ? "inactive" : ""}`}
                 disabled={busy}

@@ -1,5 +1,7 @@
 # 实现状态
 
+[UX-045](development/tasks/UX-045-scene-usage-navigation.md) 已补场景使用位置、引用搜索与精确编辑导航；可跨步骤执行视图、音乐片段／旧卡点批量模式和筛选找回目标，播放位置保持，错误草稿拒绝。
+
 [UX-044](development/tasks/UX-044-scene-batch-copy.md) 已补场景成组复制、筛选／范围选择及一次历史，复制独立场景和效果身份、保留原引用；共享草稿失败保持选择，保存重开通过。
 
 [UX-043](development/tasks/UX-043-stage-directory-navigation.md) 已补场地目录定位、筛选外计数和内部键盘浏览；保留原选择／显隐／属性草稿，取消无效属性后清理过期校验，原生验收通过。

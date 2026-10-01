@@ -1,0 +1,37 @@
+.scene-usage {
+  padding: 14px;
+  border-top: 1px solid var(--wb-border);
+  display: grid;
+  gap: 10px;
+}
+.scene-usage h3 {
+  margin: 0;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+}
+.scene-usage p,
+.scene-usage small,
+.scene-usage h3 span {
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+.scene-usage-list {
+  display: grid;
+  gap: 6px;
+}
+.workbench .scene-usage-list > button {
+  display: grid;
+  justify-content: stretch;
+  text-align: left;
+  gap: 5px;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.scene-usage nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}

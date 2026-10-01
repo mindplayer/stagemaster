@@ -40,6 +40,7 @@ export function AudioMarkerList({
         {markers.map((m) => (
           <button
             key={m.id}
+            data-reveal-id={m.id}
             aria-pressed={selected === m.id}
             className={selected === m.id ? "selected" : ""}
             disabled={busy}

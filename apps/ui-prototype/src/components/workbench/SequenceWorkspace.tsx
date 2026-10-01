@@ -1,3 +1,4 @@
+import { useRevealItem, type RevealItem } from "../layout/useRevealItem";
 import { stepMatches } from "../../sequence-script-tools";
 import { SequenceLibrary } from "./SequenceLibrary";
 import { SequenceEditToolbar } from "./SequenceEditToolbar";
@@ -31,7 +32,7 @@ import { DeleteDialog } from "./DeleteDialog";
 export interface SequenceHandle {
   collect(): EditOperation[];
   accept(): void;
-  reveal(id: string): void;
+  reveal(id: string, stepId?: string): boolean;
 }
 export const SequenceWorkspace = forwardRef<
   SequenceHandle,
@@ -64,6 +65,8 @@ export const SequenceWorkspace = forwardRef<
   },
   ref,
 ) {
+  const [revealRequest, setRevealRequest] = useState<RevealItem | null>(null);
+  const revealRoot = useRevealItem(revealRequest, visible, busy);
   const [batch, setBatch] = useState(false);
   const groupProperties = useRef<GroupPropertiesHandle>(null);
   const [position, setPosition] = useState(() => executionPosition(null));
@@ -132,18 +135,34 @@ export const SequenceWorkspace = forwardRef<
   useImperativeHandle(ref, () => ({
     collect,
     accept: cancel,
-    reveal(id) {
+    reveal(id, requestedStep) {
       const target = project.sequences.find((s) => s.id === id);
-      if (!target) return;
+      if (
+        !target ||
+        (requestedStep &&
+          !target.steps.some((step) => step.id === requestedStep))
+      )
+        return false;
       setSequenceId(id);
       setStepId(
-        target.steps.find((s) => s.id === rememberedSteps.current[id])?.id ??
+        requestedStep ??
+          target.steps.find((s) => s.id === rememberedSteps.current[id])?.id ??
           target.steps[0]?.id ??
           "",
       );
       setQuery("");
       setStepQuery("");
+      if (requestedStep) {
+        rememberedSteps.current[id] = requestedStep;
+        setBatch(false);
+        onExecution(false);
+        setRevealRequest((previous) => ({
+          id: requestedStep,
+          serial: (previous?.serial ?? 0) + 1,
+        }));
+      }
       cancel();
+      return true;
     },
   }));
   const edit = (command: SequenceEdit) => {
@@ -277,7 +296,11 @@ export const SequenceWorkspace = forwardRef<
         />
       </DockPane>
       <DockPane region={execution ? "full" : "editor"} visible={visible}>
-        <section className="wb-sequence-content" data-execution={execution}>
+        <section
+          ref={revealRoot}
+          className="wb-sequence-content"
+          data-execution={execution}
+        >
           <SequenceWorkspaceHeading
             sequence={sequence}
             sequences={project.sequences}

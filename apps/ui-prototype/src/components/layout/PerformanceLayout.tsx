@@ -59,8 +59,10 @@ export function PerformanceLayout({
   beforeChange,
   busy = false,
   revealInspector,
+  revealEditing,
 }: {
   revealInspector?: string;
+  revealEditing?: number;
   mode: string;
   toolbar: ReactNode;
   children: ReactNode;
@@ -101,6 +103,10 @@ export function PerformanceLayout({
   useEffect(() => {
     if (revealInspector) setLayout((v) => ({ ...v, showInspector: true }));
   }, [revealInspector]);
+  useLayoutEffect(() => {
+    if (revealEditing)
+      setLayout((v) => ({ ...v, showLibrary: true, showInspector: true }));
+  }, [revealEditing]);
   async function toggle(side: "showLibrary" | "showInspector") {
     if (!layout[side] || !beforeChange || (await beforeChange()))
       setLayout((v) => ({ ...v, [side]: !v[side] }));

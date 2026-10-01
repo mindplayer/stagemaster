@@ -1,3 +1,4 @@
+import { useRevealItem, type RevealItem } from "../layout/useRevealItem";
 import { AudioClipGroupFadeInspector } from "./AudioClipGroupFadeInspector";
 import { groupFadeDraft } from "./clip-group-fade";
 import { clipMotionCommand } from "./clip-trim-tools";
@@ -30,6 +31,7 @@ import "./audio.css";
 export interface AudioHandle {
   collect(): EditOperation[];
   accept(): void;
+  reveal(kind: "clip" | "marker", id: string): boolean;
 }
 export const AudioWorkspace = forwardRef<
   AudioHandle,
@@ -64,6 +66,7 @@ export const AudioWorkspace = forwardRef<
   },
   ref,
 ) {
+  const [revealRequest, setRevealRequest] = useState<RevealItem | null>(null);
   const track = project.audio;
   const trackIdentity = track
     ? `${project.id}:${track.asset.digest}:${track.inMs}:${track.outMs}`
@@ -112,7 +115,24 @@ export const AudioWorkspace = forwardRef<
     onProblem: setProblem,
   });
   const blocked = busy || audio.preparing || markerActions.acting;
-  useImperativeHandle(ref, () => ({ collect, accept: cancel }));
+  const revealRoot = useRevealItem(revealRequest, visible, blocked);
+  useImperativeHandle(ref, () => ({
+    collect,
+    accept: cancel,
+    reveal(kind, id) {
+      const items = kind === "clip" ? track?.lightingClips : track?.markers;
+      if (!items?.some((item) => item.id === id)) return false;
+      cancel();
+      setSelected(id);
+      setBatchKey("");
+      setQuery("");
+      setRevealRequest((previous) => ({
+        id,
+        serial: (previous?.serial ?? 0) + 1,
+      }));
+      return true;
+    },
+  }));
   async function edit(command: AudioEdit) {
     return onEdit({ op: "audio", command });
   }
@@ -191,7 +211,7 @@ export const AudioWorkspace = forwardRef<
         }}
       >
         <DockPane region="library" visible={visible}>
-          <section className="audio-resources">
+          <section ref={revealRoot} className="audio-resources">
             <AudioResourceHeader
               track={track}
               blocked={blocked}
@@ -211,6 +231,7 @@ export const AudioWorkspace = forwardRef<
             />
             {track && (
               <AudioClipLibrary
+                revealRequest={revealRequest}
                 key={trackIdentity}
                 selectionState={clipSelection}
                 onGroupPending={setClipGroupPending}

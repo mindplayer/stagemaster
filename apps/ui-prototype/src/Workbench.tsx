@@ -1,3 +1,6 @@
+import { locateSceneUsage as navigateSceneUsage } from "./components/workbench/scene-usage-navigation";
+import { SceneUsagePanel } from "./components/workbench/SceneUsagePanel";
+import { type SceneUsageTarget } from "./components/workbench/scene-usage";
 import type { SceneLibraryHandle } from "./components/workbench/SceneLibrary";
 import { sceneActions } from "./components/workbench/scene-actions";
 import { PreviewOutputControls } from "./components/output/PreviewOutputControls";
@@ -123,6 +126,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<Page>("fixtures");
+  const [revealEditing, setRevealEditing] = useState(0);
   const sharedPrevis = useRef<SharedPrevisHandle>(null);
   const [stageView, setStageView] = useState<"plan" | "three">("plan");
   const [stageSelected, setStageSelected] = useState("");
@@ -522,6 +526,26 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     });
     return ok ? generation : null;
   }
+  function locateSceneUsage(sceneId: string, target: SceneUsageTarget) {
+    if (!project) return;
+    void navigateSceneUsage({
+      projectId: project.id,
+      sceneId,
+      target,
+      read: () => current.current.project,
+      run,
+      reveal: (location) =>
+        (location.kind === "step"
+          ? sequences.current?.reveal(location.sequenceId, location.id)
+          : audio.current?.reveal(location.kind, location.id)) ?? false,
+      open: (next) => {
+        setPage(next);
+        setForm(null);
+        setRevealEditing((serial) => serial + 1);
+        setNotice("已定位使用位置；返回场景编辑可继续修改原场景");
+      },
+    });
+  }
   function locateCheck(location: CheckLocation, generation: number) {
     return run(async () => {
       if (current.current.generation !== generation)
@@ -798,6 +822,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         <>
           <PerformanceLayout
             revealInspector={effectWorkspace.active?.token}
+            revealEditing={revealEditing}
             beforeChange={() => run(async () => {})}
             busy={busy}
             mode={
@@ -1358,6 +1383,17 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                                 setConfirmDelete(true);
                               }}
                             />
+                            {page === "scenes" && activeScene && (
+                              <SceneUsagePanel
+                                key={`${project.id}:${activeScene.id}`}
+                                project={project}
+                                sceneId={activeScene.id}
+                                busy={busy}
+                                onLocate={(target) =>
+                                  locateSceneUsage(activeScene.id, target)
+                                }
+                              />
+                            )}
                           </>
                         }
                       />
