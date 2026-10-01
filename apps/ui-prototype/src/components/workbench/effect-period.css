@@ -1,0 +1,45 @@
+.effect-period-controls {
+  min-width: 0;
+}
+.effect-beat-controls {
+  padding: 8px;
+  border: 1px solid var(--wb-border);
+  border-radius: 6px;
+}
+.effect-beat-controls > summary {
+  font-size: 12px;
+  cursor: pointer;
+}
+.effect-beat-controls[open] > summary {
+  margin-bottom: 10px;
+}
+.effect-beat-controls > label,
+.effect-beat-controls > output,
+.effect-beat-controls > small {
+  display: block;
+  margin: 8px 0;
+}
+.effect-beat-controls > small {
+  color: var(--wb-muted);
+  line-height: 1.5;
+}
+.effect-beat-controls > span {
+  font-size: 12px;
+}
+.effect-beat-values,
+.effect-beat-tap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0;
+  align-items: center;
+}
+.effect-beat-values button[aria-pressed="true"] {
+  color: var(--wb-accent);
+  border-color: var(--wb-accent);
+}
+.effect-beat-controls output {
+  font-variant-numeric: tabular-nums;
+  color: var(--wb-accent);
+  font-size: 12px;
+}

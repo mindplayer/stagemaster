@@ -8,7 +8,9 @@ import {
 import type { EditOperation, FixtureView } from "../../application-host";
 import type { SceneEffect } from "../../effect-types";
 import { effectCommands } from "../../effect-tools";
-import { seconds, secondsToMs } from "../../sequence-tools";
+import { seconds } from "../../sequence-tools";
+import { effectPeriodMs } from "../../effect-tempo";
+import { EffectPeriodControls } from "./EffectPeriodControls";
 import { EffectInspectorForm } from "./EffectInspectorForm";
 import { validateEditorForm } from "./form-validation";
 import { KeyframeEditor, type KeyframeHandle } from "./KeyframeEditor";
@@ -127,9 +129,7 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       if (!force && !dirtyRef.current) return [];
       try {
         validateEditorForm(form.current, interactive);
-        const periodMs = secondsToMs(period, "循环周期");
-        if (periodMs < 100 || periodMs > 3_600_000)
-          throw new Error("循环周期应在 0.1–3600 秒之间");
+        const periodMs = effectPeriodMs(period);
         const channels =
           draft.waveform === "keyframes"
             ? keyframes.current!.collect(interactive)
@@ -202,18 +202,6 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
         ),
       })) as SceneEffect["channels"];
     }
-    function scaleSpeed(factor: number) {
-      try {
-        const value = Math.round(secondsToMs(period, "循环周期") * factor);
-        if (value < 100 || value > 3_600_000)
-          throw new Error("调整后的周期须在 0.1–3600 秒之间");
-        mark();
-        setPeriod(seconds(value));
-        setSpeedError("");
-      } catch (e) {
-        setSpeedError((e as Error).message);
-      }
-    }
     return (
       <EffectInspectorForm
         form={form}
@@ -239,20 +227,13 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           />
         </label>
         <div className="effect-fields">
-          <label>
-            循环周期 · 秒
-            <input
-              type="number"
-              required
-              min={0.1}
-              max={3600}
-              step={0.001}
-              inputMode="decimal"
-              aria-label="循环周期"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-            />
-          </label>
+          <EffectPeriodControls
+            value={period}
+            onChange={(value) => {
+              mark();
+              setPeriod(value);
+            }}
+          />
           <label>
             变化方式
             <select
@@ -273,12 +254,6 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           </label>
         </div>
         <div className="effect-speed-actions">
-          <button type="button" onClick={() => scaleSpeed(2)}>
-            半速
-          </button>
-          <button type="button" onClick={() => scaleSpeed(0.5)}>
-            倍速
-          </button>
           {draft.waveform !== "keyframes" && (
             <button
               type="button"

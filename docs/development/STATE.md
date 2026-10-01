@@ -1,5 +1,7 @@
 # 当前开发状态
 
+EFFECT-006 完成（基线 `e98b7e4`，结果为本次 `feat(effects): author effect periods in beats` 提交）：共享周期控件、按拍换算与有界手动敲拍；214 UI、类型／格式／桌面与组件、原生即时预演／取消／历史／保存重开通过，见[工单](tasks/EFFECT-006-beat-period.md)。独立副本首周期 4 秒已保存，原工程未改；UE／音乐停止、设备断开。持续 goal active，接续时间线裁切。
+
 EFFECT-005 完成（基线 `f1af06f`，结果为本次 `feat(effects): clarify reuse targets and add batch fixture ordering` 提交）：复用来源／目标问题、分页键盘搜索、四类整组灯序及搜索草稿隔离。209 UI、类型／格式／桌面及浏览器与原生取消／历史／保存重开通过，见[工单](tasks/EFFECT-005-reuse-and-order.md)。独立副本新增一个停用 24 灯奇偶副本并保存，原工程未改；UE／音乐关闭、设备断开，持续 goal active。
 
 EXEC-003 完成（基线 `3f30f04`，结果为本次 `feat(execution): add scoped keyboard rehearsal controls` 提交）：增加焦点限定的键盘执行、松键／忙保护及跨页／失焦／载入退出。205 UI、类型／桌面与原生推进／暂停／停止／搜索／取消／切页通过，见[工单](tasks/EXEC-003-execution-keyboard.md)。独立副本未改，列表待执行、键盘关闭、UE 关闭、设备断开；持续 goal active。

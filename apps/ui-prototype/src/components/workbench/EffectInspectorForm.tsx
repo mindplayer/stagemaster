@@ -33,13 +33,13 @@ export function EffectInspectorForm({
       className="effect-inspector"
       aria-label="效果属性"
       onInputCapture={(e) => {
+        if (e.target instanceof HTMLInputElement)
+          e.target.setCustomValidity("");
         if (
           e.target instanceof Element &&
           e.target.closest("[data-editor-navigation]")
         )
           return;
-        if (e.target instanceof HTMLInputElement)
-          e.target.setCustomValidity("");
         onChange();
       }}
       onKeyDown={(e) => {
