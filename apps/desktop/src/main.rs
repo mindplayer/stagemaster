@@ -63,7 +63,8 @@ enum Request {
 }
 #[tauri::command]
 async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snapshot, String> {
-    tauri::async_runtime::spawn_blocking(move || {
+    let cleanup_app = app.clone();
+    let (snapshot, close) = tauri::async_runtime::spawn_blocking(move || {
         let service = app.state::<recovery::Service>();
         let _operation = service
             .operations
@@ -84,14 +85,15 @@ async fn project_request(app: tauri::AppHandle, request: Request) -> Result<Snap
         session.recovery = status;
         let snapshot = session.snapshot();
         drop(session);
-        if result? {
-            app.state::<installation::Service>().begin_shutdown();
-            app.exit(0);
-        }
-        Ok(snapshot)
+        Ok::<_, String>((snapshot, result?))
     })
     .await
-    .map_err(|_| "工程操作未完成".to_string())?
+    .map_err(|_| "工程操作未完成".to_string())??;
+    if close {
+        lifecycle::shutdown(&cleanup_app).await;
+        cleanup_app.exit(0);
+    }
+    Ok(snapshot)
 }
 fn dispatch(
     app: &tauri::AppHandle,

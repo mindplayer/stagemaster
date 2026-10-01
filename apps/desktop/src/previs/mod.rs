@@ -7,13 +7,19 @@ mod session_access;
 use crate::session::Session;
 use protocol::{Request, Source};
 use serde::Serialize;
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
+};
 use std::time::Instant;
 use tauri::{Emitter, Manager};
 
 pub(crate) type SharedSession = Arc<Mutex<Session>>;
 #[derive(Default)]
-pub(crate) struct Bridge(tokio::sync::Mutex<Runtime>);
+pub(crate) struct Bridge {
+    runtime: tokio::sync::Mutex<Runtime>,
+    closing: AtomicBool,
+}
 
 #[derive(Default)]
 struct Runtime {
@@ -38,8 +44,25 @@ impl Runtime {
     }
 }
 impl Bridge {
+    pub(crate) fn begin_shutdown(&self) {
+        self.closing.store(true, Ordering::Release);
+    }
+    fn check_open(&self) -> Result<(), String> {
+        if self.closing.load(Ordering::Acquire) {
+            Err("应用正在退出".into())
+        } else {
+            Ok(())
+        }
+    }
+    async fn access(&self) -> Result<tokio::sync::MutexGuard<'_, Runtime>, String> {
+        self.check_open()?;
+        let runtime = self.runtime.lock().await;
+        self.check_open()?;
+        Ok(runtime)
+    }
     pub(crate) async fn close(&self) {
-        self.0.lock().await.stop();
+        self.begin_shutdown();
+        self.runtime.lock().await.stop();
     }
 }
 
@@ -59,6 +82,8 @@ pub(crate) async fn previs_request(
     app: tauri::AppHandle,
     request: Request,
 ) -> Result<Status, String> {
+    let state = app.state::<Bridge>();
+    state.check_open()?;
     let shared = app.state::<SharedSession>().inner().clone();
     match request {
         Request::Source {
@@ -81,8 +106,7 @@ pub(crate) async fn previs_request(
         }
         Request::Status | Request::Enable | Request::Disable => {}
     }
-    let state = app.state::<Bridge>();
-    let mut runtime = state.0.lock().await;
+    let mut runtime = state.access().await?;
     runtime.observe_exit();
     match request {
         Request::Enable
@@ -134,3 +158,7 @@ pub(crate) async fn previs_request(
         .map(|renderer| renderer.viewer_url().to_string());
     Ok(status)
 }
+
+#[cfg(test)]
+#[path = "shutdown_tests.rs"]
+mod shutdown_tests;
