@@ -10,6 +10,7 @@ import type { EffectHandle } from "../src/components/workbench/EffectEditor";
 import { WorldLineEffectEditor } from "../src/components/workbench/WorldLineEffectEditor";
 import { useEffectDraftPreview } from "../src/components/workbench/useEffectDraftPreview";
 import { createWorldLine } from "../src/world-line-tools";
+import { stageProject } from "./stage-organization-fixture";
 import type { PreviewSnapshot } from "../src/sequence-types";
 import "../src/base.css";
 import "../src/workbench.css";
@@ -36,6 +37,10 @@ const placements = fixtures.slice(0, 2).map((f, i) => ({
   positionMeters: { x: String(i * 2 - 1), y: "-2", z: "3" },
   rotationDegreesXYZ: { x: "0", y: "0", z: "0" },
 }));
+const project = stageProject();
+project.fixtures = fixtures;
+project.stage.placements = placements;
+project.stage.attachments = [];
 function Harness() {
   const editor = useRef<EffectHandle>(null);
   const [saved, setSaved] = useState(() =>
@@ -117,6 +122,7 @@ function Harness() {
     >
       <aside style={{ width: 288 }}>
         <WorldLineEffectEditor
+          project={project}
           key={reset}
           ref={editor}
           effect={saved}

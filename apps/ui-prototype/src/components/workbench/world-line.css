@@ -1,0 +1,12 @@
+.world-line-plane > summary {
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+.world-line-plane .aim-target-plane {
+  margin-top: 0;
+}
+.effect-inspector .position-effect-axis.world-line-point .effect-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

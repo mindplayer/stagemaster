@@ -6,7 +6,11 @@ import {
   useRef,
   useState,
 } from "react";
-import type { EditOperation, FixtureView } from "../../application-host";
+import type {
+  EditOperation,
+  FixtureView,
+  ProjectView,
+} from "../../application-host";
 import type { SceneEffect } from "../../effect-types";
 import { effectCommands } from "../../effect-tools";
 import { seconds } from "../../sequence-tools";
@@ -26,6 +30,7 @@ export interface EffectHandle {
   accept(): void;
 }
 export interface EffectEditorProps {
+  project?: ProjectView;
   effect: SceneEffect;
   sceneId: string;
   fixtures: FixtureView[];

@@ -24,6 +24,7 @@ export const WorldLineEffectEditor = forwardRef<
   EffectEditorProps
 >(function WorldLineEffectEditor(
   {
+    project,
     effect,
     sceneId,
     fixtures,
@@ -157,6 +158,9 @@ export const WorldLineEffectEditor = forwardRef<
       />
       {draft.targetPath && (
         <WorldLineFields
+          project={project}
+          fixtureIds={draft.fixtureIds}
+          busy={busy}
           path={draft.targetPath}
           onChange={(targetPath) => {
             mark();

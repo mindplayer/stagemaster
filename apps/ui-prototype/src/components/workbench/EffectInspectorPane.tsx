@@ -1,5 +1,5 @@
 import type { ReactNode, Ref } from "react";
-import type { FixtureView } from "../../application-host";
+import type { FixtureView, ProjectView } from "../../application-host";
 import { EffectEditor, type EffectHandle } from "./EffectEditor";
 import { PositionEffectEditor } from "./PositionEffectEditor";
 import { WorldLineEffectEditor } from "./WorldLineEffectEditor";
@@ -7,6 +7,7 @@ import type { EffectSelection } from "./useEffectSelection";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 
 export function EffectInspectorPane({
+  project,
   selection,
   editor,
   fixtures,
@@ -22,6 +23,7 @@ export function EffectInspectorPane({
   onDraftChange,
   children,
 }: {
+  project: ProjectView;
   selection: EffectSelection | null;
   editor: Ref<EffectHandle>;
   fixtures: FixtureView[];
@@ -47,6 +49,7 @@ export function EffectInspectorPane({
     <>
       {selection && (
         <Editor
+          project={project}
           key={selection.token}
           ref={editor}
           effect={selection.effect}

@@ -1,22 +1,36 @@
 import type { WorldLinePath } from "../../effect-types";
+import type { ProjectView } from "../../application-host";
+import { WorldLineTargetPlane } from "./WorldLineTargetPlane";
+import "./world-line.css";
 
 export function WorldLineFields({
   path,
   onChange,
+  project,
+  fixtureIds,
+  busy,
 }: {
   path: WorldLinePath;
   onChange(path: WorldLinePath): void;
+  project?: ProjectView;
+  fixtureIds: string[];
+  busy: boolean;
 }) {
   return (
     <>
       <p className="position-effect-note">
         世界坐标两点之间往返。灯间展开为 0 时，各灯追踪同一个目标点。
       </p>
+      {project && (
+        <WorldLineTargetPlane
+          {...{ project, fixtureIds, path, onChange, busy }}
+        />
+      )}
       {(["fromMeters", "toMeters"] as const).map((point) => {
         const label = point === "fromMeters" ? "起点" : "终点";
         return (
           <section
-            className="position-effect-axis"
+            className="position-effect-axis world-line-point"
             key={point}
             aria-label={`轨迹${label}`}
           >

@@ -7,6 +7,8 @@ import { usePlanNavigation } from "../stage/usePlanNavigation";
 import { zoomPlan } from "../stage/plan-navigation";
 import { readAimPoint, nudgeAimPoint, pointFields } from "./aim-point";
 import { useAimPointGesture } from "./useAimPointGesture";
+import { TargetPathOverlay } from "./TargetPathOverlay";
+import "../stage/stage.css";
 import "./aim-target.css";
 
 export function AimTargetPlane({
@@ -16,6 +18,9 @@ export function AimTargetPlane({
   y,
   disabled,
   onChange,
+  targetLabel = "目标",
+  secondaryPoint,
+  scopeKey = "",
 }: {
   project: ProjectView;
   fixtureIds: string[];
@@ -23,6 +28,9 @@ export function AimTargetPlane({
   y: string;
   disabled: boolean;
   onChange(point: { x: string; y: string }): void;
+  targetLabel?: string;
+  secondaryPoint?: { x: string; y: string; label: string };
+  scopeKey?: string;
 }) {
   const svg = useRef<SVGSVGElement>(null),
     helpId = useId();
@@ -31,7 +39,7 @@ export function AimTargetPlane({
   const { camera, setCamera, ratio } = usePlanCamera(svg, points, project.id);
   const target = readAimPoint(x, y),
     height = camera.width / ratio;
-  const scope = `${project.id}:${fixtureIds.join(",")}:${tool}:${disabled}`;
+  const scope = `${project.id}:${fixtureIds.join(",")}:${scopeKey}:${tool}:${disabled}`;
   const fit = () => setCamera(fittedCamera(points, ratio));
   const navigation = usePlanNavigation({
     svg,
@@ -169,6 +177,14 @@ export function AimTargetPlane({
       >
         <g pointerEvents="none" aria-hidden="true">
           {geometry}
+          {secondaryPoint && (
+            <TargetPathOverlay
+              active={shown}
+              activeLabel={targetLabel}
+              other={secondaryPoint}
+              unit={unit}
+            />
+          )}
           {shown && (
             <g
               className="aim-cross"
@@ -185,7 +201,7 @@ export function AimTargetPlane({
       </svg>
       <div className="aim-target-readout">
         {shown
-          ? `目标 X ${shown.x.toFixed(3)} · Y ${shown.y.toFixed(3)} 米`
+          ? `${targetLabel} X ${shown.x.toFixed(3)} · Y ${shown.y.toFixed(3)} 米`
           : "填写有效 X／Y，或在平面重新选点"}
       </div>
       <small id={helpId}>

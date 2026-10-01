@@ -40,6 +40,16 @@
   fill-opacity: 0.7;
   stroke: #8df3e6;
 }
+.target-path-overlay {
+  stroke: #edc98e;
+  fill: #392d1c;
+}
+.target-path-overlay text {
+  fill: #f6deaa;
+  stroke: #0b1118;
+  paint-order: stroke;
+  font-weight: 600;
+}
 .aim-target-readout,
 .aim-target-plane > small {
   display: block;
