@@ -76,6 +76,10 @@ pub enum AudioEdit {
         ids: Vec<String>,
         action: crate::MarkerGroupAction,
     },
+    EditLightingClips {
+        ids: Vec<String>,
+        action: crate::LightingClipGroupAction,
+    },
     ConvertLightingClips,
     AddLightingClip {
         name: String,
@@ -159,6 +163,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
                 track.markers.push(marker);
             }
             track.markers.sort_by_key(|m| m.time_ms);
+        }
+        AudioEdit::EditLightingClips { ids, action } => {
+            crate::audio_clip_group::apply(&mut track, &ids, action)?;
         }
         AudioEdit::EditMarkers { ids, action } => {
             crate::audio_group::apply(&mut track, &ids, action)?;

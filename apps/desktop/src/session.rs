@@ -4,6 +4,8 @@ use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 mod audio;
 #[cfg(test)]
+mod audio_clip_group_tests;
+#[cfg(test)]
 mod audio_tests;
 mod files;
 mod output;

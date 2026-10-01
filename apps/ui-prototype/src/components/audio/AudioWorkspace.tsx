@@ -5,13 +5,7 @@ import { AudioLoopControls } from "./AudioLoopControls";
 import { DockPane } from "../layout/DockPane";
 import { AudioMarkerLibrary } from "./AudioMarkerBatch";
 import { AudioTransportBar } from "./AudioTransportBar";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type {
   ApplicationHost,
   EditCommand,
@@ -23,11 +17,7 @@ import { validateMarker } from "../../audio-tools";
 import { DeleteDialog } from "../workbench/DeleteDialog";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
 import { AudioInspector } from "./AudioInspector";
-import {
-  collectAudioDraft,
-  AudioDraftError,
-  type AudioDraft,
-} from "./audio-inspector-draft";
+import { useAudioWorkspaceDraft } from "./useAudioWorkspaceDraft";
 import { AudioWaveform } from "./AudioWaveform";
 import type { useAudio } from "./useAudio";
 import { useMarkerActions } from "./useMarkerActions";
@@ -74,14 +64,19 @@ export const AudioWorkspace = forwardRef<
     ? `${project.id}:${track.asset.digest}:${track.inMs}:${track.outMs}`
     : "";
   const [batchKey, setBatchKey] = useState("");
-  const batch = !!trackIdentity && batchKey === trackIdentity;
+  const batch = !!trackIdentity && batchKey === `${trackIdentity}:markers`;
+  const clipBatch =
+    !!track?.lightingClips && batchKey === `${trackIdentity}:clips`;
   useEffect(() => setBatchKey(""), [trackIdentity]);
   const [selected, setSelected] = useState("");
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
-  const [draft, setDraft] = useState<AudioDraft | null>(null);
-  const draftRef = useRef<AudioDraft | null>(null);
-  const form = useRef<HTMLFormElement>(null);
+  const { draft, form, change, cancel, collect } = useAudioWorkspaceDraft(
+    track,
+    onPending,
+    setProblem,
+    setSelected,
+  );
   const [removeMusic, setRemoveMusic] = useState(false);
   const marker = track?.markers.find((m) => m.id === selected);
   const markerActions = useMarkerActions({
@@ -108,55 +103,6 @@ export const AudioWorkspace = forwardRef<
     onProblem: setProblem,
   });
   const blocked = busy || audio.preparing || markerActions.acting;
-  const created = useRef<{ ids: string[]; select: boolean } | null>(null);
-  useEffect(() => {
-    if (!created.current || draft) return;
-    const next = track?.lightingClips?.find(
-      (c) => !created.current!.ids.includes(c.id),
-    );
-    if (next && created.current.select) setSelected(next.id);
-    created.current = null;
-  }, [track, draft]);
-  function change(value: AudioDraft) {
-    draftRef.current = value;
-    setDraft(value);
-    onPending(true);
-    setProblem("");
-  }
-  function cancel() {
-    draftRef.current = null;
-    setDraft(null);
-    onPending(false);
-    setProblem("");
-  }
-  function collect(): EditOperation[] {
-    const value = draftRef.current;
-    if (!value || !track) return [];
-    try {
-      if (!form.current?.reportValidity())
-        throw new Error("请修正音频属性中的输入");
-      const command = collectAudioDraft(value, track);
-      if (
-        command.kind === "addLightingClip" ||
-        command.kind === "copyLightingClip"
-      )
-        created.current = {
-          ids: track.lightingClips?.map((c) => c.id) ?? [],
-          select: true,
-        };
-      return [{ op: "audio", command }];
-    } catch (error) {
-      setProblem(error instanceof Error ? error.message : String(error));
-      requestAnimationFrame(() =>
-        form.current
-          ?.querySelector<HTMLInputElement>(
-            `[name="${error instanceof AudioDraftError ? error.field : value.kind === "marker" ? "markerName" : value.kind === "clip" ? "clipStart" : "trimStart"}"]`,
-          )
-          ?.focus(),
-      );
-      throw error;
-    }
-  }
   useImperativeHandle(ref, () => ({ collect, accept: cancel }));
   async function edit(command: AudioEdit) {
     return onEdit({ op: "audio", command });
@@ -164,7 +110,7 @@ export const AudioWorkspace = forwardRef<
   async function choose(id: string) {
     if (await beforeChange()) {
       setSelected(id);
-      if (track?.lightingClips?.some((c) => c.id === id)) setBatchKey("");
+      setBatchKey("");
       cancel();
     }
   }
@@ -182,6 +128,7 @@ export const AudioWorkspace = forwardRef<
       validateMarker(next, track);
       if (await edit({ kind: "putMarker", marker: next })) {
         setSelected(next.id);
+        setBatchKey("");
         setQuery("");
       }
     } catch (error) {
@@ -255,6 +202,14 @@ export const AudioWorkspace = forwardRef<
             />
             {track && (
               <AudioClipLibrary
+                key={trackIdentity}
+                batch={clipBatch}
+                visible={visible}
+                onEdit={edit}
+                onBatch={async () => {
+                  if (await beforeChange())
+                    setBatchKey(clipBatch ? "" : `${trackIdentity}:clips`);
+                }}
                 track={track}
                 scenes={project.scenes}
                 selected={selected}
@@ -269,7 +224,9 @@ export const AudioWorkspace = forwardRef<
               <AudioMarkerLibrary
                 key={trackIdentity}
                 batch={batch}
-                onBatch={(value) => setBatchKey(value ? trackIdentity : "")}
+                onBatch={(value) =>
+                  setBatchKey(value ? `${trackIdentity}:markers` : "")
+                }
                 workspaceVisible={visible}
                 onEdit={edit}
                 beforeChange={beforeChange}
@@ -309,7 +266,7 @@ export const AudioWorkspace = forwardRef<
                 <AudioLoopControls
                   key={trackIdentity}
                   track={track}
-                  selected={selected}
+                  selected={batch || clipBatch ? "" : selected}
                   position={audio.position}
                   disabled={
                     blocked ||
@@ -326,13 +283,12 @@ export const AudioWorkspace = forwardRef<
                   waveform={audio.waveform}
                   sample={audio.playingSample}
                   requestedPosition={audio.requestedPosition}
-                  selected={selected}
+                  selected={batch || clipBatch ? "" : selected}
                   disabled={blocked || !!draft}
                   onSeek={seek}
                   onSelect={(id) => {
                     setSelected(id);
-                    if (track.lightingClips?.some((c) => c.id === id))
-                      setBatchKey("");
+                    setBatchKey("");
                     cancel();
                   }}
                   onMove={moveMarker}
@@ -344,7 +300,7 @@ export const AudioWorkspace = forwardRef<
             )}
           </section>
         </DockPane>
-        <DockPane region="inspector" visible={visible && !batch}>
+        <DockPane region="inspector" visible={visible && !batch && !clipBatch}>
           {track ? (
             <AudioInspector
               track={track}

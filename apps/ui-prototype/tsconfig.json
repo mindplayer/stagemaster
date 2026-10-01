@@ -20,6 +20,8 @@
   },
   "include": [
     "src",
+    "tests/audio-clip-batch-harness.tsx",
+    "tests/audio-clip-groups.test.ts",
     "tests/demo-session.test.ts",
     "tests/editor-tools.test.ts",
     "tests/package-tools.test.ts",

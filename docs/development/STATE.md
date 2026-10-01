@@ -1,6 +1,8 @@
 # 当前开发状态
 
-UX-032 实施中（基线 `0781e16`）：接续 U09，加入按任务保持的专注编排布局和恢复，见[工单](tasks/UX-032-focus-editing-layout.md)。持续 goal active。
+AUDIO-007 完成（基线 `527919e`，结果为本次 `feat(audio): add atomic lighting clip group editing` 提交）：依 ADR-071 实现片段组移动／复制／删除、隐藏选择与锁定保护；532 Rust、179 UI、类型／fmt／严格检查／桌面及浏览器／原生取消、历史、错误、播放、保存重开通过，见[验收](tasks/AUDIO-007-lighting-clip-groups.md)。当前独立副本已保存，两段蓝色副本为 6.000／6.940 秒；音乐 0、UE 关闭、设备断开。持续 goal active，接续片段停用。
+
+UX-032 完成（基线 `0781e16`，结果 `527919e`）：按任务记忆专注编排、保留单例音乐／三维及窄屏步骤布局；176 UI、类型、桌面和原生／浏览器验收通过，见[工单](tasks/UX-032-focus-editing-layout.md)。当前独立平面验收工程已保存，执行步骤专注、预演未载入、设备断开。
 
 UX-031 完成（基线 `72e4e77`，结果为本次 `feat(ui): add shared stage overview for sequencing` 提交）：步骤／音乐页增加共享平面场地及导航，中央音乐进度独立于三维且保持单例。175 UI、类型／桌面、原生场地／音频／唯一 UE／错误草稿及浏览器取消／空场地通过，见[验收](tasks/UX-031-shared-stage-overview.md)。独立工程未改、UE 关闭、设备断开；持续 goal 接续 U09 专注编排布局。
 

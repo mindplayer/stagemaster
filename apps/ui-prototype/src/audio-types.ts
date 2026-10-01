@@ -55,7 +55,14 @@ export type AudioCommand =
   | { kind: "seek"; positionMs: number };
 export type MarkerGroupAction =
   { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
+export type LightingClipGroupAction =
+  { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type AudioEdit =
+  | {
+      kind: "editLightingClips";
+      ids: string[];
+      action: LightingClipGroupAction;
+    }
   | { kind: "convertLightingClips" }
   | {
       kind: "addLightingClip";

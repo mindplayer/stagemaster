@@ -3,7 +3,9 @@ mod audio;
 mod audio_clip_edit;
 mod audio_clips;
 pub use audio_clips::{AudioLightingClip, AudioLightingRef, MAX_LIGHTING_CLIPS};
+mod audio_clip_group;
 mod audio_group;
+pub use audio_clip_group::LightingClipGroupAction;
 mod audio_lighting;
 pub use audio::{
     AudioAsset, AudioEdit, AudioMarker, AudioTimeline, MAX_AUDIO_MARKERS, MAX_AUDIO_MS,
