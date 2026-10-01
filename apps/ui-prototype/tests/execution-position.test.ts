@@ -33,7 +33,8 @@ test("未载入和单场景预演不被当成执行列表", () => {
   assert.equal(executionPosition({ ...loaded, sceneId: "scene" }).nextId, null);
 });
 test("载入就绪只显示下一步骤，选择并未成为正在执行", () => {
-  assert.deepEqual(executionPosition(loaded), {
+  assert.deepEqual(executionPosition(loaded, 7), {
+    epoch: 7,
     sequenceId: "list",
     currentId: null,
     nextId: "a",

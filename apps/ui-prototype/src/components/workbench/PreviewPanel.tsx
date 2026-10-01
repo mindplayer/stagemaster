@@ -54,10 +54,11 @@ export function PreviewPanel({
   });
   const { snapshot, error, working, act } = controller;
   const loaded = snapshot.loaded;
-  const position = executionPosition(loaded);
+  const position = executionPosition(loaded, snapshot.epoch);
   useEffect(() => {
     onPosition?.(position);
   }, [
+    position.epoch,
     position.sequenceId,
     position.currentId,
     position.nextId,

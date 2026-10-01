@@ -1,0 +1,28 @@
+.execution-search {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.execution-search > input {
+  flex-basis: 180px;
+}
+.execution-navigation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.workbench .execution-navigation-actions button[aria-pressed="true"] {
+  color: var(--wb-accent);
+  background: #29404b;
+}
+.step-browser-viewport {
+  overflow: auto;
+  overflow-anchor: none;
+}
+.workbench .step-browser-viewport > .wb-steps {
+  flex: 0 0 auto;
+  max-height: none;
+  overflow: visible;
+}
+.step-browser-viewport .wb-steps > button {
+  flex-shrink: 0;
+}

@@ -1,6 +1,7 @@
 import type { PreviewSnapshot } from "../../sequence-types";
 
 export interface ExecutionPosition {
+  epoch: number;
   sequenceId: string | null;
   currentId: string | null;
   nextId: string | null;
@@ -11,9 +12,11 @@ export interface ExecutionPosition {
 /** Only the loaded player snapshot determines running and next steps. */
 export function executionPosition(
   loaded: PreviewSnapshot["loaded"],
+  epoch = 0,
 ): ExecutionPosition {
   if (!loaded || loaded.sceneId)
     return {
+      epoch,
       sequenceId: null,
       currentId: null,
       nextId: null,
@@ -26,6 +29,7 @@ export function executionPosition(
       ? (loaded.steps[index + 1] ?? loaded.steps[0])
       : undefined;
   return {
+    epoch,
     sequenceId: loaded.sequenceId,
     currentId: index < 0 ? null : loaded.stepId,
     nextId: next?.id ?? null,

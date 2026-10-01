@@ -51,6 +51,8 @@
     "tests/group-members-harness.tsx",
     "tests/copy-values-preview.test.ts",
     "tests/preset-scope.test.ts",
-    "tests/preset-scope-harness.tsx"
+    "tests/preset-scope-harness.tsx",
+    "tests/step-navigation.test.ts",
+    "tests/step-navigation-harness.tsx"
   ]
 }

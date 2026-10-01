@@ -3,7 +3,7 @@ import { SequenceLibrary } from "./SequenceLibrary";
 import { SequenceEditToolbar } from "./SequenceEditToolbar";
 import { executionPosition } from "./execution-position";
 import "./execution-view.css";
-import { SequenceStepList } from "./SequenceStepList";
+import { SequenceStepBrowser } from "./SequenceStepBrowser";
 import { DockPane } from "../layout/DockPane";
 import { WorkspaceSurface } from "./WorkspaceSurface";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
@@ -313,81 +313,45 @@ export const SequenceWorkspace = forwardRef<
                 onPending={onPending}
               />
             ) : (
-              <>
-                {execution ? (
-                  <div className="execution-search">
-                    <input
-                      aria-label="搜索步骤"
-                      placeholder="搜索步骤、幕场或台词"
-                      value={stepQuery}
-                      onChange={(e) => setStepQuery(e.target.value)}
-                    />
-                    <button
-                      disabled={
-                        position.stale ||
-                        !position.currentId ||
-                        position.sequenceId !== sequence.id
-                      }
-                      onClick={() => {
-                        setStepQuery("");
-                        requestAnimationFrame(() =>
-                          document
-                            .getElementById(`step-${position.currentId}`)
-                            ?.scrollIntoView({ block: "center" }),
-                        );
-                      }}
-                    >
-                      定位当前
-                    </button>
-                  </div>
-                ) : (
-                  <SequenceEditToolbar
-                    scenes={project.scenes}
-                    busy={busy}
-                    addSceneId={addSceneId}
-                    setAddSceneId={setAddSceneId}
-                    stepQuery={stepQuery}
-                    setStepQuery={setStepQuery}
-                    index={index}
-                    stepCount={sequence.steps.length}
-                    hasStep={!!step}
-                    onInsert={() => void insertStep()}
-                    onDuplicate={() => void duplicateStep()}
-                    onMove={(index) =>
-                      void edit({
-                        kind: "moveStep",
-                        id: sequence.id,
-                        stepId: step!.id,
-                        index,
-                      })
-                    }
-                    onDelete={() => {
-                      setLocalError("");
-                      setDeleteTarget("step");
-                    }}
-                  />
-                )}
-                <div className="wb-steps-region">
-                  {step && !steps.some((s) => s.id === step.id) && (
-                    <p className="wb-dim">
-                      当前选中“{step.name}”未匹配筛选。
-                      <button onClick={() => setStepQuery("")}>清除筛选</button>
-                    </p>
-                  )}
-                  <SequenceStepList
-                    steps={steps}
-                    selectedId={step?.id ?? ""}
-                    scenes={project.scenes}
-                    busy={busy}
-                    onSelect={chooseStep}
-                    position={
-                      position.sequenceId === sequence.id && !position.stale
-                        ? position
-                        : undefined
-                    }
-                  />
-                </div>
-              </>
+              <SequenceStepBrowser
+                sequence={sequence}
+                steps={steps}
+                selectedId={step?.id ?? ""}
+                scenes={project.scenes}
+                busy={busy}
+                visible={visible}
+                execution={execution}
+                position={position}
+                query={stepQuery}
+                setQuery={setStepQuery}
+                onSelect={chooseStep}
+              >
+                <SequenceEditToolbar
+                  scenes={project.scenes}
+                  busy={busy}
+                  addSceneId={addSceneId}
+                  setAddSceneId={setAddSceneId}
+                  stepQuery={stepQuery}
+                  setStepQuery={setStepQuery}
+                  index={index}
+                  stepCount={sequence.steps.length}
+                  hasStep={!!step}
+                  onInsert={() => void insertStep()}
+                  onDuplicate={() => void duplicateStep()}
+                  onMove={(index) =>
+                    void edit({
+                      kind: "moveStep",
+                      id: sequence.id,
+                      stepId: step!.id,
+                      index,
+                    })
+                  }
+                  onDelete={() => {
+                    setLocalError("");
+                    setDeleteTarget("step");
+                  }}
+                />
+              </SequenceStepBrowser>
             ))}
           <PreviewPanel
             host={host}
