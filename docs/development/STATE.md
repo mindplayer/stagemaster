@@ -1,5 +1,7 @@
 # 当前开发状态
 
+EFFECT-007 实施中（基线 `1e08c76`）：按 [ADR-084](decisions/PRODUCT-ADR-084-world-line-effects.md) 接续共同空间目标的直线往返，先验证全路径分支／行程的纯 Rust 几何，再接工程编译和效果编辑；[工单](tasks/EFFECT-007-world-line-effects.md)。持续 goal active，阶段实现不作为整体完成。
+
 AUDIO-017 完成（基线 `fb4b1eb`，集成前置 `c80ca1a`，结果为本次 `feat(audio): share marker group selection between library and waveform` 提交）：目录／波形卡点共享组选择、范围／整组视图、固定目标与取消保护，复用片段选择模型；272 UI、类型／桌面、组件与原生复制历史／保存重开通过，见[工单](tasks/AUDIO-017-marker-selection.md)。副本只增两点至 34，原片段／场景与来源保持；当前窗口正常退出、持续 goal active。
 
 APP-001 完成（基线 `fb4b1eb`，结果为本次 `fix(desktop): finish adapter cleanup before exiting the event loop` 提交）：修复真实退出互等，异步清理前移、预演关闭闸门；611 Rust／严格检查、桌面构建及两次原生退出／取消／重开通过，见[工单](tasks/APP-001-exit-cleanup.md)。AUDIO-017 的 UI 增量仍待独立提交，当前验收窗口已正常退出，持续 goal active。

@@ -1,6 +1,7 @@
 //! Renderer-independent spatial calculations. No DMX, clocks, I/O or UI ownership.
 pub mod polygon;
 pub mod positioning;
+pub mod trajectory;
 use glam::{DQuat, DVec3};
 
 /// Right-handed meters and fixed-axis XYZ degrees, matching the project contract.
