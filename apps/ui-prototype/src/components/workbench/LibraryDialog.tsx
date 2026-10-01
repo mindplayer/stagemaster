@@ -37,6 +37,15 @@ export function LibraryDialog({
     >
       <form
         noValidate
+        onKeyDown={(e) => {
+          if (
+            e.key === "Enter" &&
+            !e.nativeEvent.isComposing &&
+            e.target instanceof HTMLInputElement &&
+            e.target.type === "search"
+          )
+            e.preventDefault();
+        }}
         onSubmit={async (e) => {
           e.preventDefault();
           const form = e.currentTarget;

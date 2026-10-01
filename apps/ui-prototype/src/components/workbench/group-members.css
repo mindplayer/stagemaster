@@ -1,0 +1,38 @@
+.group-members {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.group-member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.group-member-list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--wb-border);
+}
+.group-member-name {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.group-member-name small {
+  color: var(--wb-muted);
+}
+.group-member-actions {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.group-members [aria-pressed="true"] {
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+}

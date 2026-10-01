@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { FixtureView } from "../../application-host";
 import type { GroupView, LibraryEdit } from "../../library-types";
-import { moveMember } from "../../library-tools";
+import { groupMembersIssue } from "../../group-members";
+import { GroupMemberTools } from "./GroupMemberTools";
+import { GroupMembers } from "./GroupMembers";
 import { LibraryDialog } from "./LibraryDialog";
 export function GroupEditor({
   group,
@@ -24,16 +26,17 @@ export function GroupEditor({
 }) {
   const [name, setName] = useState(group?.name ?? initialName);
   const [ids, setIds] = useState(group?.fixtureIds ?? selected);
-  const [query, setQuery] = useState("");
+  const issue = groupMembersIssue(ids, fixtures);
   return (
     <LibraryDialog
       title={group ? "编辑灯组" : "记录灯组"}
       busy={busy}
       error={error}
       onCancel={onCancel}
+      submitDisabled={!!issue}
       onSubmit={() => {
         if (!name.trim()) throw new Error("请填写灯组名称");
-        if (!ids.length) throw new Error("灯组至少需要一台灯具");
+        if (issue) throw new Error(issue);
         return onEdit({
           kind: "saveGroup",
           id: group?.id ?? null,
@@ -53,80 +56,16 @@ export function GroupEditor({
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      <div className="wb-resource-tools">
-        <strong>选灯顺序 · {ids.length} 台</strong>
-        <button
-          type="button"
-          disabled={!ids.length}
-          onClick={() => setIds([...ids].reverse())}
-        >
-          反转顺序
-        </button>
-        <button
-          type="button"
-          disabled={!selected.length}
-          onClick={() => setIds([...selected])}
-        >
-          使用当前选择
-        </button>
-      </div>
-      <ol className="wb-group-order">
-        {ids.map((id, index) => (
-          <li key={id}>
-            <span>{index + 1}</span>
-            <strong>
-              {fixtures.find((f) => f.id === id)?.name ?? "灯具已移除"}
-            </strong>
-            <button
-              type="button"
-              aria-label={`上移第 ${index + 1} 台灯具`}
-              disabled={!index}
-              onClick={() => setIds(moveMember(ids, index, -1))}
-            >
-              ↑
-            </button>
-            <button
-              type="button"
-              aria-label={`下移第 ${index + 1} 台灯具`}
-              disabled={index === ids.length - 1}
-              onClick={() => setIds(moveMember(ids, index, 1))}
-            >
-              ↓
-            </button>
-            <button
-              type="button"
-              aria-label={`移出${fixtures.find((f) => f.id === id)?.name}`}
-              onClick={() => setIds(ids.filter((v) => v !== id))}
-            >
-              移出
-            </button>
-          </li>
-        ))}
-      </ol>
-      <input
-        type="search"
-        aria-label="搜索可加入灯组的灯具"
-        placeholder="搜索可加入的灯具"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
+      <p>选灯顺序 · {ids.length} 台；整体整理作用于完整灯组。</p>
+      <GroupMemberTools
+        ids={ids}
+        fixtures={fixtures}
+        selected={selected}
+        initial={group?.fixtureIds ?? selected}
+        onChange={setIds}
       />
-      <div className="wb-group-available">
-        {fixtures
-          .filter(
-            (f) =>
-              !ids.includes(f.id) &&
-              f.name.toLowerCase().includes(query.trim().toLowerCase()),
-          )
-          .map((f) => (
-            <button
-              type="button"
-              key={f.id}
-              onClick={() => setIds([...ids, f.id])}
-            >
-              ＋ {f.name}
-            </button>
-          ))}
-      </div>
+      <GroupMembers fixtures={fixtures} ids={ids} onChange={setIds} />
+      {issue && <p role="status">{issue}</p>}
     </LibraryDialog>
   );
 }

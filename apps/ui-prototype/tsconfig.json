@@ -43,6 +43,8 @@
     "tests/fixture-optics.test.ts",
     "tests/parameter-categories.test.ts",
     "tests/parameter-categories-harness.tsx",
+    "tests/group-members.test.ts",
+    "tests/group-members-harness.tsx",
     "tests/copy-values-preview.test.ts",
     "tests/preset-scope.test.ts",
     "tests/preset-scope-harness.tsx"
