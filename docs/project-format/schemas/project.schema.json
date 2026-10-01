@@ -2831,6 +2831,91 @@
                 "heightMeters"
               ],
               "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "seating"
+                },
+                "spaceId": {
+                  "oneOf": [
+                    {
+                      "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "positionMeters": {
+                  "$ref": "#/$defs/SpatialVector3"
+                },
+                "yawDegrees": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "rows": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "columns": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "seatWidthMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "seatDepthMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "columnSpacingMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "rowSpacingMeters": {
+                  "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                },
+                "aisle": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "afterColumn": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 63
+                        },
+                        "widthMeters": {
+                          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Decimal"
+                        }
+                      },
+                      "required": [
+                        "afterColumn",
+                        "widthMeters"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "kind",
+                "spaceId",
+                "positionMeters",
+                "yawDegrees",
+                "rows",
+                "columns",
+                "seatWidthMeters",
+                "seatDepthMeters",
+                "columnSpacingMeters",
+                "rowSpacingMeters",
+                "aisle"
+              ],
+              "additionalProperties": false
             }
           ]
         }

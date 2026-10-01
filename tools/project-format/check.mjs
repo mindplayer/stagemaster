@@ -1,3 +1,4 @@
+import { auditSeating } from './seating-audit.mjs';
 import { auditStageLocks } from "./stage-lock-audit.mjs";
 import { auditSequenceScripts } from "./sequence-script-audit.mjs";
 import { auditFixtureFunctions } from "./fixture-function-audit.mjs";
@@ -329,7 +330,7 @@ export function auditProject(p) {
     } else if (s.kind === 'rig') {
       Object.values(s.positionMeters).forEach(v => bounded(v, -100000, 100000));
       bounded(s.yawDegrees, -3600, 3600); bounded(s.lengthMeters, 0.1, 1000); bounded(s.widthMeters, 0.02, 10); bounded(s.heightMeters, 0.02, 10);
-    } else {
+    } else if (s.kind === 'platform') {
       outlineBounds(s.outlineMeters); bounded(s.baseElevationMeters, -10000, 10000); bounded(s.heightMeters, 0.001, 1000);
     }
   }
@@ -341,6 +342,7 @@ export function auditProject(p) {
     assert(c.shape.kind === 'rig' && placement, '挂接需要支撑体和灯位');
     assert(c.shape.spaceId === placement.spaceId, '挂接空间必须一致');
   }
+  auditSeating(p);
   unique(enclosures, '空间围护');
   unique((p.stage?.placements ?? []).map(p => p.fixtureId), '灯具布置');
   for (const placement of p.stage?.placements ?? []) {

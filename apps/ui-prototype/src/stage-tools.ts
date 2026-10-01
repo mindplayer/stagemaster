@@ -57,6 +57,18 @@ export function stageCommand(object: StageObject): StageEdit {
     if (s.kind === "platform") {
       s.baseElevationMeters = canonical(s.baseElevationMeters);
       s.heightMeters = canonical(s.heightMeters);
+    } else if (s.kind === "seating") {
+      for (const axis of ["x", "y", "z"] as const)
+        s.positionMeters[axis] = canonical(s.positionMeters[axis]);
+      for (const key of [
+        "yawDegrees",
+        "seatWidthMeters",
+        "seatDepthMeters",
+        "columnSpacingMeters",
+        "rowSpacingMeters",
+      ] as const)
+        s[key] = canonical(s[key]);
+      if (s.aisle) s.aisle.widthMeters = canonical(s.aisle.widthMeters);
     } else if (s.kind === "rig") {
       for (const axis of ["x", "y", "z"] as const)
         s.positionMeters[axis] = canonical(s.positionMeters[axis]);
@@ -95,7 +107,10 @@ export function translated(
       p[0] = decimal(Number(p[0]) + dx);
       p[1] = decimal(Number(p[1]) + dy);
     }
-  else if (copy.kind === "construction" && copy.value.shape.kind === "rig") {
+  else if (
+    copy.kind === "construction" &&
+    (copy.value.shape.kind === "rig" || copy.value.shape.kind === "seating")
+  ) {
     copy.value.shape.positionMeters.x = decimal(
       Number(copy.value.shape.positionMeters.x) + dx,
     );

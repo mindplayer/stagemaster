@@ -192,3 +192,5 @@ compile_entry(project: &ValidatedProject, binding: &ValidatedSiteBinding,
 
 
 STAGE-002 按 [ADR-065](../development/decisions/PRODUCT-ADR-065-stage-edit-locks.md) 增加可选 `stage.editLocks` 与 `stage.edit-locks@1`：保存最多 1600 个空间／构件／灯位锁定引用，保护直接及间接几何修改，旧文件无需补字段。它是编辑保护，不改变节目编译与播放包；命令和边界见[场地 API](../module-api/stage-spaces.md)。
+
+STAGE-003 按 [ADR-066](../development/decisions/PRODUCT-ADR-066-parametric-seating.md) 增加 `stage.seating@1` 和参数化 `seating` 构件：工程保存排／列、椅宽深、中心间距、世界中心／朝向和可空净宽通道；Rust 校验后生成二维／三维座椅。单区 512、全工程 1024 座有界，旧工程无需补字段，不自动转换旧示意构件；详见[场地 API](../module-api/stage-spaces.md)。

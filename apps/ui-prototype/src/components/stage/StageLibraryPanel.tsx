@@ -21,6 +21,7 @@ export function StageLibraryPanel({
   onSelect,
   onCreate,
   onCreateRig,
+  onCreateSeating,
   onArrange,
   onPlace,
   fixtureId,
@@ -37,6 +38,7 @@ export function StageLibraryPanel({
   onSelect(target: StageSelection, additive?: boolean): void;
   onCreate(kind: "space" | "platform"): void;
   onCreateRig(): void;
+  onCreateSeating(): void;
   onArrange(): void;
   onPlace(): void;
   fixtureId: string;
@@ -71,9 +73,14 @@ export function StageLibraryPanel({
           onChange={(e) => onQuery(e.target.value)}
         />
       </label>
-      <button disabled={busy} onClick={() => onCreateRig()}>
-        新建桁架／灯杆
-      </button>
+      <div className="stage-create">
+        <button disabled={busy} onClick={() => onCreateRig()}>
+          桁架／灯杆
+        </button>
+        <button disabled={busy} onClick={onCreateSeating}>
+          新建座区
+        </button>
+      </div>
       <StagePlanLayers
         value={visibility}
         disabled={busy}

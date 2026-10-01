@@ -355,6 +355,7 @@ export const StageWorkspace = forwardRef<
           onSelect={(target, additive) => void choose(target, additive)}
           onCreate={(kind) => void objects.create(kind)}
           onCreateRig={() => void objects.createRig()}
+          onCreateSeating={() => void objects.createSeating()}
           onArrange={() => void arrange(false)}
           onPlace={() => void objects.placeFixture()}
           fixtureId={fixtureId}

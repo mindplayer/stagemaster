@@ -4,7 +4,8 @@ import type {
   StageView,
 } from "../../stage-types.ts";
 
-export type PlanLayer = "spaces" | "constructions" | "rigs" | "fixtures";
+export type PlanLayer =
+  "spaces" | "constructions" | "rigs" | "fixtures" | "seating";
 export interface PlanVisibility {
   hiddenSpaces: string[];
   hiddenLayers: PlanLayer[];
@@ -18,6 +19,7 @@ export const planLayers: [PlanLayer, string][] = [
   ["constructions", "构件"],
   ["rigs", "桁架"],
   ["fixtures", "灯具"],
+  ["seating", "座区"],
 ];
 export function displayMeters(value: string | number) {
   const number = Number(value);
@@ -29,7 +31,11 @@ export function displayMeters(value: string | number) {
     : "—";
 }
 export function constructionLayer(value: StageConstruction): PlanLayer {
-  return value.shape.kind === "rig" ? "rigs" : "constructions";
+  return value.shape.kind === "rig"
+    ? "rigs"
+    : value.shape.kind === "seating"
+      ? "seating"
+      : "constructions";
 }
 export function visibleStage(
   stage: StageView,

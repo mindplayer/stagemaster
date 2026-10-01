@@ -2,6 +2,7 @@ import { StagePlacementFields } from "./StagePlacementFields";
 import { StageLockControls } from "./StageLockControls";
 import { isStageLocked, stageTarget } from "../../stage-locks";
 import { StageOutlineFields } from "./StageOutlineFields";
+import { SeatingFields } from "./SeatingFields";
 import { RigFields } from "./RigFields";
 import { OutlineDimensions } from "./OutlineDimensions";
 import type { RefObject } from "react";
@@ -116,7 +117,9 @@ export function StageInspector({
             {object.kind === "space"
               ? "空间属性"
               : object.kind === "construction"
-                ? "构件属性"
+                ? object.value.shape.kind === "seating"
+                  ? "座区属性"
+                  : "构件属性"
                 : "安装位置"}
           </h2>
           <div className="stage-actions">
@@ -348,6 +351,16 @@ export function StageInspector({
                   }
                 />
               </>
+            )}
+          {object.kind === "construction" &&
+            object.value.shape.kind === "seating" && (
+              <SeatingFields
+                value={object.value.shape}
+                spaces={project.stage.spaces}
+                onChange={(shape) =>
+                  onChange({ ...object, value: { ...object.value, shape } })
+                }
+              />
             )}
           <StagePlacementFields
             object={object}

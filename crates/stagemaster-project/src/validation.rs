@@ -141,6 +141,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "stage.layout",
             "stage.spaces",
             "stage.rigging",
+            crate::seating::CAPABILITY,
             crate::stage_locks::CAPABILITY,
         ]
         .contains(&text(capability, "key"))
@@ -170,6 +171,13 @@ fn supported(root: &Value) -> Result<(), String> {
         && !capabilities.contains("stage.rigging")
     {
         return Err("支撑体工程缺少挂接能力声明".into());
+    }
+    if array(&root["stage"], "constructions")
+        .iter()
+        .any(|c| c["shape"]["kind"] == "seating")
+        && !capabilities.contains(crate::seating::CAPABILITY)
+    {
+        return Err("座区工程缺少座位能力声明".into());
     }
     if array(root, "domains")
         .iter()

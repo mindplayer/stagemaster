@@ -1,0 +1,56 @@
+.seating-fields {
+  display: grid;
+  gap: 10px;
+}
+.seating-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--wb-muted);
+}
+.seating-summary strong {
+  color: var(--wb-text);
+}
+.seating-fields small {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.workbench .seating-aisle-toggle {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+.workbench .seating-aisle-toggle input {
+  width: auto;
+  min-height: auto;
+}
+.stage-seating .seating-boundary {
+  fill: #405a711f;
+  stroke: #718c9d;
+  stroke-dasharray: 0.15 0.1;
+}
+.stage-seating .seating-chair {
+  fill: #273846;
+  stroke: #93a9b8;
+}
+.stage-seating .seating-back {
+  fill: #93a9b8;
+}
+.stage-seating .seating-front {
+  fill: none;
+  stroke: #93a9b8;
+}
+.stage-seating text {
+  fill: #b2c7cf;
+  pointer-events: none;
+}
+.stage-seating.is-selected .seating-boundary {
+  stroke: #7de4cb;
+  fill: #4fd2bb18;
+}
+.stage-seating.is-selected .seating-chair {
+  stroke: #7de4cb;
+}

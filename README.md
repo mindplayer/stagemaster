@@ -14,7 +14,7 @@
 - [相对摇头效果](docs/module-api/lighting-effects.md)：亮度／颜色／关键帧，加水平／垂直／双轴圆形运动；物理角度、灯序、容量与机械行程检查。
 - [音乐卡点](docs/module-api/audio-editing.md)：真实文件播放、WaveSurfer 波形、手动卡点与场景绑定；[灯光段落编辑](docs/development/tasks/UX-022-audio-lighting-lane.md)和[资源健康检查](docs/development/tasks/UX-028-project-resource-health.md)已接通。
 - [灯具建档与配适](docs/module-api/fixture-authoring.md)、[摇头位置](docs/module-api/positioning.md)：调光／RGB／两轴、8/16 位、默认值／反向／零偏、共同点静态对焦；复杂通道功能待补。
-- [场地与挂灯](docs/development/tasks/STAGE-001-rigging-workflow.md)、[场地目录与显隐](docs/development/tasks/UX-025-stage-organization.md)、[中央选灯](docs/development/tasks/UX-026-scene-plan-selection.md)：真实空间、构件、支撑体、灯位与共享有序选择。
+- [场地与挂灯](docs/development/tasks/STAGE-001-rigging-workflow.md)、[场地目录与显隐](docs/development/tasks/UX-025-stage-organization.md)、[中央选灯](docs/development/tasks/UX-026-scene-plan-selection.md)：真实空间、构件、支撑体、灯位与共享有序选择；[参数座区](docs/development/tasks/STAGE-003-parametric-seating.md) 可整体编排座椅、净通道和朝向并同步 UE。
 - [唯一三维工作区](docs/development/tasks/PREVIS-002-single-workspace.md)：程序内 UE 画面与 Rust 播放联动；当前仍需本机 UE 开发环境，客户独立打包和专业光学未完成。
 - [执行工作区](docs/development/tasks/UX-021-execution-view.md)、[灯组预设](docs/module-api/editing-library.md)、[搜索选择](docs/development/tasks/UX-027-searchable-resources.md)：当前／下一／所选、跳转确认、单列表播放和可撤销资源编辑。
 - [设备安装验收](docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)：免系统配对的加密 GATT、保活、真实双槽安装与恢复；[分层内存保护](docs/development/tasks/MEMORY-001-bounded-board-memory.md)已实板验证，安装不等于现场播放。

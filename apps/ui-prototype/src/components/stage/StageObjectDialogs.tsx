@@ -1,5 +1,6 @@
 import type { ProjectView } from "../../application-host";
 import type { useStageObjects } from "./useStageObjects";
+import { SeatingCreateDialog } from "./SeatingCreateDialog";
 import { RigCreateDialog } from "./RigCreateDialog";
 import { StageCreateDialog } from "./StageCreateDialog";
 import { DeleteDialog } from "../workbench/DeleteDialog";
@@ -14,9 +15,20 @@ export function StageObjectDialogs({
   error: string;
   actions: ReturnType<typeof useStageObjects>;
 }) {
-  const { rigCreation, creation, deleteTarget } = actions;
+  const { rigCreation, seatingCreation, creation, deleteTarget } = actions;
   return (
     <>
+      {seatingCreation && (
+        <SeatingCreateDialog
+          project={project}
+          initial={seatingCreation.shape}
+          name={seatingCreation.name}
+          busy={busy}
+          error={error}
+          onCancel={() => actions.setSeatingCreation(null)}
+          onApply={async (command) => !!(await actions.createObject(command))}
+        />
+      )}
       {rigCreation && (
         <RigCreateDialog
           project={project}

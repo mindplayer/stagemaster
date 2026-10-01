@@ -90,3 +90,24 @@ host.request({kind: "edit", generation, command: {
 Rust 独立 `stage_locks` 在每个子操作前后比较受保护投影；三维提案、界面和 API 都经过同一检查，失败不增加历史。UI 的目录标记、右侧锁定区、混合选择移动禁用、三维移动禁用是提前反馈，不是权威校验。隐藏对象仍参与依赖保护。锁定前既有字段草稿先按原规则校验应用，错误保留并定位，草稿取消不会修改锁。
 
 `useStageObjects` 管理创建／复制／移除，`StageObjectDialogs` 渲染相应对话框，`useStageRigging` 管理挂灯流程；工作区保留选择／草稿协调。位置和轮廓属性各自独立组件，不在工作区继续堆积创建表单。三维仍只有一个预演视窗，锁状态不新增 UE 网格或播放协议。
+
+## STAGE-003 参数化观众座区
+
+依据 [ADR-066](../development/decisions/PRODUCT-ADR-066-parametric-seating.md)。新构件 `seating` 需要 `stage.seating@1`；编辑入口复用 `putConstruction`，整区使用同一身份、锁定、复制、删除和历史。例：
+
+```ts
+{ op: "stage", command: { op: "putConstruction", id: null, name: "中央座区", shape: {
+  kind: "seating", spaceId: null,
+  positionMeters: { x: "5", y: "-2", z: "0" }, yawDegrees: "0",
+  rows: 5, columns: 6,
+  seatWidthMeters: "0.46", seatDepthMeters: "0.48",
+  columnSpacingMeters: "0.56", rowSpacingMeters: "0.9",
+  aisle: { afterColumn: 3, widthMeters: "1.2" }
+}}}
+```
+
+XY 是整个座区外包矩形中心，Z 是椅脚平面；0° 面向 +Y，第一排在 +Y 端，列从局部 -X 到 +X，角度逆时针。排／列间距是中心距离；通道净宽替换指定两列间普通间隙，不增加或删减座位。所属空间只做组织归属。`aisle:null` 不留通道。
+
+Rust `SeatingShape::seat_count` 先限量，`layout()` 校验尺寸／边界并输出座心、轮廓、朝向和椅宽深；TS `seatingLayout` 仅为有界草稿投影，共享测试向量在 `tools/test-data/seating-layout.json`。无效草稿保留原平面图，不向 UE 提交；应用成功后才更新三维。每区不超过 512 座、工程不超过 1024 座，排／列分别不超过 64；三维每椅 72 面，整体预演仍有 100000 面预算。
+
+`SeatingFields` 共用于创建与属性，`SeatingPlanObject` 独立画座椅／方向；目录整区列一行，专属座区平面显隐。UE 复用网格协议，每区一个网格且不保存派生座椅。示意椅坐面高 0.45 米、靠背顶高 0.85 米，无逐座持久身份；不可将生成的排／列索引作为其他模块稳定引用。此版本不含任意轮廓裁切、弧形／阶梯、多通道、座位编号覆盖或碰撞／疏散合规判定；旧示意构件不会自动转换。

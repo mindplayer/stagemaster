@@ -1,0 +1,6 @@
+{
+  "shape": {"kind":"seating","spaceId":null,"positionMeters":{"x":"10","y":"20","z":"0.5"},"yawDegrees":"90","rows":2,"columns":4,"seatWidthMeters":"0.5","seatDepthMeters":"0.5","columnSpacingMeters":"1","rowSpacingMeters":"1","aisle":{"afterColumn":2,"widthMeters":"2"}},
+  "centers": [[9.5,17.75],[9.5,18.75],[9.5,21.25],[9.5,22.25],[10.5,17.75],[10.5,18.75],[10.5,21.25],[10.5,22.25]],
+  "outline": [[10.75,17.5],[10.75,22.5],[9.25,22.5],[9.25,17.5]],
+  "width":5,"depth":1.5
+}

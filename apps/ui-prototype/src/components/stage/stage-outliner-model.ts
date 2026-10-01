@@ -30,7 +30,9 @@ export function outlineMembers(project: ProjectView): OutlineMember[] {
         ? "墙体与地板"
         : c.shape.kind === "rig"
           ? `${c.shape.rigKind === "truss" ? "桁架" : "灯杆"} · ${displayMeters(c.shape.lengthMeters)} 米 · ${project.stage.attachments.filter((a) => a.constructionId === c.id).length} 台灯`
-          : `构件 · 高度 ${displayMeters(c.shape.heightMeters)} 米`,
+          : c.shape.kind === "seating"
+            ? `${c.shape.rows} 排 × ${c.shape.columns} 座 · 共 ${c.shape.rows * c.shape.columns} 座`
+            : `构件 · 高度 ${displayMeters(c.shape.heightMeters)} 米`,
   }));
   return [
     ...members,
@@ -47,6 +49,7 @@ export const memberCategories: [PlanLayer, string][] = [
   ["rigs", "桁架与灯杆"],
   ["fixtures", "灯具"],
   ["constructions", "构件"],
+  ["seating", "观众座区"],
 ];
 export const categoryKey = (space: string | null, category: PlanLayer) =>
   `${space ?? "loose"}:${category}`;

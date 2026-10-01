@@ -1,3 +1,5 @@
+import { seatingLayout } from "../../seating-tools";
+import { SeatingPlanObject } from "./SeatingPlanObject";
 import type { ProjectView } from "../../application-host";
 import type { StageObject, StageSelection, StageView } from "../../stage-types";
 import { objectOutline } from "../../stage-tools";
@@ -117,6 +119,32 @@ export function StagePlanObjects({
                 {displayMeters(rig.positionMeters.z)} 米
               </title>
             </g>
+          );
+        })}
+      {stage.constructions
+        .filter((c) => c.shape.kind === "seating")
+        .map((c) => {
+          const item = drawn({ kind: "construction", value: c });
+          if (
+            c.shape.kind !== "seating" ||
+            item.kind !== "construction" ||
+            item.value.shape.kind !== "seating"
+          )
+            return null;
+          return (
+            <SeatingPlanObject
+              key={c.id}
+              id={c.id}
+              name={c.name}
+              shape={
+                seatingLayout(item.value.shape)
+                  ? item.value.shape
+                  : c.shape
+              }
+              selected={isSelected("construction", c.id)}
+              labels={labels}
+              unit={unit}
+            />
           );
         })}
       {stage.placements.map((p) => {

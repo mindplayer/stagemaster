@@ -42,6 +42,7 @@ pub struct StageSpace {
 )]
 pub enum ConstructionShape {
     Rig(crate::rigging::RigShape),
+    Seating(crate::SeatingShape),
     Enclosure {
         space_id: String,
         wall_thickness_meters: String,
@@ -167,50 +168,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
             decimal(height, 0.1, 1_000.0)?;
         }
     }
-    let mut enclosed = BTreeSet::new();
-    for construction in &stage.constructions {
-        match &construction.shape {
-            ConstructionShape::Rig(rig) => {
-                member(rig.space_id.as_deref(), &spaces)?;
-                rig.validate()?;
-            }
-            ConstructionShape::Enclosure {
-                space_id,
-                wall_thickness_meters,
-                floor_thickness_meters,
-                ceiling_thickness_meters,
-            } => {
-                member(Some(space_id), &spaces)?;
-                if !enclosed.insert(space_id) {
-                    return Err("一个空间只能有一组围护构件".into());
-                }
-                let space = stage
-                    .spaces
-                    .iter()
-                    .find(|s| s.id == *space_id)
-                    .expect("checked membership");
-                if space.clear_height_meters.is_none() {
-                    return Err("添加围护前需要设置空间净高".into());
-                }
-                decimal(wall_thickness_meters, 0.001, 10.0)?;
-                decimal(floor_thickness_meters, 0.001, 10.0)?;
-                if let Some(value) = ceiling_thickness_meters {
-                    decimal(value, 0.001, 10.0)?;
-                }
-            }
-            ConstructionShape::Platform {
-                space_id,
-                outline_meters,
-                base_elevation_meters,
-                height_meters,
-            } => {
-                member(space_id.as_deref(), &spaces)?;
-                outline(outline_meters).map_err(|e| format!("构件“{}”：{e}", construction.name))?;
-                decimal(base_elevation_meters, -10_000.0, 10_000.0)?;
-                decimal(height_meters, 0.001, 1_000.0)?;
-            }
-        }
-    }
+    crate::stage_constructions::validate(&stage, &spaces)?;
     let fixtures = array(&root["lighting"], "fixtures")
         .iter()
         .map(|f| text(f, "id"))
@@ -236,7 +194,7 @@ pub(super) fn decimal(value: &str, min: f64, max: f64) -> Result<f64, String> {
     }
     Ok(number)
 }
-fn outline(points: &[[String; 2]]) -> Result<(), String> {
+pub(super) fn outline(points: &[[String; 2]]) -> Result<(), String> {
     let points = points
         .iter()
         .map(|p| {
@@ -248,7 +206,7 @@ fn outline(points: &[[String; 2]]) -> Result<(), String> {
         .collect::<Result<Vec<_>, String>>()?;
     floor_plan(&points).map(|_| ())
 }
-fn member(id: Option<&str>, spaces: &BTreeSet<&str>) -> Result<(), String> {
+pub(super) fn member(id: Option<&str>, spaces: &BTreeSet<&str>) -> Result<(), String> {
     if id.is_some_and(|id| !spaces.contains(id)) {
         Err("所属空间不存在".into())
     } else {
@@ -432,6 +390,18 @@ fn initialize(root: &mut Value, command: &StageEdit) -> Result<(), String> {
     ) && !capabilities.iter().any(|c| c["key"] == "stage.rigging")
     {
         capabilities.push(json!({"key":"stage.rigging","version":1}));
+    }
+    if matches!(
+        command,
+        StageEdit::PutConstruction {
+            shape: ConstructionShape::Seating(_),
+            ..
+        }
+    ) && !capabilities
+        .iter()
+        .any(|c| c["key"] == crate::seating::CAPABILITY)
+    {
+        capabilities.push(json!({"key":crate::seating::CAPABILITY,"version":1}));
     }
     Ok(())
 }

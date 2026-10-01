@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ProjectView } from "../../application-host";
 import type {
   RigShape,
+  SeatingShape,
   StageEdit,
   StageObject,
   StageSelection,
@@ -35,6 +36,41 @@ export function useStageObjects({
     shape: RigShape;
     name: string;
   } | null>(null);
+  const [seatingCreation, setSeatingCreation] = useState<{
+    shape: SeatingShape;
+    name: string;
+  } | null>(null);
+  async function createSeating() {
+    if (!(await beforeChange())) return;
+    const b = selectedSpace
+      ? bounds(
+          selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
+        )
+      : null;
+    setSeatingCreation({
+      name: uniqueName(
+        "观众座区",
+        project.stage.constructions.map((c) => c.name),
+      ),
+      shape: {
+        kind: "seating",
+        spaceId: selectedSpace?.id ?? null,
+        positionMeters: {
+          x: decimal(b ? (b.minX + b.maxX) / 2 : 0),
+          y: decimal(b ? (b.minY + b.maxY) / 2 : 0),
+          z: selectedSpace?.floorElevationMeters ?? "0",
+        },
+        yawDegrees: "0",
+        rows: 5,
+        columns: 6,
+        seatWidthMeters: "0.46",
+        seatDepthMeters: "0.48",
+        columnSpacingMeters: "0.56",
+        rowSpacingMeters: "0.9",
+        aisle: null,
+      },
+    });
+  }
   const [creation, setCreation] = useState<Creation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StageObject | null>(null);
   async function createRig() {
@@ -209,6 +245,9 @@ export function useStageObjects({
   return {
     rigCreation,
     setRigCreation,
+    seatingCreation,
+    setSeatingCreation,
+    createSeating,
     creation,
     setCreation,
     deleteTarget,

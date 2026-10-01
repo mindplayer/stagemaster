@@ -1,5 +1,7 @@
 # 当前开发状态
 
+STAGE-003 完成（基线 `0ba0d06`，结果为本次 `feat(stage): add bounded parametric audience seating` 提交）：依 ADR-066 增加有界矩形座区、净通道与二维／UE 同源座椅，整区目录／显隐／移动／锁／历史；501 Rust、157 UI、105 格式、类型／fmt／严格检查／桌面及原生创建／错误取消／复制／拖动／撤销／保存重开／UE 增排通过，见[验收](tasks/STAGE-003-parametric-seating.md)。当前独立副本三组 66 座，已保存、UE 关闭、设备断开，原 Volare 及 `output/` 未改。持续 goal active，接续平面灯具符号与可辨识性。
+
 STAGE-002 完成（基线 `c32eeb0`，结果为本次 `feat(stage): protect locked venue objects across editors` 提交）：依 ADR-065 实现场地锁／原子间接保护、中文单／多选、二维／三维一致限制并拆分场地工作区。全量 495 Rust＋最终工程 117（追加 1）与三维 3、154 UI、103 格式、类型／fmt／严格检查／桌面及原生锁定／复制／草稿／撤销／保存重启通过，见[验收](tasks/STAGE-002-object-edit-locks.md)。当前独立副本已保存 81 个锁，原几何／灯光及原 Volare 未改，三维关闭、设备断开。持续 goal active，接续观众区业务对象与参数化布置。
 
 AUDIO-005 完成（基线 `c996b77`，结果为本次 `feat(audio): add bounded native rehearsal loops` 提交）：依 ADR-064 实现原生有界局部循环、锁外准备／过时拒绝、时间线精确范围／选段、波形标记与共享播放状态。490 Rust、151 UI、类型／fmt／严格检查／桌面及原生回环／停止起点／错误取消／跨页／重启／内嵌 UE 通过，见[验收](tasks/AUDIO-005-local-loop-preview.md)。当前已保存 Volare 独立副本，暂停 1.760 秒、循环关闭、UE 关闭、设备断开；原工程未改。持续 goal 接续场地锁定与批量整理，现场循环及声卡／跨设备同步仍后续。

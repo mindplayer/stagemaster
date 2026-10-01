@@ -20,6 +20,19 @@ export interface RigShape {
   widthMeters: string;
   heightMeters: string;
 }
+export interface SeatingShape {
+  kind: "seating";
+  spaceId: string | null;
+  positionMeters: SpatialVector3;
+  yawDegrees: string;
+  rows: number;
+  columns: number;
+  seatWidthMeters: string;
+  seatDepthMeters: string;
+  columnSpacingMeters: string;
+  rowSpacingMeters: string;
+  aisle: { afterColumn: number; widthMeters: string } | null;
+}
 export interface RigAttachment {
   fixtureId: string;
   constructionId: string;
@@ -31,6 +44,7 @@ export interface RigLayout {
 }
 export type ConstructionShape =
   | RigShape
+  | SeatingShape
   | {
       kind: "enclosure";
       spaceId: string;

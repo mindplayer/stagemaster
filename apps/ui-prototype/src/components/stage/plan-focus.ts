@@ -1,3 +1,4 @@
+import { seatingOutline } from "../../seating-tools.ts";
 import type { StageObject, StageView } from "../../stage-types.ts";
 import { objectOutline } from "../../stage-tools.ts";
 import { rigOutline } from "../../rigging-tools.ts";
@@ -14,7 +15,9 @@ export function planPoints(stage: StageView): Point[] {
           )
         : c.shape.kind === "rig"
           ? rigOutline(c.shape)
-          : [],
+          : c.shape.kind === "seating"
+            ? seatingOutline(c.shape)
+            : [],
     ),
     ...stage.placements.map(
       (p) => [Number(p.positionMeters.x), Number(p.positionMeters.y)] as Point,
@@ -44,5 +47,7 @@ export function selectionPoints(
     ];
   if (object.kind === "construction" && object.value.shape.kind === "rig")
     return rigOutline(object.value.shape);
+  if (object.kind === "construction" && object.value.shape.kind === "seating")
+    return seatingOutline(object.value.shape);
   return [];
 }
