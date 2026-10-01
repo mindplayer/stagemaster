@@ -52,3 +52,5 @@ npm --prefix apps/ui-prototype run desktop:build
 2026-10-01：[SEQUENCE-005](development/tasks/SEQUENCE-005-group-script.md) 已交付批量幕场／台词／备注，保留原值、统一填写和明确清空；与批量时间合成一次事务，含混合值、错误定位、独立取消及隐藏选择保护。606 Rust、252 UI、严格检查／类型／桌面与原生历史／保存重开通过；运行提示快照保持不变。
 
 2026-10-01：[EXEC-004](development/tasks/EXEC-004-step-navigation.md) 执行列表独立浏览区、定位下一步和显式运行跟随已完成；手动／搜索／跨页／载入版本变化退出，选择与播放不变。255 UI、类型／格式／桌面及长列表组件／原生验证通过，工程未改。
+
+2026-10-01：[UX-042](development/tasks/UX-042-pinned-resources.md) 常用灯组与预设可固定，按工程身份在本机保持，各类最多 8 项／最多 20 工程；复用有序召回和明确预设应用，坏存储／容量／删除恢复保护。258 UI、类型／格式／桌面及原生重启、项目隔离通过，工程未改。

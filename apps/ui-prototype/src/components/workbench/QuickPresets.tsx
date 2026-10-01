@@ -1,3 +1,4 @@
+import { PinnedResources } from "../resources/PinnedResources";
 import { PresetScopeSelect } from "./PresetScopeSelect";
 import { ResourcePicker } from "../resources/ResourcePicker";
 import { useState } from "react";
@@ -102,6 +103,15 @@ export function QuickPresets({
           {coverage?.attributes} 项
         </small>
       )}
+      <PinnedResources
+        key={project.id}
+        projectId={project.id}
+        kind="presets"
+        items={project.presets}
+        currentId={preset?.id}
+        busy={busy}
+        onSelect={onPreset}
+      />
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { PinnedResources } from "../resources/PinnedResources";
 import { ResourcePicker } from "../resources/ResourcePicker";
 import "./scene-selection-bar.css";
 import type { ProjectView } from "../../application-host";
@@ -96,6 +97,19 @@ export function SceneSelectionBar({
           清空选择
         </button>
       </div>
+      <PinnedResources
+        key={project.id}
+        projectId={project.id}
+        kind="groups"
+        items={project.groups}
+        currentId={group?.id}
+        busy={busy}
+        onSelect={(id) => {
+          const target = project.groups.find((g) => g.id === id);
+          if (target)
+            void onSelect(recallGroup(selected, target.fixtureIds, recall));
+        }}
+      />
     </div>
   );
 }

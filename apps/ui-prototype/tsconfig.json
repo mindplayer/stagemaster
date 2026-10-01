@@ -53,6 +53,8 @@
     "tests/preset-scope.test.ts",
     "tests/preset-scope-harness.tsx",
     "tests/step-navigation.test.ts",
-    "tests/step-navigation-harness.tsx"
+    "tests/step-navigation-harness.tsx",
+    "tests/pinned-resources.test.ts",
+    "tests/pinned-resources-harness.tsx"
   ]
 }

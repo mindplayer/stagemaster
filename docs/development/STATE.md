@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-042 完成（基线 `406263b`，结果为本次 `feat(resources): pin frequently used groups and presets` 提交）：共享常用灯组／预设固定栏、本机有界持久化与选择／调用隔离；258 UI、类型／格式／桌面、组件身份／容量／召回及原生重启／工程隔离验证通过，见[工单](tasks/UX-042-pinned-resources.md)。副本哈希未改，首场景／24 光束灯、音乐 0／UE 关闭／设备断开；持续 goal active。
+
 EXEC-004 完成（基线 `da19ff6`，结果为本次 `feat(execution): navigate and follow loaded steps without changing selection` 提交）：独立步骤浏览区、当前／下一步定位、显式跟随及手动／搜索／版本退出；255 UI、类型／格式／桌面、60 步组件和原生运行／选择隔离与草稿保护通过，见[工单](tasks/EXEC-004-step-navigation.md)。副本与来源哈希未改，当前待执行／跟随关闭、UE／设备／音乐关闭；持续 goal active。
 
 SEQUENCE-005 完成（基线 `dfaa86d`，结果为本次 `feat(sequence): edit script prompts across selected steps` 提交）：稀疏批量剧本提示与时间合成事务、明确清空／混合值／取消保护；606 Rust、252 UI、类型／严格检查／桌面及原生筛选外选择、历史、保存重开与独立内容核对通过，见[工单](tasks/SEQUENCE-005-group-script.md)。副本已保存、原 UX-041 未改、音乐 0／UE 关闭／设备断开；持续 goal active，接续执行列表定位。
