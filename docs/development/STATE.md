@@ -1,6 +1,6 @@
 # 当前开发状态
 
-AUDIO-006 完成（基线 `5933e5d`，结果为本次 `feat(audio): add independent lighting clip editing` 提交）：依 ADR-067 完成节奏／片段分离、有界真实区间、空隙、移动／复制／锁定与统一播放。509 Rust、最终入口 12 项回归、165 UI、107 格式、类型／fmt／严格检查／桌面及原生编辑／撤销／保存重开／内嵌 UE 通过，见[验收](tasks/AUDIO-006-lighting-clips.md)。当前独立副本已保存 20 片段／32 节奏点，音频暂停 3.200 秒、UE 关闭、设备断开；原 Volare 未改。持续 goal active，接续执行控制细节。
+EXEC-001 完成（基线 `036c9c2`，结果为本次 `feat(preview): add shared intensity master and blackout` 提交）：依 ADR-068 实现纯核心亮度缩放、单例总控／熄灯、真实输出属性／三维同源、作用范围提示及有界 UI 请求。516 Rust＋最终 50 桌面／2 输出回归、168 UI、类型／fmt／严格检查／桌面与原生错误取消／跨页／播放中熄灯恢复／推杆键盘通过，见[验收](tasks/EXEC-001-preview-output-master.md)。当前独立 Volare 副本已保存，音频暂停 25.120 秒，总控 100%／未熄灯，UE 关闭、设备断开。持续 goal active，接续编排批量操作。
 
 UX-030 完成（基线 `a36a0d9`，结果为本次 `feat(ui): clarify fixture capabilities and patch labels` 提交）：两处平面共用灯具能力符号、图例及名称／地址标注，统一未配适反馈与补零搜索；161 UI、类型／桌面和原生密集灯位／重叠选择／地址筛选通过，见[验收](tasks/UX-030-fixture-plan-symbols.md)。设备断开，工程未改；持续 goal active，继续时间编排与执行细节。
 

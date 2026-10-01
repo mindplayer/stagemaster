@@ -62,6 +62,7 @@ pub(crate) enum Request {
 }
 
 pub(crate) struct InputFrame {
+    pub master: stagemaster_playback::OutputMaster,
     pub revision: Revision,
     pub source: Source,
     pub can_edit: bool,

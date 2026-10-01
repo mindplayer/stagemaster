@@ -15,6 +15,7 @@ const host: ApplicationHost = {
   audioPrepare: async () => {throw new Error("此组件不调用音频");},
   audioCancel: async () => {},
   kind: "desktop",
+  output: async () => { throw new Error("此验收未使用预演总控"); },
   device: unavailable,
   installation: unavailable,
   startInstallation: unavailable,

@@ -61,10 +61,14 @@ impl Session {
             self.audio.render(
                 self.document.as_ref().ok_or("请先打开工程")?,
                 self.content_version,
+                self.output_control.master(),
             )
         } else {
-            self.preview
-                .render_output(self.content_version, self.preview.now())
+            self.preview.render_output(
+                self.content_version,
+                self.preview.now(),
+                self.output_control.master(),
+            )
         }
     }
 }

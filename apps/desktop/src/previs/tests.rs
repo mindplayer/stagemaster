@@ -464,3 +464,6 @@ async fn explicit_scene_source_resolves_presets_and_deleted_scene_is_visible_as_
             .is_some()
     );
 }
+
+#[path = "output_master_tests.rs"]
+mod output_master_tests;

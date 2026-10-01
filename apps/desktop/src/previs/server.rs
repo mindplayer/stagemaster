@@ -293,7 +293,7 @@ fn frame_response(context: &Context) -> Result<Json<Frame>, Failure> {
     if cached.version != input.revision.content {
         return Err(Failure::conflict("场地已变化，请重新读取"));
     }
-    let (status, lights) = match &input.source {
+    let (status, mut lights) = match &input.source {
         Source::Defaults => (
             "editing",
             cached.rig.editing(None).map_err(Failure::invalid)?,
@@ -311,6 +311,12 @@ fn frame_response(context: &Context) -> Result<Json<Frame>, Failure> {
             (output.status, lights)
         }
     };
+    if !matches!(input.source, Source::Playback) {
+        let factor = f64::from(input.master.effective_percent()) / 100.0;
+        for light in &mut lights {
+            light.intensity *= factor;
+        }
+    }
     let mut activity = context.activity.lock().map_err(|_| Failure::busy())?;
     activity.seen = Some(Instant::now());
     activity.problem = match status {

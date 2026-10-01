@@ -56,6 +56,7 @@ impl Session {
             source: self.previs_source.clone(),
             can_edit: self.previs_edit_allowed,
             playback,
+            master: self.output_control.master(),
         })
     }
     pub(crate) fn previs_place(&mut self, request: PlacementRequest) -> Result<Revision, String> {

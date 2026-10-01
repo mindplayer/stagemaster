@@ -6,6 +6,7 @@ mod audio;
 #[cfg(test)]
 mod audio_tests;
 mod files;
+mod output;
 mod previs;
 
 #[derive(Default)]
@@ -18,6 +19,7 @@ pub(crate) struct Session {
     generation: u32,
     content_version: u64,
     preview: crate::preview::Preview,
+    output_control: crate::output_control::Control,
     audio: crate::audio::AudioPreview,
     previs_source: crate::previs::protocol::Source,
     previs_edit_allowed: bool,
@@ -131,8 +133,11 @@ impl Session {
                 )?;
             }
         }
-        self.preview
-            .snapshot(self.content_version, self.preview.now())
+        self.preview.snapshot(
+            self.content_version,
+            self.preview.now(),
+            self.output_control.master(),
+        )
     }
 
     pub(crate) fn snapshot(&self) -> Snapshot {
@@ -174,6 +179,7 @@ impl Session {
         self.redo.clear();
         self.preview.clear();
         self.audio.clear();
+        self.output_control.reset();
         self.previs_source = crate::previs::protocol::Source::default();
         self.previs_edit_allowed = false;
         self.content_version += 1;

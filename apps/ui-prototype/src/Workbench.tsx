@@ -1,3 +1,4 @@
+import { PreviewOutputControls } from "./components/output/PreviewOutputControls";
 import { WorkbenchViewport } from "./components/layout/WorkbenchViewport";
 import { useEffectWorkspace } from "./components/workbench/useEffectWorkspace";
 import { EffectInspectorPane } from "./components/workbench/EffectInspectorPane";
@@ -812,12 +813,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               page === "sequences" && sequenceExecution ? "execution" : page
             }
             toolbar={
+              <>
               <WorkbenchNavigation
                 page={page}
                 project={project}
                 busy={busy}
                 onSelect={switchPage}
               />
+              <PreviewOutputControls host={host} />
+              </>
             }
           >
             <WorkbenchViewport

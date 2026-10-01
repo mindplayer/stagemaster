@@ -5,8 +5,10 @@
 extern crate alloc;
 use alloc::{string::String, vec::Vec};
 mod effect;
+mod output_master;
 mod plan;
 pub use effect::{Curve, EffectChannel, Keyframe, Transition};
+pub use output_master::OutputMaster;
 pub use plan::{Plan, Step};
 
 pub const MAX_STEPS: usize = 1024;

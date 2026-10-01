@@ -13,6 +13,7 @@ pub struct CompiledOutput {
     addresses: Vec<AttributeAddress>,
     bindings: Vec<FixtureBinding>,
     universe: u16,
+    intensity: Vec<bool>,
 }
 struct FixtureBinding {
     id: String,
@@ -84,14 +85,32 @@ impl CompiledOutput {
     /// # Errors
     /// Rejects a value buffer from a different plan shape.
     pub fn render(&self, values: &[u16]) -> Result<PreviewOutput, String> {
+        self.render_with_master(values, stagemaster_playback::OutputMaster::default())
+    }
+    /// Apply numeric intensity control before encoding; stored player values remain unchanged.
+    /// # Errors
+    /// Rejects a value buffer from a different plan shape.
+    pub fn render_with_master(
+        &self,
+        values: &[u16],
+        master: stagemaster_playback::OutputMaster,
+    ) -> Result<PreviewOutput, String> {
         if values.len() != self.addresses.len() {
             return Err("预览输出与计划不一致".into());
         }
+        let value_at = |index: usize| {
+            if self.intensity[index] {
+                master.scale(values[index])
+            } else {
+                values[index]
+            }
+        };
         let snapshot: OutputSnapshot = self
             .addresses
             .iter()
-            .zip(values)
-            .map(|(&address, &value)| {
+            .enumerate()
+            .map(|(index, &address)| {
+                let value = value_at(index);
                 (
                     address,
                     ResolvedAttribute {
@@ -123,9 +142,13 @@ impl CompiledOutput {
                         .iter()
                         .map(|a| AttributeOutput {
                             key: a.key.clone(),
-                            value: values[a.index],
+                            value: value_at(a.index),
                             function: a.functions.as_ref().and_then(|functions| {
-                                crate::function_output::describe(functions, a.fine, values[a.index])
+                                crate::function_output::describe(
+                                    functions,
+                                    a.fine,
+                                    value_at(a.index),
+                                )
                             }),
                         })
                         .collect(),
@@ -144,6 +167,7 @@ pub(super) fn compile_output(
     let mut addresses = Vec::new();
     let mut targets = Vec::new();
     let mut bindings = Vec::new();
+    let mut intensity = Vec::new();
     for (index, fixture) in array(lighting, "fixtures").iter().enumerate() {
         let patch = array(lighting, "patches")
             .iter()
@@ -159,6 +183,7 @@ pub(super) fn compile_output(
             .iter()
             .find(|p| p["id"] == fixture["profileId"])
             .ok_or("灯具档案不存在")?;
+        let intensity_keys = crate::output_intensity::keys(profile);
         let fixture_id = FixtureId(u64::try_from(index).map_err(|_| "灯具数量超限")?);
         let mut attributes = Vec::new();
         let mut channels = Vec::new();
@@ -173,14 +198,7 @@ pub(super) fn compile_output(
                 .iter()
                 .find(|c| c["attribute"] == name)
                 .ok_or("属性没有通道映射")?;
-            let offsets = array(channel, "offsets")
-                .iter()
-                .map(|v| {
-                    v.as_u64()
-                        .and_then(|n| u16::try_from(n).ok())
-                        .ok_or("通道偏移无效")
-                })
-                .collect::<Result<Vec<_>, _>>()?;
+            let offsets = channel_offsets(channel)?;
             let default = crate::fixture_value::encode(profile, name, &attribute["default"])?;
             attributes.push(AttributeBinding {
                 key: name.into(),
@@ -188,6 +206,7 @@ pub(super) fn compile_output(
                 functions: crate::fixture_value::functions(channel)?,
                 fine: offsets.len() == 2,
             });
+            intensity.push(intensity_keys.contains(&name));
             defaults.push(default);
             targets.push((text(fixture, "id").into(), name.into()));
             addresses.push(AttributeAddress::new(fixture_id, attr));
@@ -231,6 +250,7 @@ pub(super) fn compile_output(
             addresses,
             bindings,
             universe,
+            intensity,
         },
         defaults,
         targets,
@@ -241,4 +261,16 @@ fn small(value: &serde_json::Value, key: &str) -> Result<u16, String> {
         .as_u64()
         .and_then(|n| u16::try_from(n).ok())
         .ok_or_else(|| format!("{key} 数值越界"))
+}
+
+fn channel_offsets(channel: &serde_json::Value) -> Result<Vec<u16>, String> {
+    array(channel, "offsets")
+        .iter()
+        .map(|value| {
+            value
+                .as_u64()
+                .and_then(|n| u16::try_from(n).ok())
+                .ok_or_else(|| "通道偏移无效".to_string())
+        })
+        .collect()
 }

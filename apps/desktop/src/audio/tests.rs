@@ -79,7 +79,11 @@ fn backward_seek_rebuilds_effect_phase_and_marker_boundary_is_exact() {
         (1250, Some(4)),
     ] {
         preview.transport.seek(time).unwrap();
-        let out = preview.render(&doc, 1).unwrap().output.unwrap();
+        let out = preview
+            .render(&doc, 1, stagemaster_playback::OutputMaster::default())
+            .unwrap()
+            .output
+            .unwrap();
         let active = out
             .slots
             .iter()
@@ -148,7 +152,9 @@ fn native_cursor_seek_uses_transition_snapshot_and_retains_pause_state() {
         (4000, 255),
     ] {
         preview.transport.seek(time).unwrap();
-        let result = preview.render(&doc, 1).unwrap();
+        let result = preview
+            .render(&doc, 1, stagemaster_playback::OutputMaster::default())
+            .unwrap();
         assert_eq!(result.status, "paused");
         let output = result.output.unwrap();
         assert_eq!(output.slots[0], level, "at {time}");
@@ -181,7 +187,9 @@ fn explicit_clip_gap_copy_and_backward_seek_use_native_cursor_without_reloading_
         .unwrap();
     for (time, lit) in [(1250, Some(4)), (2000, None), (3000, None), (1250, Some(4))] {
         preview.transport.seek(time).unwrap();
-        let result = preview.render(&doc, 2).unwrap();
+        let result = preview
+            .render(&doc, 2, stagemaster_playback::OutputMaster::default())
+            .unwrap();
         let out = result.output.unwrap();
         assert_eq!(
             out.slots
@@ -198,7 +206,30 @@ fn explicit_clip_gap_copy_and_backward_seek_use_native_cursor_without_reloading_
     preview.synchronize(&doc);
     assert_eq!(preview.position().position_ms, saved);
     preview.transport.seek(2750).unwrap();
-    let out = preview.render(&doc, 3).unwrap().output.unwrap();
+    let out = preview
+        .render(&doc, 3, stagemaster_playback::OutputMaster::default())
+        .unwrap()
+        .output
+        .unwrap();
     assert_eq!(out.slots[4], 255);
     assert!(!preview.position().playing);
+}
+
+#[test]
+fn music_master_restores_current_effect_without_seeking_or_rebuilding_transport() {
+    let (doc, track) = document();
+    let mut preview = AudioPreview::default();
+    preview.load("unused-paused.wav".into(), track).unwrap();
+    let mut master = stagemaster_playback::OutputMaster::default();
+    master.set_blackout(true);
+    preview.transport.seek(1250).unwrap();
+    let dark = preview.render(&doc, 1, master).unwrap().output.unwrap();
+    assert_eq!(dark.slots[4], 0);
+    preview.transport.seek(1500).unwrap();
+    master.set_blackout(false);
+    master.set_percent(50).unwrap();
+    let restored = preview.render(&doc, 1, master).unwrap().output.unwrap();
+    assert_eq!(restored.slots[8], 128);
+    assert_eq!(restored.slots[4], 0);
+    assert_eq!(preview.position().position_ms, 1500);
 }

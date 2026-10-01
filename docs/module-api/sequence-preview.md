@@ -55,3 +55,11 @@ FIXTURE-003B 已接命名功能区间、类型化属性与 UI，详见[灯具建
 [ADR-062](../development/decisions/PRODUCT-ADR-062-sequence-script-prompts.md) 增加 `SequenceEdit::UpdateStepScript { id, step_id, script: Option<StepScript> }`；JSON 命令为 `updateStepScript`，对象含 `section`／`trigger`／`notes`。null 或全空清除；旧 updateStep 保留提示。工程带对象时要求 `lighting.sequence-script@1`，单字段 80／1024／4096 个 Unicode 字符，每列表 UTF-8 总量最多 64 KiB。提示复制、删除、撤销和保存沿用工程事务。
 
 ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不增加字段。执行台当前／下一步读取编译元数据；编辑后的提示不覆盖旧运行快照。文字不改变 delay／fade／advance，也不进入纯 Plan 或设备播放包，硬件执行容量不因此增加。检索仅影响界面选择，幕场标签不构成嵌套调度。
+
+## 会话预演总控
+
+[ADR-068](../development/decisions/PRODUCT-ADR-068-preview-output-master.md) 的 `OutputMaster` 在 Player 之后、DMX 编码之前应用。`CompiledOutput::render_with_master(values, master)` 根据已编译强度掩码生成同源槽位／监看；原 render 等价于 100%／未熄灯。数值调光优先，无调光时完整数值 RGB 同比缩放；运动、功能与未知属性不缩放。整数四舍五入，0% 或 blackout 使支持的强度归零；Player 和音乐时钟不变。
+
+`ApplicationHost.output` 对接 `output_request`，请求为 snapshot 或 set（epoch、serial、percent、blackout），快照返回同字段与 uncontrolledFixtures。专用会话代次和序号拒绝旧工程／重放；成功打开／新建重置，编辑／保存／载入节目／切页不重置。不写入工程、历史或设备包。停止恢复默认值仍受总控抑制，解除熄灯恢复记忆百分比；错误草稿不能阻止操作。
+
+静态三维仅缩放渲染强度，播放三维使用已缩放属性而不重复衰减。全局界面明确“预演”，没有真实设备输出或安全急停的含义。

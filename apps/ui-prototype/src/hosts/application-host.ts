@@ -4,6 +4,7 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      output: request => invoke("output_request", {request}),
       recent: (request) => invoke("recent_request", { request }),
       audioPrepare: (generation, kind) =>
         invoke("audio_prepare", { generation, kind }),
@@ -27,6 +28,7 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
+      output: async () => { throw new Error("请使用桌面应用控制预演亮度"); },
       recent: async () => [],
       audioPrepare: async () => {
         throw new Error("请使用桌面应用导入本机音乐");

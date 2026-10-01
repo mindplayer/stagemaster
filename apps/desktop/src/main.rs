@@ -4,6 +4,7 @@ mod check;
 mod device;
 mod installation;
 mod lifecycle;
+mod output_control;
 mod package;
 mod preview;
 mod previs;
@@ -219,6 +220,7 @@ fn main() {
             audio::prepare::audio_prepare,
             audio::prepare::audio_cancel,
             preview_request,
+            output_control::output_request,
             check::check_request,
             package::package_build,
             package::package_export,

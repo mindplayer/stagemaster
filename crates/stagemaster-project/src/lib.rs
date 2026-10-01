@@ -27,6 +27,7 @@ mod fixture_value;
 mod fixture_view;
 mod function_output;
 mod output;
+mod output_intensity;
 pub use fixture_function::{
     FunctionDefinition, FunctionMode, FunctionSelection, FunctionTable, MAX_CHANNEL_FUNCTIONS,
     ProfileDefault,

@@ -50,6 +50,7 @@ impl AudioPreview {
         &mut self,
         doc: &Document,
         version: u64,
+        master: stagemaster_playback::OutputMaster,
     ) -> Result<crate::preview::RenderOutput, String> {
         let track = self.track.as_ref().ok_or("请先准备音乐")?;
         let pos = self.transport.position();
@@ -84,7 +85,11 @@ impl AudioPreview {
         lighting.elapsed = elapsed;
         Ok(crate::preview::RenderOutput {
             status: if pos.playing { "running" } else { "paused" },
-            output: Some(lighting.output.render(lighting.player.values())?),
+            output: Some(
+                lighting
+                    .output
+                    .render_with_master(lighting.player.values(), master)?,
+            ),
         })
     }
 }
