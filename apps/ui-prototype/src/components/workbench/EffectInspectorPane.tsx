@@ -9,6 +9,7 @@ export function EffectInspectorPane({
   selection,
   editor,
   fixtures,
+  placements,
   selected,
   busy,
   error,
@@ -23,6 +24,7 @@ export function EffectInspectorPane({
   selection: EffectSelection | null;
   editor: Ref<EffectHandle>;
   fixtures: FixtureView[];
+  placements: import("../../stage-types").FixturePlacement[];
   selected: string[];
   busy: boolean;
   error: string;
@@ -48,6 +50,7 @@ export function EffectInspectorPane({
           sceneId={selection.sceneId}
           isNew={selection.isNew}
           fixtures={fixtures}
+          placements={placements}
           selected={selected}
           busy={busy}
           error={error}

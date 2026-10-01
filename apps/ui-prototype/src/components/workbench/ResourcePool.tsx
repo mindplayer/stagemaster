@@ -345,6 +345,7 @@ export function ResourcePool({
       )}
       {dialog?.kind === "group" && (
         <GroupEditor
+          placements={project.stage.placements}
           group={project.groups.find((g) => g.id === dialog.id)}
           fixtures={project.fixtures}
           selected={selected}

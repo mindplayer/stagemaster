@@ -44,6 +44,8 @@
     "tests/parameter-categories.test.ts",
     "tests/parameter-categories-harness.tsx",
     "tests/group-members.test.ts",
+    "tests/spatial-fixture-order.test.ts",
+    "tests/effect-draft-harness.tsx",
     "tests/group-members-harness.tsx",
     "tests/copy-values-preview.test.ts",
     "tests/preset-scope.test.ts",

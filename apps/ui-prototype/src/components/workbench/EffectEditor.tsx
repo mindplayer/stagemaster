@@ -1,3 +1,4 @@
+import type { FixturePlacement } from "../../stage-types";
 import {
   forwardRef,
   useEffect,
@@ -28,6 +29,7 @@ export interface EffectEditorProps {
   effect: SceneEffect;
   sceneId: string;
   fixtures: FixtureView[];
+  placements: FixturePlacement[];
   selected: string[];
   isNew: boolean;
   busy: boolean;
@@ -45,6 +47,7 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       effect,
       sceneId,
       fixtures,
+      placements,
       selected,
       isNew,
       busy,
@@ -374,6 +377,7 @@ export const EffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           )}
         </div>
         <EffectFixtureOrder
+          placements={placements}
           ids={draft.fixtureIds}
           fixtures={fixtures}
           selected={selected}

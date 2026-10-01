@@ -1260,6 +1260,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 >
                   <div className="wb-properties">
                     <EffectInspectorPane
+                      placements={project.stage.placements}
                       selection={
                         page === "scenes" ? effectWorkspace.active : null
                       }

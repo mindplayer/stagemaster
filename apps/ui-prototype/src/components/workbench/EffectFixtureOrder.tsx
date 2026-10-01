@@ -1,24 +1,24 @@
+import type { FixturePlacement } from "../../stage-types";
+import { FixtureOrderTools } from "../fixtures/FixtureOrderTools";
 import { useState } from "react";
 import type { FixtureView } from "../../application-host";
 import type { EffectChannel } from "../../effect-types";
 import { reorderEffect } from "../../effect-tools";
-import {
-  arrangeEffectFixtures,
-  effectTargetIssues,
-  type EffectOrder,
-} from "../../effect-targets";
+import { effectTargetIssues } from "../../effect-targets";
 import { searchResources } from "../resources/resource-search";
 import { EffectTargetReport } from "./EffectTargetReport";
 import "./effect-targets.css";
 export function EffectFixtureOrder({
   ids,
   fixtures,
+  placements,
   selected,
   channels,
   onChange,
 }: {
   ids: string[];
   fixtures: FixtureView[];
+  placements: FixturePlacement[];
   selected: string[];
   channels: EffectChannel[];
   onChange(ids: string[]): void;
@@ -56,32 +56,12 @@ export function EffectFixtureOrder({
       {!!selectionIssues.length && (
         <EffectTargetReport issues={selectionIssues} />
       )}
-      <div className="effect-order-actions" role="group" aria-label="整组灯序">
-        {(
-          [
-            ["reverse", "反转排序"],
-            ["oddFirst", "奇数位在前"],
-            ["name", "按名称排序"],
-            ["patch", "按配适排序"],
-          ] as [EffectOrder, string][]
-        ).map(([order, label]) => (
-          <button
-            key={order}
-            type="button"
-            disabled={ids.length < 2}
-            title={
-              order === "oddFirst"
-                ? "按当前顺序先排第 1、3、5…位，再排第 2、4、6…位；保留所有灯具"
-                : order === "patch"
-                  ? "按控制域、输出路、地址排序，未配适灯具保留原顺序置后"
-                  : undefined
-            }
-            onClick={() => change(arrangeEffectFixtures(ids, fixtures, order))}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <FixtureOrderTools
+        ids={ids}
+        fixtures={fixtures}
+        placements={placements}
+        onChange={change}
+      />
       <EffectTargetReport issues={currentIssues} />
       <ol>
         {ids.map((id, i) => (

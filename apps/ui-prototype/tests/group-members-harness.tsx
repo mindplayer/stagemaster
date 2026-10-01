@@ -50,6 +50,16 @@ function Harness() {
       </output>
       {open && (
         <GroupEditor
+          placements={fixtures.slice(0, 60).map((f, i) => ({
+            fixtureId: f.id,
+            spaceId: null,
+            positionMeters: {
+              x: String(60 - i),
+              y: String(i % 3),
+              z: String(i % 2),
+            },
+            rotationDegreesXYZ: { x: "0", y: "0", z: "0" },
+          }))}
           group={group}
           fixtures={fixtures}
           selected={["f123", "f62", "f5"]}

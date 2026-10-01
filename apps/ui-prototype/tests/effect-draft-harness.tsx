@@ -18,7 +18,7 @@ import "../src/workbench.css";
 function Harness() {
   const editor = useRef<EffectHandle>(null);
   const [effect, setEffect] = useState(
-    createEffect("breathe", "effect", ["lamp"]),
+    createEffect("breathe", "effect", ["lamp", "second", "missing"]),
   );
   const [reset, setReset] = useState(0);
   const [mode, setMode] = useState<EffectTemplate>("breathe");
@@ -74,7 +74,9 @@ function Harness() {
           onChange={(e) => {
             const next = e.target.value as EffectTemplate;
             setMode(next);
-            setEffect(createEffect(next, "effect", ["lamp"]));
+            setEffect(
+              createEffect(next, "effect", ["lamp", "second", "missing"]),
+            );
             setDirty(false);
           }}
         >
@@ -85,14 +87,33 @@ function Harness() {
       </label>
       <p role="status">
         已应用 {applied} 次；草稿 {dirty ? "有" : "无"}；预演周期 {period}
+        ；已存灯序 {effect.fixtureIds.join(",")}
       </p>
       <Editor
+        placements={[
+          {
+            fixtureId: "lamp",
+            spaceId: null,
+            positionMeters: { x: "10", y: "0", z: "1" },
+            rotationDegreesXYZ: { x: "0", y: "0", z: "0" },
+          },
+          {
+            fixtureId: "second",
+            spaceId: null,
+            positionMeters: { x: "-1", y: "0", z: "3" },
+            rotationDegreesXYZ: { x: "0", y: "0", z: "0" },
+          },
+        ]}
         key={`${mode}:${reset}`}
         ref={editor}
         effect={effect}
         sceneId="scene"
-        fixtures={[fixture]}
-        selected={["lamp"]}
+        fixtures={[
+          fixture,
+          { ...fixture, id: "second", name: "第二灯" },
+          { ...fixture, id: "missing", name: "未布置灯" },
+        ]}
+        selected={["lamp", "second", "missing"]}
         isNew={false}
         busy={false}
         error=""

@@ -128,6 +128,7 @@ function Harness() {
         <div>舞台区域（隔离测试无渲染器）</div>
         <div className="wb-properties" style={{ overflow: "auto" }}>
           <EffectInspectorPane
+            placements={project.stage.placements}
             selection={effectSelection.active}
             editor={effects}
             fixtures={fixtures}

@@ -1,3 +1,4 @@
+import type { FixturePlacement } from "../../stage-types";
 import { useState } from "react";
 import type { FixtureView } from "../../application-host";
 import type { GroupView, LibraryEdit } from "../../library-types";
@@ -8,6 +9,7 @@ import { LibraryDialog } from "./LibraryDialog";
 export function GroupEditor({
   group,
   fixtures,
+  placements,
   selected,
   name: initialName,
   busy,
@@ -17,6 +19,7 @@ export function GroupEditor({
 }: {
   group?: GroupView;
   fixtures: FixtureView[];
+  placements: FixturePlacement[];
   selected: string[];
   name: string;
   busy: boolean;
@@ -60,6 +63,7 @@ export function GroupEditor({
       <GroupMemberTools
         ids={ids}
         fixtures={fixtures}
+        placements={placements}
         selected={selected}
         initial={group?.fixtureIds ?? selected}
         onChange={setIds}

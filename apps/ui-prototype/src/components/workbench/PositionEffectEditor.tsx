@@ -27,6 +27,7 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
       effect,
       sceneId,
       fixtures,
+      placements,
       selected,
       isNew,
       busy,
@@ -266,6 +267,7 @@ export const PositionEffectEditor = forwardRef<EffectHandle, EffectEditorProps>(
           </label>
         </div>
         <EffectFixtureOrder
+          placements={placements}
           ids={draft.fixtureIds}
           fixtures={fixtures}
           selected={selected}
