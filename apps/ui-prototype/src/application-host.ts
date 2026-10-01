@@ -139,6 +139,10 @@ export interface ApplicationHost {
     generation: number,
     profileId: string,
   ): Promise<import("./profile-file-types").ExportedProfile>;
+  exportSequenceReport(
+    generation: number,
+    sequenceId: string,
+  ): Promise<import("./report-types").SequenceReportExport>;
   exportPatchReport(
     generation: number,
   ): Promise<import("./report-types").PatchReportExport>;

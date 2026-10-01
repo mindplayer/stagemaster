@@ -17,12 +17,15 @@ mod check;
 mod compilation;
 mod package;
 mod patch_report;
+mod report_csv;
+mod sequence_report;
 pub use check::{
     CheckIssue, CheckLocation, CheckReport, PlanLimits, PlanUsage, ProgramCheck, ProgramStatus,
     Severity,
 };
 pub use package::{PackageBuild, PackageIssue, PackageProgram, PackageReport, PackageSelection};
 pub use patch_report::PatchReport;
+pub use sequence_report::SequenceReport;
 mod editing;
 mod effect_compile;
 mod effects;

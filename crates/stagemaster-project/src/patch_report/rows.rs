@@ -1,5 +1,6 @@
 //! Fixture identities, addresses and world placement joined for crew handoff.
-use super::csv_format::{FORMAT, literal};
+use super::csv_format::FORMAT;
+use crate::report_csv::literal;
 use crate::{
     FixturePlacement,
     view::{FixtureView, ProfileView, ProjectView},

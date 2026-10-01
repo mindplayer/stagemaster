@@ -4,3 +4,12 @@ export interface PatchReportExport {
   fixtureCount: number;
   warning: string | null;
 }
+
+export interface SequenceReportExport {
+  generation: number;
+  path: string | null;
+  sequenceId: string;
+  sequenceName: string;
+  stepCount: number;
+  warning: string | null;
+}

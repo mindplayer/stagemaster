@@ -11,6 +11,7 @@ const unavailable = async () => {
 };
 const host: ApplicationHost = {
   exportPatchReport: unavailable,
+  exportSequenceReport: unavailable,
   importProfile: unavailable,
   exportProfile: unavailable,
   recent: async () => [],

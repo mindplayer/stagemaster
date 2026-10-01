@@ -140,7 +140,7 @@
 
 ## 实施跟踪（2026-10-01）
 
-下表对齐 UX-039；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
+下表对齐 REPORT-002；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
 
 | 原问题 | 已实施与验证 | 剩余范围 |
 | --- | --- | --- |
@@ -157,4 +157,4 @@
 | F02 | POSITION-001／EFFECT-003 物理双轴；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 功能区间建档／类型值／预设／兼容包；FIXTURE-003A 直接切换执行；[FIXTURE-004](development/tasks/FIXTURE-004-portable-modes.md) 模式文件跨工程复用与显式导入检查；[FIXTURE-005](development/tasks/FIXTURE-005-continuous-optics.md) 连续镜头／光圈建档、场景预设、渐变及包 | 多单元／关联通道、复位控制、物理光学、GDTF 导入和实灯验证 |
 | F01 | 既有设备安装／内存保护有实板证据 | 真实 DMX、脱机执行、现场时序与灯具验收仍未关闭 |
 
-工程交接增量：[REPORT-001](development/tasks/REPORT-001-patch-report-export.md) 已提供全灯具快照配灯表 CSV（含模式／地址／世界安装位置与来源），原生 80 灯内容、取消／错误草稿和历史保护通过。灯位图纸、节目单、可携带灯库与跨机／表格应用兼容仍另验。
+工程交接增量：[REPORT-001](development/tasks/REPORT-001-patch-report-export.md) 已提供全灯具快照配灯表 CSV（含模式／地址／世界安装位置与来源），原生 80 灯内容、取消／错误草稿和历史保护通过。[REPORT-002](development/tasks/REPORT-002-sequence-report-export.md) 已增加场景列表节目单及共享保护，六步原序／多行剧本／精确时间／快照来源与只读导出通过；FIXTURE-004 已补模式文件复用。灯位图纸、跨机／表格应用兼容仍另验。

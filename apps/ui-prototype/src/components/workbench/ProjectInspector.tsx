@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import { TrashIcon } from "@phosphor-icons/react";
 import { availableAddress } from "../../editor-tools";
 import type { ProjectView, FixtureView } from "../../application-host";
@@ -39,6 +39,15 @@ export function ProjectInspector({
   onCancel: () => void;
   onDelete: () => void;
 }) {
+  // A cancelled draft reuses these inputs; native custom errors must not survive it.
+  useEffect(() => {
+    if (pending) return;
+    htmlProjectForm.current
+      ?.querySelectorAll<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >("input,select,textarea")
+      .forEach((field) => field.setCustomValidity(""));
+  }, [pending, form?.kind, form?.id, htmlProjectForm]);
   return (
     <aside className="wb-inspector">
       {form ? (

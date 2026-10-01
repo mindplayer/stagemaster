@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import { PackagePanel } from "../workbench/PackagePanel";
 import { ProjectCheckPanel } from "../workbench/ProjectCheckPanel";
+import { SequenceReportExport } from "./SequenceReportExport";
 import { PatchReportExport } from "./PatchReportExport";
 
 /** Project handoff and checks stay mounted across workspace navigation. */
@@ -43,6 +44,9 @@ export function ProjectDocuments({
         </details>
       )}
       <PatchReportExport
+        {...{ host, project, generation, hasDrafts, visible, busy, capture }}
+      />
+      <SequenceReportExport
         {...{ host, project, generation, hasDrafts, visible, busy, capture }}
       />
       <PackagePanel {...packageProps} />

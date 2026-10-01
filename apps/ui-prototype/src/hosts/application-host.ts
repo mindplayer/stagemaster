@@ -8,6 +8,8 @@ export const applicationHost: ApplicationHost = isTauri()
         invoke("profile_file_import", { generation }),
       exportProfile: (generation, profileId) =>
         invoke("profile_file_export", { generation, profileId }),
+      exportSequenceReport: (generation, sequenceId) =>
+        invoke("sequence_report_export", { generation, sequenceId }),
       exportPatchReport: (generation) =>
         invoke("patch_report_export", { generation }),
       output: (request) => invoke("output_request", { request }),
@@ -39,6 +41,9 @@ export const applicationHost: ApplicationHost = isTauri()
       },
       exportProfile: async () => {
         throw new Error("请使用桌面应用导出灯具模式");
+      },
+      exportSequenceReport: async () => {
+        throw new Error("请使用桌面应用导出节目单");
       },
       exportPatchReport: async () => {
         throw new Error("请使用桌面应用导出配灯表");

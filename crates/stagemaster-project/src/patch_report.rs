@@ -2,7 +2,8 @@
 mod csv_format;
 mod rows;
 use crate::Document;
-use csv_format::{BoundedCsv, HEADERS};
+use crate::report_csv::BoundedCsv;
+use csv_format::HEADERS;
 use sha2::{Digest, Sha256};
 
 pub struct PatchReport {

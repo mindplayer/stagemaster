@@ -3,6 +3,8 @@ mod package;
 mod patch_report;
 mod profile_file;
 mod recovery;
+mod report_file;
+mod sequence_report;
 pub use package::PackageFile;
 pub use patch_report::PatchReportFile;
 pub use profile_file::ProfileFileStore;
@@ -10,6 +12,7 @@ pub use recovery::{
     MAX_RECOVERY_RECORDS, RecoveryCandidate, RecoveryCatalog, RecoveryEntry, RecoverySession,
     RecoveryState, RecoveryStore,
 };
+pub use sequence_report::SequenceReportFile;
 use stagemaster_project::{Document, MAX_BYTES};
 use std::{
     fs::{self, File, OpenOptions},

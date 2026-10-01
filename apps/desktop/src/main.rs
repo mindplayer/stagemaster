@@ -12,6 +12,8 @@ mod previs;
 mod profile_file;
 mod recent;
 mod recovery;
+mod report_export;
+mod sequence_report;
 mod session;
 use serde::Deserialize;
 use session::{Session, Snapshot};
@@ -173,7 +175,7 @@ fn main() {
         .manage(previs::Bridge::default())
         .manage(check::Service::default())
         .manage(package::Service::default())
-        .manage(patch_report::Service::default())
+        .manage(report_export::Service::default())
         .manage(profile_file::Service::default())
         .manage(devices)
         .manage(installation)
@@ -246,6 +248,7 @@ fn main() {
             package::package_build,
             package::package_export,
             patch_report::patch_report_export,
+            sequence_report::sequence_report_export,
             profile_file::profile_file_export,
             profile_file::profile_file_import,
             recovery::recovery_request,

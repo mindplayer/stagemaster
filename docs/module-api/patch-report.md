@@ -18,7 +18,7 @@ const receipt = await host.exportPatchReport(generation);
 // { generation, path: string | null, fixtureCount, warning: string | null }
 ```
 
-桌面命令 `patch_report_export` 持独立导出门及现有工程操作门；短暂取得 Session 锁核对 generation、捕获文档和源路径，然后在锁外编码、弹原生保存窗与落盘。过期版本拒绝，取消返回 path=null。TS 不提交自行组装的 CSV；先调用既有 captureCheck 收集有效草稿，无效字段定位原处。结果与当前 generation 或未应用草稿不一致时提示重新导出；跨页面保留结果，换工程清空。
+桌面命令 `patch_report_export` 与节目单共用报表导出门，并持有现有工程操作门；短暂取得 Session 锁核对 generation、捕获文档和源路径，然后在锁外编码、弹原生保存窗与落盘。过期版本拒绝，取消返回 path=null。TS 不提交自行组装的 CSV；先调用既有 captureCheck 收集有效草稿，无效字段定位原处。结果与当前 generation 或未应用草稿不一致时提示重新导出；跨页面保留结果，换工程清空。
 
 `.csv` 目的文件由 project-store 复用临时写入／文件基线／所有权锁与原子提交。拒绝当前工程、符号链接、非普通文件以及非本版配灯表的已有文件；同格式报表仍须通过文件未被外部更改的检查。导出不写工程历史、不激活预演、也不持有现场输出权限。工程操作在导出门后排队，取样会话锁不会在保存窗口期间被长时间占用。
 

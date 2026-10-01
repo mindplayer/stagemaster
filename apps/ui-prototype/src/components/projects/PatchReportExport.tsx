@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useReportExport } from "./use-report-export";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { PatchReportExport as Receipt } from "../../report-types";
 import "./patch-report.css";
@@ -20,40 +20,10 @@ export function PatchReportExport({
   visible: boolean;
   capture(): Promise<number | null>;
 }) {
-  const [working, setWorking] = useState(false);
-  const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const active = useRef(false),
-    mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  async function start() {
-    if (active.current || busy) return;
-    active.current = true;
-    setWorking(true);
-    setError("");
-    setMessage("");
-    setReceipt(null);
-    try {
-      const version = await capture();
-      if (version === null || !mounted.current) return;
-      const result = await host.exportPatchReport(version);
-      if (!mounted.current) return;
-      if (result.path) setReceipt(result);
-      else setMessage("已取消导出");
-    } catch (error) {
-      if (mounted.current)
-        setError(error instanceof Error ? error.message : String(error));
-    } finally {
-      active.current = false;
-      if (mounted.current) setWorking(false);
-    }
-  }
+  const { working, receipt, message, error, start } = useReportExport<Receipt>({
+    busy,
+    capture,
+  });
   const placed = new Set(project.stage.placements.map((p) => p.fixtureId));
   const missingPatch = project.fixtures.filter(
     (f) => f.address === null || f.universe === null,
@@ -72,7 +42,12 @@ export function PatchReportExport({
           <h2>配灯表</h2>
           <p>{project.fixtures.length} 台灯具 · 全部导出</p>
         </div>
-        <button disabled={busy || working} onClick={() => void start()}>
+        <button
+          disabled={busy || working}
+          onClick={() =>
+            void start((version) => host.exportPatchReport(version))
+          }
+        >
           {working ? "正在导出…" : "导出配灯表（CSV）"}
         </button>
       </div>

@@ -41,6 +41,7 @@ const unsupported = async () => {
 };
 const host: ApplicationHost = {
   exportPatchReport: unsupported,
+  exportSequenceReport: unsupported,
   importProfile: unsupported,
   exportProfile: unsupported,
   recent: async () => [],
