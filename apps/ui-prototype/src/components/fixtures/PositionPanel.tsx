@@ -113,7 +113,12 @@ export function PositionPanel({
     }
   }
   useImperativeHandle(ref, () => ({ collect, accept }));
-  if (!heads.length) return null;
+  if (!heads.length)
+    return fixtures.some((f) => f.attributes.some((a) => a.key === "pan")) ? (
+      <p className="wb-dim">
+        所选摇头灯尚未定义轴行程与方向。可在灯光属性中按百分比编排；角度编辑和共同指向需要先在工程灯库补齐物理模型。
+      </p>
+    ) : null;
   const input = (key: keyof typeof values, label: string, placeholder = "") => (
     <label>
       {label}
@@ -153,7 +158,9 @@ export function PositionPanel({
         <span>{heads.length} 台摇头灯</span>
       </div>
       {heads.length !== fixtures.length ? (
-        <p>当前混选了固定灯，请仅选择摇头灯以编辑位置。</p>
+        <p>
+          当前选择包含固定灯或未定义物理模型的摇头灯，请仅选择具有两轴模型的灯具以编辑角度。
+        </p>
       ) : (
         <>
           <div className="position-tabs">

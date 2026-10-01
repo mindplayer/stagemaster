@@ -12,8 +12,8 @@ pub(super) fn profile(p: &Value) -> ProfileView {
         mode: text(p, "mode").into(),
         authorable: crate::fixture::supported_keys(
             array(p, "attributes").iter().map(|a| text(a, "key")),
-        ) && (array(p, "attributes").iter().any(|a| a["key"] == "pan")
-            == p.get("positioning").is_some())
+        ) && (p.get("positioning").is_none()
+            || array(p, "attributes").iter().any(|a| a["key"] == "pan"))
             && array(p, "attributes")
                 .iter()
                 .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),

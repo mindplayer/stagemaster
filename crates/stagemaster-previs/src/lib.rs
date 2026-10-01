@@ -88,6 +88,17 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 .iter()
                 .find(|f| f.id == placement.fixture_id)
                 .ok_or("灯位的灯具缺失")?;
+            if fixture.positioning.is_none()
+                && fixture
+                    .attributes
+                    .iter()
+                    .any(|a| a.key == "pan" || a.key == "tilt")
+            {
+                return Err(format!(
+                    "摇头灯“{}”尚未定义轴行程与方向，请先在工程灯库补齐物理模型",
+                    fixture.name
+                ));
+            }
             let mut attributes = fixture
                 .attributes
                 .iter()

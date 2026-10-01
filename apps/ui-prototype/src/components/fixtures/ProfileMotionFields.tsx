@@ -3,6 +3,7 @@ import {
   channelLabels,
   type ProfileDraft,
 } from "../../fixture-tools";
+import { hasMotion, withPositionModel } from "../../profile-motion";
 export function ProfileMotionFields({
   value,
   setDraft,
@@ -15,11 +16,30 @@ export function ProfileMotionFields({
       <label className="profile-motion-toggle">
         <input
           type="checkbox"
-          checked={Boolean(value.positioning)}
+          checked={hasMotion(value)}
           onChange={(e) => setDraft(withMotion(value, e.target.checked))}
         />
         两轴摇头灯
       </label>
+      {hasMotion(value) && (
+        <>
+          <label className="profile-motion-toggle">
+            <input
+              type="checkbox"
+              checked={Boolean(value.positioning)}
+              onChange={(e) =>
+                setDraft(withPositionModel(value, e.target.checked))
+              }
+            />
+            定义轴行程与方向
+          </label>
+          {!value.positioning && (
+            <p className="wb-dim">
+              两轴通道可按百分比编排。补齐物理角度后，才能使用共同指向、角度效果和三维预演。
+            </p>
+          )}
+        </>
+      )}
       {value.positioning && (
         <section className="profile-motion">
           <h3>轴行程与输出方向</h3>

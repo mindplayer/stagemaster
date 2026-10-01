@@ -7,7 +7,7 @@ FIXTURE-002／FIXTURE-003B，依据 [ADR-024](../development/decisions/PRODUCT-A
 ```ts
 interface ProfileDefinition {
   name: string; manufacturer: string; model: string; mode: string;
-  positioning?: PositionModel; // 见位置求解契约，缺省为固定灯
+  positioning?: PositionModel; // 见位置求解契约；有轴但缺省时表示未定义物理模型
   footprint: number; // 1–512，包含空余通道
   channels: {
     attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "zoom" | "focus" | "iris" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
@@ -26,7 +26,7 @@ interface Repatch { universe: number; address: number; gap: number }
 // 宿主发送：{kind:"edit",generation,command:{op:"fixture",command}}
 ```
 
-- 允许调光、完整 RGB、调光加 RGB 三种基础属性集合，可另加成对 pan／tilt 和 positioning；属性、粗细通道不可重复，通道不可超出 footprint。基础属性为全范围线性映射；另支持四类离散功能通道，详见下文。空余输出 0。
+- 允许调光、完整 RGB、调光加 RGB 三种基础属性集合，可另加成对 pan／tilt，物理模型 positioning 可暂不定义；属性、粗细通道不可重复，通道不可超出 footprint。基础属性为全范围线性映射；另支持四类离散功能通道，详见下文。空余输出 0。
 - 粗细不是地址先后顺序。`coarse:5,fine:1` 存为 `encoding:"u16-be",offsets:[4,0]`；例如 0x1234 在相对通道 5 输出 0x12、相对通道 1 输出 0x34。8 位沿用既有归一化转换。
 - 界面百分比草稿保留六位小数，可无损往返 16 位默认值；核心继续接收整数，界面不参与逐帧求值。
 - 新模式 id=null 生成独立 id/revision；原位修改仅允许未使用模式并生成新 revision。复制通过新建命令实现，不继承身份。删除被引用模式拒绝；可撤销。
@@ -62,3 +62,9 @@ interface Repatch { universe: number; address: number; gap: number }
 百分比仅代表通道控制位置，不推断光束角、焦距、开度或正反方向。场景、释放、预设及列表／音频段落渐变使用原有 normalized／LTP 管线；总控／熄灯不改变这些属性。快速预设增加“仅镜头与光圈”范围。可携带模式文件保持准确粗细、默认值及独立导入身份。
 
 现有 lighting.basic 和通用播放包已承载这类值，不新增格式能力或执行版本；动态效果白名单未扩展。带宏／保留区间／非线性物理映射尚未建模。三维保留灯位并明确光学未模拟，不能把百分比显示当物理预演。
+
+## 通道与物理模型分开确认（FIXTURE-006）
+
+依 [ADR-087](../development/decisions/PRODUCT-ADR-087-fixture-mapping-without-geometry.md)，有两轴通道但没有物理模型的模式可建档、编排和无损导入导出，角度／指向／翻转／零偏操作拒绝。模型存在时仍必须具备完整两轴；旧工程和包语义不变。界面“定义轴行程与方向”独立于“两轴摇头灯”，新角度字段留空；取消保留原档案。已布置且无物理模型的灯具在三维预演时给出具名错误，不猜测几何。
+
+来自[实际 18／11 通道资料](../fixtures/user-supplied/README.md)的已知行程、未知零位、颜色档位及控制宏分别记录。本增量没有把未支持的多个光源或持时命令发布为可执行模式。

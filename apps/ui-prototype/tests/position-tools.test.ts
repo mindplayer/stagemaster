@@ -1,4 +1,5 @@
 import test from "node:test";
+import { withPositionModel } from "../src/profile-motion.ts";
 import assert from "node:assert/strict";
 import { axisReadout, positionDecimal } from "../src/position-tools.ts";
 import {
@@ -8,8 +9,22 @@ import {
   FixtureFieldError,
   compatibleProfile,
 } from "../src/fixture-tools.ts";
+function confirmedDraft() {
+  const draft = withPositionModel(withMotion(profileDraft(), true), true);
+  draft.positioning!.pan = {
+    minDegrees: "-270",
+    maxDegrees: "270",
+    reversed: false,
+  };
+  draft.positioning!.tilt = {
+    minDegrees: "-135",
+    maxDegrees: "135",
+    reversed: false,
+  };
+  return draft;
+}
 test("摇头模式独立粗细映射与物理范围往返，关闭运动保留颜色", () => {
-  const draft = withMotion(profileDraft(), true);
+  const draft = confirmedDraft();
   assert.equal(draft.footprint, "8");
   assert.deepEqual(
     draft.channels.slice(-2).map((c) => [c.coarse, c.fine]),
@@ -31,7 +46,7 @@ test("摇头模式独立粗细映射与物理范围往返，关闭运动保留�
   assert.equal(profileDraft().channels.length, 4);
 });
 test("物理角范围、缺轴与十进制错误定位，拒绝非有限值", () => {
-  const d = withMotion(profileDraft(), true);
+  const d = confirmedDraft();
   d.positioning!.tilt.maxDegrees = d.positioning!.tilt.minDegrees;
   assert.throws(
     () => profileDefinition(d),
@@ -51,7 +66,7 @@ test("轴角读数使用实际高字节与反向定义，八位步进不会假�
 });
 
 test("换灯候选不能把已记录的位置解释为另一种运动映射", () => {
-  const definition = profileDefinition(withMotion(profileDraft(), true));
+  const definition = profileDefinition(confirmedDraft());
   const f = {
     positioning: structuredClone(definition.positioning),
     attributes: definition.channels.map((c) => ({ key: c.attribute })),
@@ -102,4 +117,34 @@ test("目标坐标草稿拒绝空值与非十进制，键盘毫米精度且有�
   });
   assert.equal(nudgeAimPoint({ x: 0, y: 0 }, "Enter", false), null);
   assert.deepEqual(pointFields({ x: 1.25, y: 0 }), { x: "1.25", y: "0" });
+});
+
+test("新建两轴不猜测物理行程，显式定义前只保留通道", () => {
+  const draft = withMotion(profileDraft(), true);
+  assert.equal(draft.positioning, null);
+  const definition = profileDefinition(draft);
+  assert.equal(definition.positioning, undefined);
+  assert.deepEqual(profileDefinition(profileDraft(definition)), definition);
+  const withModel = withPositionModel(draft, true);
+  assert.equal(withModel.positioning!.pan.minDegrees, "");
+  assert.throws(
+    () => profileDefinition(withModel),
+    (e: unknown) =>
+      e instanceof FixtureFieldError && e.field === "pan-minDegrees",
+  );
+  assert.deepEqual(withModel.channels, draft.channels);
+  const missing = structuredClone(draft);
+  missing.channels = missing.channels.filter((c) => c.attribute !== "tilt");
+  assert.throws(() => profileDefinition(missing), /水平和垂直/);
+});
+test("开关物理模型不改粗细地址和初值，旧模型重复启用保持反向及精度", () => {
+  const draft = confirmedDraft();
+  draft.positioning!.pan.reversed = true;
+  draft.positioning!.tilt.maxDegrees = "100.5";
+  assert.deepEqual(withMotion(draft, true), draft);
+  assert.deepEqual(withPositionModel(draft, true), draft);
+  const unknown = withPositionModel(draft, false);
+  assert.deepEqual(unknown.channels, draft.channels);
+  assert.equal(unknown.positioning, null);
+  assert.equal(withPositionModel(profileDraft(), true).positioning, undefined);
 });

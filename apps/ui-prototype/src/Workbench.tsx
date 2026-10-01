@@ -1310,7 +1310,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                         hasPosition={selected.some(
                           (id) =>
                             project.fixtures.find((f) => f.id === id)
-                              ?.positioning,
+                              ?.attributes.some((a) => a.key === "pan"),
                         )}
                         position={
                           <>

@@ -3,6 +3,7 @@ import {
   fixtureInteger as integer,
 } from "./fixture-field-error.ts";
 export { FixtureFieldError } from "./fixture-field-error.ts";
+export { withMotion } from "./profile-motion.ts";
 import { opticsLabels } from "./fixture-optics.ts";
 import { functionLabels, sameFunctions } from "./fixture-function-types.ts";
 import {
@@ -91,17 +92,22 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const keys = draft.channels
     .map((c) => c.attribute)
     .filter((k) => !(k in functionLabels) && !Object.hasOwn(opticsLabels, k))
-    .filter((k) => !draft.positioning || (k !== "pan" && k !== "tilt"))
+    .filter((k) => k !== "pan" && k !== "tilt")
     .sort()
     .join(",");
   if (!["dimmer", "blue,green,red", "blue,dimmer,green,red"].includes(keys))
     throw new FixtureFieldError("family", "请选择调光、RGB 或调光加 RGB");
-  if (draft.positioning) {
+  if (
+    draft.positioning ||
+    draft.channels.some((c) => c.attribute === "pan" || c.attribute === "tilt")
+  ) {
     if (
       draft.channels.filter((c) => c.attribute === "pan").length !== 1 ||
       draft.channels.filter((c) => c.attribute === "tilt").length !== 1
     )
-      throw new FixtureFieldError("family", "两轴模型必须包含水平和垂直通道");
+      throw new FixtureFieldError("family", "两轴映射必须包含水平和垂直通道");
+  }
+  if (draft.positioning) {
     for (const axis of ["pan", "tilt"] as const) {
       const a = draft.positioning[axis];
       for (const key of ["minDegrees", "maxDegrees"] as const) {
@@ -280,39 +286,4 @@ export function availablePatch(
     }
   }
   return null;
-}
-
-export function withMotion(
-  draft: ProfileDraft,
-  enabled: boolean,
-): ProfileDraft {
-  const channels = draft.channels.filter(
-    (c) => c.attribute !== "pan" && c.attribute !== "tilt",
-  );
-  if (!enabled) return { ...draft, positioning: null, channels };
-  let offset = Math.max(
-    Number(draft.footprint) || channels.length,
-    ...channels.flatMap((c) => [
-      Number(c.coarse) || 0,
-      c.bits === "16" ? Number(c.fine) || 0 : 0,
-    ]),
-  );
-  for (const attribute of ["pan", "tilt"])
-    channels.push({
-      attribute,
-      coarse: String(++offset),
-      fine: String(++offset),
-      bits: "16",
-      percent: "50",
-    });
-  return {
-    ...draft,
-    channels,
-    footprint: String(offset),
-    positioning: {
-      kind: "intersectingOrthogonal",
-      pan: { minDegrees: "-270", maxDegrees: "270", reversed: false },
-      tilt: { minDegrees: "-135", maxDegrees: "135", reversed: false },
-    },
-  };
 }

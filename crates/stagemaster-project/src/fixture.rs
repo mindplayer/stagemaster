@@ -99,8 +99,8 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
         return Err("当前模式编辑支持调光、完整 RGB 或调光加 RGB；不能重复属性".into());
     }
     let has_axes = def.channels.iter().any(|c| c.attribute == "pan");
-    if has_axes != def.positioning.is_some() {
-        return Err("水平／垂直通道必须配套定义两轴物理模型".into());
+    if def.positioning.is_some() && !has_axes {
+        return Err("两轴物理模型必须配套定义水平／垂直通道".into());
     }
     if let Some(m) = &def.positioning {
         m.head(None)?;
