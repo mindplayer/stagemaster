@@ -6,6 +6,7 @@
 
 | 能力 | 已实现与证据 | 仍未完成／验收边界 |
 | --- | --- | --- |
+| 编排工作台 | [专注编排](development/tasks/UX-032-focus-editing-layout.md)：任务各自保持、侧栏与音乐控制保留、显式三维恢复；窄步骤区自适应 | 自由停靠／命名布局、完整辅助功能、独立用户测评 |
 | 工程编辑与持久化 | Rust 原子事务／撤销重做、严格读取、修订与保存冲突、[容量保护](module-api/project-capacity.md)、[崩溃恢复](module-api/project-recovery.md)、[最近工程](development/tasks/UX-024-recent-projects.md) | 未应用输入草稿恢复、版本迁移／比较、云端协作；其他平台需独立验收 |
 | 灯具定义与配适 | [FIXTURE-002](development/tasks/FIXTURE-002-profiles-patch.md)：工程内调光／RGB／双轴、8/16 位任意粗细映射、默认值、使用中模式保护、明确换灯、批量改址／占用图；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 增加单色盘／图案盘／快门频闪／棱镜的命名区间、类型化选择、8/16 位编码及兼容换灯 | 物理光学元数据、关联／控制通道、个人灯库、GDTF／OFL 导入、多单元和真实试灯 |
 | 灯组／预设与选择 | [资源模块](module-api/editing-library.md)、[中央平面选择](development/tasks/UX-026-scene-plan-selection.md)、[编排平面查看](development/tasks/UX-031-shared-stage-overview.md)、[搜索面板](development/tasks/UX-027-searchable-resources.md)：有序选择、追加／扣除、预设引用／独立值、依赖与更新保护 | 通用共享预设、配方、完整克隆／跨能力换灯 |

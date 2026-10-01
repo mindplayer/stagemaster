@@ -1,0 +1,68 @@
+/* Hide only viewing panels; keep the single audio control and renderer DOM. */
+.performance-layout[data-focus="editor"] {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.performance-layout[data-focus="editor"]
+  .region-viewport
+  > .dock-target
+  > .dock-pane:not(.viewport-transport-pane) {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.performance-layout[data-focus="editor"] .region-viewport > .dock-target {
+  height: auto;
+}
+.performance-layout[data-focus="editor"] .region-editor {
+  grid-column: 3;
+  grid-row: 2;
+}
+.performance-layout[data-focus="editor"] .region-library,
+.performance-layout[data-focus="editor"] .region-inspector,
+.performance-layout[data-focus="editor"] .divider-library,
+.performance-layout[data-focus="editor"] .divider-inspector {
+  grid-row: 1/-1;
+}
+.performance-layout[data-focus="editor"] .region-editor {
+  border-top: 1px solid var(--wb-border);
+}
+.region-editor {
+  container-type: inline-size;
+  container-name: arrangement;
+}
+@container arrangement (max-width: 780px) {
+  .performance-layout[data-focus="editor"] .wb-sequence-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .performance-layout[data-focus="editor"] .wb-sequence-content > * {
+    flex-shrink: 0;
+  }
+  .performance-layout[data-focus="editor"]
+    .wb-sequence-content
+    > .wb-steps-region {
+    flex: 1;
+    min-height: 80px;
+  }
+  .performance-layout[data-focus="editor"] .wb-sequence-content > .wb-preview {
+    max-height: min(240px, 28vh);
+    border-left: 0;
+    border-top: 1px solid var(--wb-border);
+  }
+  .performance-layout[data-focus="editor"] .wb-content-heading {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .performance-layout[data-focus="editor"]
+    .wb-content-heading
+    > div:first-child {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+  .performance-layout[data-focus="editor"] .wb-content-heading h1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}

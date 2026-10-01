@@ -12,6 +12,7 @@ export type DockRegion =
   "library" | "viewport" | "inspector" | "editor" | "full";
 export type DockTargets = Record<DockRegion, HTMLElement>;
 export const DockContext = createContext<DockTargets | null>(null);
+export const ViewportRevealContext = createContext<() => void>(() => {});
 
 /** Fixed portal identity; moving or hiding a panel never recreates its editor. */
 export function DockPane({

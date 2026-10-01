@@ -1,11 +1,18 @@
 // Test surface only: no files, devices, UE process or physical output.
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PerformanceLayout } from "../src/components/layout/PerformanceLayout";
-import { DockPane } from "../src/components/layout/DockPane";
+import {
+  DockPane,
+  ViewportRevealContext,
+} from "../src/components/layout/DockPane";
 import { LiveVideoFixture } from "./live-video-fixture";
 import "../src/base.css";
 import "../src/workbench.css";
+function Reveal() {
+  const reveal = useContext(ViewportRevealContext);
+  return <button onClick={reveal}>显式查看舞台</button>;
+}
 
 function Harness() {
   const [page, setPage] = useState("scenes");
@@ -28,7 +35,14 @@ function Harness() {
         }}
         toolbar={
           <nav aria-label="验收工作区">
-            {["scenes", "stage", "settings"].map((p) => (
+            {[
+              "scenes",
+              "sequences",
+              "audio",
+              "execution",
+              "stage",
+              "settings",
+            ].map((p) => (
               <button key={p} onClick={() => setPage(p)}>
                 {p}
               </button>
@@ -43,8 +57,19 @@ function Harness() {
           <LiveVideoFixture />
           <p>中央舞台</p>
         </DockPane>
-        <DockPane region="editor" visible={page === "scenes"}>
+        <DockPane
+          region="viewport"
+          className="viewport-transport-pane"
+          visible={page === "audio"}
+        >
+          <button>独立音乐控制验收</button>
+        </DockPane>
+        <DockPane
+          region="editor"
+          visible={["scenes", "sequences", "audio"].includes(page)}
+        >
           <p>编排</p>
+          <Reveal />
         </DockPane>
         <DockPane region="inspector" visible={page !== "settings"}>
           <input

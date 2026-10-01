@@ -4,13 +4,17 @@ export interface LayoutPreferences {
   editor: number;
   showLibrary: boolean;
   showInspector: boolean;
+  focusedTasks: LayoutTask[];
 }
+export const layoutTasks = ["scenes", "sequences", "audio"] as const;
+export type LayoutTask = (typeof layoutTasks)[number];
 export const defaultLayout: LayoutPreferences = {
   library: 240,
   inspector: 300,
   editor: 320,
   showLibrary: true,
   showInspector: true,
+  focusedTasks: [],
 };
 export const panelBounds = {
   library: [180, 380],
@@ -26,7 +30,8 @@ export function panelSize(panel: keyof typeof panelBounds, value: number) {
 export function readLayout(raw: string | null): LayoutPreferences {
   try {
     const data = JSON.parse(raw ?? "null");
-    if (!data || typeof data !== "object") return { ...defaultLayout };
+    if (!data || typeof data !== "object")
+      return { ...defaultLayout, focusedTasks: [] };
     return {
       library: panelSize("library", data.library),
       inspector: panelSize("inspector", data.inspector),
@@ -35,8 +40,12 @@ export function readLayout(raw: string | null): LayoutPreferences {
         typeof data.showLibrary === "boolean" ? data.showLibrary : true,
       showInspector:
         typeof data.showInspector === "boolean" ? data.showInspector : true,
+      focusedTasks: layoutTasks.filter(
+        (task) =>
+          Array.isArray(data.focusedTasks) && data.focusedTasks.includes(task),
+      ),
     };
   } catch {
-    return { ...defaultLayout };
+    return { ...defaultLayout, focusedTasks: [] };
   }
 }

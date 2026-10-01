@@ -1,10 +1,15 @@
 import { isStageLocked } from "../../stage-locks";
-import { forwardRef, useState, type ComponentPropsWithoutRef } from "react";
+import {
+  forwardRef,
+  useContext,
+  useState,
+  type ComponentPropsWithoutRef,
+} from "react";
 import type { ProjectView } from "../../application-host";
 import { SharedPrevis, type SharedPrevisHandle } from "../stage/SharedPrevis";
 import { FixturePlan } from "../scene-plan/FixturePlan";
 import { StageOverview } from "../stage/StageOverview";
-import { DockPane } from "./DockPane";
+import { DockPane, ViewportRevealContext } from "./DockPane";
 import { StageViewTabs } from "./StageViewTabs";
 import type { WorkbenchPage } from "./WorkbenchNavigation";
 type View = "plan" | "three";
@@ -43,6 +48,7 @@ export const WorkbenchViewport = forwardRef<
   },
   ref,
 ) {
+  const revealViewport = useContext(ViewportRevealContext);
   const [sceneView, setSceneView] = useState<View>("plan");
   const [playbackView, setPlaybackView] = useState<View>("plan");
   const view =
@@ -94,6 +100,7 @@ export const WorkbenchViewport = forwardRef<
           viewControls={controls}
           contextKey={`${page}:${view}`}
           onReveal={() => {
+            revealViewport();
             if (page === "stage") onStageView("three");
             else if (page === "scenes") setSceneView("three");
             else setPlaybackView("three");

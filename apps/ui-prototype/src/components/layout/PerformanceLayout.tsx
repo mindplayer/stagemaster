@@ -6,11 +6,23 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { DockContext, type DockRegion, type DockTargets } from "./DockPane";
-import { defaultLayout, readLayout } from "./layout-preferences";
+import {
+  DockContext,
+  ViewportRevealContext,
+  type DockRegion,
+  type DockTargets,
+} from "./DockPane";
+import {
+  defaultLayout,
+  readLayout,
+  layoutTasks,
+  type LayoutTask,
+} from "./layout-preferences";
+import { LayoutActions } from "./LayoutActions";
 import { PanelDivider } from "./PanelDivider";
 import "./performance-layout.css";
 import "./performance-panels.css";
+import "./focused-layout.css";
 
 function Target({
   target,
@@ -73,7 +85,7 @@ export function PerformanceLayout({
     try {
       return readLayout(localStorage.getItem("stagemaster.layout.v1"));
     } catch {
-      return { ...defaultLayout };
+      return { ...defaultLayout, focusedTasks: [] };
     }
   });
   useEffect(() => {
@@ -94,101 +106,114 @@ export function PerformanceLayout({
       setLayout((v) => ({ ...v, [side]: !v[side] }));
   }
   const full = ["fixtures", "profiles", "settings", "execution"].includes(mode);
-  const lower = ["scenes", "sequences", "audio"].includes(mode);
+  const lower = layoutTasks.includes(mode as LayoutTask);
+  const focused = lower && layout.focusedTasks.includes(mode as LayoutTask);
+  function revealViewport() {
+    setLayout((v) =>
+      v.focusedTasks.includes(mode as LayoutTask)
+        ? {
+            ...v,
+            focusedTasks: v.focusedTasks.filter((task) => task !== mode),
+          }
+        : v,
+    );
+  }
+  async function toggleFocus() {
+    if (!lower || (beforeChange && !(await beforeChange()))) return;
+    setLayout((v) => ({
+      ...v,
+      focusedTasks: v.focusedTasks.includes(mode as LayoutTask)
+        ? v.focusedTasks.filter((task) => task !== mode)
+        : [...v.focusedTasks, mode as LayoutTask],
+    }));
+  }
   return (
     <DockContext.Provider value={targets}>
-      <div className="editor-navigation">
-        {toolbar}
-        <div className="editor-layout-actions" aria-label="布局">
-          <button
-            aria-label={layout.showLibrary ? "收起资源区" : "展开资源区"}
-            aria-pressed={layout.showLibrary}
-            onClick={() => void toggle("showLibrary")}
-            disabled={full || busy}
-          >
-            资源
-          </button>
-          <button
-            aria-label={layout.showInspector ? "收起属性区" : "展开属性区"}
-            aria-pressed={layout.showInspector}
-            onClick={() => void toggle("showInspector")}
-            disabled={full || busy}
-          >
-            属性
-          </button>
-          <button onClick={() => setLayout({ ...defaultLayout })}>
-            恢复布局
-          </button>
+      <ViewportRevealContext.Provider value={revealViewport}>
+        <div className="editor-navigation">
+          {toolbar}
+          <LayoutActions
+            full={full}
+            lower={lower}
+            focused={focused}
+            busy={busy}
+            library={layout.showLibrary}
+            inspector={layout.showInspector}
+            onFocus={() => void toggleFocus()}
+            onToggle={(side) => void toggle(side)}
+            onRestore={() => setLayout({ ...defaultLayout, focusedTasks: [] })}
+          />
         </div>
-      </div>
-      <div
-        className="performance-layout"
-        data-mode={mode}
-        data-full={full}
-        data-lower={lower}
-        data-library={layout.showLibrary}
-        data-inspector={layout.showInspector}
-        style={
-          {
-            "--library-width": `${layout.library}px`,
-            "--inspector-width": `${layout.inspector}px`,
-            "--editor-height": `${layout.editor}px`,
-          } as CSSProperties
-        }
-      >
-        <Target
-          region="library"
-          label="资源区"
-          target={targets.library}
-          visible={!full && layout.showLibrary}
-        />
-        <Target
-          region="viewport"
-          label="舞台画布"
-          target={targets.viewport}
-          visible={!full}
-        />
-        <Target
-          region="inspector"
-          label="属性区"
-          target={targets.inspector}
-          visible={!full && layout.showInspector}
-        />
-        <Target
-          region="editor"
-          label="编排区"
-          target={targets.editor}
-          visible={!full && lower}
-        />
-        <Target
-          region="full"
-          label={mode === "execution" ? "执行工作区" : "管理工作区"}
-          target={targets.full}
-          visible={full}
-        />
-        {!full && layout.showLibrary && (
-          <PanelDivider
-            panel="library"
-            value={layout.library}
-            onChange={(library) => setLayout((v) => ({ ...v, library }))}
+        <div
+          className="performance-layout"
+          data-mode={mode}
+          data-full={full}
+          data-lower={lower}
+          data-focus={focused ? "editor" : "balanced"}
+          data-library={layout.showLibrary}
+          data-inspector={layout.showInspector}
+          style={
+            {
+              "--library-width": `${layout.library}px`,
+              "--inspector-width": `${layout.inspector}px`,
+              "--editor-height": `${layout.editor}px`,
+            } as CSSProperties
+          }
+        >
+          <Target
+            region="library"
+            label="资源区"
+            target={targets.library}
+            visible={!full && layout.showLibrary}
           />
-        )}
-        {!full && layout.showInspector && (
-          <PanelDivider
-            panel="inspector"
-            value={layout.inspector}
-            onChange={(inspector) => setLayout((v) => ({ ...v, inspector }))}
+          <Target
+            region="viewport"
+            label="舞台画布"
+            target={targets.viewport}
+            visible={!full}
           />
-        )}
-        {!full && lower && (
-          <PanelDivider
-            panel="editor"
-            value={layout.editor}
-            onChange={(editor) => setLayout((v) => ({ ...v, editor }))}
+          <Target
+            region="inspector"
+            label="属性区"
+            target={targets.inspector}
+            visible={!full && layout.showInspector}
           />
-        )}
-        <div className="editor-module-roots">{children}</div>
-      </div>
+          <Target
+            region="editor"
+            label="编排区"
+            target={targets.editor}
+            visible={!full && lower}
+          />
+          <Target
+            region="full"
+            label={mode === "execution" ? "执行工作区" : "管理工作区"}
+            target={targets.full}
+            visible={full}
+          />
+          {!full && layout.showLibrary && (
+            <PanelDivider
+              panel="library"
+              value={layout.library}
+              onChange={(library) => setLayout((v) => ({ ...v, library }))}
+            />
+          )}
+          {!full && layout.showInspector && (
+            <PanelDivider
+              panel="inspector"
+              value={layout.inspector}
+              onChange={(inspector) => setLayout((v) => ({ ...v, inspector }))}
+            />
+          )}
+          {!full && lower && !focused && (
+            <PanelDivider
+              panel="editor"
+              value={layout.editor}
+              onChange={(editor) => setLayout((v) => ({ ...v, editor }))}
+            />
+          )}
+          <div className="editor-module-roots">{children}</div>
+        </div>
+      </ViewportRevealContext.Provider>
     </DockContext.Provider>
   );
 }

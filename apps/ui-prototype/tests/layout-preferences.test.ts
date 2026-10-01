@@ -32,5 +32,24 @@ test("布局可往返且不共享默认对象", () => {
   assert.deepEqual(readLayout(JSON.stringify(value)), value);
   const fresh = readLayout(null);
   fresh.library = 300;
+  fresh.focusedTasks.push("scenes");
   assert.equal(defaultLayout.library, 240);
+  assert.deepEqual(defaultLayout.focusedTasks, []);
+});
+
+test("旧布局保持尺寸，新查看偏好有界去重且只接受真实编排任务", () => {
+  const old = readLayout('{"library":276,"editor":440}');
+  assert.deepEqual(old.focusedTasks, []);
+  assert.equal(old.editor, 440);
+  const current = readLayout(
+    '{"focusedTasks":["audio","settings","audio",null,"scenes",17]}',
+  );
+  assert.deepEqual(current.focusedTasks, ["scenes", "audio"]);
+  assert.deepEqual(readLayout(JSON.stringify(current)), current);
+  for (const value of ["true", '"audio"', "{}", "null"]) {
+    assert.deepEqual(
+      readLayout('{"focusedTasks":' + value + "}").focusedTasks,
+      [],
+    );
+  }
 });
