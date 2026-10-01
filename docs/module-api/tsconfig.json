@@ -9,7 +9,24 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
   },
-  "include": ["shared-contracts.ts", "contracts.ts", "examples.ts", "contract-checks.ts", "external-contracts.ts", "external-examples.ts", "surface-contracts.ts", "evolution-examples.ts", "automation-contracts.ts", "automation-examples.ts", "automation-checks.ts"]
+  "include": [
+    "shared-contracts.ts",
+    "contracts.ts",
+    "examples.ts",
+    "contract-checks.ts",
+    "external-contracts.ts",
+    "external-examples.ts",
+    "surface-contracts.ts",
+    "evolution-examples.ts",
+    "automation-contracts.ts",
+    "automation-examples.ts",
+    "automation-checks.ts",
+    "effect-library-contracts.ts",
+    "effect-library-checks.ts"
+  ]
 }

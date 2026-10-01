@@ -138,3 +138,5 @@
 2026-10-02 摇头灯操作增量：[POSITION-002](development/tasks/POSITION-002-relative-axis-and-flip.md) 按成熟控台的逐轴调整和翻转工作流，补相对草稿／独立轴保持／粗细精度、同射线另一姿态、整组原子拒绝与历史。状态归工程场景，物理映射／求解归 Rust，界面为位置属性；原生两灯及保存重开通过。实测参考点／自动拟合、实例输出补偿和操作反向按 ADR-085 独立建设，不能把手工零偏称为自动校准。
 
 2026-10-02 CAP-02／03 补充：[ADR-088](development/decisions/PRODUCT-ADR-088-custom-wheel-appearances.md) 已对照 MA／Titan／GDTF，明确色盘实测、外观与物理数据分离、变体隔离、受控试灯、功能依赖与更新影响审阅；FIXTURE-007 先实施档位外观／批量建档和显式应用，其余继续作为未完成项。
+
+2026-10-02 CAP-02／CAP-05／云分发补充：[ADR-090](development/decisions/PRODUCT-ADR-090-reusable-effect-library.md) 将灯具映射、灯效模板、工程实例和目标编译分层，先本地模板闭环再接云目录。类型化接口为设计稿；星空／激光／多单元 LED／新说明书按能力扩展，不能按外形或名称声称兼容。验收覆盖跨模式绑定、缺能力拒绝、离线固定版本和更新审阅，详见决策。

@@ -180,3 +180,5 @@ apps/ui-prototype/node_modules/.bin/tsc -p docs/module-api/tsconfig.json
 
 - [真实场地编辑模块](stage-spaces.md)：空间／构件／灯位及原子命令（PREVIS-001 实施中）。
 - [摇头灯指向与安装变换](positioning.md)：已接入档案、静态共同对焦、角度／零偏、量化编码与 UE 姿态的运行接口；连续轨迹仍为后续边界。
+
+2026-10-02：[灯效模板库 draft-1](effect-library.md)／[ADR-090](../development/decisions/PRODUCT-ADR-090-reusable-effect-library.md) 补齐云目录、语义模板、逐灯能力绑定和固定修订边界。独立声明与正反例加入类型检查；尚未接入 StageClient、工程存储或运行服务。
