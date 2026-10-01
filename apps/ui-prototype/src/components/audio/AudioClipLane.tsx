@@ -1,7 +1,9 @@
+import { useClipGroupDrag } from "./useClipGroupDrag";
+import { AudioClipLaneHeader } from "./AudioClipLaneHeader";
 import { useLightingClipDrag } from "./useLightingClipDrag";
 import { useClipMarquee } from "./useClipMarquee";
 import { clipsInRange, type ClipLaneSelection } from "./clip-selection";
-import { useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { AudioLightingClip, AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
 import type { WaveViewport } from "./waveform-data";
@@ -35,6 +37,18 @@ export function AudioClipLane({
 }) {
   const surface = useRef<HTMLDivElement>(null);
   const group = !!clipSelection?.active;
+  const [moveTool, setMoveTool] = useState(false);
+  useEffect(() => {
+    if (!group) setMoveTool(false);
+  }, [group]);
+  const movingGroup = useClipGroupDrag(
+    surface,
+    track,
+    viewport,
+    clipSelection,
+    disabled || !group || !moveTool || !!clipSelection?.movementBlocked,
+    snap,
+  );
   const moving = useLightingClipDrag(
     surface,
     track,
@@ -48,13 +62,20 @@ export function AudioClipLane({
     surface,
     viewport,
     clipSelection,
-    disabled,
+    disabled || moveTool,
     track,
   );
   const pixels = viewport.width / Math.max(1, viewport.end - viewport.start);
-  const clips = (track.lightingClips ?? []).map((c) =>
-    moving.draft?.clip.id === c.id ? moving.draft.next : c,
-  );
+  const blockedMotion = group ? clipSelection?.movementBlocked : "";
+  const proposed = movingGroup.draft?.moved ? movingGroup.draft.next : null;
+  const replacements = new Map(proposed?.clips.map((c) => [c.id, c]));
+  const clips = (track.lightingClips ?? [])
+    .map(
+      (c) =>
+        replacements.get(c.id) ??
+        (moving.draft?.clip.id === c.id ? moving.draft.next : c),
+    )
+    .sort((a, b) => a.startMs - b.startMs);
   const box = marquee.draft?.moved ? marquee.draft : null;
   const selectionIds = box
     ? [
@@ -65,6 +86,7 @@ export function AudioClipLane({
   const chosen = (id: string) =>
     group ? selectionIds.includes(id) : selected === id;
   function cancel() {
+    movingGroup.cancel();
     moving.cancel();
     marquee.cancel();
   }
@@ -91,6 +113,15 @@ export function AudioClipLane({
   function key(e: React.KeyboardEvent, c: AudioLightingClip, mode: ClipMotion) {
     if (disabled) return;
     if (group) {
+      if (moveTool && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (clipSelection?.ids.includes(c.id))
+          movingGroup.nudge(
+            (e.key === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 1000 : 10),
+          );
+        return;
+      }
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault();
         e.stopPropagation();
@@ -131,45 +162,63 @@ export function AudioClipLane({
       aria-label="独立灯光片段"
       onPointerDown={(e) => e.stopPropagation()}
       onKeyDown={(e) => {
+        // Clip navigation must never fall through to the parent music seek handler.
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         if (e.key === "Escape") {
           e.stopPropagation();
           e.preventDefault();
-          if (!marquee.draft && group && !disabled) clipSelection?.onClear();
+          if (!marquee.draft && !movingGroup.draft && group && !disabled)
+            clipSelection?.onClear();
           cancel();
         }
       }}
     >
-      <header>
-        <strong>灯光片段</strong>
-        <span>{clips.length} 段</span>
-        {clipSelection && (
-          <button
-            type="button"
-            aria-label="时间线片段多选"
-            aria-pressed={group}
-            disabled={disabled}
-            onClick={clipSelection.onMode}
-          >
-            多选{group ? ` · ${clipSelection.ids.length}` : ""}
-          </button>
-        )}
-        <span>
-          {group
-            ? "单击增减 · Shift 连选／追加框选 · Esc 取消"
-            : "拖动移动 · 两端调整长度 · 空隙为默认值"}
-        </span>
-      </header>
+      <AudioClipLaneHeader
+        count={clips.length}
+        selection={clipSelection}
+        disabled={disabled}
+        moving={moveTool}
+        onTool={(value) => {
+          cancel();
+          setMoveTool(value);
+        }}
+      />
+      {(blockedMotion || proposed || movingGroup.problem) && (
+        <div
+          className="audio-clip-motion-status"
+          data-error={!!(proposed?.problem || movingGroup.problem)}
+          role="status"
+          aria-live={proposed ? "off" : "polite"}
+        >
+          {blockedMotion ||
+            proposed?.problem ||
+            movingGroup.problem ||
+            `移动 ${proposed!.ids.length} 段 · 起点 ${audioTime(proposed!.destination)} · 松手应用`}
+        </div>
+      )}
       <div
         className="audio-lighting-clips"
         ref={surface}
         data-selecting={group}
+        data-moving={group && moveTool}
         onPointerDown={(e) => {
-          if (group) marquee.begin(e);
+          if (group && !moveTool) marquee.begin(e);
         }}
-        onPointerMove={group ? marquee.move : moving.move}
-        onPointerUp={group ? marquee.end : moving.end}
+        onPointerMove={
+          group ? (moveTool ? movingGroup.move : marquee.move) : moving.move
+        }
+        onPointerUp={
+          group ? (moveTool ? movingGroup.end : marquee.end) : moving.end
+        }
         onPointerCancel={cancel}
-        onLostPointerCapture={cancel}
+        onLostPointerCapture={() => {
+          movingGroup.captureLost();
+          moving.cancel();
+          marquee.cancel();
+        }}
       >
         {gaps
           .filter((g) => visible(g.start, g.end))
@@ -186,7 +235,8 @@ export function AudioClipLane({
           .filter((c) => visible(c.startMs, c.endMs))
           .map((c) => {
             const begin = (e: React.PointerEvent, mode: ClipMotion) => {
-              if (group) marquee.begin(e, c.id);
+              if (group && moveTool) movingGroup.begin(e, c.id);
+              else if (group) marquee.begin(e, c.id);
               else moving.begin(e, c, mode);
             };
             const label =
@@ -195,6 +245,7 @@ export function AudioClipLane({
               <div
                 key={c.id}
                 className={`audio-lighting-clip ${chosen(c.id) ? "selected" : ""} ${c.locked ? "locked" : ""} ${c.enabled === false ? "inactive" : ""}`}
+                data-invalid={!!proposed?.problem && replacements.has(c.id)}
                 style={style(c.startMs, c.endMs)}
               >
                 <button
@@ -205,6 +256,7 @@ export function AudioClipLane({
                   disabled={disabled}
                   onPointerDown={(e) => begin(e, "move")}
                   onClick={(e) => {
+                    e.currentTarget.focus();
                     if (group) {
                       if (e.detail === 0)
                         clipSelection?.onPick(c.id, e.shiftKey);

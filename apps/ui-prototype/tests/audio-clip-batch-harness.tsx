@@ -35,6 +35,10 @@ function Harness() {
   const selection = useClipSelection("test", track.lightingClips);
   const cursor = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState("");
+  const [movement, setMovement] = useState("尚未移动");
+  const moves = useRef(0);
+  const [escapedKeys, setEscapedKeys] = useState(0);
+  const [pending, setPending] = useState(false);
   const [batch, setBatch] = useState(true),
     [visible, setVisible] = useState(true);
   return (
@@ -46,6 +50,7 @@ function Harness() {
         <DockPane region="library" visible={visible}>
           <AudioClipLibrary
             selectionState={selection}
+            onGroupPending={setPending}
             track={track}
             scenes={[]}
             selected={selected}
@@ -61,13 +66,19 @@ function Harness() {
           />
         </DockPane>
         <DockPane region="editor" visible={visible}>
-          <div style={{ width: 600, height: 100, position: "relative" }}>
+          <div
+            style={{ width: 600, height: 100, position: "relative" }}
+            onKeyDown={(e) => {
+              if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
+                setEscapedKeys((n) => n + 1);
+            }}
+          >
             <AudioClipLane
               track={track}
               scenes={[]}
               viewport={{ start: 0, end: 30000, width: 600 }}
               selected={selected}
-              disabled={false}
+              disabled={!visible}
               snap={false}
               cursor={cursor}
               onSelect={setSelected}
@@ -75,6 +86,9 @@ function Harness() {
               onMove={() => {}}
               clipSelection={{
                 active: batch,
+                movementBlocked: pending
+                  ? "请先应用或取消右侧目标输入／删除确认"
+                  : "",
                 ids: selection.ids,
                 onMode: () => setBatch(!batch),
                 onPick: (id, range) =>
@@ -85,12 +99,19 @@ function Harness() {
                     ...clipsInRange(track.lightingClips!, start, end),
                   ]),
                 onClear: () => selection.replace([]),
+                onMove: (ids, destinationMs) =>
+                  setMovement(
+                    `${ids.join(",")} → ${destinationMs}；命令 ${++moves.current} 次`,
+                  ),
               }}
             />
           </div>
         </DockPane>
         <DockPane region="viewport">
           <p>仅验收选择与属性布局</p>
+          <p role="status">
+            {movement}；外层导航 {escapedKeys} 次
+          </p>
         </DockPane>
       </PerformanceLayout>
     </main>

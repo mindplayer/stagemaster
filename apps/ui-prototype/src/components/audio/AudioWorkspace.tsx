@@ -66,6 +66,7 @@ export const AudioWorkspace = forwardRef<
     ? `${project.id}:${track.asset.digest}:${track.inMs}:${track.outMs}`
     : "";
   const [batchKey, setBatchKey] = useState("");
+  const [clipGroupPending, setClipGroupPending] = useState(false);
   const batch = !!trackIdentity && batchKey === `${trackIdentity}:markers`;
   const clipBatch =
     !!track?.lightingClips && batchKey === `${trackIdentity}:clips`;
@@ -209,6 +210,7 @@ export const AudioWorkspace = forwardRef<
               <AudioClipLibrary
                 key={trackIdentity}
                 selectionState={clipSelection}
+                onGroupPending={setClipGroupPending}
                 batch={clipBatch}
                 visible={visible}
                 onEdit={edit}
@@ -303,6 +305,9 @@ export const AudioWorkspace = forwardRef<
                   onMove={moveMarker}
                   clipSelection={{
                     active: clipBatch,
+                    movementBlocked: clipGroupPending
+                      ? "请先应用或取消右侧目标输入／删除确认"
+                      : "",
                     ids: clipSelection.ids,
                     onMode: () => {
                       if (!clipBatch && !clipSelection.ids.length)
@@ -321,6 +326,12 @@ export const AudioWorkspace = forwardRef<
                         ...clipsInRange(track.lightingClips ?? [], start, end),
                       ]),
                     onClear: () => clipSelection.replace([]),
+                    onMove: (ids, destinationMs) =>
+                      void edit({
+                        kind: "editLightingClips",
+                        ids,
+                        action: { kind: "move", destinationMs },
+                      }),
                   }}
                   onClipMove={(clip) =>
                     void edit({ kind: "putLightingClip", clip })

@@ -59,10 +59,10 @@ export function useLightingClipDrag(
     begin(e: PointerEvent, clip: AudioLightingClip, mode: ClipMotion) {
       e.stopPropagation();
       if (disabled || e.button !== 0) return;
-      onSelect(clip.id);
-      if (clip.locked) return;
       e.preventDefault();
       (e.currentTarget as HTMLElement).focus();
+      onSelect(clip.id);
+      if (clip.locked) return;
       surface.current?.setPointerCapture(e.pointerId);
       active.current = {
         pointer: e.pointerId,

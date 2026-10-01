@@ -22,7 +22,9 @@ export function AudioClipLibrary({
   visible,
   onEdit,
   selectionState,
+  onGroupPending,
 }: {
+  onGroupPending?(pending: boolean): void;
   selectionState: ClipSelection;
   batch: boolean;
   onBatch(): void;
@@ -88,6 +90,7 @@ export function AudioClipLibrary({
       {batch ? (
         <AudioClipBatch
           selectionState={selectionState}
+          onPending={onGroupPending}
           track={track}
           items={items}
           busy={busy}

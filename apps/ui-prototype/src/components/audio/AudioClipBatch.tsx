@@ -22,7 +22,9 @@ export function AudioClipBatch({
   visible,
   onEdit,
   selectionState,
+  onPending,
 }: {
+  onPending?(pending: boolean): void;
   selectionState: ClipSelection;
   track: AudioTimeline;
   items: AudioLightingClip[];
@@ -39,6 +41,10 @@ export function AudioClipBatch({
   const selected = selection.items.map((c) => c.id),
     blocked = busy || working;
   const value = destination ?? (selection.first / 1000).toFixed(3);
+  useEffect(() => {
+    onPending?.(destination !== null || removing);
+  }, [destination, removing, onPending]);
+  useEffect(() => () => onPending?.(false), [onPending]);
   function reset() {
     setDestination(null);
     setProblem("");

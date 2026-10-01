@@ -23,10 +23,12 @@ export interface ClipSelection {
   toggle(id: string, visible: AudioLightingClip[], range: boolean): void;
 }
 export interface ClipLaneSelection {
+  movementBlocked?: string;
   active: boolean;
   ids: string[];
   onMode(): void;
   onPick(id: string, range: boolean): void;
   onRange(start: number, end: number, append: boolean): void;
   onClear(): void;
+  onMove(ids: string[], destinationMs: number): void;
 }
