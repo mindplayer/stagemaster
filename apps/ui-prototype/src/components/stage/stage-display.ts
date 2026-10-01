@@ -51,6 +51,7 @@ export function visibleStage(
       : stage.placements.filter((p) => spaceVisible(p.spaceId)),
     // Attachments remain authoritative; hidden support does not detach a fixture.
     attachments: stage.attachments,
+    editLocks: stage.editLocks,
   };
 }
 export function revealStageTarget(

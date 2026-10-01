@@ -1,3 +1,4 @@
+import { auditStageLocks } from "./stage-lock-audit.mjs";
 import { auditSequenceScripts } from "./sequence-script-audit.mjs";
 import { auditFixtureFunctions } from "./fixture-function-audit.mjs";
 import { auditAudioEditing } from './audio-audit.mjs';
@@ -113,6 +114,7 @@ export function auditProject(p) {
   validateStructure(p);
   auditFixtureFunctions(p);
   auditSequenceScripts(p);
+  auditStageLocks(p);
   const objects = new Map();
   const add = (kind, values = []) => {
     for (const value of values) {

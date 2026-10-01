@@ -1,10 +1,16 @@
+import {
+  lockTargets,
+  placementTargets,
+  stageTarget,
+  movementBlocker,
+} from "../../stage-locks";
 import { StageMultiInspector } from "./StageMultiInspector";
 import { DockPane } from "../layout/DockPane";
 import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
-import { RigCreateDialog } from "./RigCreateDialog";
-import { RigAttachmentDialog } from "./RigAttachmentDialog";
-import type { RigShape } from "../../stage-types";
+import { useStageObjects } from "./useStageObjects";
+import { StageObjectDialogs } from "./StageObjectDialogs";
+import { useStageRigging } from "./useStageRigging";
 import {
   forwardRef,
   useEffect,
@@ -23,16 +29,9 @@ import type {
   StageObject,
   StageSelection,
 } from "../../stage-types";
-import {
-  bounds,
-  decimal,
-  selectedStage,
-  stageCommand,
-} from "../../stage-tools";
-import { uniqueName } from "../../editor-tools";
+import { bounds, selectedStage, stageCommand } from "../../stage-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
-import { StageCreateDialog, type Creation } from "./StageCreateDialog";
 import { StageLibraryPanel } from "./StageLibraryPanel";
 import {
   ALL_VISIBLE,
@@ -41,7 +40,6 @@ import {
   type PlanVisibility,
 } from "./stage-display";
 import { StageInspector } from "./StageInspector";
-import { DeleteDialog } from "../workbench/DeleteDialog";
 import { ArrangementDialog } from "./ArrangementDialog";
 import {
   arrangementDraft,
@@ -112,19 +110,10 @@ export const StageWorkspace = forwardRef<
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
   const moving = useRef(false);
-  const [rigCreation, setRigCreation] = useState<{
-    shape: RigShape;
-    name: string;
-  } | null>(null);
-  const [hanging, setHanging] = useState<{ ids: string[]; rig: string } | null>(
-    null,
-  );
-  const [creation, setCreation] = useState<Creation | null>(null);
   const [focusRequest, setFocusRequest] = useState(0);
   const [query, setQuery] = useState("");
   const [fixtureId, setFixtureId] = useState("");
   const [localError, setLocalError] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<StageObject | null>(null);
   const form = useRef<HTMLFormElement>(null);
   const object = draft ?? selectedStage(project.stage, selection);
   const selectedSpace =
@@ -143,6 +132,39 @@ export const StageWorkspace = forwardRef<
     (f) => !project.stage.placements.some((p) => p.fixtureId === f.id),
   );
   const chosenFixture = unplaced.find((f) => f.id === fixtureId) ?? unplaced[0];
+  const objects = useStageObjects({
+    project,
+    object,
+    selectedSpace,
+    fixtureId: chosenFixture?.id,
+    beforeChange,
+    edit,
+    onResult(target, next, focus) {
+      if (target) revealInPlan(target, next);
+      setSelection(target);
+      setSelectedIds(target?.kind === "placement" ? [target.id] : []);
+      setQuery("");
+      cancel();
+      if (focus) setFocusRequest((v) => v + 1);
+    },
+  });
+  const rigging = useStageRigging({
+    project,
+    object,
+    liveIds,
+    beforeChange,
+    edit,
+    busy,
+    error,
+    onResult(ids, next) {
+      revealPlacements(ids, next);
+      setSelectedIds(ids);
+      setSelection(ids.length ? { kind: "placement", id: ids.at(-1)! } : null);
+      setQuery("");
+      setFocusRequest((v) => v + 1);
+      cancel();
+    },
+  });
   function cancel() {
     draftRef.current = null;
     setDraft(null);
@@ -251,7 +273,26 @@ export const StageWorkspace = forwardRef<
     setSelection(next.length ? { kind: "placement", id: next.at(-1)! } : null);
     cancel();
   }
+  async function setLocked(locked: boolean) {
+    if (!(await beforeChange())) return;
+    const targets = liveIds.length
+      ? placementTargets(liveIds)
+      : object
+        ? [stageTarget(object)]
+        : [];
+    if (!targets.length) return;
+    const next = await edit({
+      op: "setEditLocks",
+      targets: lockTargets(targets),
+      locked,
+    });
+    if (next) cancel();
+  }
   async function arrange(selected = false) {
+    if (selected && movementBlocker(project.stage, placementTargets(liveIds))) {
+      setLocalError("所选灯位包含锁定对象，请先解锁再移动或排列");
+      return;
+    }
     if (!(await beforeChange())) return;
     const ids = selected ? liveIds : unplaced.map((f) => f.id);
     const items = project.stage.placements.filter((p) =>
@@ -295,211 +336,6 @@ export const StageWorkspace = forwardRef<
   function edit(command: StageEdit) {
     return onEdit({ op: "stage", command });
   }
-  async function createRig() {
-    if (!(await beforeChange())) return;
-    const b = selectedSpace
-      ? bounds(
-          selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
-        )
-      : null;
-    setRigCreation({
-      name: uniqueName(
-        "桁架",
-        project.stage.constructions.map((c) => c.name),
-      ),
-      shape: {
-        kind: "rig",
-        rigKind: "truss",
-        spaceId: selectedSpace?.id ?? null,
-        positionMeters: {
-          x: decimal(b ? (b.minX + b.maxX) / 2 : 0),
-          y: decimal(b ? (b.minY + b.maxY) / 2 : 0),
-          z: decimal(
-            Number(selectedSpace?.floorElevationMeters ?? 0) +
-              Number(selectedSpace?.clearHeightMeters ?? 5) -
-              0.3,
-          ),
-        },
-        yawDegrees: "0",
-        lengthMeters: "6",
-        widthMeters: "0.3",
-        heightMeters: "0.3",
-      },
-    });
-  }
-  async function hang() {
-    if (!(await beforeChange())) return;
-    const rig =
-      object?.kind === "construction" && object.value.shape.kind === "rig"
-        ? object.value.id
-        : (project.stage.attachments.find((a) => liveIds.includes(a.fixtureId))
-            ?.constructionId ??
-          project.stage.constructions.find((c) => c.shape.kind === "rig")?.id ??
-          "");
-    setHanging({
-      rig,
-      ids: liveIds.length
-        ? liveIds
-        : project.stage.attachments
-            .filter((a) => a.constructionId === rig)
-            .map((a) => a.fixtureId),
-    });
-  }
-  async function detach(ids: string[]) {
-    if (!(await beforeChange())) return;
-    await edit({
-      op: "attachFixtures",
-      constructionId: null,
-      fixtureIds: ids,
-      layout: null,
-    });
-  }
-  async function create(kind: "space" | "platform") {
-    if (!(await beforeChange())) return;
-    const max = project.stage.spaces.flatMap((s) =>
-      s.outlineMeters.map((p) => Number(p[0])),
-    );
-    const b = selectedSpace
-      ? bounds(
-          selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
-        )
-      : null;
-    setCreation({
-      kind,
-      name: uniqueName(
-        kind === "space" ? "空间" : "舞台",
-        (kind === "space"
-          ? project.stage.spaces
-          : project.stage.constructions
-        ).map((v) => v.name),
-      ),
-      x:
-        kind === "space"
-          ? max.length
-            ? Math.max(...max) + 2
-            : 0
-          : (b?.minX ?? 0),
-      y: kind === "space" ? 0 : (b?.minY ?? 0),
-      elevation:
-        kind === "space" ? "0" : (selectedSpace?.floorElevationMeters ?? "0"),
-      spaceId: selectedSpace?.id ?? null,
-    });
-  }
-  async function createObject(command: StageEdit) {
-    const next = await edit(command);
-    if (!next) return;
-    const target: StageSelection =
-      command.op === "putSpace"
-        ? { kind: "space", id: next.stage.spaces.at(-1)!.id }
-        : { kind: "construction", id: next.stage.constructions.at(-1)!.id };
-    revealInPlan(target, next);
-    setSelection(target);
-    setCreation(null);
-    setQuery("");
-    cancel();
-    setFocusRequest((v) => v + 1);
-  }
-  async function placeFixture() {
-    if (!chosenFixture) return;
-    const room = selectedSpace;
-    const b = room
-      ? bounds(room.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]))
-      : null;
-    const next = await edit({
-      op: "putPlacement",
-      placement: {
-        fixtureId: chosenFixture.id,
-        spaceId: room?.id ?? null,
-        positionMeters: {
-          x: decimal(b ? (b.minX + b.maxX) / 2 : 0),
-          y: decimal(b ? (b.minY + b.maxY) / 2 : 0),
-          z: decimal(
-            Number(room?.floorElevationMeters ?? 0) +
-              Number(room?.clearHeightMeters ?? 4) -
-              0.5,
-          ),
-        },
-        rotationDegreesXYZ: { x: "0", y: "0", z: "0" },
-      },
-    });
-    if (next) {
-      revealInPlan({ kind: "placement", id: chosenFixture.id }, next);
-      setSelection({ kind: "placement", id: chosenFixture.id });
-      setSelectedIds([chosenFixture.id]);
-      cancel();
-    }
-  }
-  async function enclose() {
-    if (object?.kind !== "space") return;
-    const next = await edit({
-      op: "putConstruction",
-      id: null,
-      name: `${object.value.name}围护`,
-      shape: {
-        kind: "enclosure",
-        spaceId: object.value.id,
-        wallThicknessMeters: "0.2",
-        floorThicknessMeters: "0.1",
-        ceilingThicknessMeters: null,
-      },
-    });
-    if (next) {
-      const target: StageSelection = {
-        kind: "construction",
-        id: next.stage.constructions.at(-1)!.id,
-      };
-      revealInPlan(target, next);
-      setSelection(target);
-      cancel();
-    }
-  }
-  async function duplicate() {
-    if (!object || object.kind === "placement") return;
-    const next = await edit({
-      op: object.kind === "space" ? "duplicateSpace" : "duplicateConstruction",
-      id: object.value.id,
-      name: uniqueName(
-        `${object.value.name} 副本`,
-        [...project.stage.spaces, ...project.stage.constructions].map(
-          (s) => s.name,
-        ),
-      ),
-    });
-    if (next) {
-      const target: StageSelection = {
-        kind: object.kind,
-        id:
-          object.kind === "space"
-            ? next.stage.spaces.at(-1)!.id
-            : next.stage.constructions.at(-1)!.id,
-      };
-      revealInPlan(target, next);
-      setSelection(target);
-      setQuery("");
-      cancel();
-    }
-  }
-  async function remove() {
-    const target = deleteTarget;
-    if (!target) return;
-    const next = await edit(
-      target.kind === "space"
-        ? { op: "removeSpace", id: target.value.id, detachMembers: true }
-        : target.kind === "construction"
-          ? {
-              op: "removeConstruction",
-              id: target.value.id,
-              detachFixtures: target.value.shape.kind === "rig",
-            }
-          : { op: "removePlacement", fixtureId: target.value.fixtureId },
-    );
-    if (next) {
-      setDeleteTarget(null);
-      setSelection(null);
-      setSelectedIds([]);
-      cancel();
-    }
-  }
   return (
     <WorkspaceSurface
       className="stage-workspace"
@@ -517,10 +353,10 @@ export const StageWorkspace = forwardRef<
           visibility={planVisibility}
           onVisibility={(next) => void changePlanVisibility(next)}
           onSelect={(target, additive) => void choose(target, additive)}
-          onCreate={(kind) => void create(kind)}
-          onCreateRig={() => void createRig()}
+          onCreate={(kind) => void objects.create(kind)}
+          onCreateRig={() => void objects.createRig()}
           onArrange={() => void arrange(false)}
-          onPlace={() => void placeFixture()}
+          onPlace={() => void objects.placeFixture()}
           fixtureId={fixtureId}
           onFixtureId={setFixtureId}
         />
@@ -571,9 +407,10 @@ export const StageWorkspace = forwardRef<
             busy={busy}
             error={localError || error}
             onArrange={() => void arrange(true)}
-            onHang={() => void hang()}
-            onDetach={() => void detach(liveIds)}
+            onHang={() => void rigging.hang()}
+            onDetach={() => void rigging.detach(liveIds)}
             onClear={() => void choosePlacements([])}
+            onLock={(locked) => void setLocked(locked)}
           />
         ) : (
           <StageInspector
@@ -592,15 +429,12 @@ export const StageWorkspace = forwardRef<
             onApply={() => {
               void beforeChange();
             }}
+            onLock={(locked) => void setLocked(locked)}
             onCancel={cancel}
-            onDuplicate={() => void duplicate()}
-            onDelete={() => {
-              void beforeChange().then((ok) => {
-                if (ok) setDeleteTarget(object);
-              });
-            }}
-            onEnclose={() => void enclose()}
-            onHang={() => void hang()}
+            onDuplicate={() => void objects.duplicate()}
+            onDelete={() => void objects.requestDelete()}
+            onEnclose={() => void objects.enclose()}
+            onHang={() => void rigging.hang()}
             onSelectMounted={(id) =>
               void choosePlacements(
                 project.stage.attachments
@@ -608,61 +442,11 @@ export const StageWorkspace = forwardRef<
                   .map((a) => a.fixtureId),
               )
             }
-            onDetach={(ids) => void detach(ids)}
+            onDetach={(ids) => void rigging.detach(ids)}
           />
         )}
       </DockPane>
-      {rigCreation && (
-        <RigCreateDialog
-          project={project}
-          initial={rigCreation.shape}
-          name={rigCreation.name}
-          busy={busy}
-          error={error}
-          onCancel={() => setRigCreation(null)}
-          onApply={async (command) => {
-            const next = await edit(command);
-            if (!next) return false;
-            const target: StageSelection = {
-              kind: "construction",
-              id: next.stage.constructions.at(-1)!.id,
-            };
-            revealInPlan(target, next);
-            setSelection(target);
-            setSelectedIds([]);
-            setQuery("");
-            setFocusRequest((v) => v + 1);
-            cancel();
-            return true;
-          }}
-        />
-      )}
-      {hanging && (
-        <RigAttachmentDialog
-          project={project}
-          initialIds={hanging.ids}
-          initialRig={hanging.rig}
-          busy={busy}
-          error={error}
-          onCancel={() => setHanging(null)}
-          onApply={async (command) => {
-            const next = await edit(command);
-            if (!next) return false;
-            if (command.op === "attachFixtures") {
-              revealPlacements(command.fixtureIds, next);
-              setSelectedIds(command.fixtureIds);
-              setSelection({
-                kind: "placement",
-                id: command.fixtureIds.at(-1)!,
-              });
-            }
-            setQuery("");
-            setFocusRequest((v) => v + 1);
-            cancel();
-            return true;
-          }}
-        />
-      )}
+      {rigging.dialog}
       {arrangement && (
         <ArrangementDialog
           project={project}
@@ -674,38 +458,12 @@ export const StageWorkspace = forwardRef<
           onApply={applyPlacements}
         />
       )}
-      {creation && (
-        <StageCreateDialog
-          initial={creation}
-          busy={busy}
-          error={error}
-          onCreate={(command) => void createObject(command)}
-          onCancel={() => setCreation(null)}
-        />
-      )}
-      {deleteTarget && (
-        <DeleteDialog
-          name={
-            deleteTarget.kind === "placement"
-              ? "此灯位"
-              : deleteTarget.value.name
-          }
-          busy={busy}
-          error={error}
-          description={
-            deleteTarget.kind === "space"
-              ? "同时移除该空间的围护。灯具和舞台保留原位置并解除空间归属，灯光编排保留。"
-              : deleteTarget.kind === "placement"
-                ? "灯具配适与编排保留，只移除安装位置。"
-                : deleteTarget.kind === "construction" &&
-                    deleteTarget.value.shape.kind === "rig"
-                  ? "保留全部灯具和灯位，解除挂接后删除支撑体；一次撤销可恢复。"
-                  : "此操作可撤销恢复。"
-          }
-          onCancel={() => setDeleteTarget(null)}
-          onDelete={() => void remove()}
-        />
-      )}
+      <StageObjectDialogs
+        project={project}
+        busy={busy}
+        error={error}
+        actions={objects}
+      />
     </WorkspaceSurface>
   );
 });

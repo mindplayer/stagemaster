@@ -1,10 +1,14 @@
+import { StagePlacementFields } from "./StagePlacementFields";
+import { StageLockControls } from "./StageLockControls";
+import { isStageLocked, stageTarget } from "../../stage-locks";
+import { StageOutlineFields } from "./StageOutlineFields";
 import { RigFields } from "./RigFields";
 import { OutlineDimensions } from "./OutlineDimensions";
 import type { RefObject } from "react";
 import { CopyIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import type { ProjectView } from "../../application-host";
 import type { StageObject } from "../../stage-types";
-import { decimal, objectOutline } from "../../stage-tools";
+import { objectOutline } from "../../stage-tools";
 export function StageInspector({
   object,
   project,
@@ -21,6 +25,7 @@ export function StageInspector({
   onHang,
   onSelectMounted,
   onDetach,
+  onLock,
 }: {
   object: StageObject | null;
   project: ProjectView;
@@ -37,6 +42,7 @@ export function StageInspector({
   onHang(): void;
   onSelectMounted(id: string): void;
   onDetach(ids: string[]): void;
+  onLock(locked: boolean): void;
 }) {
   if (!object)
     return (
@@ -51,6 +57,8 @@ export function StageInspector({
     fn(copy);
     onChange(copy);
   };
+  const target = stageTarget(object);
+  const locked = isStageLocked(project.stage, target);
   const outline = objectOutline(object);
   const numeric = (
     label: string,
@@ -133,14 +141,20 @@ export function StageInspector({
               aria-label={
                 object.kind === "placement" ? "移除灯位" : "删除选中对象"
               }
-              disabled={busy}
+              disabled={busy || locked}
               onClick={onDelete}
             >
               <TrashIcon />
             </button>
           </div>
         </header>
-        <fieldset disabled={busy}>
+        <StageLockControls
+          stage={project.stage}
+          targets={[target]}
+          busy={busy}
+          onLock={onLock}
+        />
+        <fieldset disabled={busy || locked}>
           {object.kind !== "placement" ? (
             <label>
               名称
@@ -203,20 +217,6 @@ export function StageInspector({
                   0.1,
                   1000,
                 )}
-              {!project.stage.constructions.some(
-                (c) =>
-                  c.shape.kind === "enclosure" &&
-                  c.shape.spaceId === object.value.id,
-              ) && (
-                <button
-                  type="button"
-                  disabled={object.value.clearHeightMeters === null}
-                  onClick={onEnclose}
-                >
-                  <PlusIcon />
-                  添加墙体与地板
-                </button>
-              )}
             </>
           )}
           {object.kind === "construction" &&
@@ -347,180 +347,67 @@ export function StageInspector({
                     onChange({ ...object, value: { ...object.value, shape } })
                   }
                 />
-                <div className="rig-member-actions">
-                  <button type="button" onClick={onHang}>
-                    批量挂灯
-                  </button>
-                  <button
-                    type="button"
-                    disabled={
-                      !project.stage.attachments.some(
-                        (a) => a.constructionId === object.value.id,
-                      )
-                    }
-                    onClick={() => onSelectMounted(object.value.id)}
-                  >
-                    选中全部挂灯
-                  </button>
-                </div>
-                <p className="wb-dim">
-                  已挂{" "}
-                  {
-                    project.stage.attachments.filter(
-                      (a) => a.constructionId === object.value.id,
-                    ).length
-                  }{" "}
-                  台 · 随支撑体移动
-                </p>
               </>
             )}
-          {object.kind === "placement" && (
-            <>
+          <StagePlacementFields
+            object={object}
+            project={project}
+            onChange={onChange}
+            onHang={onHang}
+            onDetach={onDetach}
+          />
+          <StageOutlineFields object={object} onChange={onChange} />
+        </fieldset>
+        {object.kind === "space" && (
+          <fieldset disabled={busy}>
+            {" "}
+            {!project.stage.constructions.some(
+              (c) =>
+                c.shape.kind === "enclosure" &&
+                c.shape.spaceId === object.value.id,
+            ) && (
+              <button
+                type="button"
+                disabled={object.value.clearHeightMeters === null}
+                onClick={onEnclose}
+              >
+                <PlusIcon />
+                添加墙体与地板
+              </button>
+            )}
+          </fieldset>
+        )}
+        {object.kind === "construction" &&
+          object.value.shape.kind === "rig" && (
+            <fieldset disabled={busy}>
+              {" "}
               <div className="rig-member-actions">
-                <span>
-                  {project.stage.constructions.find(
-                    (c) =>
-                      c.id ===
-                      project.stage.attachments.find(
-                        (a) => a.fixtureId === object.value.fixtureId,
-                      )?.constructionId,
-                  )?.name ?? "未挂接支撑体"}
-                </span>
-                <button
-                  type="button"
-                  disabled={
-                    !project.stage.constructions.some(
-                      (c) => c.shape.kind === "rig",
-                    )
-                  }
-                  onClick={onHang}
-                >
-                  挂接／换挂
+                <button type="button" onClick={onHang}>
+                  批量挂灯
                 </button>
                 <button
                   type="button"
                   disabled={
                     !project.stage.attachments.some(
-                      (a) => a.fixtureId === object.value.fixtureId,
+                      (a) => a.constructionId === object.value.id,
                     )
                   }
-                  onClick={() => onDetach([object.value.fixtureId])}
+                  onClick={() => onSelectMounted(object.value.id)}
                 >
-                  解除挂接
+                  选中全部挂灯
                 </button>
               </div>
-              {member(object.value.spaceId, (v) =>
-                update((c) => {
-                  if (c.kind === "placement") c.value.spaceId = v;
-                }),
-              )}
-              <div className="stage-fields">
-                {(["x", "y", "z"] as const).map((axis) => (
-                  <div key={axis}>
-                    {numeric(
-                      `${axis.toUpperCase()} 位置（米）`,
-                      object.value.positionMeters[axis],
-                      (v) =>
-                        update((c) => {
-                          if (c.kind === "placement")
-                            c.value.positionMeters[axis] = v;
-                        }),
-                    )}
-                  </div>
-                ))}
-              </div>
-              <h3>底座安装朝向</h3>
-              <div className="stage-fields">
-                {(["x", "y", "z"] as const).map((axis) => (
-                  <div key={axis}>
-                    {numeric(
-                      `${axis.toUpperCase()} 旋转（度）`,
-                      object.value.rotationDegreesXYZ[axis],
-                      (v) =>
-                        update((c) => {
-                          if (c.kind === "placement")
-                            c.value.rotationDegreesXYZ[axis] = v;
-                        }),
-                      -3600,
-                      3600,
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
+              <p className="wb-dim">
+                已挂{" "}
+                {
+                  project.stage.attachments.filter(
+                    (a) => a.constructionId === object.value.id,
+                  ).length
+                }{" "}
+                台 · 随支撑体移动
+              </p>
+            </fieldset>
           )}
-          {outline && (
-            <>
-              <details className="stage-outline">
-                <summary>高级轮廓 · {outline.length} 个顶点</summary>
-                <h3>
-                  顶点坐标 <span>米</span>
-                </h3>
-                <div className="stage-point-head">
-                  <span>顶点</span>
-                  <span>X</span>
-                  <span>Y</span>
-                  <span />
-                </div>
-                {outline.map((point, index) => (
-                  <div className="stage-point" key={index}>
-                    <span>{index + 1}</span>
-                    {([0, 1] as const).map((axis) => (
-                      <input
-                        key={axis}
-                        aria-label={`顶点 ${index + 1} ${axis === 0 ? "X" : "Y"}`}
-                        type="number"
-                        required
-                        step="any"
-                        min={-100000}
-                        max={100000}
-                        value={point[axis]}
-                        onChange={(e) =>
-                          update((c) => {
-                            const p = objectOutline(c);
-                            if (p) p[index]![axis] = e.target.value;
-                          })
-                        }
-                      />
-                    ))}
-                    <button
-                      type="button"
-                      aria-label={`删除顶点 ${index + 1}`}
-                      disabled={outline.length <= 3}
-                      onClick={() =>
-                        update((c) => {
-                          objectOutline(c)?.splice(index, 1);
-                        })
-                      }
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  disabled={outline.length >= 128}
-                  onClick={() =>
-                    update((c) => {
-                      const p = objectOutline(c);
-                      if (p && p.length >= 3) {
-                        const a = p.at(-1)!,
-                          b = p[0]!;
-                        p.push([
-                          decimal((Number(a[0]) + Number(b[0])) / 2),
-                          decimal((Number(a[1]) + Number(b[1])) / 2),
-                        ]);
-                      }
-                    })
-                  }
-                >
-                  <PlusIcon />
-                  添加轮廓顶点
-                </button>
-              </details>
-            </>
-          )}
-        </fieldset>
         {error && (
           <p className="stage-error" role="alert">
             {error}
@@ -532,7 +419,7 @@ export function StageInspector({
           </button>
           <button
             className="wb-primary"
-            disabled={busy || !pending}
+            disabled={busy || locked || !pending}
             type="submit"
           >
             应用

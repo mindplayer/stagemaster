@@ -91,6 +91,18 @@ pub enum ValueMode {
 }
 
 pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String> {
+    let protected = if matches!(command, EditCommand::Batch { .. }) {
+        None
+    } else {
+        Some(crate::stage_locks::capture(root)?)
+    };
+    apply_operation(root, command)?;
+    if let Some(protected) = protected {
+        protected.verify(root)?;
+    }
+    Ok(())
+}
+fn apply_operation(root: &mut Value, command: EditCommand) -> Result<(), String> {
     match command {
         EditCommand::Audio { command } => crate::audio::apply(root, command)?,
         EditCommand::Position { command } => crate::position::apply(root, command)?,
@@ -189,6 +201,7 @@ pub(super) fn apply(root: &mut Value, command: EditCommand) -> Result<(), String
     }
     Ok(())
 }
+
 fn duplicate_scene(root: &mut Value, source: &str, name: String) -> Result<(), String> {
     let mut copy = find(list(root, "scenes")?, source)?.clone();
     copy["id"] = id().into();

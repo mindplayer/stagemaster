@@ -75,6 +75,8 @@ pub struct FixturePlacement {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct StageView {
     #[serde(default)]
+    pub edit_locks: Vec<crate::StageEditLock>,
+    #[serde(default)]
     pub attachments: Vec<crate::rigging::RigAttachment>,
     pub spaces: Vec<StageSpace>,
     pub constructions: Vec<StageConstruction>,
@@ -88,6 +90,10 @@ pub struct StageView {
     deny_unknown_fields
 )]
 pub enum StageEdit {
+    SetEditLocks {
+        targets: Vec<crate::StageEditLock>,
+        locked: bool,
+    },
     PutSpace {
         id: Option<String>,
         name: String,
@@ -132,6 +138,7 @@ pub enum StageEdit {
 
 fn read(root: &Value) -> Result<StageView, String> {
     serde_json::from_value(json!({
+        "editLocks": array(&root["stage"], "editLocks"),
         "spaces": array(&root["stage"], "spaces"),
         "constructions": array(&root["stage"], "constructions"),
         "placements": array(&root["stage"], "placements"),
@@ -143,6 +150,7 @@ pub(super) fn view(root: &Value) -> StageView {
     read(root).expect("validated stage projection")
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
+    crate::stage_locks::validate(root)?;
     if !array(&root["stage"], "nodes").is_empty() {
         return Err("当前版本尚不支持旧场地节点／外部模型，工程未打开".into());
     }
@@ -251,6 +259,9 @@ fn member(id: Option<&str>, spaces: &BTreeSet<&str>) -> Result<(), String> {
 pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> {
     initialize(root, &command)?;
     match command {
+        StageEdit::SetEditLocks { targets, locked } => {
+            crate::stage_locks::set(root, targets, locked)?;
+        }
         StageEdit::PutSpace {
             id,
             name,

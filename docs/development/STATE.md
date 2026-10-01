@@ -1,5 +1,7 @@
 # 当前开发状态
 
+STAGE-002 完成（基线 `c32eeb0`，结果为本次 `feat(stage): protect locked venue objects across editors` 提交）：依 ADR-065 实现场地锁／原子间接保护、中文单／多选、二维／三维一致限制并拆分场地工作区。全量 495 Rust＋最终工程 117（追加 1）与三维 3、154 UI、103 格式、类型／fmt／严格检查／桌面及原生锁定／复制／草稿／撤销／保存重启通过，见[验收](tasks/STAGE-002-object-edit-locks.md)。当前独立副本已保存 81 个锁，原几何／灯光及原 Volare 未改，三维关闭、设备断开。持续 goal active，接续观众区业务对象与参数化布置。
+
 AUDIO-005 完成（基线 `c996b77`，结果为本次 `feat(audio): add bounded native rehearsal loops` 提交）：依 ADR-064 实现原生有界局部循环、锁外准备／过时拒绝、时间线精确范围／选段、波形标记与共享播放状态。490 Rust、151 UI、类型／fmt／严格检查／桌面及原生回环／停止起点／错误取消／跨页／重启／内嵌 UE 通过，见[验收](tasks/AUDIO-005-local-loop-preview.md)。当前已保存 Volare 独立副本，暂停 1.760 秒、循环关闭、UE 关闭、设备断开；原工程未改。持续 goal 接续场地锁定与批量整理，现场循环及声卡／跨设备同步仍后续。
 
 AUDIO-004 完成（基线 `7d0b196`，结果为本次 `feat(audio): add atomic marker group editing` 提交）：按 ADR-063 实现卡点成组选择／平移／复制／删除、隐藏选择提示、右侧组属性与原子冲突拒绝。484 Rust、148 UI、类型／fmt／严格检查／桌面及原生错误取消／复制移动／撤销重做／保存重开／跨页保持通过，见[验收](tasks/AUDIO-004-marker-group-editing.md)。当前正式应用为已保存 32 卡点的独立 Volare 副本，音乐停止、UE 关闭、设备断开，原 Volare 未改；持续 goal 接续局部循环试听，完整片段模型仍后续。

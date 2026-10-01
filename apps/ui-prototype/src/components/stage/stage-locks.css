@@ -1,0 +1,37 @@
+.stage-lock-controls {
+  padding: 10px 0;
+  border-block: 1px solid var(--wb-border, #35414b);
+  margin-bottom: 12px;
+}
+.stage-lock-controls > div,
+.stage-lock-controls span,
+.stage-lock-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stage-lock-controls > div {
+  justify-content: space-between;
+}
+.stage-lock-controls span {
+  font-size: 12px;
+}
+.stage-lock-controls small {
+  display: block;
+  margin-top: 6px;
+  color: var(--wb-muted, #adb6c0);
+  font-size: 11px;
+}
+.stage-object-lock {
+  flex: 0 0 auto;
+  opacity: 0.85;
+}
+.stage-objects .stage-object > span {
+  flex: 1;
+  overflow: hidden;
+}
+.stage-object small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

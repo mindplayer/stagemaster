@@ -196,4 +196,42 @@ mod tests {
         );
         assert_eq!(placement(&s).position_meters.x, "1");
     }
+    #[test]
+    fn locked_fixture_rejects_native_viewport_and_lock_history_restores_permission() {
+        let mut s = session();
+        let id = placement(&s).fixture_id;
+        let command = serde_json::from_value(json!({"op":"stage","command":{"op":"setEditLocks","targets":[{"kind":"placement","targetId":id}],"locked":true}})).unwrap();
+        s.edit(s.generation, command).unwrap();
+        let locked = s.previs_document().unwrap();
+        let revision = s.previs_revision();
+        let mut proposal = placement(&s);
+        proposal.position_meters.x = "4".into();
+        assert!(
+            s.place_from_viewport(
+                s.generation,
+                &revision.content.to_string(),
+                proposal.clone()
+            )
+            .unwrap_err()
+            .contains("锁定")
+        );
+        assert_eq!(s.previs_document().unwrap(), locked);
+        assert_eq!(s.undo.len(), 1);
+        s.history(s.generation, false).unwrap();
+        assert!(
+            s.previs_document()
+                .unwrap()
+                .view()
+                .stage
+                .edit_locks
+                .is_empty()
+        );
+        s.history(s.generation, true).unwrap();
+        assert_eq!(s.previs_document().unwrap(), locked);
+        s.history(s.generation, false).unwrap();
+        let revision = s.previs_revision();
+        s.place_from_viewport(s.generation, &revision.content.to_string(), proposal)
+            .unwrap();
+        assert_eq!(placement(&s).position_meters.x, "4");
+    }
 }

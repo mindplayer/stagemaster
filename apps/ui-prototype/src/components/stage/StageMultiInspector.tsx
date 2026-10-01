@@ -1,3 +1,5 @@
+import { StageLockControls } from "./StageLockControls";
+import { placementTargets, movementBlocker } from "../../stage-locks";
 import type { ProjectView } from "../../application-host";
 import { displayMeters } from "./stage-display";
 export function StageMultiInspector({
@@ -9,6 +11,7 @@ export function StageMultiInspector({
   onHang,
   onDetach,
   onClear,
+  onLock,
 }: {
   project: ProjectView;
   ids: string[];
@@ -18,18 +21,27 @@ export function StageMultiInspector({
   onHang(): void;
   onDetach(): void;
   onClear(): void;
+  onLock(locked: boolean): void;
 }) {
   const selectedPlacements = project.stage.placements.filter((p) =>
     ids.includes(p.fixtureId),
   );
+  const targets = placementTargets(ids);
+  const blocked = !!movementBlocker(project.stage, targets);
   return (
     <aside className="stage-inspector stage-multi-inspector">
       <header>
         <h2>已选 {ids.length} 台灯具</h2>
       </header>
+      <StageLockControls
+        stage={project.stage}
+        targets={targets}
+        busy={busy}
+        onLock={onLock}
+      />
       <button
         className="wb-primary"
-        disabled={busy}
+        disabled={busy || blocked}
         onClick={() => onArrange()}
       >
         排列与精确调整
@@ -38,6 +50,7 @@ export function StageMultiInspector({
         <button
           disabled={
             busy ||
+            blocked ||
             !project.stage.constructions.some((c) => c.shape.kind === "rig")
           }
           onClick={() => onHang()}
@@ -47,6 +60,7 @@ export function StageMultiInspector({
         <button
           disabled={
             busy ||
+            blocked ||
             !project.stage.attachments.some((a) => ids.includes(a.fixtureId))
           }
           onClick={() => onDetach()}

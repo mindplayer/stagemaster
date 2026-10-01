@@ -189,3 +189,6 @@ compile_entry(project: &ValidatedProject, binding: &ValidatedSiteBinding,
 - [OSC 1.0](https://opensoundcontrol.stanford.edu/spec-1_0.html)：外部控制适配的类型和时间标记参考。
 - [OPC UA Robotics](https://reference.opcfoundation.org/specs/OPC-40010-1/full)：借鉴控制器、轴和反馈状态模型，不等同于安全控制协议。
 - [ANSI E1.64-2024 公开概要](https://webstore.ansi.org/standards/esta/ansie1642024)：舞台机械控制链的范围依据，仅查阅概要，不声称符合标准全文。
+
+
+STAGE-002 按 [ADR-065](../development/decisions/PRODUCT-ADR-065-stage-edit-locks.md) 增加可选 `stage.editLocks` 与 `stage.edit-locks@1`：保存最多 1600 个空间／构件／灯位锁定引用，保护直接及间接几何修改，旧文件无需补字段。它是编辑保护，不改变节目编译与播放包；命令和边界见[场地 API](../module-api/stage-spaces.md)。

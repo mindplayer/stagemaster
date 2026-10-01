@@ -1,3 +1,4 @@
+import { isStageLocked } from "../../stage-locks";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   HouseLineIcon,
@@ -6,6 +7,7 @@ import {
   CaretRightIcon,
   EyeIcon,
   EyeSlashIcon,
+  LockSimpleIcon,
 } from "@phosphor-icons/react";
 import type { ProjectView } from "../../application-host";
 import type { StageSelection } from "../../stage-types";
@@ -70,12 +72,13 @@ export function StageOutliner({
     nested = false,
     hidden = false,
   ) {
+    const locked = isStageLocked(project.stage, target);
     return (
       <button
         key={`${target.kind}:${target.id}`}
         data-selection={`${target.kind}:${target.id}`}
         className={`stage-object ${nested ? "nested" : ""} ${hidden ? "plan-hidden" : ""}`}
-        title={`${name} · ${detail}${hidden ? " · 选择后在平面图中显示" : ""}`}
+        title={`${name}${locked ? " · 已锁定" : ""} · ${detail}${hidden ? " · 选择后在平面图中显示" : ""}`}
         aria-pressed={
           target.kind === "placement"
             ? selectedIds.includes(target.id)
@@ -93,8 +96,14 @@ export function StageOutliner({
         )}
         <span>
           <strong>{name}</strong>
-          <small>{detail}</small>
+          <small>
+            {detail}
+            {locked ? " · 已锁定" : ""}
+          </small>
         </span>
+        {locked && (
+          <LockSimpleIcon className="stage-object-lock" aria-hidden="true" />
+        )}
       </button>
     );
   }

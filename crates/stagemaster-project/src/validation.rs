@@ -141,6 +141,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "stage.layout",
             "stage.spaces",
             "stage.rigging",
+            crate::stage_locks::CAPABILITY,
         ]
         .contains(&text(capability, "key"))
             || capability["version"] != 1

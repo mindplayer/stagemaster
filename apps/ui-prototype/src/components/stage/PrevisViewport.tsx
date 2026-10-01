@@ -10,12 +10,14 @@ export function PrevisViewport({
   url,
   busy,
   allowPlacement = true,
+  placementLocked = false,
   contextKey,
   ...interactions
 }: {
   url: string | null;
   busy: boolean;
   allowPlacement?: boolean;
+  placementLocked?: boolean;
   contextKey: string;
 } & PrevisInteractions) {
   const parent = useRef<HTMLDivElement>(null);
@@ -31,10 +33,11 @@ export function PrevisViewport({
   });
   const callbacks = useRef(interactions);
   callbacks.current = interactions;
-  const canMove = useRef(allowPlacement);
-  canMove.current = allowPlacement;
+  const canPlace = allowPlacement && !placementLocked;
+  const canMove = useRef(canPlace);
+  canMove.current = canPlace;
   const scope = useRef(new PrevisInteractionScope());
-  scope.current.update(contextKey, allowPlacement);
+  scope.current.update(`${contextKey}:${interactions.selectedId}`, canPlace);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     setPlaying(false);
@@ -169,9 +172,7 @@ export function PrevisViewport({
           };
           container.addEventListener("focusin", focus);
           container.addEventListener("focusout", blur);
-          const stopResume = resumeVisibleVideo(container, () =>
-            player.play(),
-          );
+          const stopResume = resumeVisibleVideo(container, () => player.play());
           player.connect();
           cleanup = () => {
             stopResume();
@@ -198,7 +199,7 @@ export function PrevisViewport({
     stream.current?.emitUIInteraction({ action: "cancel" });
     stream.current?.emitUIInteraction({ action: "inspect" });
     setViewState((state) => ({ ...state, move: false }));
-  }, [contextKey, allowPlacement]);
+  }, [contextKey, canPlace]);
   useEffect(() => {
     if (playing)
       stream.current?.emitUIInteraction({
@@ -226,7 +227,8 @@ export function PrevisViewport({
         </button>
         {allowPlacement && (
           <button
-            disabled={!playing || busy}
+            disabled={!playing || busy || placementLocked}
+            title={placementLocked ? "灯位已锁定，请在属性栏解锁" : undefined}
             aria-pressed={viewState.move}
             onClick={() => {
               const player = stream.current;
@@ -240,7 +242,7 @@ export function PrevisViewport({
               }
             }}
           >
-            移动灯位
+            {placementLocked ? "灯位已锁定" : "移动灯位"}
           </button>
         )}
         <button

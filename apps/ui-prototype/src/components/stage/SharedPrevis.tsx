@@ -30,6 +30,7 @@ export const SharedPrevis = forwardRef<
     currentScene?: SceneView;
     contextKey: string;
     allowPlacement: boolean;
+    placementLocked?: boolean;
     busy: boolean;
     fixed?: boolean;
     viewControls?: ReactNode;

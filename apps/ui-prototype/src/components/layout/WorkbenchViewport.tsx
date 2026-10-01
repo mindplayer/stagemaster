@@ -1,3 +1,4 @@
+import { isStageLocked } from "../../stage-locks";
 import { forwardRef, useState, type ComponentPropsWithoutRef } from "react";
 import type { ProjectView } from "../../application-host";
 import { SharedPrevis, type SharedPrevisHandle } from "../stage/SharedPrevis";
@@ -67,6 +68,10 @@ export const WorkbenchViewport = forwardRef<
       >
         <SharedPrevis
           {...preview}
+          placementLocked={isStageLocked(project.stage, {
+            kind: "placement",
+            id: preview.selectedId,
+          })}
           limitedFixtures={project.fixtures.filter(
             (f) =>
               f.attributes.some((a) => a.function) &&

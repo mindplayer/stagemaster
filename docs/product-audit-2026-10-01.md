@@ -150,7 +150,7 @@
 | U05 | [UX-021](development/tasks/UX-021-execution-view.md) 当前／下一步／选择分离、执行面与跳转保护 | 多执行器、主控、临时覆盖与完整应急操作 |
 | U06 | [UX-022](development/tasks/UX-022-audio-lighting-lane.md) 真实灯光段落、共享边界和单次历史；[AUDIO-003](development/tasks/AUDIO-003-lighting-transitions.md) 确定性进入渐变／任意定位；[UX-029](development/tasks/UX-029-audio-seek-feedback.md) 快速定位意图与回执保序；[AUDIO-004](development/tasks/AUDIO-004-marker-group-editing.md) 保留节奏的卡点成组平移／复制／删除；[AUDIO-005](development/tasks/AUDIO-005-local-loop-preview.md) 原生临时局部循环 | 完整片段移动／复制／锁定、正式演出区段循环、双场景效果持续交叉与多轨 |
 | U07 | UX-019 从卡点预演、编辑关联场景和上下文返回；[SEQUENCE-002](development/tasks/SEQUENCE-002-script-prompts.md) 步骤幕场／台词／备注及版本隔离 | 继续随片段和剧本能力验收 |
-| U08 | [UX-025](development/tasks/UX-025-stage-organization.md) 目录／显隐／搜索／显示精度 | 座区／座椅复合对象、锁定和完整三维组变换 |
+| U08 | [UX-025](development/tasks/UX-025-stage-organization.md) 目录／显隐／搜索／显示精度；[STAGE-002](development/tasks/STAGE-002-object-edit-locks.md) 工程级对象锁与二维／三维／联动保护 | 座区／座椅复合对象和完整三维组变换 |
 | U09／U10 | UX-018／020／021 收紧属性与执行密度，[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面与共享有序选择 | 更多任务布局、完整辅助功能与独立用户操作测试 |
 | U11 | [UX-024](development/tasks/UX-024-recent-projects.md) 最近工程及“下发节目”，[UX-028](development/tasks/UX-028-project-resource-health.md) 音乐健康与修复导航 | 多媒体资源扩展与其他平台验收 |
 | D01 | [DOC-001](development/tasks/DOC-001-current-capability-map.md) 当前表、README、能力导航／计划对齐 | 随每次能力变化维护，不再堆叠相互矛盾的当前表述 |

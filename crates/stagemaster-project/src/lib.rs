@@ -39,6 +39,7 @@ mod rigging;
 mod sequence;
 mod sequence_script;
 mod stage;
+mod stage_locks;
 pub use audio_group::MarkerGroupAction;
 pub use compilation::{CompiledSequence, CompiledStep};
 pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};
@@ -49,6 +50,7 @@ pub use stage::{
     ConstructionShape, FixturePlacement, SpatialVector3, StageConstruction, StageEdit, StageSpace,
     StageView,
 };
+pub use stage_locks::{StageEditLock, StageLockKind};
 mod strict_json;
 mod validation;
 mod view;

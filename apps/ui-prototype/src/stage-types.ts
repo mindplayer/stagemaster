@@ -56,13 +56,19 @@ export interface FixturePlacement {
   positionMeters: SpatialVector3;
   rotationDegreesXYZ: SpatialVector3;
 }
+export interface StageEditLock {
+  kind: StageObject["kind"];
+  targetId: string;
+}
 export interface StageView {
+  editLocks?: StageEditLock[];
   attachments: RigAttachment[];
   spaces: StageSpace[];
   constructions: StageConstruction[];
   placements: FixturePlacement[];
 }
 export type StageEdit =
+  | { op: "setEditLocks"; targets: StageEditLock[]; locked: boolean }
   | ({ op: "putSpace" } & Omit<StageSpace, "id"> & { id: string | null })
   | { op: "duplicateSpace"; id: string; name: string }
   | { op: "removeSpace"; id: string; detachMembers: boolean }

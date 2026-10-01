@@ -1,3 +1,9 @@
+import { nudgedPlacements } from "./plan-nudge";
+import {
+  movementBlocker,
+  placementTargets,
+  stageTarget,
+} from "../../stage-locks";
 import { planPreview } from "./plan-preview";
 import { planPoints, selectionPoints } from "./plan-focus";
 import { StagePlanObjects } from "./StagePlanObjects";
@@ -73,6 +79,7 @@ export function StageCanvas({
   onGesture(value: boolean): void;
 }) {
   const svg = useRef<SVGSVGElement>(null);
+  const [blocked, setBlocked] = useState("");
   const [gesture, setGesture] = useState<Gesture | null>(null),
     active = useRef<Gesture | null>(null);
   const [snap, setSnap] = useState(true);
@@ -122,6 +129,7 @@ export function StageCanvas({
   }
   function start(e: ReactPointerEvent<SVGSVGElement>) {
     if (busy || pending || active.current || e.button !== 0) return;
+    setBlocked("");
     svg.current!.focus({ preventScroll: true });
     const hit = (e.target as Element).closest<SVGElement>(
       "[data-kind][data-id]",
@@ -157,6 +165,20 @@ export function StageCanvas({
               : p.fixtureId === target.id,
           )
         : [];
+    if (
+      mode === "object" &&
+      movementBlocker(
+        project.stage,
+        fixtures.length
+          ? placementTargets(fixtures.map((p) => p.fixtureId))
+          : target
+            ? [target]
+            : [],
+      )
+    ) {
+      setBlocked("本次移动涉及已锁定的对象，请先解锁");
+      return;
+    }
     const origin = world(e);
     if (mode === "measure" && snap && !e.altKey) {
       origin[0] = Math.round(origin[0] * 10) / 10;
@@ -341,27 +363,19 @@ export function StageCanvas({
           ) {
             e.preventDefault();
             e.stopPropagation();
-            const step = e.shiftKey ? 1 : 0.1,
-              dx =
-                e.key === "ArrowLeft"
-                  ? -step
-                  : e.key === "ArrowRight"
-                    ? step
-                    : 0,
-              dy =
-                e.key === "ArrowDown" ? -step : e.key === "ArrowUp" ? step : 0;
+            if (movementBlocker(project.stage, placementTargets(visibleIds))) {
+              setBlocked("所选灯位包含锁定对象，整组保持原位");
+              return;
+            }
+            setBlocked("");
             onMovePlacements(
-              shown.placements
-                .filter((p) => visibleIds.includes(p.fixtureId))
-                .map(
-                  (p) =>
-                    (
-                      translated({ kind: "placement", value: p }, dx, dy) as {
-                        kind: "placement";
-                        value: FixturePlacement;
-                      }
-                    ).value,
+              nudgedPlacements(
+                shown.placements.filter((p) =>
+                  visibleIds.includes(p.fixtureId),
                 ),
+                e.key,
+                e.shiftKey,
+              ),
             );
           }
         }}
@@ -441,21 +455,26 @@ export function StageCanvas({
           <StageSelectionOverlay
             object={drawn(currentObject)}
             unit={unit}
-            disabled={busy || pending}
+            disabled={
+              busy ||
+              pending ||
+              !!movementBlocker(project.stage, [stageTarget(currentObject)])
+            }
             onResize={onMove}
           />
         )}
       </svg>
       <footer>
-        <span>
-          {tool === "select"
-            ? "拖框选择灯具 · ⇧ 点击增减选择"
-            : tool === "move"
-              ? "拖动所选灯具整组移动 · ⇧ 锁定方向 · Esc 取消"
-              : tool === "measure"
-                ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
-                : "拖动平移视图"}{" "}
-          {tool !== "measure" && " · 方向键微调"}
+        <span role="status">
+          {blocked ||
+            (tool === "select"
+              ? "拖框选择灯具 · ⇧ 点击增减选择"
+              : tool === "move"
+                ? "拖动所选灯具整组移动 · ⇧ 锁定方向 · Esc 取消"
+                : tool === "measure"
+                  ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
+                  : "拖动平移视图")}{" "}
+          {!blocked && tool !== "measure" && " · 方向键微调"}
         </span>
         <span>
           {measurement
