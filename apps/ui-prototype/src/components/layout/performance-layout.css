@@ -210,3 +210,12 @@
     padding: 0 5px;
   }
 }
+
+.region-viewport > .dock-target > .dock-pane {
+  flex: 1;
+  height: auto;
+}
+.region-viewport > .dock-target > .viewport-transport-pane {
+  flex: none;
+  order: 1;
+}

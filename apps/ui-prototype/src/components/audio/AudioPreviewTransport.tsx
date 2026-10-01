@@ -39,7 +39,7 @@ export function AudioPreviewTransport({
       void session.command({ kind: "seek", positionMs: value });
   }
   return (
-    <section className="audio-preview-transport" aria-label="三维音乐播放控制">
+    <section className="audio-preview-transport" aria-label="舞台音乐播放控制">
       <div className="audio-preview-controls">
         <span title={track.asset.fileName}>音乐</span>
         <button
@@ -73,7 +73,7 @@ export function AudioPreviewTransport({
       </div>
       <input
         type="range"
-        aria-label="三维音乐进度"
+        aria-label="舞台音乐进度"
         aria-valuetext={audioTime(
           draft ?? session.requestedPosition ?? session.position.positionMs,
         )}

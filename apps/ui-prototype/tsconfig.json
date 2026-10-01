@@ -33,6 +33,7 @@
     "tests/stage-organization-harness.tsx",
     "tests/scene-plan-selection.test.ts",
     "tests/scene-plan-harness.tsx",
+    "tests/stage-overview-harness.tsx",
     "tests/resource-picker-harness.tsx"
   ]
 }

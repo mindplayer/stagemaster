@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-031 完成（基线 `72e4e77`，结果为本次 `feat(ui): add shared stage overview for sequencing` 提交）：步骤／音乐页增加共享平面场地及导航，中央音乐进度独立于三维且保持单例。175 UI、类型／桌面、原生场地／音频／唯一 UE／错误草稿及浏览器取消／空场地通过，见[验收](tasks/UX-031-shared-stage-overview.md)。独立工程未改、UE 关闭、设备断开；持续 goal 接续 U09 专注编排布局。
+
 SEQUENCE-004 完成（基线 `75ecd5e`，结果为本次 `feat(sequence): add atomic group timing edits` 提交）：依 ADR-070 实现整组字段时间／混合值、统一草稿与严格请求检查。191 工程／桌面 Rust、175 UI、类型／fmt／严格检查／桌面和原生错误定位／取消／隐藏选择／自动推进／历史／保存重开通过，见[验收](tasks/SEQUENCE-004-group-timing.md)。六步独立工程已保存，UE 关闭、设备断开；持续 goal active，接续 U09 中央视图区。
 
 SEQUENCE-003 完成（基线 `aa37d6e`，结果为本次 `feat(sequence): add atomic step group organization` 提交）：依 ADR-069 实现步骤成组复制／移动／删除、搜索／范围／隐藏选择与一次历史，旧运行版本保持。522 Rust、最终组 4、171 UI、类型／fmt／严格检查／桌面及原生取消／撤销／保存重开／键盘通过，见[验收](tasks/SEQUENCE-003-step-group-editing.md)。独立六步副本已保存，预演未载入、UE 关闭、设备断开；持续 goal active，接续整组时间调整。

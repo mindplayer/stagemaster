@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 工程编辑与持久化 | Rust 原子事务／撤销重做、严格读取、修订与保存冲突、[容量保护](module-api/project-capacity.md)、[崩溃恢复](module-api/project-recovery.md)、[最近工程](development/tasks/UX-024-recent-projects.md) | 未应用输入草稿恢复、版本迁移／比较、云端协作；其他平台需独立验收 |
 | 灯具定义与配适 | [FIXTURE-002](development/tasks/FIXTURE-002-profiles-patch.md)：工程内调光／RGB／双轴、8/16 位任意粗细映射、默认值、使用中模式保护、明确换灯、批量改址／占用图；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 增加单色盘／图案盘／快门频闪／棱镜的命名区间、类型化选择、8/16 位编码及兼容换灯 | 物理光学元数据、关联／控制通道、个人灯库、GDTF／OFL 导入、多单元和真实试灯 |
-| 灯组／预设与选择 | [资源模块](module-api/editing-library.md)、[中央平面选择](development/tasks/UX-026-scene-plan-selection.md)、[搜索面板](development/tasks/UX-027-searchable-resources.md)：有序选择、追加／扣除、预设引用／独立值、依赖与更新保护 | 通用共享预设、配方、完整克隆／跨能力换灯 |
+| 灯组／预设与选择 | [资源模块](module-api/editing-library.md)、[中央平面选择](development/tasks/UX-026-scene-plan-selection.md)、[编排平面查看](development/tasks/UX-031-shared-stage-overview.md)、[搜索面板](development/tasks/UX-027-searchable-resources.md)：有序选择、追加／扣除、预设引用／独立值、依赖与更新保护 | 通用共享预设、配方、完整克隆／跨能力换灯 |
 | 常规场景编排 | [编排流程](development/tasks/UX-018-scene-editing-flow.md)：亮度／颜色／位置属性、批量混合值、场景复制、显式对象／版本预演 | 专业编程器来源追踪、盲编、分部／阻断继承／仅当前更新、暗场预定位 |
 | 动态效果 | [效果模块](module-api/lighting-effects.md)：亮度／RGB 曲线、32 帧、三种过渡、灯序／相位；[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 加入相对物理角度双轴运动；[固定属性编辑](development/tasks/UX-020-docked-effect-editing.md) 保持三维可见 | 功能区间内渐变／命名档位追逐、连续世界目标轨迹、速度／加速度约束、现场速度主控／节拍、像素；当前正弦采用有界采样，详见契约 |
 | 摇头位置 | [POSITION-001](development/tasks/POSITION-001-moving-head-workflow.md)：独立两轴范围／反向、零偏、静态共同点、轴角渐变和关节预演 | 非相交轴／多头、自动校准、实灯精度／碰撞；相对运动不能等同持续目标跟随 |

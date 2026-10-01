@@ -1,0 +1,72 @@
+.stage-overview {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background: #0b1118;
+}
+.stage-overview > header,
+.stage-overview-toolbar,
+.stage-overview > footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  color: var(--wb-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.stage-overview > header,
+.stage-overview > footer {
+  justify-content: space-between;
+}
+.stage-overview-toolbar {
+  border-bottom: 1px solid var(--wb-border);
+}
+.workbench .stage-overview-toolbar button {
+  padding: 4px 8px;
+  min-height: 27px;
+  font-size: 11px;
+}
+.workbench .stage-overview-toolbar label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.stage-overview-toolbar > span {
+  margin-left: auto;
+}
+.stage-overview-canvas {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 60px;
+  overflow: hidden;
+}
+.stage-overview .stage-canvas {
+  min-height: 0;
+  touch-action: none;
+  cursor: grab;
+}
+.stage-overview .stage-canvas g[data-id] {
+  cursor: inherit;
+}
+.stage-overview .stage-canvas:active {
+  cursor: grabbing;
+}
+.stage-overview-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--wb-muted);
+  font-size: 12px;
+}
+.stage-overview > footer {
+  font-size: 10px;
+  border-top: 1px solid var(--wb-border);
+}

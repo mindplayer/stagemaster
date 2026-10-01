@@ -140,7 +140,7 @@
 
 ## 实施跟踪（2026-10-01）
 
-下表对齐 SEQUENCE-004；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
+下表对齐 UX-031；上文保留 `651cd79` 受审事实，不改写历史。完成子项不等于完成对应整项专业验收或商业交付；当前能力总表见[实现状态](implementation-status.md)。
 
 | 原问题 | 已实施与验证 | 剩余范围 |
 | --- | --- | --- |
@@ -151,7 +151,7 @@
 | U06 | [UX-022](development/tasks/UX-022-audio-lighting-lane.md) 真实灯光段落、共享边界和单次历史；[AUDIO-003](development/tasks/AUDIO-003-lighting-transitions.md) 确定性进入渐变／任意定位；[UX-029](development/tasks/UX-029-audio-seek-feedback.md) 快速定位意图与回执保序；[AUDIO-004](development/tasks/AUDIO-004-marker-group-editing.md) 保留节奏的卡点成组平移／复制／删除；[AUDIO-005](development/tasks/AUDIO-005-local-loop-preview.md) 原生临时局部循环；[AUDIO-006](development/tasks/AUDIO-006-lighting-clips.md) 独立片段／空隙／移动／复制／锁定与显式转换 | 保持相位的裁切／分割、片段成组／禁用、正式演出区段循环、双场景效果持续交叉与多轨 |
 | U07 | UX-019 从卡点预演、编辑关联场景和上下文返回；[SEQUENCE-002](development/tasks/SEQUENCE-002-script-prompts.md) 步骤幕场／台词／备注及版本隔离；[SEQUENCE-003](development/tasks/SEQUENCE-003-step-group-editing.md) 成组复制／移动／删除与搜索选择；[SEQUENCE-004](development/tasks/SEQUENCE-004-group-timing.md) 整组时间与混合值 | 继续随片段和剧本能力验收 |
 | U08 | [UX-025](development/tasks/UX-025-stage-organization.md) 目录／显隐／搜索／显示精度；[STAGE-002](development/tasks/STAGE-002-object-edit-locks.md) 工程级对象锁与二维／三维／联动保护；[STAGE-003](development/tasks/STAGE-003-parametric-seating.md) 矩形座区／通道、整区操作和 UE 生成座椅；[UX-030](development/tasks/UX-030-fixture-plan-symbols.md) 能力符号／图例／配适地址标注 | 自定义灯型外观、标签避让、弧形／轮廓裁切座区和完整三维组变换 |
-| U09／U10 | UX-018／020／021 收紧属性与执行密度，[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面与共享有序选择 | 更多任务布局、完整辅助功能与独立用户操作测试 |
+| U09／U10 | UX-018／020／021 收紧属性与执行密度，[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面与共享有序选择；[UX-031](development/tasks/UX-031-shared-stage-overview.md) 步骤／音乐的平面查看及单份音乐进度 | 更多任务布局、完整辅助功能与独立用户操作测试 |
 | U11 | [UX-024](development/tasks/UX-024-recent-projects.md) 最近工程及“下发节目”，[UX-028](development/tasks/UX-028-project-resource-health.md) 音乐健康与修复导航 | 多媒体资源扩展与其他平台验收 |
 | D01 | [DOC-001](development/tasks/DOC-001-current-capability-map.md) 当前表、README、能力导航／计划对齐 | 随每次能力变化维护，不再堆叠相互矛盾的当前表述 |
 | F02 | POSITION-001／EFFECT-003 物理双轴；[FIXTURE-003B](development/tasks/FIXTURE-003B-function-authoring.md) 功能区间建档／类型值／预设／兼容包；FIXTURE-003A 直接切换执行 | 多单元／关联通道、复位控制、物理光学、GDTF 导入和实灯验证 |

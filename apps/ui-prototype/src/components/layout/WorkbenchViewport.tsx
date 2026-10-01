@@ -3,6 +3,7 @@ import { forwardRef, useState, type ComponentPropsWithoutRef } from "react";
 import type { ProjectView } from "../../application-host";
 import { SharedPrevis, type SharedPrevisHandle } from "../stage/SharedPrevis";
 import { FixturePlan } from "../scene-plan/FixturePlan";
+import { StageOverview } from "../stage/StageOverview";
 import { DockPane } from "./DockPane";
 import { StageViewTabs } from "./StageViewTabs";
 import type { WorkbenchPage } from "./WorkbenchNavigation";
@@ -43,31 +44,42 @@ export const WorkbenchViewport = forwardRef<
   ref,
 ) {
   const [sceneView, setSceneView] = useState<View>("plan");
-  const view = page === "stage" ? stageView : sceneView;
-  const controls =
-    page === "scenes" || page === "stage" ? (
-      <StageViewTabs
-        value={view}
-        planLabel={page === "scenes" ? "平面选灯" : "平面布置"}
-        busy={preview.busy}
-        onChange={(value) => {
-          if (page === "stage") onStageView(value);
-          else void preview.run(async () => setSceneView(value));
-        }}
-      />
-    ) : undefined;
+  const [playbackView, setPlaybackView] = useState<View>("plan");
+  const view =
+    page === "stage" ? stageView : page === "scenes" ? sceneView : playbackView;
+  const overviewPage = page === "sequences" || page === "audio";
+  const viewportVisible = !["fixtures", "profiles", "settings"].includes(page);
+  const { transport, ...previs } = preview;
+  const controls = viewportVisible ? (
+    <StageViewTabs
+      value={view}
+      planLabel={
+        page === "scenes"
+          ? "平面选灯"
+          : page === "stage"
+            ? "平面布置"
+            : "平面场地"
+      }
+      busy={preview.busy}
+      onChange={(value) => {
+        if (page === "stage") onStageView(value);
+        else
+          void preview.run(async () => {
+            if (page === "scenes") setSceneView(value);
+            else setPlaybackView(value);
+          });
+      }}
+    />
+  ) : undefined;
   return (
     <>
       <DockPane
         region="viewport"
         keepConnected
-        visible={
-          !["fixtures", "profiles", "settings"].includes(page) &&
-          (!["scenes", "stage"].includes(page) || view === "three")
-        }
+        visible={viewportVisible && view === "three"}
       >
         <SharedPrevis
-          {...preview}
+          {...previs}
           placementLocked={isStageLocked(project.stage, {
             kind: "placement",
             id: preview.selectedId,
@@ -83,7 +95,8 @@ export const WorkbenchViewport = forwardRef<
           contextKey={`${page}:${view}`}
           onReveal={() => {
             if (page === "stage") onStageView("three");
-            else setSceneView("three");
+            else if (page === "scenes") setSceneView("three");
+            else setPlaybackView("three");
           }}
         />
       </DockPane>
@@ -103,6 +116,20 @@ export const WorkbenchViewport = forwardRef<
           onSelect={onSelect}
           viewControls={controls}
         />
+      </DockPane>
+      <DockPane region="viewport" visible={overviewPage && view === "plan"}>
+        <StageOverview
+          project={project}
+          visible={overviewPage && view === "plan"}
+          viewControls={controls}
+        />
+      </DockPane>
+      <DockPane
+        region="viewport"
+        className="viewport-transport-pane"
+        visible={viewportVisible}
+      >
+        {transport}
       </DockPane>
     </>
   );

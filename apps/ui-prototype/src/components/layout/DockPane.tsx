@@ -19,12 +19,14 @@ export function DockPane({
   visible = true,
   passthrough = false,
   keepConnected = false,
+  className = "",
   children,
 }: {
   region: DockRegion;
   visible?: boolean;
   passthrough?: boolean;
   keepConnected?: boolean;
+  className?: string;
   children: ReactNode;
 }) {
   const targets = useContext(DockContext);
@@ -40,6 +42,9 @@ export function DockPane({
         ? targets[region]
         : null
       : undefined;
+  useLayoutEffect(() => {
+    container.className = `dock-pane ${className}`.trim();
+  }, [container, className]);
   useLayoutEffect(() => {
     if (keepConnected) {
       container.dataset.parked = String(!visible);
