@@ -6,16 +6,19 @@ import type {
   ProjectView,
   SceneView,
 } from "../../application-host";
-import type { PositionEdit } from "../../position-types";
 import { PositionReadout } from "./PositionReadout";
 import { AimTargetFields } from "./AimTargetFields";
 import { FixtureFieldError } from "../../fixture-tools";
-import { positionDecimal } from "../../position-tools";
+import {
+  collectPosition,
+  type PositionMode,
+  type PositionAction,
+} from "./position-command";
+import { RelativeAxisFields } from "./RelativeAxisFields";
 export interface PositionHandle {
   collect(): EditOperation[];
   accept(): void;
 }
-type Mode = "axes" | "aim" | "calibrate";
 export function PositionPanel({
   ref,
   project,
@@ -35,10 +38,12 @@ export function PositionPanel({
   onApply(): void;
   beforeChange(): Promise<boolean>;
 }) {
-  const [mode, setMode] = useState<Mode>("axes");
+  const [mode, setMode] = useState<PositionMode>("axes");
   const [values, setValues] = useState({
     pan: "",
     tilt: "",
+    panOffset: "",
+    tiltOffset: "",
     x: "0",
     y: "0",
     z: "0",
@@ -52,7 +57,7 @@ export function PositionPanel({
     [dirty, setDirty] = useState(false),
     form = useRef<HTMLFormElement>(null);
   const heads = fixtures.filter((f) => f.positioning);
-  const action = useRef<"home" | "release" | "remove" | null>(null);
+  const action = useRef<PositionAction>(null);
   function change(next: typeof values, changed = true) {
     action.current = null;
     current.current = next;
@@ -62,7 +67,18 @@ export function PositionPanel({
     onPending(changed);
   }
   function reset(next: typeof values) {
-    change({ ...next, pan: "", tilt: "", panZero: "", tiltZero: "" }, false);
+    change(
+      {
+        ...next,
+        pan: "",
+        tilt: "",
+        panOffset: "",
+        tiltOffset: "",
+        panZero: "",
+        tiltZero: "",
+      },
+      false,
+    );
     form.current
       ?.querySelectorAll<HTMLInputElement>("input")
       .forEach((el) => el.setCustomValidity(""));
@@ -77,81 +93,13 @@ export function PositionPanel({
   function collect(): EditOperation[] {
     if (!pending.current) return [];
     try {
-      if (!heads.length || heads.length !== fixtures.length)
-        throw new Error("请选择全部具有两轴模型的灯具");
-      const v = current.current,
-        fixtureIds = heads.map((f) => f.id),
-        sceneId = scene.id;
-      const decimal = (key: keyof typeof v, label: string, limit = 3600) =>
-        positionDecimal(v[key], key, label, limit);
-      if (action.current === "home")
-        return [
-          { op: "position", command: { op: "home", sceneId, fixtureIds } },
-        ];
-      if (action.current === "release" || action.current === "remove")
-        return fixtureIds.flatMap((fixtureId) =>
-          ["pan", "tilt"].map((attribute) => ({
-            op: "setSceneValue" as const,
-            sceneId,
-            fixtureId,
-            attribute,
-            mode: action.current as "release" | "remove",
-            value: 0,
-          })),
-        );
-      let command: PositionEdit;
-      if (mode === "axes") {
-        for (const key of ["pan", "tilt"] as const) {
-          if (v[key].trim()) {
-            const n = Number(decimal(key, key === "pan" ? "水平角" : "垂直角"));
-            for (const f of heads) {
-              const a = f.positioning![key];
-              if (n < Number(a.minDegrees) || n > Number(a.maxDegrees))
-                throw new FixtureFieldError(
-                  key,
-                  `${f.name}：${key === "pan" ? "水平" : "垂直"}角须在 ${a.minDegrees}–${a.maxDegrees}° 之间`,
-                );
-            }
-          }
-        }
-        if (!v.pan.trim() && !v.tilt.trim())
-          throw new FixtureFieldError("pan", "至少填写一个轴角度");
-        command = {
-          op: "axes",
-          fixtureIds,
-          sceneId,
-          panDegrees: v.pan.trim() ? decimal("pan", "水平角") : null,
-          tiltDegrees: v.tilt.trim() ? decimal("tilt", "垂直角") : null,
-        };
-      } else if (mode === "aim")
-        command = {
-          op: "aim",
-          fixtureIds,
-          sceneId,
-          targetMeters: {
-            x: decimal("x", "目标 X", 100000),
-            y: decimal("y", "目标 Y", 100000),
-            z: decimal("z", "目标高度", 100000),
-          },
-          branch: (v.branch as "front" | "back") || null,
-        };
-      else {
-        if (heads.length !== 1) throw new Error("请单独选择一台灯具设置零偏");
-        const old = heads[0].zeroCorrection;
-        command = {
-          op: "calibrate",
-          fixtureId: heads[0].id,
-          correction: {
-            panDegrees: v.panZero.trim()
-              ? decimal("panZero", "水平零偏", 360)
-              : (old?.panDegrees ?? "0"),
-            tiltDegrees: v.tiltZero.trim()
-              ? decimal("tiltZero", "垂直零偏", 360)
-              : (old?.tiltDegrees ?? "0"),
-          },
-        };
-      }
-      return [{ op: "position", command }];
+      return collectPosition({
+        mode,
+        values: current.current,
+        fixtures,
+        sceneId: scene.id,
+        action: action.current,
+      });
     } catch (e) {
       if (e instanceof FixtureFieldError) {
         const el = form.current?.elements.namedItem(
@@ -212,6 +160,7 @@ export function PositionPanel({
             {(
               [
                 ["axes", "轴角"],
+                ["offset", "相对调整"],
                 ["aim", "共同指向"],
                 ["calibrate", "单灯零偏"],
               ] as const
@@ -236,6 +185,26 @@ export function PositionPanel({
                   {input("pan", "水平角（°）", "留空保持")}
                   {input("tilt", "垂直角（°）", "留空保持")}
                 </div>
+                <PositionReadout {...{ project, heads, scene }} />
+                <p className="wb-dim">
+                  翻转改变两轴的支架姿态，终点指向保持；转动过程中光点会移动。
+                </p>
+              </>
+            )}
+            {mode === "offset" && (
+              <>
+                <RelativeAxisFields
+                  values={values}
+                  onChange={(patch) => {
+                    change({ ...current.current, ...patch });
+                    for (const key of Object.keys(patch))
+                      (
+                        form.current?.elements.namedItem(
+                          key,
+                        ) as HTMLInputElement | null
+                      )?.setCustomValidity("");
+                  }}
+                />
                 <PositionReadout {...{ project, heads, scene }} />
               </>
             )}
@@ -281,6 +250,11 @@ export function PositionPanel({
               (
                 [
                   [
+                    "flip",
+                    "翻转支架姿态",
+                    "记录同一指向的另一可达姿态；转动过程中光点会移动",
+                  ],
+                  [
                     "home",
                     "记录默认位置",
                     "将档案默认值写入当前场景，不发送设备复位",
@@ -324,7 +298,9 @@ export function PositionPanel({
                 ? "对准并记录轴角"
                 : mode === "calibrate"
                   ? "应用零偏"
-                  : "记录轴角"}
+                  : mode === "offset"
+                    ? "应用相对调整"
+                    : "记录轴角"}
             </button>
           </div>
         </>

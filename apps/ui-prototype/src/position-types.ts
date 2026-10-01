@@ -15,7 +15,7 @@ export interface FixtureZero {
 }
 export type PositionEdit =
   | {
-      op: "axes";
+      op: "axes" | "offsetAxes";
       sceneId: string;
       fixtureIds: string[];
       panDegrees: string | null;
@@ -28,5 +28,5 @@ export type PositionEdit =
       targetMeters: SpatialVector3;
       branch: "front" | "back" | null;
     }
-  | { op: "home"; sceneId: string; fixtureIds: string[] }
+  | { op: "flip" | "home"; sceneId: string; fixtureIds: string[] }
   | { op: "calibrate"; fixtureId: string; correction: FixtureZero | null };

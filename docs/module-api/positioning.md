@@ -1,6 +1,6 @@
 # 位置求解模块
 
-2026-09-28；POSITION-001；依据 [ADR-016](../development/decisions/PRODUCT-ADR-016-previsualization-and-positioning.md) 与 [ADR-025](../development/decisions/PRODUCT-ADR-025-moving-head-workflow.md)。Rust 静态求解已接入工程档案、场景轴角、既有编译器和内嵌 UE 姿态。没有真实设备输出、自动校准或连续目标轨迹。
+2026-09-28；POSITION-001；依据 [ADR-016](../development/decisions/PRODUCT-ADR-016-previsualization-and-positioning.md) 与 [ADR-025](../development/decisions/PRODUCT-ADR-025-moving-head-workflow.md)。Rust 静态求解已接入工程档案、场景轴角、既有编译器和内嵌 UE 姿态。没有真实设备输出或实测自动校准；共同空间直线轨迹已由 EFFECT-007 实现。
 
 ## 已实现接口
 
@@ -38,7 +38,7 @@ let emitted_ray = model.ray(installation, solution.angles)?;
 
 `Profile.positioning` 是可选的 `{kind:"intersectingOrthogonal",pan:PositionAxis,tilt:PositionAxis}`；`PositionAxis` 包含十进制字符串 `minDegrees/maxDegrees` 和独立 `reversed`。两轴分别限于 ±3600°、最小值严格小于最大值，必须有 normalized／LTP 属性和实际通道映射。增加此字段必须声明 `lighting.positioning@1`，旧应用拒绝未知能力；旧固定灯工程无需新增字段。
 
-`Fixture.zeroCorrection` 是可选的 `{panDegrees,tiltDegrees}`，均为 ±360° 内十进制字符串，作用于单灯全部场景。它只是手工零偏，没有测量、拟合和实灯校准精度承诺。安装位置和旋转仍在 `stage.placements`，与零偏、DMX 输出反向分别归属。
+`Fixture.zeroCorrection` 是可选的 `{panDegrees,tiltDegrees}`，均为 ±360° 内十进制字符串，作用于单灯全部场景。它只是手工零偏，没有测量、拟合和实灯校准精度承诺。安装位置和旋转仍在 `stage.placements`，与实例零偏、档案物理角映射反向分别归属。档案 `reversed` 不等于实例最终 DMX 输出反向；后者和编码器操作反向尚未提供。
 
 ```ts
 type PositionCommand =
@@ -46,7 +46,9 @@ type PositionCommand =
       panDegrees:string|null; tiltDegrees:string|null}
   | {op:"aim"; sceneId:string; fixtureIds:string[];
       targetMeters:{x:string;y:string;z:string}; branch:"front"|"back"|null}
-  | {op:"home"; sceneId:string; fixtureIds:string[]}
+  | {op:"offsetAxes"; sceneId:string; fixtureIds:string[];
+      panDegrees:string|null; tiltDegrees:string|null}
+  | {op:"flip"|"home"; sceneId:string; fixtureIds:string[]}
   | {op:"calibrate"; fixtureId:string;
       correction:{panDegrees:string;tiltDegrees:string}|null};
 // project_request：{kind:"edit",generation,command:{op:"position",command}}
@@ -79,3 +81,11 @@ EFFECT-007 已有独立 `trajectory::LineTrajectory`：显式灯具模型／安�
 ## 验证
 
 首轮 10 项保护测试覆盖右手坐标基准、挂装／侧装、同目标逐灯求解、双解、540° 行程不回绕、轴向奇点、零偏、不可达、非有限输入，以及 216 组安装／校准／轴端点正逆往返。首次端点测试发现浮点边界误判，已修复边界舍入并保留原测试。模块测试与严格 Clippy 通过；尚无光学精度或实灯校准结论。
+
+## 相对轴编辑与翻转（POSITION-002）
+
+依据 [ADR-085](../development/decisions/PRODUCT-ADR-085-relative-axis-and-flip.md)。`offsetAxes` 的值是各灯本场景基值上的角增量，空或零轴保持且至少一轴非零；修改轴由预设引用转当前场景常值，预设资源不变。基值使用本场景常值／预设／档案默认，明确不取运行帧／列表跟踪结果。若所请求轴被启用效果控制、越界或增量小于该灯可分辨精度，整批拒绝并报灯名／效果名。
+
+`IntersectingHead::flip(previous)` 复用射线与静态求解，取另一支架分支的最近可达展开角；零偏只算一次。无须舞台安装，因为共同安装刚体变换不改变两分支的射线等价性；轴向奇点拒绝。工程 `flip` 仍按实际 8／16 位量化写双轴，终点的近似相等不等于中途光点保持或碰撞／速度保证。两命令是工程编辑，不发送设备。
+
+UI 将相对微调草稿、1／0.1／0.01 度步幅和精确输入单独封装；每轴按钮不会改另一轴，步幅设置不产生草稿。应用、取消、错误、模式切换沿用位置事务。手工零偏仍是实例物理模型修正，未增加最终输出补偿或实测拟合；不得称作 MA 的四点校准已完成。

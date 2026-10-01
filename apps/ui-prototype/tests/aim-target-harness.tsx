@@ -93,4 +93,6 @@ function Harness() {
     </main>
   );
 }
-createRoot(document.getElementById("root")!).render(<Harness />);
+const root = createRoot(document.getElementById("root")!);
+root.render(<Harness />);
+if (import.meta.hot) import.meta.hot.dispose(() => root.unmount());

@@ -1,0 +1,23 @@
+.relative-axis-fields {
+  display: grid;
+  gap: 12px;
+}
+.relative-axis-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+.relative-axis-row input {
+  width: 100%;
+  min-width: 0;
+}
+.relative-axis-buttons {
+  display: flex;
+  gap: 4px;
+}
+.relative-axis-buttons button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px;
+}

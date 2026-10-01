@@ -1,5 +1,7 @@
 # 当前开发状态
 
+POSITION-002 完成（基线 `ed844c6`，结果为本次 `feat(position): add per-fixture relative axes and alternate yoke poses` 提交）：逐灯相对轴草稿／精度保护和等指向翻转、整批行程／效果拒绝，拆分位置编辑职责；632 Rust 全量＋最终 5 项专项（总 633）、274 UI、严格检查／类型／桌面及原生撤销／重做／UE 更新／保存重开通过，见[工单](tasks/POSITION-002-relative-axis-and-flip.md)。副本仅 2 台／4 轴变化，来源未改；音乐 0／UE 关闭／设备未连。持续 goal 接续参考点校准检查。
+
 UX-047 完成（基线 `a3440af`，结果为本次 `feat(position): pick world path endpoints on the venue plan` 提交）：复用共同目标平面、端点连线／键盘微调与高度保持，修复 WebKit 首开展示；274 UI、类型／桌面、实际组件取消／失焦与原生历史／保存重开通过，见[工单](tasks/UX-047-world-path-plane.md)。副本只改终点 XY 与修订，音乐 0／UE 关闭／设备断开；持续 goal active，按用户补充接续成熟控台的轴操作与校准边界。
 EFFECT-007 完成（基线 `1e08c76`，几何前置 `26d7f9c`，结果为本次 `feat(effects): compile and edit shared world-space target paths` 提交）：共同世界目标直线往返、整线分支／行程与误差上界认证、独立编辑器／草稿预演，修复 WebKit 效果输入覆盖；626 Rust、274 UI、121 格式、严格检查／类型／桌面与原生两灯 UE、历史／取消／保存重开通过，见[工单](tasks/EFFECT-007-world-line-effects.md)。副本已保存、原 17 场景不变，音乐 0／UE 关闭／设备断开；持续 goal active，接续轨迹平面选点。
 
