@@ -1312,6 +1312,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                           <>
                             {page === "scenes" && activeScene && (
                               <ParameterPanel
+                                beforeChange={() => run(async () => {})}
                                 key={`${project.id}:${activeScene.id}:${selected.join(",")}`}
                                 ref={parameters}
                                 scene={activeScene}

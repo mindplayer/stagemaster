@@ -40,6 +40,8 @@
     "tests/resource-picker-harness.tsx",
     "tests/stage-labels.test.ts",
     "tests/mixed-plan-harness.tsx",
-    "tests/fixture-optics.test.ts"
+    "tests/fixture-optics.test.ts",
+    "tests/parameter-categories.test.ts",
+    "tests/parameter-categories-harness.tsx"
   ]
 }

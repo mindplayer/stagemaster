@@ -146,6 +146,7 @@ function Harness() {
               beforeChange={beforeChange}
               light={
                 <ParameterPanel
+                  beforeChange={beforeChange}
                   key={selected.join(",")}
                   ref={params}
                   fixtures={fixtures.filter((f) => selected.includes(f.id))}

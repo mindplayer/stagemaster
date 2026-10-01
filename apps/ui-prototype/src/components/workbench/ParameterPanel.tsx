@@ -16,6 +16,11 @@ import type { ParameterDraft } from "../../editor-tools";
 
 import { ParameterColor } from "./ParameterColor";
 import { validateEditorForm } from "./form-validation";
+import {
+  availableParameterCategories,
+  visibleParameterAttributes,
+} from "../../parameter-categories";
+import { ParameterCategories } from "./ParameterCategories";
 
 export interface ParameterHandle {
   collect(): EditOperation[];
@@ -28,6 +33,7 @@ export function ParameterPanel({
   busy,
   onApply,
   onPending,
+  beforeChange,
 }: {
   ref: Ref<ParameterHandle>;
   fixtures: FixtureView[];
@@ -35,7 +41,11 @@ export function ParameterPanel({
   busy: boolean;
   onApply(): void;
   onPending(value: boolean): void;
+  beforeChange(): Promise<boolean>;
 }) {
+  const [category, setCategory] = useState("");
+  const [switching, setSwitching] = useState(false);
+  const switchingRef = useRef(false);
   const [drafts, setDrafts] = useState<Record<string, ParameterDraft>>({});
   const draftRef = useRef(drafts);
   const fields = useRef<HTMLFormElement>(null);
@@ -83,6 +93,31 @@ export function ParameterPanel({
         .map((a) => a.label),
     ),
   ];
+  const categories = availableParameterCategories(attributes);
+  const selectedCategory =
+    category === "all" || categories.some((c) => c.id === category)
+      ? category
+      : (categories[0]?.id ?? "");
+  const visibleAttributes = visibleParameterAttributes(
+    attributes,
+    selectedCategory,
+  );
+  const colorVisible =
+    selectedCategory === "all" || selectedCategory === "color";
+  async function changeCategory(next: string) {
+    if (busy || switchingRef.current || next === selectedCategory) return;
+    switchingRef.current = true;
+    setSwitching(true);
+    try {
+      if (await beforeChange()) {
+        setCategory(next);
+        fields.current?.closest(".wb-properties")?.scrollTo({ top: 0 });
+      }
+    } finally {
+      switchingRef.current = false;
+      setSwitching(false);
+    }
+  }
   const rgb = ["red", "green", "blue"].every((key) =>
     attributes.some((a) => a.key === key),
   );
@@ -184,9 +219,17 @@ export function ParameterPanel({
       >
         {fixtures.map((f) => f.name).join("、")}
       </p>
+      <ParameterCategories
+        categories={categories}
+        value={selectedCategory}
+        busy={busy || switching}
+        onChange={(next) => void changeCategory(next)}
+      />
       <fieldset disabled={busy}>
-        {attributes.filter((a) => a.key === "dimmer").map(renderAttribute)}
-        {rgb && (
+        {visibleAttributes
+          .filter((a) => a.key === "dimmer")
+          .map(renderAttribute)}
+        {rgb && colorVisible && (
           <ParameterColor
             color={currentColor}
             mixed={mixedColor}
@@ -199,7 +242,9 @@ export function ParameterPanel({
             }}
           />
         )}
-        {attributes.filter((a) => a.key !== "dimmer").map(renderAttribute)}
+        {visibleAttributes
+          .filter((a) => a.key !== "dimmer")
+          .map(renderAttribute)}
         {!!incompatible.length && (
           <p className="wb-dim">
             {incompatible.join("、")}

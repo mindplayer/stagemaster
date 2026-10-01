@@ -1,0 +1,39 @@
+.parameter-categories {
+  position: sticky;
+  top: var(--parameter-category-offset, 0px);
+  z-index: 1;
+  background: var(--wb-panel);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--wb-border);
+}
+.scene-inspector .parameter-categories {
+  --parameter-category-offset: 47px;
+}
+.workbench .parameter-categories button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--wb-muted);
+}
+.parameter-categories button span {
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+}
+.workbench .parameter-categories button[aria-pressed="true"] {
+  background: #203942;
+  color: var(--wb-accent);
+  border-color: #37606a;
+}
+.parameter-categories button:focus-visible {
+  outline: 2px solid var(--wb-accent);
+  outline-offset: 1px;
+}
