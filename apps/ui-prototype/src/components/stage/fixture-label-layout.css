@@ -1,0 +1,27 @@
+.fixture-label-layer {
+  user-select: none;
+}
+.fixture-label-layer rect {
+  fill: #14232a;
+  fill-opacity: 0.94;
+}
+.fixture-label-layer line {
+  stroke: #7598a6;
+  opacity: 0.65;
+}
+.fixture-label-layer text {
+  fill: #c4ced5;
+  text-anchor: middle;
+}
+.fixture-label-layer .selected rect {
+  fill: #17443e;
+}
+.fixture-label-layer .selected text {
+  fill: #c8f4e8;
+}
+.fixture-label-status {
+  margin: 0;
+  padding: 4px 10px;
+  color: var(--wb-muted);
+  font-size: 10px;
+}

@@ -79,6 +79,7 @@ export function StageCanvas({
   onMove(object: StageObject): void;
   onGesture(value: boolean): void;
 }) {
+  const [hiddenLabels, setHiddenLabels] = useState(0);
   const svg = useRef<SVGSVGElement>(null);
   const [blocked, setBlocked] = useState("");
   const [gesture, setGesture] = useState<Gesture | null>(null),
@@ -428,6 +429,13 @@ export function StageCanvas({
           selectedIds={visibleIds}
           unit={unit}
           labels={labels}
+          onHiddenLabels={setHiddenLabels}
+          viewport={{
+            x: camera.x - camera.width / 2,
+            y: -camera.y - height / 2,
+            width: camera.width,
+            height,
+          }}
         />
         {gesture?.mode === "box" && (gesture.dx !== 0 || gesture.dy !== 0) && (
           <rect
@@ -468,6 +476,7 @@ export function StageCanvas({
         )}
       </svg>
       <StageCanvasFooter
+        hiddenLabels={hiddenLabels}
         fixtures={project.fixtures}
         ids={shown.placements.map((p) => p.fixtureId)}
         blocked={blocked}

@@ -1,7 +1,9 @@
+import { FixtureLabelStatus } from "./FixtureLabelStatus";
 import type { FixtureView } from "../../application-host";
 import { planeDistance } from "../../rigging-tools";
 import { FixturePlanLegend } from "./FixturePlanLegend";
 export function StageCanvasFooter({
+  hiddenLabels,
   fixtures,
   ids,
   blocked,
@@ -9,6 +11,7 @@ export function StageCanvasFooter({
   measurement,
   step,
 }: {
+  hiddenLabels: number;
   fixtures: FixtureView[];
   ids: string[];
   blocked: string;
@@ -19,6 +22,7 @@ export function StageCanvasFooter({
   return (
     <>
       <FixturePlanLegend fixtures={fixtures} ids={ids} />
+      <FixtureLabelStatus count={hiddenLabels} />
       <footer>
         <span role="status">
           {blocked ||

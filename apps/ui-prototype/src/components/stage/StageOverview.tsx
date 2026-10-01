@@ -1,3 +1,4 @@
+import { FixtureLabelStatus } from "./FixtureLabelStatus";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { ProjectView } from "../../application-host";
 import type { PlanLabelMode } from "../../fixture-plan-display";
@@ -19,6 +20,7 @@ export function StageOverview({
   visible: boolean;
   viewControls: ReactNode;
 }) {
+  const [hiddenLabels, setHiddenLabels] = useState(0);
   const svg = useRef<SVGSVGElement>(null);
   const [labels, setLabels] = useState<PlanLabelMode>(
     project.fixtures.length <= 30 ? "name" : "none",
@@ -100,6 +102,13 @@ export function StageOverview({
             selectedIds={[]}
             unit={camera.width / 100}
             labels={labels}
+            onHiddenLabels={setHiddenLabels}
+            viewport={{
+              x: camera.x - camera.width / 2,
+              y: -camera.y - height / 2,
+              width: camera.width,
+              height,
+            }}
           />
         </svg>
         {!points.length && (
@@ -107,6 +116,7 @@ export function StageOverview({
         )}
       </div>
       <FixturePlanLegend fixtures={project.fixtures} ids={fixtureIds} />
+      <FixtureLabelStatus count={hiddenLabels} readOnly />
       <footer>
         <span>拖动平移 · 滚动缩放 · F 全场</span>
         <span>平面不显示灯光效果</span>

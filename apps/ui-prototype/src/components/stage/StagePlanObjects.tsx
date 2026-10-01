@@ -1,10 +1,6 @@
-import { FixturePlanSymbol } from "./FixturePlanSymbol";
-import {
-  fixtureSymbol,
-  fixturePlanLabel,
-  fixtureAddress,
-  type PlanLabelMode,
-} from "../../fixture-plan-display";
+import { StageFixtureObjects } from "./StageFixtureObjects";
+import type { LabelBox } from "../../plan-label-layout";
+import type { PlanLabelMode } from "../../fixture-plan-display";
 import { seatingLayout } from "../../seating-tools";
 import { SeatingPlanObject } from "./SeatingPlanObject";
 import type { ProjectView } from "../../application-host";
@@ -20,6 +16,8 @@ export function StagePlanObjects({
   selectedIds,
   unit,
   labels,
+  viewport,
+  onHiddenLabels,
 }: {
   project: ProjectView;
   stage: StageView;
@@ -28,6 +26,8 @@ export function StagePlanObjects({
   selectedIds: string[];
   unit: number;
   labels: PlanLabelMode;
+  viewport?: LabelBox;
+  onHiddenLabels?(count: number): void;
 }) {
   const outline = (object: StageObject) =>
     objectOutline(drawn(object))!
@@ -152,45 +152,17 @@ export function StagePlanObjects({
             />
           );
         })}
-      {stage.placements.map((p) => {
-        const moved = drawn({ kind: "placement", value: p });
-        if (moved.kind !== "placement") return null;
-        const fixture = project.fixtures.find((f) => f.id === p.fixtureId);
-        const symbol = fixtureSymbol(fixture);
-        const label = fixturePlanLabel(fixture, labels);
-        return (
-          <g
-            key={p.fixtureId}
-            data-kind="placement"
-            data-id={p.fixtureId}
-            transform={`translate(${moved.value.positionMeters.x},${-Number(moved.value.positionMeters.y)})`}
-            className={`stage-light ${isSelected("placement", p.fixtureId) ? "is-selected" : ""}`}
-          >
-            <FixturePlanSymbol
-              symbol={symbol}
-              unit={unit}
-              selected={isSelected("placement", p.fixtureId)}
-            />
-            {label && (
-              <text y={unit * 2.25} fontSize={unit * 0.9}>
-                {label}
-              </text>
-            )}
-            {isSelected("placement", p.fixtureId) && (
-              <text
-                className="stage-selection-number"
-                y={-unit * 1.55}
-                fontSize={unit * 0.9}
-              >
-                {selectedIds.indexOf(p.fixtureId) + 1}
-              </text>
-            )}
-            <title>
-              {`${fixture?.name ?? "未知灯具"} · ${symbol.label} · ${fixtureAddress(fixture)} · 高度 ${displayMeters(p.positionMeters.z)} 米`}
-            </title>
-          </g>
-        );
-      })}
+      <StageFixtureObjects
+        project={project}
+        stage={stage}
+        drawn={drawn}
+        selectedIds={selectedIds}
+        selected={(id) => isSelected("placement", id)}
+        unit={unit}
+        labels={labels}
+        viewport={viewport}
+        onHiddenLabels={onHiddenLabels}
+      />
     </>
   );
 }

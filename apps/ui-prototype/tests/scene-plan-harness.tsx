@@ -16,7 +16,28 @@ project.stage.placements.push({
   fixtureId: "floor",
   positionMeters: { x: "0", y: "2", z: "0.5" },
 });
+function denseProject() {
+  const dense = stageProject();
+  dense.fixtures = Array.from({ length: 80 }, (_, n) => ({
+    ...dense.fixtures[0],
+    id: `dense-${n}`,
+    name: `摇头灯 ${n + 1} · 👨‍👩‍👧‍👦é舞台长名称检查`,
+    universe: 1,
+    address: n * 4 + 1,
+  }));
+  dense.stage.placements = dense.fixtures.map((f, n) => ({
+    ...dense.stage.placements[0],
+    fixtureId: f.id,
+    positionMeters: {
+      x: String(n < 12 ? 0 : ((n % 16) - 8) * 0.35),
+      y: String(n < 12 ? 2 : Math.floor(n / 16) * 0.5),
+      z: "5",
+    },
+  }));
+  return dense;
+}
 function Harness() {
+  const [current, setCurrent] = useState(project);
   const [only, setOnly] = useState(false);
   const [selected, setSelected] = useState<string[]>([]),
     [query, setQuery] = useState(""),
@@ -28,6 +49,16 @@ function Harness() {
       style={{ height: "100vh", display: "flex", flexDirection: "column" }}
     >
       <div>
+        <button
+          onClick={() => {
+            setCurrent(denseProject());
+            setSelected([]);
+            setQuery("");
+            setOnly(false);
+          }}
+        >
+          密集灯位验收
+        </button>
         <button onClick={() => setSelected(["loose", "front"])}>
           从灯组选两台
         </button>
@@ -41,7 +72,7 @@ function Harness() {
         </label>
       </div>
       <FixturePlan
-        project={project}
+        project={current}
         visible
         selected={selected}
         query={query}

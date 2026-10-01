@@ -1,6 +1,6 @@
 # 产品能力总表与成熟经验吸收规则
 
-更新：2026-10-01，能力导航已补至 AUDIO-013；初始 PLAN-001，PLAN-002 增补内存与宿主音频。这里只维护能力导航与缺口审查，不是完成清单或冻结的接口规范。实现证据看[实现状态](implementation-status.md)，当前顺序看[执行计划](development/execution-plan.md)。
+更新：2026-10-01，能力导航已补至 UX-033；初始 PLAN-001，PLAN-002 增补内存与宿主音频。这里只维护能力导航与缺口审查，不是完成清单或冻结的接口规范。实现证据看[实现状态](implementation-status.md)，当前顺序看[执行计划](development/execution-plan.md)。
 
 用户要求当前会话主动引入成熟软件的重要、必要能力，不只等待逐项提出需求。已有[控台研究](console-research/README.md)覆盖 22 个模块、304 条对照记录，另有界面、预演、媒体和硬件专项；本表将它们归到统一产品工作流，不另复制一套研究目录。
 
@@ -39,6 +39,8 @@
 | CAP-19 运行连续性 | 断连策略、程序与系统故障恢复、运行记录、备份／恢复、后续主备切换与输出所有权交接 | [M18](console-research/M18-sessions-backup.md)、[架构 C09](architecture-evolution-review.md) | RuntimeKernel／PlanManager／OutputArbiter；现场与设备状态 | 已实现软件运行／安装故障恢复、读源租约、GATT 保活失效／恢复及双槽安装；完整脱机演出、长时压力和热备／所有权接管未验收，不能仅靠心跳判定接管 |
 | CAP-20 现场交付资料 | 灯位图、地址／模式／通道表、设备与资源清单、标签、安装与校准记录、节目备注／检查单、带版本的导出 | [Depence 图纸职责](depence-r4-assessment.md)、[M04](console-research/M04-fixtures-patch.md) | 工程只读投影＋PlotService／导出；布置与工程菜单 | 设计；首版必要连接／版本说明，表格与图纸随真实数据完善，结构计算不在通用绘图能力内 |
 | CAP-21 AI 辅助编辑 | 按任务查询对象／能力、生成修改提案、查看差异／隔离预演、指定范围连续编辑、原子应用／撤销与结果对账 | [ADR-011](development/decisions/PRODUCT-ADR-011-assisted-editing.md)、[接口与 MCP 取舍](module-api/assisted-editing.md) | 编辑自动化窄代理＋ProjectService；编排中的按需助手组件，不独立复制灯光规则 | AI-001 仅可类型检查的接口与例子；先接已有场景参数，后续随核心能力扩展，不是首版前置条件 |
+
+[UX-033](development/tasks/UX-033-fixture-label-collision.md) 已补三处平面灯位标签避让、选中优先与字素缩略；不改变物理位置，其他空间文字统一排布仍后续。
 
 检索、标签、批量属性、多选混合值、键盘／触控板操作、焦点与错误定位是横贯这些能力的基础交互，不另建一个“高级模式”。未来触控与实体面板使用相同语义，操作手势可以不同。
 

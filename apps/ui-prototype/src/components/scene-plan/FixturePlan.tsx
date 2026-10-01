@@ -1,3 +1,4 @@
+import { FixtureLabelStatus } from "../stage/FixtureLabelStatus";
 import { FixtureLabelControl } from "../stage/FixtureLabelControl";
 import { FixturePlanLegend } from "../stage/FixturePlanLegend";
 import type { PlanLabelMode } from "../../fixture-plan-display";
@@ -34,6 +35,7 @@ export function FixturePlan({
   onSelect(ids: string[]): Promise<boolean>;
   viewControls: ReactNode;
 }) {
+  const [hiddenLabels, setHiddenLabels] = useState(0);
   const svg = useRef<SVGSVGElement>(null);
   const [labels, setLabels] = useState<PlanLabelMode>(
     project.fixtures.length <= 30 ? "name" : "none",
@@ -240,6 +242,13 @@ export function FixturePlan({
             selectedIds={selected}
             unit={unit}
             labels={labels}
+            onHiddenLabels={setHiddenLabels}
+            viewport={{
+              x: camera.x - camera.width / 2,
+              y: -camera.y - height / 2,
+              width: camera.width,
+              height,
+            }}
           />
           {gesture?.mode === "select" && gesture.moved && (
             <rect
@@ -302,6 +311,7 @@ export function FixturePlan({
         fixtures={project.fixtures}
         ids={stage.placements.map((p) => p.fixtureId)}
       />
+      <FixtureLabelStatus count={hiddenLabels} />
       <footer>
         <span>点击选灯 · ⇧ 增减 · 拖框选择 · 滚动缩放</span>
         <span>安装位置已锁定 · {ids.length} 台匹配</span>
