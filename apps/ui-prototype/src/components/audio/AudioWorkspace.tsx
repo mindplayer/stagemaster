@@ -1,7 +1,13 @@
 import { DockPane } from "../layout/DockPane";
-import { AudioMarkerList } from "./AudioMarkerList";
+import { AudioMarkerLibrary } from "./AudioMarkerBatch";
 import { AudioTransportBar } from "./AudioTransportBar";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import type {
   ApplicationHost,
   EditCommand,
@@ -60,6 +66,12 @@ export const AudioWorkspace = forwardRef<
   ref,
 ) {
   const track = project.audio;
+  const trackIdentity = track
+    ? `${project.id}:${track.asset.digest}:${track.inMs}:${track.outMs}`
+    : "";
+  const [batchKey, setBatchKey] = useState("");
+  const batch = !!trackIdentity && batchKey === trackIdentity;
+  useEffect(() => setBatchKey(""), [trackIdentity]);
   const [selected, setSelected] = useState("");
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
@@ -238,7 +250,13 @@ export const AudioWorkspace = forwardRef<
               </div>
             )}
             {track && (
-              <AudioMarkerList
+              <AudioMarkerLibrary
+                key={trackIdentity}
+                batch={batch}
+                onBatch={(value) => setBatchKey(value ? trackIdentity : "")}
+                workspaceVisible={visible}
+                onEdit={edit}
+                beforeChange={beforeChange}
                 track={track}
                 scenes={project.scenes}
                 selected={selected}
@@ -292,7 +310,7 @@ export const AudioWorkspace = forwardRef<
             )}
           </section>
         </DockPane>
-        <DockPane region="inspector" visible={visible}>
+        <DockPane region="inspector" visible={visible && !batch}>
           {track ? (
             <AudioInspector
               track={track}

@@ -1,3 +1,4 @@
+import { filteredAudioMarkers } from "../../audio-group-tools";
 import type { AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
 import { audioTime } from "../../audio-tools";
@@ -20,11 +21,7 @@ export function AudioMarkerList({
   onSelect(id: string): void;
   onSeek(timeMs: number): void;
 }) {
-  const markers = track.markers.filter((m) =>
-    `${m.name} ${scenes.find((s) => s.id === m.sceneId)?.name ?? ""}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
+  const markers = filteredAudioMarkers(track, scenes, query);
   return (
     <section className="audio-markers">
       <div className="audio-list-title">

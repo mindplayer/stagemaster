@@ -1,0 +1,105 @@
+.audio-marker-batch {
+  margin-top: 12px;
+  min-width: 0;
+}
+.audio-marker-batch > label,
+.audio-batch-operations > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+.audio-marker-batch p {
+  font-size: 12px;
+  color: var(--wb-muted);
+  line-height: 1.5;
+}
+.audio-marker-batch input:not([type="checkbox"]) {
+  width: 100%;
+  min-width: 0;
+}
+.audio-batch-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.workbench .audio-batch-selection button,
+.workbench .audio-batch-remove button {
+  padding: 6px 8px;
+  min-height: 30px;
+  font-size: 12px;
+}
+.audio-batch-operations {
+  padding: 8px 0 12px;
+  border-top: 1px solid var(--wb-border);
+  border-bottom: 1px solid var(--wb-border);
+}
+.audio-batch-operations > small {
+  display: block;
+  color: var(--wb-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.audio-batch-remove {
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid #816647;
+  border-radius: 6px;
+}
+.audio-batch-items {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+.audio-resources .audio-marker-choice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-direction: row;
+  padding: 8px;
+  border: 1px solid var(--wb-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.audio-marker-choice:has(input:checked) {
+  background: #173e43;
+  border-color: #3e8f88;
+}
+.audio-marker-choice > input {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.audio-marker-choice > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.audio-marker-choice time {
+  color: var(--wb-accent);
+  font:
+    12px ui-monospace,
+    monospace;
+}
+.audio-marker-choice strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.audio-marker-choice small {
+  font-size: 11px;
+  color: var(--wb-muted);
+  overflow-wrap: anywhere;
+}
+
+.audio-batch-inspector {
+  padding: 16px;
+  margin-top: 0;
+}
+.audio-batch-inspector h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}

@@ -37,7 +37,10 @@ export type AudioCommand =
   | { kind: "volume"; percent: number }
   | { kind: "snapshot" | "play" | "pause" | "stop" }
   | { kind: "seek"; positionMs: number };
+export type MarkerGroupAction =
+  { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type AudioEdit =
+  | { kind: "editMarkers"; ids: string[]; action: MarkerGroupAction }
   | { kind: "setAsset"; asset: AudioAsset }
   | { kind: "clear" }
   | { kind: "trim"; inMs: number; outMs: number }

@@ -1,5 +1,6 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
 mod audio;
+mod audio_group;
 mod audio_lighting;
 pub use audio::{
     AudioAsset, AudioEdit, AudioMarker, AudioTimeline, MAX_AUDIO_MARKERS, MAX_AUDIO_MS,
@@ -38,6 +39,7 @@ mod rigging;
 mod sequence;
 mod sequence_script;
 mod stage;
+pub use audio_group::MarkerGroupAction;
 pub use compilation::{CompiledSequence, CompiledStep};
 pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};
 pub use rigging::{RigAttachment, RigKind, RigLayout, RigShape};

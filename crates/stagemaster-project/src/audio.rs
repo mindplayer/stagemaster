@@ -57,10 +57,23 @@ impl AudioTimeline {
     deny_unknown_fields
 )]
 pub enum AudioEdit {
-    SetAsset { asset: AudioAsset },
-    Trim { in_ms: u64, out_ms: u64 },
-    PutMarker { marker: AudioMarker },
-    RemoveMarker { id: String },
+    SetAsset {
+        asset: AudioAsset,
+    },
+    Trim {
+        in_ms: u64,
+        out_ms: u64,
+    },
+    PutMarker {
+        marker: AudioMarker,
+    },
+    RemoveMarker {
+        id: String,
+    },
+    EditMarkers {
+        ids: Vec<String>,
+        action: crate::MarkerGroupAction,
+    },
     Clear,
 }
 impl Document {
@@ -111,6 +124,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
                 track.markers.push(marker);
             }
             track.markers.sort_by_key(|m| m.time_ms);
+        }
+        AudioEdit::EditMarkers { ids, action } => {
+            crate::audio_group::apply(&mut track, &ids, action)?;
         }
         AudioEdit::RemoveMarker { id } => {
             let index = track

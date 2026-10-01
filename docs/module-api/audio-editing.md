@@ -52,3 +52,9 @@ WaveSurfer.js 7.12.12 只负责波形、时间刻度、全曲概览，库不接�
 本轮是电脑上的音乐与灯光预演，软件消费时间不等于声卡 DAC 或蓝牙音箱的实际到声时间。没有跨设备精确同步、自动节拍检测、多轨混音、视频解码、手机后台或音频包下发。输出异常不自动选择其他声卡。ESP32 固件保持无真实 DMX 输出。
 
 验收复现：`python3 tools/audio/make_probe.py`；显式播放测试使用 `CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-audio --example audition --locked --offline -- data/AUDIO-001/节奏验收.wav`。此命令会低音量输出测试信号，不属于自动单元测试。组件隔离页 `apps/ui-prototype/tests/audio-panel.html` 不进产品构建，也不输出声音。
+
+## 卡点成组编辑
+
+[ADR-063](../development/decisions/PRODUCT-ADR-063-audio-marker-groups.md)：`AudioEdit::EditMarkers { ids, action }` 接受 1–512 个唯一有效卡点，action 为 move／copy（destinationMs）或 remove。目标时间是最早选中卡点的新位置，输入 ID 顺序不影响间隔；Rust 为复制生成 UUID。只更新选中项，最终碰撞／越界／渐变或容量冲突原子拒绝。使用既有卡点格式、场景引用及进入渐变，未新增工程能力；旧命令及播放行为不变。一次操作一个撤销节点。
+
+批量视图保留筛选外选择并显示数量，独立目标输入／删除确认，选择和操作均不移动音乐游标。灯光段落边界仍由相邻绑定卡点决定，不宣称能够剪切波形或保留独立片段的隐藏结束状态。
