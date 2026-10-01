@@ -1,3 +1,6 @@
+import { FixtureLabelControl } from "../stage/FixtureLabelControl";
+import { FixturePlanLegend } from "../stage/FixturePlanLegend";
+import type { PlanLabelMode } from "../../fixture-plan-display";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ProjectView } from "../../application-host";
 import { fixtureMatches } from "../../editor-tools";
@@ -32,7 +35,9 @@ export function FixturePlan({
   viewControls: ReactNode;
 }) {
   const svg = useRef<SVGSVGElement>(null);
-  const [labels, setLabels] = useState(project.fixtures.length <= 30);
+  const [labels, setLabels] = useState<PlanLabelMode>(
+    project.fixtures.length <= 30 ? "name" : "none",
+  );
   const [overlap, setOverlap] = useState<{
     ids: string[];
     additive: boolean;
@@ -150,14 +155,7 @@ export function FixturePlan({
           聚焦所选
         </button>
         <button onClick={() => fit()}>全部灯位</button>
-        <label>
-          <input
-            type="checkbox"
-            checked={labels}
-            onChange={(e) => setLabels(e.target.checked)}
-          />
-          名称
-        </label>
+        <FixtureLabelControl value={labels} onChange={setLabels} />
         {!!unplaced.length && (
           <button
             aria-expanded={unplacedOpen}
@@ -300,6 +298,10 @@ export function FixturePlan({
           onSelect={pick}
         />
       )}
+      <FixturePlanLegend
+        fixtures={project.fixtures}
+        ids={stage.placements.map((p) => p.fixtureId)}
+      />
       <footer>
         <span>点击选灯 · ⇧ 增减 · 拖框选择 · 滚动缩放</span>
         <span>安装位置已锁定 · {ids.length} 台匹配</span>

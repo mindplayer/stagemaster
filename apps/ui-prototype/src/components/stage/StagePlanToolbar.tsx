@@ -1,3 +1,5 @@
+import { FixtureLabelControl } from "./FixtureLabelControl";
+import type { PlanLabelMode } from "../../fixture-plan-display";
 import {
   ArrowsOutIcon,
   MagnifyingGlassMinusIcon,
@@ -27,8 +29,8 @@ export function StagePlanToolbar({
   onTool(tool: Tool): void;
   snap: boolean;
   onSnap(value: boolean): void;
-  labels: boolean;
-  onLabels(value: boolean): void;
+  labels: PlanLabelMode;
+  onLabels(value: PlanLabelMode): void;
   disabled: boolean;
   visibleCount: number;
   selectedCount: number;
@@ -69,14 +71,7 @@ export function StagePlanToolbar({
         />
         吸附 0.1 米
       </label>
-      <label className="stage-check">
-        <input
-          type="checkbox"
-          checked={labels}
-          onChange={(e) => onLabels(e.target.checked)}
-        />
-        名称
-      </label>
+      <FixtureLabelControl value={labels} onChange={onLabels} />
       <button disabled={disabled || !visibleCount} onClick={onSelectAll}>
         全选可见灯位
       </button>

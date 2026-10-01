@@ -1,5 +1,7 @@
 # 当前开发状态
 
+UX-030 完成（基线 `a36a0d9`，结果为本次 `feat(ui): clarify fixture capabilities and patch labels` 提交）：两处平面共用灯具能力符号、图例及名称／地址标注，统一未配适反馈与补零搜索；161 UI、类型／桌面和原生密集灯位／重叠选择／地址筛选通过，见[验收](tasks/UX-030-fixture-plan-symbols.md)。设备断开，工程未改；持续 goal active，继续时间编排与执行细节。
+
 STAGE-003 完成（基线 `0ba0d06`，结果为本次 `feat(stage): add bounded parametric audience seating` 提交）：依 ADR-066 增加有界矩形座区、净通道与二维／UE 同源座椅，整区目录／显隐／移动／锁／历史；501 Rust、157 UI、105 格式、类型／fmt／严格检查／桌面及原生创建／错误取消／复制／拖动／撤销／保存重开／UE 增排通过，见[验收](tasks/STAGE-003-parametric-seating.md)。当前独立副本三组 66 座，已保存、UE 关闭、设备断开，原 Volare 及 `output/` 未改。持续 goal active，接续平面灯具符号与可辨识性。
 
 STAGE-002 完成（基线 `c32eeb0`，结果为本次 `feat(stage): protect locked venue objects across editors` 提交）：依 ADR-065 实现场地锁／原子间接保护、中文单／多选、二维／三维一致限制并拆分场地工作区。全量 495 Rust＋最终工程 117（追加 1）与三维 3、154 UI、103 格式、类型／fmt／严格检查／桌面及原生锁定／复制／草稿／撤销／保存重启通过，见[验收](tasks/STAGE-002-object-edit-locks.md)。当前独立副本已保存 81 个锁，原几何／灯光及原 Volare 未改，三维关闭、设备断开。持续 goal active，接续观众区业务对象与参数化布置。

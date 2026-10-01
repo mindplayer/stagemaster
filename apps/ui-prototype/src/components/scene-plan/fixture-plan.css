@@ -71,10 +71,7 @@
 .fixture-plan-view .stage-rig {
   opacity: 0.4;
 }
-.fixture-plan-view .stage-light.is-selected circle {
-  fill: #286353;
-  stroke: #83f0cf;
-}
+
 .fixture-plan > footer {
   display: flex;
   justify-content: space-between;

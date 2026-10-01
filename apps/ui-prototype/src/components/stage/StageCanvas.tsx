@@ -1,3 +1,5 @@
+import { StageCanvasFooter } from "./StageCanvasFooter";
+import type { PlanLabelMode } from "../../fixture-plan-display";
 import { nudgedPlacements } from "./plan-nudge";
 import {
   movementBlocker,
@@ -13,7 +15,6 @@ import {
   visibleStage,
   type PlanVisibility,
 } from "./stage-display";
-import { planeDistance } from "../../rigging-tools";
 import { StageMeasureOverlay } from "./StageMeasureOverlay";
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
@@ -90,7 +91,9 @@ export function StageCanvas({
     from: [number, number];
     to: [number, number];
   } | null>(null);
-  const [labels, setLabels] = useState(project.fixtures.length <= 30);
+  const [labels, setLabels] = useState<PlanLabelMode>(
+    project.fixtures.length <= 30 ? "name" : "none",
+  );
   const shown = visibleStage(project.stage, visibility);
   useEffect(() => end(false), [visibility]);
   const allPoints = planPoints(shown);
@@ -464,25 +467,14 @@ export function StageCanvas({
           />
         )}
       </svg>
-      <footer>
-        <span role="status">
-          {blocked ||
-            (tool === "select"
-              ? "拖框选择灯具 · ⇧ 点击增减选择"
-              : tool === "move"
-                ? "拖动所选灯具整组移动 · ⇧ 锁定方向 · Esc 取消"
-                : tool === "measure"
-                  ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
-                  : "拖动平移视图")}{" "}
-          {!blocked && tool !== "measure" && " · 方向键微调"}
-        </span>
-        <span>
-          {measurement
-            ? `平面距离 ${planeDistance(measurement.from, measurement.to).distance.toFixed(3)} 米 · `
-            : ""}
-          网格 {step} 米
-        </span>
-      </footer>
+      <StageCanvasFooter
+        fixtures={project.fixtures}
+        ids={shown.placements.map((p) => p.fixtureId)}
+        blocked={blocked}
+        tool={tool}
+        measurement={measurement}
+        step={step}
+      />
     </section>
   );
 }

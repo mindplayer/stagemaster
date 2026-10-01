@@ -1,3 +1,4 @@
+import { fixtureAddress } from "./fixture-plan-display.ts";
 import { sameFunctions } from "./fixture-function-types.ts";
 import {
   functionDraftValue,
@@ -158,7 +159,7 @@ export function parameterCommands(
   return commands;
 }
 export function fixtureMatches(fixture: FixtureView, query: string) {
-  return `${fixture.name} ${fixture.profileName} ${fixture.domainName} ${fixture.universe ?? ""}.${fixture.address ?? ""}`
+  return `${fixture.name} ${fixture.profileName} ${fixture.domainName} ${fixtureAddress(fixture)} ${fixture.universe ?? ""}.${fixture.address ?? ""}`
     .toLocaleLowerCase()
     .includes(query.trim().toLocaleLowerCase());
 }

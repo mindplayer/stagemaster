@@ -1,3 +1,10 @@
+import { FixturePlanSymbol } from "./FixturePlanSymbol";
+import {
+  fixtureSymbol,
+  fixturePlanLabel,
+  fixtureAddress,
+  type PlanLabelMode,
+} from "../../fixture-plan-display";
 import { seatingLayout } from "../../seating-tools";
 import { SeatingPlanObject } from "./SeatingPlanObject";
 import type { ProjectView } from "../../application-host";
@@ -20,7 +27,7 @@ export function StagePlanObjects({
   isSelected(kind: StageSelection["kind"], id: string): boolean;
   selectedIds: string[];
   unit: number;
-  labels: boolean;
+  labels: PlanLabelMode;
 }) {
   const outline = (object: StageObject) =>
     objectOutline(drawn(object))!
@@ -100,7 +107,7 @@ export function StagePlanObjects({
                   .join(" ")}
                 strokeWidth={unit * 0.18}
               />
-              {labels && (
+              {labels === "name" && (
                 <text
                   x={Number(rig.positionMeters.x)}
                   y={
@@ -137,12 +144,10 @@ export function StagePlanObjects({
               id={c.id}
               name={c.name}
               shape={
-                seatingLayout(item.value.shape)
-                  ? item.value.shape
-                  : c.shape
+                seatingLayout(item.value.shape) ? item.value.shape : c.shape
               }
               selected={isSelected("construction", c.id)}
-              labels={labels}
+              labels={labels === "name"}
               unit={unit}
             />
           );
@@ -150,6 +155,9 @@ export function StagePlanObjects({
       {stage.placements.map((p) => {
         const moved = drawn({ kind: "placement", value: p });
         if (moved.kind !== "placement") return null;
+        const fixture = project.fixtures.find((f) => f.id === p.fixtureId);
+        const symbol = fixtureSymbol(fixture);
+        const label = fixturePlanLabel(fixture, labels);
         return (
           <g
             key={p.fixtureId}
@@ -158,27 +166,27 @@ export function StagePlanObjects({
             transform={`translate(${moved.value.positionMeters.x},${-Number(moved.value.positionMeters.y)})`}
             className={`stage-light ${isSelected("placement", p.fixtureId) ? "is-selected" : ""}`}
           >
-            <circle r={unit * 0.8} strokeWidth={unit * 0.16} />
-            <path
-              d={`M ${-unit * 0.4} 0 H ${unit * 0.4} M 0 ${-unit * 0.4} V ${unit * 0.4}`}
-              strokeWidth={unit * 0.13}
+            <FixturePlanSymbol
+              symbol={symbol}
+              unit={unit}
+              selected={isSelected("placement", p.fixtureId)}
             />
-            {labels && (
-              <text y={unit * 2} fontSize={unit * 0.95}>
-                {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
+            {label && (
+              <text y={unit * 2.25} fontSize={unit * 0.9}>
+                {label}
               </text>
             )}
             {isSelected("placement", p.fixtureId) && (
               <text
                 className="stage-selection-number"
-                y={-unit * 1.4}
+                y={-unit * 1.55}
                 fontSize={unit * 0.9}
               >
                 {selectedIds.indexOf(p.fixtureId) + 1}
               </text>
             )}
             <title>
-              {project.fixtures.find((f) => f.id === p.fixtureId)?.name}
+              {`${fixture?.name ?? "未知灯具"} · ${symbol.label} · ${fixtureAddress(fixture)} · 高度 ${displayMeters(p.positionMeters.z)} 米`}
             </title>
           </g>
         );

@@ -1,0 +1,77 @@
+.fixture-symbol .fixture-body {
+  fill: #111c25;
+  stroke: #dac38f;
+}
+.fixture-symbol .fixture-yoke,
+.fixture-symbol .fixture-mark {
+  fill: none;
+  stroke: #dac38f;
+}
+.fixture-symbol .fixture-mix {
+  fill: #dce6ed;
+  stroke: none;
+}
+.fixture-symbol .fixture-wheel {
+  fill: none;
+  stroke: #dce6ed;
+}
+.fixture-symbol .fixture-wheel-badge {
+  fill: #111c25;
+  stroke: #dce6ed;
+}
+.fixture-symbol .fixture-selection-frame {
+  fill: #27594855;
+  stroke: #71e7c7;
+}
+.fixture-symbol.symbol-selected .fixture-body {
+  fill: #275948;
+  stroke: #71e7c7;
+}
+.fixture-symbol.symbol-selected .fixture-yoke {
+  stroke: #71e7c7;
+}
+.workbench .fixture-label-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.workbench .fixture-label-control select {
+  width: auto;
+  min-height: 26px;
+  padding: 4px 18px 4px 5px;
+  font-size: 11px;
+}
+.fixture-plan-legend {
+  border-top: 1px solid var(--wb-border);
+  padding: 5px 10px;
+  color: var(--wb-muted);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.fixture-plan-legend summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.fixture-plan-legend > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  padding-top: 6px;
+}
+.fixture-plan-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.fixture-plan-legend svg {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+.fixture-plan-legend small {
+  font-variant-numeric: tabular-nums;
+  color: var(--wb-text);
+}

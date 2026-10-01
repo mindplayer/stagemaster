@@ -6,6 +6,7 @@ import {
 import type { FixtureView, SceneView } from "../../application-host";
 import { fixtureMatches, selectRange } from "../../editor-tools";
 import { useRef } from "react";
+import { fixtureAddress } from "../../fixture-plan-display";
 
 export function FixtureBrowser({
   fixtures,
@@ -128,7 +129,7 @@ export function FixtureBrowser({
               <span>{f.profileName}</span>
               <span>{f.domainName}</span>
               <code>
-                {f.universe ?? "—"} / {f.address ?? "—"}
+                {fixtureAddress(f)}
                 {f.address !== null && f.footprint > 1
                   ? `–${f.address + f.footprint - 1}`
                   : ""}
@@ -194,10 +195,7 @@ export function FixtureBrowser({
                 <strong>{f.name}</strong>
                 <span className="wb-card-mode">{f.profileName}</span>
                 <div className="wb-card-bottom">
-                  <code>
-                    {f.universe ?? "—"}.
-                    {String(f.address ?? "—").padStart(3, "0")}
-                  </code>
+                  <code>{fixtureAddress(f)}</code>
                   <span>
                     {dimmer?.mode === "release"
                       ? "释放"
