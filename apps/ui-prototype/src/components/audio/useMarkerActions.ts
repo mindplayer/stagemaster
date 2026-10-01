@@ -1,3 +1,4 @@
+import { audioSelection } from "../../audio-selection";
 import { useEffect, useRef, useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { useAudio } from "./useAudio";
@@ -53,10 +54,8 @@ export function useMarkerActions({
         snapshot.project?.id !== target.projectId
       )
         return;
-      const marker = snapshot.project.audio?.markers.find(
-        (m) => m.id === target.markerId,
-      );
-      if (!marker) throw new Error("此卡点已被删除，请重新选择");
+      const marker = audioSelection(snapshot.project.audio, target.markerId);
+      if (!marker) throw new Error("此编排已被删除，请重新选择");
       if (await audio.previewAt(marker.timeMs)) {
         if (current()) onView3d?.();
       }

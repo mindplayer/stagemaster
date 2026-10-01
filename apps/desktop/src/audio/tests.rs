@@ -23,6 +23,7 @@ fn document() -> (Document, AudioTimeline) {
         },
         in_ms: 500,
         out_ms: 9500,
+        lighting_clips: None,
         markers: vec![
             AudioMarker {
                 id: "a0000000-0000-4000-8000-000000000001".into(),
@@ -154,4 +155,50 @@ fn native_cursor_seek_uses_transition_snapshot_and_retains_pause_state() {
         assert!(output.slots[1..].iter().all(|slot| *slot == 0));
         assert!(!preview.position().playing);
     }
+}
+
+#[test]
+fn explicit_clip_gap_copy_and_backward_seek_use_native_cursor_without_reloading_audio() {
+    let (mut doc, _) = document();
+    doc.edit(
+        serde_json::from_value(json!({"op":"audio","command":{"kind":"convertLightingClips"}}))
+            .unwrap(),
+    )
+    .unwrap();
+    let clips = doc.audio_timeline().unwrap().lighting_clips.unwrap();
+    let mut first = clips[0].clone();
+    first.end_ms = 2000;
+    doc.edit(
+        serde_json::from_value(
+            json!({"op":"audio","command":{"kind":"putLightingClip","clip":first}}),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let mut preview = AudioPreview::default();
+    preview
+        .load("unused.wav".into(), doc.audio_timeline().unwrap())
+        .unwrap();
+    for (time, lit) in [(1250, Some(4)), (2000, None), (3000, None), (1250, Some(4))] {
+        preview.transport.seek(time).unwrap();
+        let result = preview.render(&doc, 2).unwrap();
+        let out = result.output.unwrap();
+        assert_eq!(
+            out.slots
+                .iter()
+                .enumerate()
+                .filter(|(_, v)| **v > 0)
+                .map(|(i, _)| i)
+                .collect::<Vec<_>>(),
+            lit.into_iter().collect::<Vec<_>>()
+        );
+    }
+    let saved = preview.position().position_ms;
+    doc.edit(serde_json::from_value(json!({"op":"audio","command":{"kind":"copyLightingClip","id":first.id,"startMs":2500}})).unwrap()).unwrap();
+    preview.synchronize(&doc);
+    assert_eq!(preview.position().position_ms, saved);
+    preview.transport.seek(2750).unwrap();
+    let out = preview.render(&doc, 3).unwrap().output.unwrap();
+    assert_eq!(out.slots[4], 255);
+    assert!(!preview.position().playing);
 }

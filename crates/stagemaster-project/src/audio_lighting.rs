@@ -52,27 +52,43 @@ impl Document {
             .iter()
             .find(|m| m.id == id && m.scene_id.is_some())
             .ok_or("此灯光卡点不存在")?;
-        let mut compiled = self.compile_audio_scene(marker.scene_id.as_deref())?;
-        if marker.fade_ms == 0 {
-            return Ok(compiled);
-        }
         let previous = track
             .markers
             .iter()
             .rev()
             .find(|m| m.time_ms < marker.time_ms && m.scene_id.is_some());
-        let from = if let Some(previous) = previous {
-            let source = self.compile_audio_scene(previous.scene_id.as_deref())?;
+        self.compile_audio_entry(
+            marker.scene_id.as_deref().ok_or("灯光卡点缺少场景")?,
+            marker.fade_ms,
+            previous.and_then(|p| {
+                p.scene_id
+                    .as_deref()
+                    .map(|scene| (scene, marker.time_ms - p.time_ms))
+            }),
+        )
+    }
+    pub(super) fn compile_audio_entry(
+        &self,
+        scene_id: &str,
+        fade_ms: u64,
+        previous: Option<(&str, u64)>,
+    ) -> Result<CompiledSequence, String> {
+        let mut compiled = self.compile_audio_scene(Some(scene_id))?;
+        if fade_ms == 0 {
+            return Ok(compiled);
+        }
+        let from = if let Some((scene, elapsed)) = previous {
+            let source = self.compile_audio_scene(Some(scene))?;
             let mut player = Player::new(source.plan, 0);
             player.execute(0, 0)?;
-            // Previous entry fade is complete here because validated transitions never overlap.
-            player.advance(marker.time_ms - previous.time_ms)?;
+            // Validation guarantees that the preceding entry fade is complete.
+            player.advance(elapsed)?;
             player.values().to_vec()
         } else {
             compiled.plan.defaults().to_vec()
         };
         let mut steps = compiled.plan.steps().to_vec();
-        steps[0].fade_ms = marker.fade_ms;
+        steps[0].fade_ms = fade_ms;
         compiled.plan = Plan::with_snap_attributes(
             from,
             steps,

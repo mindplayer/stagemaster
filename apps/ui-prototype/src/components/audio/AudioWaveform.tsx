@@ -3,6 +3,7 @@ import { useMemo, useState, type RefObject } from "react";
 import type {
   AudioLoopRange,
   AudioMarker,
+  AudioLightingClip,
   AudioPosition,
   AudioTimeline,
   AudioWaveform as Wave,
@@ -25,6 +26,7 @@ export function AudioWaveform({
   onSeek,
   onSelect,
   onMove,
+  onClipMove,
 }: {
   track: AudioTimeline;
   scenes?: SceneView[];
@@ -38,6 +40,7 @@ export function AudioWaveform({
   onSeek(time: number): void;
   onSelect(id: string): void;
   onMove(marker: AudioMarker): void;
+  onClipMove?(clip: AudioLightingClip): void;
 }) {
   const duration = track.outMs - track.inMs;
   const prepared = useMemo(() => {
@@ -197,6 +200,7 @@ export function AudioWaveform({
           sample={sample}
           preview={wave.preview}
           onMove={onMove}
+          onClipMove={onClipMove}
           onSeek={onSeek}
           onSelect={onSelect}
           onZoom={(factor, x) => wave.zoomTo(wave.zoom * factor, x)}

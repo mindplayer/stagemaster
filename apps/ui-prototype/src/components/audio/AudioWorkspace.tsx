@@ -1,3 +1,6 @@
+import { AudioResourceHeader } from "./AudioResourceHeader";
+import { AudioClipLibrary } from "./AudioClipLibrary";
+import { useAudioClipActions } from "./useAudioClipActions";
 import { AudioLoopControls } from "./AudioLoopControls";
 import { DockPane } from "../layout/DockPane";
 import { AudioMarkerLibrary } from "./AudioMarkerBatch";
@@ -90,7 +93,30 @@ export const AudioWorkspace = forwardRef<
     beforeChange,
     onView3d,
   });
+  const clips = useAudioClipActions({
+    track,
+    selected,
+    position: audio.position.positionMs,
+    scenes: project.scenes,
+    beforeChange,
+    edit,
+    onDraft: change,
+    onSelect: (id) => {
+      setSelected(id);
+      setBatchKey("");
+    },
+    onProblem: setProblem,
+  });
   const blocked = busy || audio.preparing || markerActions.acting;
+  const created = useRef<{ ids: string[]; select: boolean } | null>(null);
+  useEffect(() => {
+    if (!created.current || draft) return;
+    const next = track?.lightingClips?.find(
+      (c) => !created.current!.ids.includes(c.id),
+    );
+    if (next && created.current.select) setSelected(next.id);
+    created.current = null;
+  }, [track, draft]);
   function change(value: AudioDraft) {
     draftRef.current = value;
     setDraft(value);
@@ -109,13 +135,22 @@ export const AudioWorkspace = forwardRef<
     try {
       if (!form.current?.reportValidity())
         throw new Error("请修正音频属性中的输入");
-      return [{ op: "audio", command: collectAudioDraft(value, track) }];
+      const command = collectAudioDraft(value, track);
+      if (
+        command.kind === "addLightingClip" ||
+        command.kind === "copyLightingClip"
+      )
+        created.current = {
+          ids: track.lightingClips?.map((c) => c.id) ?? [],
+          select: true,
+        };
+      return [{ op: "audio", command }];
     } catch (error) {
       setProblem(error instanceof Error ? error.message : String(error));
       requestAnimationFrame(() =>
         form.current
           ?.querySelector<HTMLInputElement>(
-            `[name="${error instanceof AudioDraftError ? error.field : value.kind === "marker" ? "markerName" : "trimStart"}"]`,
+            `[name="${error instanceof AudioDraftError ? error.field : value.kind === "marker" ? "markerName" : value.kind === "clip" ? "clipStart" : "trimStart"}"]`,
           )
           ?.focus(),
       );
@@ -129,6 +164,7 @@ export const AudioWorkspace = forwardRef<
   async function choose(id: string) {
     if (await beforeChange()) {
       setSelected(id);
+      if (track?.lightingClips?.some((c) => c.id === id)) setBatchKey("");
       cancel();
     }
   }
@@ -200,57 +236,34 @@ export const AudioWorkspace = forwardRef<
       >
         <DockPane region="library" visible={visible}>
           <section className="audio-resources">
-            <header className="audio-header">
-              <div>
-                <h2>音乐与卡点</h2>
-                <span>{track?.asset.fileName ?? "用音乐安排灯光节奏"}</span>
-              </div>
-              <div className="wb-actions">
-                {track ? (
-                  <>
-                    <button disabled={blocked} onClick={() => choose("")}>
-                      裁切范围
-                    </button>
-                    <button
-                      disabled={blocked}
-                      onClick={() => audio.prepare("locate")}
-                    >
-                      重新定位音乐
-                    </button>
-                    <button
-                      disabled={blocked}
-                      onClick={() => setRemoveMusic(true)}
-                    >
-                      移除音乐
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="primary"
-                    disabled={blocked || host.kind !== "desktop"}
-                    onClick={importMusic}
-                  >
-                    导入音乐
-                  </button>
-                )}
-              </div>
-            </header>
-            {(problem ||
-              markerActions.problem ||
-              audio.problem ||
-              audio.position.problem) && (
-              <div role="alert" className="audio-error">
-                {problem ||
-                  markerActions.problem ||
-                  audio.problem ||
-                  audio.position.problem}
-              </div>
-            )}
-            {audio.preparing && (
-              <div role="status" className="audio-progress">
-                正在准备音乐波形…
-                <button onClick={() => audio.cancel()}>取消准备</button>
-              </div>
+            <AudioResourceHeader
+              track={track}
+              blocked={blocked}
+              host={host}
+              choose={choose}
+              locate={() => void audio.prepare("locate")}
+              remove={() => setRemoveMusic(true)}
+              importMusic={importMusic}
+              problem={
+                problem ||
+                markerActions.problem ||
+                audio.problem ||
+                audio.position.problem
+              }
+              preparing={audio.preparing}
+              cancelPrepare={() => void audio.cancel()}
+            />
+            {track && (
+              <AudioClipLibrary
+                track={track}
+                scenes={project.scenes}
+                selected={selected}
+                busy={blocked}
+                onSelect={choose}
+                onSeek={seek}
+                onAdd={() => void clips.add()}
+                onConvert={() => void clips.convert()}
+              />
             )}
             {track && (
               <AudioMarkerLibrary
@@ -318,9 +331,14 @@ export const AudioWorkspace = forwardRef<
                   onSeek={seek}
                   onSelect={(id) => {
                     setSelected(id);
+                    if (track.lightingClips?.some((c) => c.id === id))
+                      setBatchKey("");
                     cancel();
                   }}
                   onMove={moveMarker}
+                  onClipMove={(clip) =>
+                    void edit({ kind: "putLightingClip", clip })
+                  }
                 />
               </>
             )}
@@ -331,6 +349,9 @@ export const AudioWorkspace = forwardRef<
             <AudioInspector
               track={track}
               marker={marker}
+              clip={clips.clip}
+              onCopy={clips.copy}
+              onLock={() => void clips.lock()}
               draft={draft}
               scenes={project.scenes}
               busy={blocked}
@@ -341,13 +362,15 @@ export const AudioWorkspace = forwardRef<
               }
               onPreview={() => void markerActions.preview()}
               onEditScene={() => {
-                if (marker) void onEditScene?.(marker.id);
+                if (selected) void onEditScene?.(selected);
               }}
               onChange={change}
               onApply={() => void beforeChange()}
               onCancel={cancel}
               onRemove={() => {
-                if (marker) void edit({ kind: "removeMarker", id: marker.id });
+                if (clips.clip) clips.requestRemove();
+                else if (marker)
+                  void edit({ kind: "removeMarker", id: marker.id });
               }}
             />
           ) : (
@@ -356,9 +379,18 @@ export const AudioWorkspace = forwardRef<
             </div>
           )}
         </DockPane>
+        {clips.removing && (
+          <DeleteDialog
+            name={clips.removing.name}
+            description="保留相邻片段和节奏标记，删除处成为默认值空隙；可以撤销。"
+            busy={blocked}
+            onCancel={clips.cancelRemove}
+            onDelete={() => void clips.remove()}
+          />
+        )}
         {removeMusic && (
           <DeleteDialog
-            name="音乐及全部卡点"
+            name="音乐、卡点及灯光片段"
             description="灯光场景会保留，此操作可以撤销。"
             busy={blocked}
             onCancel={() => setRemoveMusic(false)}

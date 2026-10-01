@@ -11,11 +11,21 @@ export interface AudioMarker {
   sceneId: string | null;
   fadeMs?: number;
 }
+export interface AudioLightingClip {
+  id: string;
+  name: string;
+  sceneId: string;
+  startMs: number;
+  endMs: number;
+  fadeMs: number;
+  locked: boolean;
+}
 export interface AudioTimeline {
   asset: AudioAsset;
   inMs: number;
   outMs: number;
   markers: AudioMarker[];
+  lightingClips?: AudioLightingClip[];
 }
 export interface AudioWaveform {
   durationMs: number;
@@ -46,6 +56,19 @@ export type AudioCommand =
 export type MarkerGroupAction =
   { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type AudioEdit =
+  | { kind: "convertLightingClips" }
+  | {
+      kind: "addLightingClip";
+      name: string;
+      sceneId: string;
+      startMs: number;
+      endMs: number;
+      fadeMs: number;
+    }
+  | { kind: "putLightingClip"; clip: AudioLightingClip }
+  | { kind: "copyLightingClip"; id: string; startMs: number }
+  | { kind: "removeLightingClip"; id: string }
+  | { kind: "setLightingClipLock"; id: string; locked: boolean }
   | { kind: "editMarkers"; ids: string[]; action: MarkerGroupAction }
   | { kind: "setAsset"; asset: AudioAsset }
   | { kind: "clear" }

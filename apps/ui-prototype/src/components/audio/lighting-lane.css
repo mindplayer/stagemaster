@@ -149,3 +149,10 @@
   );
   border-right: 1px dashed rgba(130, 220, 211, 0.8);
 }
+.workbench .audio-lighting-boundary.end {
+  left: auto;
+  right: 0;
+}
+.audio-lighting-clip.locked {
+  border-style: dashed;
+}

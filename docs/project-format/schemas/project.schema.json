@@ -3241,6 +3241,13 @@
           "items": {
             "$ref": "#/$defs/AudioMarker"
           }
+        },
+        "lightingClips": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/AudioLightingClip"
+          }
         }
       },
       "required": [
@@ -3384,6 +3391,50 @@
       "required": [
         "kind",
         "targetId"
+      ],
+      "additionalProperties": false
+    },
+    "AudioLightingClip": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sceneId": {
+          "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+        },
+        "startMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "endMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "fadeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "locked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "sceneId",
+        "startMs",
+        "endMs",
+        "fadeMs",
+        "locked"
       ],
       "additionalProperties": false
     }

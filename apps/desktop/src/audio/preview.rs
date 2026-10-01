@@ -53,11 +53,11 @@ impl AudioPreview {
     ) -> Result<crate::preview::RenderOutput, String> {
         let track = self.track.as_ref().ok_or("请先准备音乐")?;
         let pos = self.transport.position();
-        let marker = track.scene_at(pos.position_ms);
-        let origin = marker.map_or(0, |m| m.time_ms);
-        let scene = marker.and_then(|m| m.scene_id.clone());
+        let marker = track.lighting_at(pos.position_ms);
+        let origin = marker.map_or(0, |m| m.start_ms);
+        let identity = marker.map(|m| m.id.to_owned());
         let elapsed = pos.position_ms.saturating_sub(origin);
-        let key = (version, scene.clone(), origin);
+        let key = (version, identity, origin);
         if self
             .lighting
             .as_ref()
@@ -69,7 +69,7 @@ impl AudioPreview {
                     output: None,
                 });
             }
-            let compiled = doc.compile_audio_marker(marker.map(|m| m.id.as_str()))?;
+            let compiled = doc.compile_audio_lighting(marker.map(|m| m.id))?;
             let mut player = Player::new(compiled.plan, 0);
             player.execute(0, 0)?;
             self.lighting = Some(Lighting {

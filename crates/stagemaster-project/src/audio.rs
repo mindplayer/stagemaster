@@ -35,6 +35,8 @@ pub struct AudioTimeline {
     pub in_ms: u64,
     pub out_ms: u64,
     pub markers: Vec<AudioMarker>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lighting_clips: Option<Vec<crate::AudioLightingClip>>,
 }
 impl AudioTimeline {
     #[must_use]
@@ -74,6 +76,28 @@ pub enum AudioEdit {
         ids: Vec<String>,
         action: crate::MarkerGroupAction,
     },
+    ConvertLightingClips,
+    AddLightingClip {
+        name: String,
+        scene_id: String,
+        start_ms: u64,
+        end_ms: u64,
+        fade_ms: u64,
+    },
+    PutLightingClip {
+        clip: crate::AudioLightingClip,
+    },
+    CopyLightingClip {
+        id: String,
+        start_ms: u64,
+    },
+    RemoveLightingClip {
+        id: String,
+    },
+    SetLightingClipLock {
+        id: String,
+        locked: bool,
+    },
     Clear,
 }
 impl Document {
@@ -94,7 +118,9 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             .as_array_mut()
             .ok_or("能力列表无效")?
             .retain(|r| {
-                r["key"] != "media.audio-editing" && r["key"] != crate::audio_lighting::CAPABILITY
+                r["key"] != "media.audio-editing"
+                    && r["key"] != crate::audio_lighting::CAPABILITY
+                    && r["key"] != crate::audio_clips::CAPABILITY
             });
         return Ok(());
     }
@@ -107,11 +133,20 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             out_ms: asset.duration_ms,
             asset: asset.clone(),
             markers: vec![],
+            lighting_clips: None,
         }
     } else {
         read(root).ok_or("请先导入音乐")?
     };
     match command {
+        command @ (AudioEdit::ConvertLightingClips
+        | AudioEdit::AddLightingClip { .. }
+        | AudioEdit::PutLightingClip { .. }
+        | AudioEdit::CopyLightingClip { .. }
+        | AudioEdit::RemoveLightingClip { .. }
+        | AudioEdit::SetLightingClipLock { .. }) => {
+            crate::audio_clip_edit::apply(&mut track, command)?;
+        }
         AudioEdit::SetAsset { .. } | AudioEdit::Clear => {}
         AudioEdit::Trim { in_ms, out_ms } => {
             track.in_ms = in_ms;
@@ -147,6 +182,16 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             .ok_or("能力列表无效")?
             .push(json!({"key":crate::audio_lighting::CAPABILITY,"version":1}));
     }
+    if track.lighting_clips.is_some()
+        && !array(root, "requires")
+            .iter()
+            .any(|r| r["key"] == crate::audio_clips::CAPABILITY)
+    {
+        root["requires"]
+            .as_array_mut()
+            .ok_or("能力列表无效")?
+            .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
+    }
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
     if !array(root, "requires")
         .iter()
@@ -161,7 +206,14 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
-        return Ok(());
+        return if array(root, "requires")
+            .iter()
+            .any(|r| r["key"] == crate::audio_clips::CAPABILITY)
+        {
+            Err("灯光片段能力声明缺少音乐轨道".into())
+        } else {
+            Ok(())
+        };
     };
     if !array(media, "systems").is_empty()
         || !array(media, "objects").is_empty()
@@ -207,5 +259,6 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         previous = Some(marker.time_ms);
     }
     crate::audio_lighting::validate(root, &track)?;
+    crate::audio_clips::validate(root, &track)?;
     Ok(())
 }

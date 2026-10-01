@@ -1,9 +1,11 @@
+import { AudioClipLane } from "./AudioClipLane";
 import type { SceneView } from "../../application-host";
 import { AudioLightingLane } from "./AudioLightingLane";
 import { constrainBoundaryTime } from "./lighting-segments";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type {
   AudioMarker,
+  AudioLightingClip,
   AudioPosition,
   AudioTimeline,
 } from "../../audio-types";
@@ -28,6 +30,7 @@ export function WaveformMarkers({
   sample,
   preview,
   onMove,
+  onClipMove,
   onSeek,
   onSelect,
   onZoom,
@@ -43,6 +46,7 @@ export function WaveformMarkers({
   sample: RefObject<{ position: AudioPosition; at: number }>;
   preview: RefObject<number | null>;
   onMove(marker: AudioMarker): void;
+  onClipMove?(clip: AudioLightingClip): void;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onZoom(factor: number, x: number): void;
@@ -211,27 +215,44 @@ export function WaveformMarkers({
           </button>
         );
       })}
-      {scenes && (
-        <AudioLightingLane
-          track={
-            drag?.marker
-              ? {
-                  ...track,
-                  markers: track.markers.map((m) =>
-                    m.id === drag.marker!.id ? { ...m, timeMs: drag.time } : m,
-                  ),
-                }
-              : track
-          }
+      {scenes && track.lightingClips && onClipMove ? (
+        <AudioClipLane
+          track={track}
           scenes={scenes}
           viewport={viewport}
           selected={selected}
           disabled={disabled}
+          snap={snap}
           cursor={laneCursor}
           onSelect={onSelect}
           onSeek={onSeek}
-          onMove={onMove}
+          onMove={onClipMove}
         />
+      ) : (
+        scenes && (
+          <AudioLightingLane
+            track={
+              drag?.marker
+                ? {
+                    ...track,
+                    markers: track.markers.map((m) =>
+                      m.id === drag.marker!.id
+                        ? { ...m, timeMs: drag.time }
+                        : m,
+                    ),
+                  }
+                : track
+            }
+            scenes={scenes}
+            viewport={viewport}
+            selected={selected}
+            disabled={disabled}
+            cursor={laneCursor}
+            onSelect={onSelect}
+            onSeek={onSeek}
+            onMove={onMove}
+          />
+        )
       )}
       {(drag || hover !== null) && (
         <output

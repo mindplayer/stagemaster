@@ -18,6 +18,8 @@ export function audioMilliseconds(value: string, field: string) {
   return number;
 }
 export function validateMarker(marker: AudioMarker, track: AudioTimeline) {
+  if (track.lightingClips && (marker.sceneId || marker.fadeMs))
+    throw new Error("独立片段模式的卡点只能作节奏标记");
   if (!marker.name.trim()) throw new Error("卡点名称不能为空");
   if (
     !Number.isSafeInteger(marker.timeMs) ||

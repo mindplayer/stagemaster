@@ -37,6 +37,10 @@ export function markerLoopRange(
   track: AudioTimeline,
   id: string,
 ): AudioLoopRange | null {
+  if (track.lightingClips) {
+    const clip = track.lightingClips.find((c) => c.id === id);
+    return clip ? { startMs: clip.startMs, endMs: clip.endMs } : null;
+  }
   const marker = track.markers.find((m) => m.id === id && m.sceneId);
   if (!marker) return null;
   const next = track.markers

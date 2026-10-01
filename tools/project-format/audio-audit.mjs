@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
+import { auditAudioClips } from './audio-clips-audit.mjs';
 
 export function auditAudioEditing(project, declared, add, get) {
   const track = project.media?.audioEditing;
-  if (!track) return;
+  if (!track) { assert(!declared.has('media.audio-clips@1'), '独立片段能力缺少音乐轨道'); return; }
   assert(declared.has('media.audio-editing@1'), '缺少模块能力声明：media.audio-editing');
   assert(track.inMs < track.outMs && track.outMs <= track.asset.durationMs, '音乐裁切范围无效');
+  auditAudioClips(project, track, declared, add, get);
   add('audio-marker', track.markers);
   let previous = -1;
   for (const marker of track.markers) {

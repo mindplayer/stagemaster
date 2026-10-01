@@ -131,6 +131,7 @@ fn supported(root: &Value) -> Result<(), String> {
         if ![
             "media.audio-editing",
             crate::audio_lighting::CAPABILITY,
+            crate::audio_clips::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
             crate::sequence_script::CAPABILITY,

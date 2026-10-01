@@ -14,10 +14,10 @@ export function AudioSceneReturn({
     <div
       className="audio-scene-return"
       role="region"
-      aria-label="卡点编辑上下文"
+      aria-label="音乐编排上下文"
     >
       <button disabled={busy} onClick={onBack}>
-        返回音乐卡点
+        返回音乐时间线
       </button>
       <span title={marker.name}>{marker.name}</span>
       <time>{audioTime(marker.timeMs)}</time>

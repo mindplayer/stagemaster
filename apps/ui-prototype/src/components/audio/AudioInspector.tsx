@@ -1,3 +1,6 @@
+import { AudioClipInspector } from "./AudioClipInspector";
+import { clipDraft } from "./audio-clip-draft";
+import type { AudioLightingClip } from "../../audio-types";
 import type { RefObject } from "react";
 import type { AudioMarker, AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
@@ -7,6 +10,9 @@ export type { AudioDraft } from "./audio-inspector-draft";
 export function AudioInspector({
   track,
   marker,
+  clip,
+  onCopy,
+  onLock,
   draft,
   scenes,
   busy,
@@ -24,6 +30,9 @@ export function AudioInspector({
   onEditScene(): void;
   track: AudioTimeline;
   marker?: AudioMarker;
+  clip?: AudioLightingClip;
+  onCopy(): void;
+  onLock(): void;
   draft: AudioDraft | null;
   scenes: SceneView[];
   busy: boolean;
@@ -35,13 +44,35 @@ export function AudioInspector({
 }) {
   const data =
     draft ??
-    (marker
-      ? markerDraft(marker)
-      : {
-          kind: "trim" as const,
-          start: (track.inMs / 1000).toFixed(3),
-          end: (track.outMs / 1000).toFixed(3),
-        });
+    (clip
+      ? clipDraft(clip)
+      : marker
+        ? markerDraft(marker)
+        : {
+            kind: "trim" as const,
+            start: (track.inMs / 1000).toFixed(3),
+            end: (track.outMs / 1000).toFixed(3),
+          });
+  if (data.kind === "clip")
+    return (
+      <AudioClipInspector
+        data={data}
+        clip={clip}
+        scenes={scenes}
+        busy={busy}
+        dirty={!!draft}
+        ready={ready}
+        form={form}
+        onChange={onChange}
+        onApply={onApply}
+        onCancel={onCancel}
+        onCopy={onCopy}
+        onLock={onLock}
+        onRemove={onRemove}
+        onPreview={onPreview}
+        onEditScene={onEditScene}
+      />
+    );
   return (
     <form
       className="audio-inspector"
@@ -84,28 +115,30 @@ export function AudioInspector({
               onChange={(e) => onChange({ ...data, time: e.target.value })}
             />
           </label>
-          <label>
-            灯光场景
-            <select
-              aria-label="卡点灯光场景"
-              value={data.sceneId}
-              disabled={busy}
-              onChange={(e) =>
-                onChange({
-                  ...data,
-                  sceneId: e.target.value,
-                  fade: e.target.value ? data.fade : "0",
-                })
-              }
-            >
-              <option value="">仅作节奏标记</option>
-              {scenes.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          {!track.lightingClips && (
+            <label>
+              灯光场景
+              <select
+                aria-label="卡点灯光场景"
+                value={data.sceneId}
+                disabled={busy}
+                onChange={(e) =>
+                  onChange({
+                    ...data,
+                    sceneId: e.target.value,
+                    fade: e.target.value ? data.fade : "0",
+                  })
+                }
+              >
+                <option value="">仅作节奏标记</option>
+                {scenes.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {data.sceneId && (
             <>
               <label>
@@ -175,7 +208,9 @@ export function AudioInspector({
             </button>
           </div>
           <p>
-            到达卡点开始所选场景；渐变从前段边界状态进入，新效果从此处计时。修改关联场景也会影响其他引用位置。
+            {track.lightingClips
+              ? "节奏标记与灯光片段独立，移动标记不会改变片段。"
+              : "到达卡点开始所选场景；渐变从前段边界状态进入，新效果从此处计时。修改关联场景也会影响其他引用位置。"}
           </p>
         </>
       ) : (

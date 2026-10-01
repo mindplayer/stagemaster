@@ -45,3 +45,29 @@ test('纯节奏标记不截断渐变，绑定场景才形成下一边界',()=>{
   p.media.audioEditing.markers.push(next);assert.doesNotThrow(()=>auditProject(p));
   next.sceneId=p.lighting.scenes[0].id;assert.throws(()=>auditProject(p),/渐变/);
 });
+
+function clipProject() {
+  const p=project();p.requires.push({key:'media.audio-clips',version:1});
+  p.media.audioEditing.markers[0].sceneId=null;
+  p.media.audioEditing.lightingClips=[{id:'d0000000-0000-4000-8000-000000000001',name:'片段',sceneId:p.lighting.scenes[0].id,startMs:1000,endMs:3000,fadeMs:1000,locked:false}];
+  return p;
+}
+test('独立灯光片段允许空隙、恰好相邻和独立锁定',()=>{
+  const p=clipProject();p.media.audioEditing.lightingClips.push({...p.media.audioEditing.lightingClips[0],id:'d0000000-0000-4000-8000-000000000002',startMs:3000,endMs:5000,locked:true});
+  assert.doesNotThrow(()=>auditProject(p));
+});
+test('片段能力、区间、引用、身份、容量与双调度分别拒绝',()=>{
+  for(const mutate of [
+    p=>p.requires=p.requires.filter(r=>r.key!=='media.audio-clips'),
+    p=>delete p.media.audioEditing.lightingClips,
+    p=>p.media.audioEditing.markers[0].sceneId=p.lighting.scenes[0].id,
+    p=>p.media.audioEditing.lightingClips[0].endMs=1000,
+    p=>p.media.audioEditing.lightingClips[0].endMs=30001,
+    p=>p.media.audioEditing.lightingClips[0].fadeMs=2001,
+    p=>p.media.audioEditing.lightingClips[0].sceneId=p.lighting.fixtures[0].id,
+    p=>p.media.audioEditing.lightingClips[0].id=p.media.audioEditing.markers[0].id,
+    p=>p.media.audioEditing.lightingClips[0].locked='yes',
+    p=>p.media.audioEditing.lightingClips.push({...p.media.audioEditing.lightingClips[0],id:'d0000000-0000-4000-8000-000000000002',startMs:2500}),
+    p=>p.media.audioEditing.lightingClips=Array.from({length:513},(_,i)=>({...p.media.audioEditing.lightingClips[0],id:`d0000000-0000-4000-8000-${String(i).padStart(12,'0')}`,startMs:i*10,endMs:i*10+5,fadeMs:0})),
+  ]) {const p=clipProject();mutate(p);assert.throws(()=>auditProject(p));}
+});

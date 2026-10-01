@@ -1,8 +1,12 @@
+import { AudioDraftError } from "./audio-draft-error.ts";
+export { AudioDraftError } from "./audio-draft-error.ts";
+import { collectClipDraft, type ClipDraft } from "./audio-clip-draft.ts";
 import type { AudioEdit, AudioMarker, AudioTimeline } from "../../audio-types";
 import { audioMilliseconds, validateMarker } from "../../audio-tools.ts";
 import { validateAudioTransitions } from "../../audio-transition-tools.ts";
 
 export type AudioDraft =
+  | ClipDraft
   | {
       kind: "marker";
       id: string;
@@ -22,17 +26,11 @@ export function markerDraft(marker: AudioMarker): AudioDraft {
     fade: marker.fadeMs ? (marker.fadeMs / 1000).toFixed(3) : "0",
   };
 }
-export class AudioDraftError extends Error {
-  readonly field: string;
-  constructor(message: string, field: string) {
-    super(message);
-    this.field = field;
-  }
-}
 export function collectAudioDraft(
   value: AudioDraft,
   track: AudioTimeline,
 ): AudioEdit {
+  if (value.kind === "clip") return collectClipDraft(value, track);
   let field = value.kind === "marker" ? "markerName" : "trimStart";
   try {
     if (value.kind === "marker") {
@@ -63,6 +61,8 @@ export function collectAudioDraft(
       throw new Error("裁切范围必须在源文件内，结束晚于开始");
     if (track.markers.some((m) => m.timeMs >= outMs - inMs))
       throw new Error("裁切后部分卡点超出音乐，请先移动或删除这些卡点");
+    if (track.lightingClips?.some((c) => c.endMs > outMs - inMs))
+      throw new Error("裁切后部分灯光片段超出音乐，请先移动或缩短这些片段");
     validateAudioTransitions({ ...track, inMs, outMs });
     return { kind: "trim", inMs, outMs };
   } catch (error) {

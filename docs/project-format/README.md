@@ -194,3 +194,5 @@ compile_entry(project: &ValidatedProject, binding: &ValidatedSiteBinding,
 STAGE-002 按 [ADR-065](../development/decisions/PRODUCT-ADR-065-stage-edit-locks.md) 增加可选 `stage.editLocks` 与 `stage.edit-locks@1`：保存最多 1600 个空间／构件／灯位锁定引用，保护直接及间接几何修改，旧文件无需补字段。它是编辑保护，不改变节目编译与播放包；命令和边界见[场地 API](../module-api/stage-spaces.md)。
 
 STAGE-003 按 [ADR-066](../development/decisions/PRODUCT-ADR-066-parametric-seating.md) 增加 `stage.seating@1` 和参数化 `seating` 构件：工程保存排／列、椅宽深、中心间距、世界中心／朝向和可空净宽通道；Rust 校验后生成二维／三维座椅。单区 512、全工程 1024 座有界，旧工程无需补字段，不自动转换旧示意构件；详见[场地 API](../module-api/stage-spaces.md)。
+
+AUDIO-006 按 [ADR-067](../development/decisions/PRODUCT-ADR-067-audio-lighting-clips.md) 增加可选 `media.audioEditing.lightingClips` 与 `media.audio-clips@1`：独立场景引用和半开区间、最多 512 段、非重叠、显式转换、锁定及原子编辑；卡点改为纯节奏标记，旧文件缺省时保持旧语义。时间线不进入 ESP32 播放包；详见[音频 API](../module-api/audio-editing.md)。
