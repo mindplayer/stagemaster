@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ApplicationHost } from "../../application-host";
 import type {
   AudioCommand,
+  AudioLoopRange,
   AudioPosition,
   AudioTimeline,
   AudioWaveform,
@@ -239,6 +240,8 @@ export function useAudio(
     prepare,
     command,
     previewAt,
+    configureLoop: (range: AudioLoopRange | null) =>
+      enqueue([{ kind: "setLoop", range }]),
     cancel: () => host.audioCancel(),
   };
 }

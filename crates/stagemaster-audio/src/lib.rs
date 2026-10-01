@@ -2,6 +2,8 @@
 mod resource_health;
 mod resources;
 pub use resource_health::{ResourceFileHealth, ResourceHealth, ResourceSource};
+mod looping;
+pub use looping::{LoopRange, LoopRequest, MAX_LOOP_MS, PreparedLoop};
 mod transport;
 mod waveform;
 pub use resources::{MAX_FILE_BYTES, Resources, verify};

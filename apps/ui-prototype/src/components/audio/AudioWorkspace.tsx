@@ -1,3 +1,4 @@
+import { AudioLoopControls } from "./AudioLoopControls";
 import { DockPane } from "../layout/DockPane";
 import { AudioMarkerLibrary } from "./AudioMarkerBatch";
 import { AudioTransportBar } from "./AudioTransportBar";
@@ -179,7 +180,9 @@ export const AudioWorkspace = forwardRef<
         onKeyDown={(e) => {
           if (
             e.target instanceof HTMLElement &&
-            e.target.closest("input,select,textarea,[contenteditable=true]")
+            e.target.closest(
+              "input,select,textarea,button,[contenteditable=true]",
+            )
           )
             return;
           if (blocked || removeMusic || e.repeat) return;
@@ -290,9 +293,22 @@ export const AudioWorkspace = forwardRef<
                   addMarker={addMarker}
                   editingOnly={sharedTransport}
                 />
+                <AudioLoopControls
+                  key={trackIdentity}
+                  track={track}
+                  selected={selected}
+                  position={audio.position}
+                  disabled={
+                    blocked ||
+                    !audio.waveform ||
+                    audio.position.durationMs !== track.outMs - track.inMs
+                  }
+                  configure={audio.configureLoop}
+                />
                 <AudioWaveform
                   track={track}
                   scenes={project.scenes}
+                  loopRange={audio.position.loopRange}
                   compact={sharedTransport}
                   waveform={audio.waveform}
                   sample={audio.playingSample}

@@ -67,6 +67,7 @@ export function AudioPreviewTransport({
             draft ?? session.requestedPosition ?? session.position.positionMs,
           )}{" "}
           / {audioTime(duration)}
+          {session.position.loopRange && <small> · 局部循环</small>}
           {session.requestedPosition !== null && <small> · 定位中</small>}
         </output>
       </div>

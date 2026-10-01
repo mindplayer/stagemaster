@@ -26,7 +26,12 @@ export interface PreparedAudio {
   asset: AudioAsset;
   waveform: AudioWaveform;
 }
+export interface AudioLoopRange {
+  startMs: number;
+  endMs: number;
+}
 export interface AudioPosition {
+  loopRange?: AudioLoopRange | null;
   volumePercent: number;
   playing: boolean;
   positionMs: number;
@@ -34,6 +39,7 @@ export interface AudioPosition {
   problem: string | null;
 }
 export type AudioCommand =
+  | { kind: "setLoop"; range: AudioLoopRange | null }
   | { kind: "volume"; percent: number }
   | { kind: "snapshot" | "play" | "pause" | "stop" }
   | { kind: "seek"; positionMs: number };

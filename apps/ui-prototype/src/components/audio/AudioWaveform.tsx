@@ -1,6 +1,7 @@
 import type { SceneView } from "../../application-host";
 import { useMemo, useState, type RefObject } from "react";
 import type {
+  AudioLoopRange,
   AudioMarker,
   AudioPosition,
   AudioTimeline,
@@ -19,6 +20,7 @@ export function AudioWaveform({
   selected,
   disabled,
   compact = false,
+  loopRange,
   requestedPosition = null,
   onSeek,
   onSelect,
@@ -31,6 +33,7 @@ export function AudioWaveform({
   selected: string;
   disabled: boolean;
   compact?: boolean;
+  loopRange?: AudioLoopRange | null;
   requestedPosition?: number | null;
   onSeek(time: number): void;
   onSelect(id: string): void;
@@ -171,6 +174,18 @@ export function AudioWaveform({
             )}
           </div>
         )}
+        {loopRange &&
+          loopRange.endMs > wave.viewport.start &&
+          loopRange.startMs < wave.viewport.end && (
+            <div
+              className="audio-loop-region"
+              aria-hidden="true"
+              style={{
+                left: `${Math.max(0, ((loopRange.startMs - wave.viewport.start) / (wave.viewport.end - wave.viewport.start)) * 100)}%`,
+                right: `${Math.max(0, ((wave.viewport.end - loopRange.endMs) / (wave.viewport.end - wave.viewport.start)) * 100)}%`,
+              }}
+            />
+          )}
         <WaveformMarkers
           track={track}
           scenes={scenes}

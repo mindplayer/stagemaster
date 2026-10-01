@@ -3,6 +3,8 @@ use stagemaster_project::{Document, EditCommand, ProjectView};
 use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 mod audio;
+#[cfg(test)]
+mod audio_tests;
 mod files;
 mod previs;
 

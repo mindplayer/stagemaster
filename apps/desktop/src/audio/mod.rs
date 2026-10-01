@@ -1,3 +1,4 @@
+mod looping;
 pub(crate) mod prepare;
 mod preview;
 pub(crate) use preview::AudioPreview;
@@ -8,6 +9,7 @@ use tauri::Manager;
 pub(crate) struct Service {
     pub resources: Resources,
     preparing: AtomicBool,
+    loop_preparing: AtomicBool,
     cancelled: AtomicBool,
     waveform: Mutex<Option<(String, Waveform)>>,
 }
@@ -16,6 +18,7 @@ impl Service {
         Self {
             resources: Resources::new(root),
             preparing: AtomicBool::new(false),
+            loop_preparing: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
             waveform: Mutex::new(None),
         }
@@ -33,8 +36,15 @@ pub(crate) enum Command {
     Play,
     Pause,
     Stop,
-    Volume { percent: u8 },
-    Seek { position_ms: u64 },
+    Volume {
+        percent: u8,
+    },
+    Seek {
+        position_ms: u64,
+    },
+    SetLoop {
+        range: Option<stagemaster_audio::LoopRange>,
+    },
 }
 #[tauri::command]
 pub(crate) async fn audio_request(
@@ -43,6 +53,10 @@ pub(crate) async fn audio_request(
     command: Command,
 ) -> Result<Position, String> {
     tauri::async_runtime::spawn_blocking(move || {
+        if let Command::SetLoop { range } = command {
+            return looping::configure(&app, generation, range);
+        }
+
         app.state::<crate::previs::SharedSession>()
             .lock()
             .map_err(|_| "工程会话发生错误")?

@@ -1,3 +1,4 @@
+import { audioDisplayTime } from "../../audio-loop-tools";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import WaveSurfer from "wavesurfer.js";
 import Timeline from "wavesurfer.js/dist/plugins/timeline.js";
@@ -110,14 +111,8 @@ export function useWaveSurfer(
         return;
       }
       const { position, at } = latest.current.sample.current;
-      const time = Math.min(
-        duration,
-        preview.current ??
-          position.positionMs +
-            (position.playing
-              ? Math.min(120, Math.max(0, performance.now() - at))
-              : 0),
-      );
+      const time =
+        preview.current ?? audioDisplayTime(position, performance.now() - at);
       if (laneCursor.current) {
         const x =
           (time / duration) * wave.getWrapper().clientWidth - wave.getScroll();

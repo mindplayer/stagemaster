@@ -1,3 +1,4 @@
+use crate::looping::{LoopBuffer, LoopRange, LoopRequest, PreparedLoop};
 use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source};
 use serde::Serialize;
 use std::{
@@ -17,6 +18,7 @@ pub struct Position {
     pub duration_ms: u64,
     pub problem: Option<String>,
     pub volume_percent: u8,
+    pub loop_range: Option<LoopRange>,
 }
 /// Single local audition voice. Position is software consumption, not calibrated DAC time.
 #[derive(Default)]
@@ -29,6 +31,8 @@ pub struct Transport {
     duration_ms: u64,
     base_ms: u64,
     volume_percent: Option<u8>,
+    loop_buffer: Option<LoopBuffer>,
+    revision: u64,
 }
 impl Transport {
     /// # Errors
@@ -44,6 +48,8 @@ impl Transport {
         Ok(())
     }
     pub fn clear(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
+        self.loop_buffer = None;
         self.player = None;
         self.stream = None;
         self.file = None;
@@ -54,7 +60,9 @@ impl Transport {
     #[must_use]
     pub fn position(&self) -> Position {
         let position = self.player.as_ref().map_or(self.base_ms, |p| {
-            if p.empty() {
+            if let Some(buffer) = &self.loop_buffer {
+                buffer.position(self.base_ms, p.get_pos())
+            } else if p.empty() {
                 self.duration_ms
             } else {
                 self.base_ms
@@ -68,6 +76,7 @@ impl Transport {
             position_ms: position,
             duration_ms: self.duration_ms,
             volume_percent: self.volume_percent.unwrap_or(100),
+            loop_range: self.loop_buffer.as_ref().map(LoopBuffer::range),
             problem: failed.then(|| "音频输出中断，请检查系统输出设备后重新播放".into()),
         }
     }
@@ -84,28 +93,36 @@ impl Transport {
         Ok(())
     }
     pub fn pause(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
         self.base_ms = self.position().position_ms;
         self.player = None;
     }
     pub fn stop(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
         self.player = None;
-        self.base_ms = 0;
+        self.base_ms = self.loop_buffer.as_ref().map_or(0, |b| b.range().start_ms);
     }
     /// # Errors
     /// Reject missing files/devices and unsupported seeks. A failure never starts another output route.
     pub fn play(&mut self) -> Result<(), String> {
+        self.revision = self.revision.wrapping_add(1);
         if self.position().playing {
             return Ok(());
         }
         if self.base_ms >= self.duration_ms || self.player.as_ref().is_some_and(Player::empty) {
             self.base_ms = 0;
         }
-        let file = File::open(self.file.as_ref().ok_or("请先准备音乐")?)
-            .map_err(|e| format!("无法打开音乐：{e}"))?;
-        let mut source = Decoder::try_from(file).map_err(|e| format!("音乐解码失败：{e}"))?;
-        source
-            .try_seek(Duration::from_millis(self.in_ms + self.base_ms))
-            .map_err(|e| format!("音乐定位失败：{e}"))?;
+        let source: Box<dyn Source + Send> = if let Some(buffer) = &self.loop_buffer {
+            Box::new(buffer.source(self.base_ms))
+        } else {
+            let file = File::open(self.file.as_ref().ok_or("请先准备音乐")?)
+                .map_err(|e| format!("无法打开音乐：{e}"))?;
+            let mut source = Decoder::try_from(file).map_err(|e| format!("音乐解码失败：{e}"))?;
+            source
+                .try_seek(Duration::from_millis(self.in_ms + self.base_ms))
+                .map_err(|e| format!("音乐定位失败：{e}"))?;
+            Box::new(source.take_duration(Duration::from_millis(self.duration_ms - self.base_ms)))
+        };
         if self.failed.swap(false, Ordering::Relaxed) {
             self.stream = None;
         }
@@ -123,7 +140,7 @@ impl Transport {
         }
         let player = Player::connect_new(self.stream.as_ref().ok_or("音频设备未就绪")?.mixer());
         player.set_volume(f32::from(self.volume_percent.unwrap_or(100)) / 100.0);
-        player.append(source.take_duration(Duration::from_millis(self.duration_ms - self.base_ms)));
+        player.append(source);
         self.player = Some(player);
         Ok(())
     }
@@ -133,12 +150,59 @@ impl Transport {
         if position_ms > self.duration_ms {
             return Err("播放位置超出音乐范围".into());
         }
+        self.revision = self.revision.wrapping_add(1);
         let playing = self.position().playing;
+        if self
+            .loop_buffer
+            .as_ref()
+            .is_some_and(|b| !b.range().contains(position_ms))
+        {
+            self.loop_buffer = None;
+        }
         self.player = None;
         self.base_ms = position_ms;
         if playing && position_ms < self.duration_ms {
             self.play()?;
         }
+        Ok(())
+    }
+    /// # Errors
+    /// Reject configuring while playing or an invalid range.
+    pub fn loop_request(&self, range: Option<LoopRange>) -> Result<LoopRequest, String> {
+        if self.position().playing {
+            return Err("请暂停音乐后调整循环范围".into());
+        }
+        if let Some(value) = range {
+            value.validate(self.duration_ms)?;
+        }
+        Ok(LoopRequest {
+            revision: self.revision,
+            file: self.file.clone().ok_or("请先准备音乐")?,
+            in_ms: self.in_ms,
+            range,
+        })
+    }
+    /// # Errors
+    /// Reject stale preparation without replacing the previous range or cursor.
+    pub fn apply_loop(&mut self, prepared: PreparedLoop) -> Result<(), String> {
+        if prepared.revision != self.revision
+            || self.position().playing
+            || self.file.as_ref() != Some(&prepared.file)
+            || self.in_ms != prepared.in_ms
+        {
+            return Err("播放状态已变化，请重新设置循环".into());
+        }
+        let position = self.position().position_ms;
+        self.player = None;
+        self.base_ms = prepared.buffer.as_ref().map_or(position, |b| {
+            if b.range().contains(position) {
+                position
+            } else {
+                b.range().start_ms
+            }
+        });
+        self.loop_buffer = prepared.buffer;
+        self.revision = self.revision.wrapping_add(1);
         Ok(())
     }
 }

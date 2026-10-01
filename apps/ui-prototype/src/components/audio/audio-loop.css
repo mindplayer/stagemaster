@@ -1,0 +1,69 @@
+.audio-loop-tools {
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line, #293942);
+  background: #15222b;
+}
+.audio-loop-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.audio-loop-heading span {
+  color: #9eb6c2;
+  font-variant-numeric: tabular-nums;
+}
+.audio-loop-heading strong {
+  color: #e6c378;
+  font-size: 11px;
+}
+.audio-loop-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 10px 0 6px;
+}
+.audio-sequencer .audio-loop-fields label {
+  flex-direction: row;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.workbench
+  .audio-sequencer
+  .audio-loop-fields
+  input:not([type="range"]):not([type="color"]) {
+  width: 80px;
+  flex: 0 0 80px;
+  padding: 6px 8px;
+  min-width: 0;
+}
+.audio-loop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.audio-loop-tools small {
+  display: block;
+  font-size: 11px;
+  color: #9eb6c2;
+  padding-bottom: 5px;
+}
+.audio-loop-region {
+  position: absolute;
+  top: 28px;
+  bottom: 0;
+  pointer-events: none;
+  border-inline: 1px solid #e6c378;
+  background: rgba(230, 195, 120, 0.08);
+  z-index: 2;
+}
+
+.workbench .audio-loop-tools button {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
