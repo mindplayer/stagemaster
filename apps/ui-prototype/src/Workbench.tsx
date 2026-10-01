@@ -1,3 +1,5 @@
+import type { SceneLibraryHandle } from "./components/workbench/SceneLibrary";
+import { sceneActions } from "./components/workbench/scene-actions";
 import { PreviewOutputControls } from "./components/output/PreviewOutputControls";
 import { WorkbenchViewport } from "./components/layout/WorkbenchViewport";
 import { useEffectWorkspace } from "./components/workbench/useEffectWorkspace";
@@ -144,6 +146,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const [audioPending, setAudioPending] = useState(false);
   const profiles = useRef<ProfileHandle>(null);
   const [profilePending, setProfilePending] = useState(false);
+  const sceneLibrary = useRef<SceneLibraryHandle>(null);
   const [sceneId, setSceneId] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [patchQuery, setPatchQuery] = useState("");
@@ -172,7 +175,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     file: (_kind: "new" | "open") => {},
     history: (_redo: boolean) => {},
     duplicate: () => {},
-    selectAll: () => {},
+    selectAll: () => {
+      if (page === "scenes" && sceneLibrary.current?.selectVisible()) return;
+    },
   });
   const project = snapshot.project;
   const effectWorkspace = useEffectWorkspace({
@@ -585,48 +590,21 @@ export function Workbench({ host }: { host: ApplicationHost }) {
       });
     });
   }
-  function chooseScene(scene: SceneView) {
-    void run(async () => {
+  const sceneOperations = sceneActions({
+    read: () => current.current.project!,
+    run,
+    edit,
+    select: (scene) => {
       setSceneId(scene.id);
       setForm(sceneForm(scene));
-    });
-  }
-  function addScene() {
-    void run(async () => {
-      await edit({
-        op: "addScene",
-        name: uniqueName(
-          "场景",
-          current.current.project!.scenes.map((s) => s.name),
-        ),
-      });
-      const scene = current.current.project!.scenes.at(-1)!;
-      setSceneId(scene.id);
-      setForm(sceneForm(scene));
-      setSceneQuery("");
-      setNotice("已创建场景");
-    });
-  }
+    },
+    clearQuery: () => setSceneQuery(""),
+    notice: setNotice,
+  });
+  const chooseScene = sceneOperations.choose;
+  const addScene = sceneOperations.add;
   function duplicateScene() {
-    if (!activeScene) return;
-    void run(async () => {
-      const scene = current.current.project!.scenes.find(
-        (s) => s.id === sceneId,
-      )!;
-      await edit({
-        op: "duplicateScene",
-        id: scene.id,
-        name: uniqueName(
-          `${scene.name} 副本`,
-          current.current.project!.scenes.map((s) => s.name),
-        ),
-      });
-      const copy = current.current.project!.scenes.at(-1)!;
-      setSceneId(copy.id);
-      setForm(sceneForm(copy));
-      setSceneQuery("");
-      setNotice("已复制场景");
-    });
+    if (activeScene) void sceneOperations.copy([activeScene.id]);
   }
   actions.current = {
     close: () => {
@@ -647,9 +625,11 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     file: fileAction,
     history,
     duplicate: () => {
-      if (page === "scenes") duplicateScene();
+      if (page === "scenes" && !sceneLibrary.current?.duplicateSelected())
+        duplicateScene();
     },
     selectAll: () => {
+      if (page === "scenes" && sceneLibrary.current?.selectVisible()) return;
       if (page === "scenes" && project)
         void run(async () => {
           setSelectedIds(
@@ -1039,6 +1019,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 {page === "scenes" && (
                   <DockPane region="library" visible={page === "scenes"}>
                     <SceneLibrary
+                      key={project.id}
+                      ref={sceneLibrary}
+                      beforeChange={() => run(async () => {})}
+                      onCopyMany={sceneOperations.copy}
                       scenes={project.scenes}
                       selected={activeScene?.id ?? ""}
                       query={sceneQuery}

@@ -1,0 +1,15 @@
+.scene-batch-controls {
+  display: grid;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--wb-border);
+}
+.scene-batch-controls small {
+  color: var(--wb-muted);
+  font-size: 11px;
+}
+.scene-batch-controls .wb-error {
+  padding: 8px;
+  margin: 0;
+  font-size: 12px;
+}

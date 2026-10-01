@@ -1,5 +1,7 @@
 # 实现状态
 
+[UX-044](development/tasks/UX-044-scene-batch-copy.md) 已补场景成组复制、筛选／范围选择及一次历史，复制独立场景和效果身份、保留原引用；共享草稿失败保持选择，保存重开通过。
+
 [UX-043](development/tasks/UX-043-stage-directory-navigation.md) 已补场地目录定位、筛选外计数和内部键盘浏览；保留原选择／显隐／属性草稿，取消无效属性后清理过期校验，原生验收通过。
 
 [AUDIO-015](development/tasks/AUDIO-015-group-fade.md) 已补统一多片段进入渐变，混合值／筛选外选择／锁定与长度原子检查、草稿保护及一次历史，原生保存重开通过。
