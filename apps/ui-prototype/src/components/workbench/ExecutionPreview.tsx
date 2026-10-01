@@ -1,3 +1,4 @@
+import { SequenceScriptPrompt } from "./SequenceScript";
 import { useEffect, useState } from "react";
 import {
   PlayIcon,
@@ -58,11 +59,26 @@ export function ExecutionPreview({
           {status}
         </span>
       </header>
+      {(!same || loaded?.stale) && (
+        <p className="wb-preview-warning" role="status">
+          {loaded?.stale
+            ? "工程已修改。当前播放保留旧版本，载入后才能执行新编排。"
+            : loaded
+              ? loaded.sceneId
+                ? "当前播放的是单个场景。载入所选列表后可执行。"
+                : "正在查看另一个列表，当前播放保持不变。"
+              : "选择列表并载入后开始执行。"}
+        </p>
+      )}
       <article className="execution-current" aria-label="当前执行步骤">
         <span>{loaded?.sceneId ? "当前场景" : "当前步骤"}</span>
         <strong>
           {current ? `${current.number} · ${current.name}` : "尚未开始"}
         </strong>
+        <SequenceScriptPrompt
+          key={current?.id ?? "no-current"}
+          script={current?.script}
+        />
         {current && (
           <>
             <div className="execution-phase">
@@ -93,6 +109,10 @@ export function ExecutionPreview({
               ? "没有后续步骤"
               : "载入后显示"}
         </strong>
+        <SequenceScriptPrompt
+          key={next?.id ?? "no-next"}
+          script={next?.script}
+        />
       </article>
       <button
         className="wb-primary execution-go"
@@ -161,17 +181,6 @@ export function ExecutionPreview({
           </button>
         )}
       </div>
-      {(!same || loaded?.stale) && (
-        <p className="wb-preview-warning" role="status">
-          {loaded?.stale
-            ? "工程已修改。当前播放保留旧版本，载入后才能执行新编排。"
-            : loaded
-              ? loaded.sceneId
-                ? "当前播放的是单个场景。载入所选列表后可执行。"
-                : "正在查看另一个列表，当前播放保持不变。"
-              : "选择列表并载入后开始执行。"}
-        </p>
-      )}
       <button
         disabled={!sequence || controlsBusy}
         title="载入所选列表并回到灯具默认值，会停止当前音乐或列表播放"

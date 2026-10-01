@@ -1,3 +1,4 @@
+import { SequenceScriptEditor } from "./SequenceScript";
 import type { RefObject } from "react";
 import type { ProjectView } from "../../application-host";
 import type { SequenceView } from "../../sequence-types";
@@ -137,6 +138,7 @@ export function SequenceInspector({
             />
           </label>
         )}
+        <SequenceScriptEditor data={data} change={change} />
         <div className="wb-section-title wb-list-properties-title">
           <h2>列表属性</h2>
         </div>

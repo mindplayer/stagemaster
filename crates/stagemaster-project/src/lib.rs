@@ -36,11 +36,13 @@ pub use position::{FixtureZero, PositionAxis, PositionEdit, PositionModel};
 mod library;
 mod rigging;
 mod sequence;
+mod sequence_script;
 mod stage;
 pub use compilation::{CompiledSequence, CompiledStep};
 pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};
 pub use rigging::{RigAttachment, RigKind, RigLayout, RigShape};
 pub use sequence::{Repeat, SequenceEdit, Tracking};
+pub use sequence_script::StepScript;
 pub use stage::{
     ConstructionShape, FixturePlacement, SpatialVector3, StageConstruction, StageEdit, StageSpace,
     StageView,

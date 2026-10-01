@@ -112,6 +112,8 @@ pub struct SequenceView {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StepView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script: Option<crate::StepScript>,
     pub id: String,
     pub name: String,
     pub number: String,
@@ -153,6 +155,7 @@ pub(super) fn project(root: &Value) -> ProjectView {
                 steps: array(seq, "steps")
                     .iter()
                     .map(|step| StepView {
+                        script: crate::sequence_script::read(step),
                         id: text(step, "id").into(),
                         name: text(step, "name").into(),
                         number: text(step, "number").into(),

@@ -100,6 +100,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         }
     }
     crate::sequence::validate(root)?;
+    crate::sequence_script::validate(root)?;
     crate::effects::validate(root)?;
     crate::position::validate(root)?;
     Ok(())
@@ -132,6 +133,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::audio_lighting::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
+            crate::sequence_script::CAPABILITY,
             "lighting.positioning",
             "lighting.effects.basic",
             "lighting.effects.keyframes",

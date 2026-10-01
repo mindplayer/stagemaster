@@ -1,3 +1,4 @@
+import { stepMatches } from "../../sequence-script-tools";
 import { SequenceLibrary } from "./SequenceLibrary";
 import { SequenceEditToolbar } from "./SequenceEditToolbar";
 import { executionPosition } from "./execution-position";
@@ -242,9 +243,11 @@ export const SequenceWorkspace = forwardRef<
   );
   const steps =
     sequence?.steps.filter((s) =>
-      `${s.number} ${s.name} ${project.scenes.find((c) => c.id === s.sceneId)?.name ?? ""}`
-        .toLocaleLowerCase()
-        .includes(stepQuery.trim().toLocaleLowerCase()),
+      stepMatches(
+        s,
+        project.scenes.find((c) => c.id === s.sceneId)?.name ?? "",
+        stepQuery,
+      ),
     ) ?? [];
   const index = sequence?.steps.findIndex((s) => s.id === step?.id) ?? -1;
   return (
@@ -313,7 +316,11 @@ export const SequenceWorkspace = forwardRef<
           </div>
           {execution && (
             <div className="execution-list-picker">
-              <label htmlFor="execution-list">执行列表</label>
+              <label htmlFor="execution-list">
+                {position.stale && position.sequenceId === sequence?.id
+                  ? "编排列表（待载入）"
+                  : "执行列表"}
+              </label>
               <select
                 id="execution-list"
                 disabled={busy}
@@ -335,13 +342,15 @@ export const SequenceWorkspace = forwardRef<
                 <div className="execution-search">
                   <input
                     aria-label="搜索步骤"
-                    placeholder="搜索编号、步骤或场景"
+                    placeholder="搜索步骤、幕场或台词"
                     value={stepQuery}
                     onChange={(e) => setStepQuery(e.target.value)}
                   />
                   <button
                     disabled={
-                      !position.currentId || position.sequenceId !== sequence.id
+                      position.stale ||
+                      !position.currentId ||
+                      position.sequenceId !== sequence.id
                     }
                     onClick={() => {
                       setStepQuery("");
@@ -396,7 +405,9 @@ export const SequenceWorkspace = forwardRef<
                   busy={busy}
                   onSelect={chooseStep}
                   position={
-                    position.sequenceId === sequence.id ? position : undefined
+                    position.sequenceId === sequence.id && !position.stale
+                      ? position
+                      : undefined
                   }
                 />
               </div>

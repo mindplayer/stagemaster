@@ -62,7 +62,7 @@ export function SequenceEditToolbar({
       <div className="wb-sequence-actions">
         <input
           aria-label="搜索步骤"
-          placeholder="搜索编号、步骤或场景"
+          placeholder="搜索步骤、幕场或台词"
           value={stepQuery}
           onChange={(e) => setStepQuery(e.target.value)}
         />

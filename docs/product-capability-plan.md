@@ -23,7 +23,7 @@
 | CAP-03 配适与选择 | 地址占用、冲突定位、批量编号／配适、有序灯组、选择过滤、二维选择布局、换灯／扩灯／克隆和功能映射 | [M04](console-research/M04-fixtures-patch.md)、[M05](console-research/M05-selection-groups-layout.md)、下方 S1 | ProjectService／BindingService／SessionService；灯具表、舞台与选择组件 | 批量配适、占用图、有序灯组已实现；[UX-026](development/tasks/UX-026-scene-plan-selection.md) 中央平面选灯与统一选择、[UX-027](development/tasks/UX-027-searchable-resources.md) 检索／追加／扣除通过。跨能力换灯和完整克隆后续 |
 | CAP-04 预设与复用 | 颜色／位置／图案预设，引用／硬值选择、依赖定位、更新影响范围、配方组合、模板与局部工程导入 | [M07](console-research/M07-presets-palettes.md)、[M11](console-research/M11-recipes-reuse.md) | 工程事务＋编程器＋编译器；资源区、属性区、影响预览 | 逐灯预设、引用／独立值、依赖与三种更新策略已实现；UX-019 固定属性范围与快捷预设、UX-027 搜索复用已验收。配方／通用共享／导入后续 |
 | CAP-05 效果编辑 | 曲线／关键帧、分步效果、速度／幅度、相位、灯具顺序与分布、相对／绝对值、可复现随机、共同指向与路径、像素灯阵列及媒体驱动灯光 | [M10](console-research/M10-effects-phasers.md)、[M12](console-research/M12-pixel-media.md)、[效果设计](ui-design/effect-editor-design.md) | 工程效果领域＋ShowCompiler＋RuntimeKernel；舞台、效果组件、时间线 | 亮度／RGB 32 帧曲线、周期／灯序／相位和跨场景复用已实现；UX-019 曲线、UX-020 非模态编辑、[EFFECT-003](development/tasks/EFFECT-003-relative-position-effects.md) 相对双轴幅度／偏移／相位与三维通过。持续世界目标、现场主控／节拍、像素后续；媒体驱动不在实时线程解码 |
-| CAP-06 场景与场景列表 | 记录／更新、仅改当前或后续跟踪、分部、阻断继承、渐变／延时、跳转／循环、释放、暗场预定位 | [M08](console-research/M08-cues-tracking.md) | 工程事务＋运行核心；编排列表与现场当前／下一场景 | 静态场景／继承／释放、受限单列表的延时／渐变／人工推进／自动等待／循环已实现；UX-021 当前／下一步／跳转与版本保护已验收。高级跟踪、分部／阻断和剧本关联后续 |
+| CAP-06 场景与场景列表 | 记录／更新、仅改当前或后续跟踪、分部、阻断继承、渐变／延时、跳转／循环、释放、暗场预定位 | [M08](console-research/M08-cues-tracking.md) | 工程事务＋运行核心；编排列表与现场当前／下一场景 | 静态场景／继承／释放、受限单列表的延时／渐变／人工推进／自动等待／循环已实现；UX-021 当前／下一步／跳转与版本保护已验收。SEQUENCE-002 幕场／台词／备注及运行快照已验收；高级跟踪、分部／阻断与完整剧本锚点后续 |
 | CAP-07 时间编排 | 无损片段裁切、吸附、波形／标记、节拍、自动化轨、片段／段落复用、时间码、独立同步组 | [M13](console-research/M13-timecode-audio.md)、[创作软件研究](ui-design/interaction-display-research.md) | 工程时间领域＋ClockRegistry／TransportCoordinator；编排时间线 | AUDIO-001／002 已接真实音频、裁切／定位、WaveSurfer 波形与手动卡点；[UX-022](development/tasks/UX-022-audio-lighting-lane.md) 灯光段落边界编辑／撤销／保存通过；[AUDIO-003](development/tasks/AUDIO-003-lighting-transitions.md) 已补确定性进入渐变与任意定位。重叠／双场景动态持续交叉、多轨、自动拍子与跨设备同步后续 |
 | CAP-08 排练与预演 | 离线预览、盲编、从指定位置排练、二维／三维、组灯指向、视角收藏、外部控台输入、设备响应仿真 | [M14](console-research/M14-preview-3d.md)、[Depence](depence-r4-assessment.md)、S2 | PreviewService＋仿真＋独立渲染；编排画布、预演视图 | 唯一内嵌 UE 与共享播放进度已由 PREVIS-002 接通，UX-023 处理短时锁竞争；静态共同对焦和 EFFECT-003 相对双轴运动可预演。世界目标跟随、完整三维组变换、专业光学与独立打包后续 |
 | CAP-09 现场执行 | 当前／下一场景、节目单、执行器页、总控／速度控制、灯光熄灭、临时覆盖与归还、属性冻结、互斥／保护、重复触发处理 | [M09](console-research/M09-playback-mixing.md)、[M19](console-research/M19-live-show.md) | ControlGateway／RuntimeKernel／Mixer；现场工作区 | 独立 Rust 单列表执行和 UX-021 专注现场视图已实现；A0 多源混合仍属原型。多执行器／主控／临时覆盖／归还与专业应急控制后续 |
@@ -42,7 +42,7 @@
 
 检索、标签、批量属性、多选混合值、键盘／触控板操作、焦点与错误定位是横贯这些能力的基础交互，不另建一个“高级模式”。未来触控与实体面板使用相同语义，操作手势可以不同。
 
-2026-09-30 用户补充：CAP-06 场景列表／步骤、CAP-07 时间编排和 CAP-09 现场执行须共同覆盖按剧本编排，音乐为可选输入。按 [UX-016](ui-design/workspace-framework.md) 增量加入幕／场或段落、台词／动作提示关联、人工等待和局部定时段落；共用场景／资源，分清编辑选择与执行位置。UX-017 已实现新整体工作台布局，完整剧本文档锚点和混合调度尚未实现，现有人工列表能力继续复用，不新增平行工程格式或第二播放器。
+2026-09-30 用户补充：CAP-06 场景列表／步骤、CAP-07 时间编排和 CAP-09 现场执行须共同覆盖按剧本编排，音乐为可选输入。按 [UX-016](ui-design/workspace-framework.md) 增量加入幕／场或段落、台词／动作提示关联、人工等待和局部定时段落；共用场景／资源，分清编辑选择与执行位置。UX-017 已实现新整体工作台布局，SEQUENCE-002 已接步骤剧本提示和检索；完整剧本文档锚点和混合调度尚未实现，现有人工列表能力继续复用，不新增平行工程格式或第二播放器。
 
 ## 这次补齐的工作流，而非重新发明架构
 

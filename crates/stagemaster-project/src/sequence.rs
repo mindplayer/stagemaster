@@ -45,6 +45,11 @@ pub enum SequenceEdit {
         fade_ms: u64,
         wait_ms: Option<u64>,
     },
+    UpdateStepScript {
+        id: String,
+        step_id: String,
+        script: Option<crate::StepScript>,
+    },
     MoveStep {
         id: String,
         step_id: String,
@@ -143,6 +148,11 @@ pub(super) fn apply(root: &mut Value, command: SequenceEdit) -> Result<(), Strin
                 |wait| json!({"kind":"after","wait":duration(wait)}),
             );
         }
+        SequenceEdit::UpdateStepScript {
+            id,
+            step_id,
+            script,
+        } => crate::sequence_script::set(root, &id, &step_id, script)?,
         SequenceEdit::MoveStep { id, step_id, index } => {
             let steps = steps_mut(root, &id)?;
             if index >= steps.len() {
@@ -152,17 +162,7 @@ pub(super) fn apply(root: &mut Value, command: SequenceEdit) -> Result<(), Strin
             let step = steps.remove(from);
             steps.insert(index, step);
         }
-        SequenceEdit::DuplicateStep {
-            id: sequence,
-            step_id,
-        } => {
-            let steps = steps_mut(root, &sequence)?;
-            let index = position(steps, &step_id)?;
-            let mut copy = steps[index].clone();
-            copy["id"] = id().into();
-            copy["number"] = next_number(steps)?.into();
-            steps.insert(index + 1, copy);
-        }
+        SequenceEdit::DuplicateStep { id, step_id } => duplicate_step(root, &id, &step_id)?,
         SequenceEdit::RemoveStep { id, step_id } => {
             let steps = steps_mut(root, &id)?;
             if steps.len() == 1 {
@@ -171,6 +171,16 @@ pub(super) fn apply(root: &mut Value, command: SequenceEdit) -> Result<(), Strin
             remove(steps, &step_id)?;
         }
     }
+    crate::sequence_script::sync_capability(root);
+    Ok(())
+}
+fn duplicate_step(root: &mut Value, sequence: &str, step_id: &str) -> Result<(), String> {
+    let steps = steps_mut(root, sequence)?;
+    let index = position(steps, step_id)?;
+    let mut copy = steps[index].clone();
+    copy["id"] = id().into();
+    copy["number"] = next_number(steps)?.into();
+    steps.insert(index + 1, copy);
     Ok(())
 }
 fn duplicate(root: &mut Value, source: &str, name: &str) -> Result<(), String> {

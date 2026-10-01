@@ -40,7 +40,7 @@ FIXTURE-003A／[ADR-059](../development/decisions/PRODUCT-ADR-059-discrete-playb
 
 步骤延时内保留当前值，延时结束直接切到新目标；其他属性继续原渐变。暂停保持、恢复不重放，打断后新步骤延时内保留被打断时的值；零渐变、自动推进、跳转和循环采用同一规则。停止恢复各自默认值。离散属性与任何动态效果冲突会在计划构造／包扫描时拒绝，不能由曲线重新引入中间值；命名档位追逐待独立语义。
 
-此增量只提供纯内核和有界包的执行基础，当前 UI／工程编译尚未定义色盘／频闪功能区间；接入前不提供占位按钮，不自动触发固件更新或真实灯具。
+FIXTURE-003B 已接命名功能区间、类型化属性与 UI，详见[灯具建档](fixture-authoring.md)；未据此确认实板或真实光学效果。
 
 ## 桌面预览服务
 
@@ -49,3 +49,9 @@ FIXTURE-003A／[ADR-059](../development/decisions/PRODUCT-ADR-059-discrete-playb
 打开／新建成功清空预览，取消文件操作保留；保存不使计划过期。编辑／撤销／重做改变内容代次，旧计划保持独立，但拒绝新的执行和继续；仍允许暂停、停止、重新载入。UI 未应用草稿在载入前统一验证。运行状态不进入工程和编辑历史。
 
 输出是完整 512 字节槽位和归一化灯具属性；当前编译器要求工程内灯具全部配适在同一输出域／线路。PREVIS-001 已通过独立[预演适配](previsualization.md)把该输出用于应用内三维。播放模块本身不包含 RS485 驱动、设备发送确认、物理时序、3D 光学、专业灯具分段或多源混合；这些通过相应适配与契约扩展，不改写 UI 播放算法。
+
+## 剧本提示
+
+[ADR-062](../development/decisions/PRODUCT-ADR-062-sequence-script-prompts.md) 增加 `SequenceEdit::UpdateStepScript { id, step_id, script: Option<StepScript> }`；JSON 命令为 `updateStepScript`，对象含 `section`／`trigger`／`notes`。null 或全空清除；旧 updateStep 保留提示。工程带对象时要求 `lighting.sequence-script@1`，单字段 80／1024／4096 个 Unicode 字符，每列表 UTF-8 总量最多 64 KiB。提示复制、删除、撤销和保存沿用工程事务。
+
+ProjectView.StepView 与 CompiledStep 带可选 script，缺省时序列化不增加字段。执行台当前／下一步读取编译元数据；编辑后的提示不覆盖旧运行快照。文字不改变 delay／fade／advance，也不进入纯 Plan 或设备播放包，硬件执行容量不因此增加。检索仅影响界面选择，幕场标签不构成嵌套调度。

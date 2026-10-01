@@ -14,6 +14,8 @@ pub struct CompiledSequence {
 }
 #[derive(Clone, Serialize)]
 pub struct CompiledStep {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub script: Option<crate::StepScript>,
     pub id: String,
     pub name: String,
     pub number: String,
@@ -157,6 +159,7 @@ impl Document {
             steps: array(sequence, "steps")
                 .iter()
                 .map(|s| CompiledStep {
+                    script: crate::sequence_script::read(s),
                     id: text(s, "id").into(),
                     name: text(s, "name").into(),
                     number: text(s, "number").into(),

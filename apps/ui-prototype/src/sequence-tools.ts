@@ -1,3 +1,4 @@
+import { scriptFields, scriptProblem } from "./sequence-script-tools.ts";
 import type { EditOperation } from "./application-host";
 import type { SequenceView, StepView, SequenceEdit } from "./sequence-types";
 // Input presentation only. Playback interpolation and schedule interpretation stay in Rust.
@@ -29,6 +30,9 @@ export function fixtureAppearance(
 }
 
 export interface SequenceDraft {
+  scriptSection: string;
+  scriptTrigger: string;
+  scriptNotes: string;
   sequenceName: string;
   tracking: SequenceView["tracking"];
   repeat: SequenceView["repeat"];
@@ -46,6 +50,9 @@ export function sequenceDraft(
   step: StepView,
 ): SequenceDraft {
   return {
+    scriptSection: step.script?.section ?? "",
+    scriptTrigger: step.script?.trigger ?? "",
+    scriptNotes: step.script?.notes ?? "",
     sequenceName: sequence.name,
     tracking: sequence.tracking,
     repeat: sequence.repeat,
@@ -111,7 +118,27 @@ export function sequenceCommands(
       );
     }
   };
+  for (const [field, , label, limit] of scriptFields) {
+    const problem = scriptProblem(d[field], label, limit);
+    if (problem) throw new SequenceInputError(field, problem);
+  }
+  const script = {
+    section: d.scriptSection,
+    trigger: d.scriptTrigger,
+    notes: d.scriptNotes,
+  };
+  const old = step.script ?? { section: "", trigger: "", notes: "" };
   const commands: EditOperation[] = [];
+  if (scriptFields.some(([, field]) => script[field] !== old[field]))
+    commands.push({
+      op: "sequence",
+      command: {
+        kind: "updateStepScript",
+        id: sequence.id,
+        stepId: step.id,
+        script: Object.values(script).some((v) => v.trim()) ? script : null,
+      },
+    });
   if (
     d.sequenceName.trim() !== sequence.name ||
     d.tracking !== sequence.tracking ||

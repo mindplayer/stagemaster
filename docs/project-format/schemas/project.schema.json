@@ -890,6 +890,29 @@
                     "additionalProperties": false
                   }
                 ]
+              },
+              "script": {
+                "type": "object",
+                "properties": {
+                  "section": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "trigger": {
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 4096
+                  }
+                },
+                "required": [
+                  "section",
+                  "trigger",
+                  "notes"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [

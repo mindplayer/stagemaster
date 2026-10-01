@@ -1,3 +1,4 @@
+import "./sequence-script.css";
 import type { ExecutionPosition } from "./execution-position";
 import type { ProjectView } from "../../application-host";
 import type { SequenceView } from "../../sequence-types";
@@ -59,6 +60,18 @@ export function SequenceStepList({
           <div>
             <strong>{s.name}</strong>
             <small>{scenes.find((c) => c.id === s.sceneId)?.name}</small>
+            {s.script && (
+              <small
+                className="sequence-step-script"
+                title={[s.script.section, s.script.trigger]
+                  .filter(Boolean)
+                  .join(" · ")}
+              >
+                {[s.script.section, s.script.trigger]
+                  .filter(Boolean)
+                  .join(" · ") || (s.script.notes ? "有排练备注" : "")}
+              </small>
+            )}
           </div>
           <span className="wb-step-time">
             渐变 {seconds(s.fadeMs)} 秒

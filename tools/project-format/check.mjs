@@ -1,3 +1,4 @@
+import { auditSequenceScripts } from "./sequence-script-audit.mjs";
 import { auditFixtureFunctions } from "./fixture-function-audit.mjs";
 import { auditAudioEditing } from './audio-audit.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -111,6 +112,7 @@ function acyclic(items, edges, label) {
 export function auditProject(p) {
   validateStructure(p);
   auditFixtureFunctions(p);
+  auditSequenceScripts(p);
   const objects = new Map();
   const add = (kind, values = []) => {
     for (const value of values) {

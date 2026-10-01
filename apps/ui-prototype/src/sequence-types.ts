@@ -1,4 +1,10 @@
+export interface StepScript {
+  section: string;
+  trigger: string;
+  notes: string;
+}
 export interface StepView {
+  script?: StepScript;
   id: string;
   name: string;
   number: string;
@@ -26,7 +32,16 @@ export type SequenceEdit =
   | { kind: "duplicate"; id: string; name: string }
   | { kind: "remove"; id: string }
   | { kind: "insertStep"; id: string; sceneId: string; afterId: string | null }
-  | ({ kind: "updateStep"; id: string; stepId: string } & Omit<StepView, "id">)
+  | ({ kind: "updateStep"; id: string; stepId: string } & Omit<
+      StepView,
+      "id" | "script"
+    >)
+  | {
+      kind: "updateStepScript";
+      id: string;
+      stepId: string;
+      script: StepScript | null;
+    }
   | { kind: "moveStep"; id: string; stepId: string; index: number }
   | { kind: "duplicateStep" | "removeStep"; id: string; stepId: string };
 export interface FixtureOutput {
@@ -62,7 +77,7 @@ export interface PreviewSnapshot {
     canNext: boolean;
     bufferBytes: number;
     effectBufferBytes: number;
-    steps: { id: string; name: string; number: string }[];
+    steps: { id: string; name: string; number: string; script?: StepScript }[];
     output: { universe: number; slots: number[]; fixtures: FixtureOutput[] };
   };
 }
