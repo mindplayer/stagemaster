@@ -1,6 +1,8 @@
 # 实现状态
 
-[HOST-001](development/tasks/HOST-001-independent-runtime-host.md) 已补不依赖 Tauri／BLE／媒体的独立 Rust 调度宿主库：有界客户端入口、控制权回执、断连继续、只读观察与独立关闭／故障状态。753 Rust 全工作区、最终 15 宿主专项及调用示例、严格检查通过。当前仅 Mac 软件验证，尚未替换桌面、提供独立进程／认证远程入口或真实输出；不等于专业后台执行器已经交付。
+[HOST-002](development/tasks/HOST-002-local-execution-process.md) 已贯通实际工程准备与[本机独立执行进程](module-api/local-execution-process.md)：受保护只读／控制入口、服务端会话、有界命令／回执及进程生命周期。真实控制客户端被杀后同一节目继续，新控制者可接管、旧指令拒绝；12 项专项及 765 项全工作区测试通过。当前仅 Mac 软件执行验证，桌面迁移、远程认证、音视频协调及真实输出仍未完成。
+
+[HOST-001](development/tasks/HOST-001-independent-runtime-host.md) 提供上述程序复用的独立 Rust 调度宿主库，不依赖 Tauri／BLE／媒体：有界客户端入口、控制权回执、断连继续、只读观察与独立关闭／故障状态。其 15 项专项和可编译调用示例继续保留。
 
 [STAGE-005](development/tasks/STAGE-005-shared-3d-fixture-movement.md) 已接二维／三维共享选灯、整组水平与升降、混合锁定／取消保护和一次历史；684 Rust／297 UI／7 UE、类型／严格检查／构建及原生高差双灯、单灯、取消、锁定与保存重开通过。完整组旋转／缩放、混合构件与三维框选仍后续。
 

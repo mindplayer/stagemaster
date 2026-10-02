@@ -1,6 +1,6 @@
 # 独立执行宿主
 
-HOST-001／[ADR-098](../development/decisions/PRODUCT-ADR-098-independent-runtime-host.md)；`stagemaster-runtime-host` 组合既有 `stagemaster-runtime`，不依赖 Tauri、文件驱动、BLE、UE 或云端。当前是标准系统的可嵌入宿主库，不是已经替换桌面的独立后台进程。
+HOST-001／[ADR-098](../development/decisions/PRODUCT-ADR-098-independent-runtime-host.md)；`stagemaster-runtime-host` 组合既有 `stagemaster-runtime`，不依赖 Tauri、文件驱动、BLE、UE 或云端。本 crate 是标准系统的可嵌入宿主库；HOST-002 在外层增加[本机独立执行进程](local-execution-process.md)，尚未替换桌面。
 
 ## 所有权与调用
 
@@ -33,4 +33,4 @@ Client／Observer 全部消失也不结束 Host；Client Drop 不自动 Release�
 
 关闭或故障时观察不再提供可用快照／逻辑帧；Fault 区分核心错误码与意外 panic，保留首个终态原因。请求已进入执行后可能在关闭期间完成；关闭不是物理撤销。Snapshot 的 Frame 仅是 Rust 生成的 512 通道逻辑值，不是端口接纳、UART 完成或灯具反馈。当前不能把 Observer 直接当可靠物理输出端口，实际驱动、端口租约和确认静默需独立接入。
 
-此 Rust API 是同进程应用边界；尚未冻结网络 DTO，也不直接序列化内部 Lease／Grant 给不可信客户端。后续跨端适配须绑定认证主体、范围、连接代次及请求预算。当前仅在 Mac 验证；手机／平板的后台生命周期仍需平台验证，不能从标准线程推断后台永远运行。真实桌面迁移、独立进程、跨节点同步、生产授权和专业多执行器仍另验收。
+此 Rust API 是同进程应用边界；不直接序列化内部 Lease／Grant 给不可信客户端。HOST-002 的本机 DTO 是一个外层适配，并非全产品 SDK；后续跨端适配须绑定认证主体、范围、连接代次及请求预算。当前仅在 Mac 验证；手机／平板的后台生命周期仍需平台验证，不能从标准线程推断后台永远运行。真实桌面迁移、跨节点同步、生产授权和专业多执行器仍另验收。

@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "apps/desktop",
+  "apps/execution-host",
   "crates/stagemaster-audio",
   "apps/engine-demo",
   "crates/stagemaster-dmx",

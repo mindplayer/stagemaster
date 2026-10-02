@@ -4218,6 +4218,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-execution-host"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-project",
+ "stagemaster-project-store",
+ "stagemaster-runtime",
+ "stagemaster-runtime-host",
+ "tempfile",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "stagemaster-install"
 version = "0.1.0"
 dependencies = [

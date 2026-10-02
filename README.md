@@ -20,6 +20,7 @@
 
 - [独立产品审核](docs/product-audit-2026-10-01.md)：功能与体验差距、交付门槛及后续增量索引。
 - [当前执行计划](docs/development/execution-plan.md)、[产品能力规划](docs/product-capability-plan.md)：依赖和长期覆盖；规划不等于实现。
+- [本机独立执行进程](docs/module-api/local-execution-process.md)：真实工程编译／安装／准备与软件执行、只读观察、控制接管和有界回执；控制客户端退出不停止该进程的节目。尚未替换桌面或连接真实输出。
 - [正式四区域工作台](docs/development/tasks/UX-017-performance-workbench.md)：场景／执行步骤／音乐／场地／灯具／工程，共享事务和唯一预演。
 - [相对摇头效果](docs/module-api/lighting-effects.md)：亮度／颜色／关键帧，加水平／垂直／双轴圆形运动；物理角度、灯序、容量与机械行程检查。
 - [音乐卡点](docs/module-api/audio-editing.md)：真实文件播放、WaveSurfer 波形、手动卡点与场景绑定；[灯光段落编辑](docs/development/tasks/UX-022-audio-lighting-lane.md)和[资源健康检查](docs/development/tasks/UX-028-project-resource-health.md)已接通。

@@ -1,5 +1,7 @@
 # 当前开发状态
 
+HOST-002 本机独立执行进程增量完成（基线 `56c5da0`；结果为本次 `feat(runtime): run prepared projects in an independent local process` 提交）：真实工程只读编译／安装／准备、受保护本机入口、会话与控制权分离、有界操作／回执和正常关闭已贯通，见[工单](tasks/HOST-002-local-execution-process.md)／[契约](../module-api/local-execution-process.md)。真正的独立控制客户端被杀后，同一节目仍继续，新客户端明确接管、旧命令拒绝；源文件移除／HTTP 回应丢失／连接额度占满／租约到期不破坏已准备执行。765 项全工作区测试、最终 12 项专项、24 个 crate 文档测试运行（含 1 个调用示例）、全工作区严格 Clippy／fmt／差异与文档链接检查通过。当前仅 Mac 软件进程验证，桌面迁移、远程认证、音视频多时钟、真实输出与生产商业保护仍未完成；正常依赖树无 Tauri／BLE／音频／UE。持续 goal active，接续第二种软件传输承载，先审查设备 Transport 的扫描／20 字节诊断／安装通知边界，不预建全部硬件协议。不实施商业限时，用户 `output/`、原工程、窗口与设备保持。
+
 PLAN-005 范围收敛完成（2026-10-02；基线 `59b2b86`；结果为本次 `docs(architecture): clarify iteration and commercial security scope` 提交）：按用户最新要求，本大轮渐进完善框架、保持现有能力可用、优先修明显缺陷，具体细节以后迭代；软件／硬件商业保护保留独立边界，暂不考虑限时，具体加密授权方法后议，见 [ADR-101](decisions/PRODUCT-ADR-101-commercial-security-boundaries.md)／[工单](tasks/PLAN-005-commercial-security-scope.md)。现行计划／契约中的旧 24 小时要求已后移，历史 ADR 明确覆盖关系；连接认证、租约、请求超时和节目时间上限未改。仅文档及相关检查，生产保护尚未完成；持续 goal active，接续 HOST-002 的实际工程与独立进程验证，不回到局部 UI 全面丰满。用户 `output/`、窗口和设备保持。
 
 PLAN-004 设备家族收敛完成（2026-10-02；基线 `29e91e2`；结果为本次 `docs(architecture): define composable device product family` 提交）：采纳共享平台＋按能力组合，明确电脑、ESP32／ARM、纯输出节点、控制面和一体控台的角色／执行归属，以及云端／U 盘并行交付、统一许可与本地准备后执行；见 [ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)／[工单](tasks/PLAN-004-composable-device-family.md)。官方资料、链接、工作区清单和 diff 检查通过，运行代码未变。HOST-002 前置设计保留，尚无源码的提前模块注册已撤回，避免空模块破坏工作区；接续真实工程准备与独立进程生命周期，尚未通过进程验收。持续 goal active，未返回局部 UI，用户 `output/`、窗口及设备保持。
