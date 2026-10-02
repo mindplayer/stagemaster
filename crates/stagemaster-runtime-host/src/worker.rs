@@ -1,10 +1,9 @@
 use crate::{
-    COMMANDS_PER_CYCLE, Configuration, Error, Frame, Snapshot,
+    Backend, COMMANDS_PER_CYCLE, Configuration, Error, Frame, Snapshot,
     client::{Acquisition, Command, Envelope, Reply},
     observation::Shared,
 };
-use stagemaster_package::ReadAt;
-use stagemaster_runtime::{Code, PlaybackPolicy, Runtime};
+use stagemaster_runtime::Code;
 use std::{
     sync::{atomic::Ordering, mpsc::Receiver},
     time::{Duration, Instant},
@@ -36,11 +35,7 @@ pub(crate) fn next_cycle(
     Ok((next, skipped))
 }
 
-pub(crate) fn dispatch<R: ReadAt, P: PlaybackPolicy>(
-    runtime: &mut Runtime<R, P>,
-    envelope: Envelope,
-    now: u64,
-) {
+pub(crate) fn dispatch<B: Backend>(runtime: &mut B, envelope: Envelope<B::Profile>, now: u64) {
     if Instant::now() >= envelope.deadline {
         match envelope.command {
             Command::Acquire { reply, .. } => expired(reply),
@@ -73,13 +68,13 @@ pub(crate) fn dispatch<R: ReadAt, P: PlaybackPolicy>(
     }
 }
 
-pub(crate) fn run<R: ReadAt, P: PlaybackPolicy>(
-    mut runtime: Runtime<R, P>,
+pub(crate) fn run<B: Backend>(
+    mut runtime: B,
     configuration: Configuration,
-    receiver: Receiver<Envelope>,
-    shared: &Shared,
+    receiver: Receiver<Envelope<B::Profile>>,
+    shared: &Shared<B::Profile>,
 ) -> Result<(), Code> {
-    let base = runtime.state().observed_ms;
+    let base = runtime.observed_ms();
     let clock = Instant::now();
     let now = || -> Result<u64, Code> {
         base.checked_add(u64::try_from(clock.elapsed().as_millis()).map_err(|_| Code::Exhausted)?)

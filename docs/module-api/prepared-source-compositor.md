@@ -1,5 +1,7 @@
 # 固定来源组与统一合成入口
 
+HOST-003 已将该来源组接入原有后台线程及公共控制权，见[共享宿主](shared-live-host.md)；下文 MIX-003 的未接线说明是该工单当时边界，HTTP／桌面／物理端口仍未迁移。
+
 MIX-003／[ADR-106](../development/decisions/PRODUCT-ADR-106-prepared-source-compositor.md)。代码在 `crates/stagemaster-live/`。这是标准宿主软件后端，调用者持有调度、控制租约和端口权限；本模块不创建线程、网络端点或物理输出。
 
 ## 准备与归属

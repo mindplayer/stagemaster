@@ -1,0 +1,18 @@
+[package]
+name = "stagemaster-live-host"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+stagemaster-live = { path = "../stagemaster-live" }
+stagemaster-runtime = { path = "../stagemaster-runtime" }
+stagemaster-runtime-host = { path = "../stagemaster-runtime-host" }
+
+[dev-dependencies]
+stagemaster-project = { path = "../stagemaster-project" }
+serde_json = "=1.0.151"
+
+[lints]
+workspace = true

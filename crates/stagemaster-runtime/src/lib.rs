@@ -2,7 +2,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 extern crate alloc;
-mod control;
+pub mod authority;
 mod runtime;
 use core::fmt;
 pub use runtime::{MaintenanceError, Runtime};
@@ -90,17 +90,17 @@ pub enum Action {
     CancelMaintenance,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Request {
+pub struct Request<A = Action> {
     pub lease: Lease,
     pub serial: u64,
     pub expected_revision: u64,
-    pub action: Action,
+    pub action: A,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Receipt {
-    pub request: Request,
+pub struct Receipt<A = Action, S = State> {
+    pub request: Request<A>,
     pub result: Result<(), Code>,
-    pub state: State,
+    pub state: S,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FrameInfo {

@@ -67,7 +67,7 @@ fn expired_commands_do_not_consume_the_core_serial_and_can_be_reissued() {
         lease,
         serial: 1,
         expected_revision: runtime.state().revision,
-        action: stagemaster_runtime::Action::Start {
+        action: Action::Start {
             step: runtime.steps()[0].id,
         },
     };

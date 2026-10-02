@@ -1,7 +1,7 @@
+mod control_api;
 use crate::{
-    Action, Code, FrameInfo, Grant, Id, Instance, Lease, Maintenance, Mode, Permission,
-    PermissionAction, PlaybackPolicy, ProgramKey, Quiescence, Receipt, Request, State, Status,
-    control::Control, package_error,
+    Action, Code, FrameInfo, Id, Instance, Maintenance, Mode, Permission, PermissionAction,
+    PlaybackPolicy, ProgramKey, Quiescence, State, Status, authority::Authority, package_error,
 };
 use alloc::vec::Vec;
 use stagemaster_install::Installed;
@@ -39,7 +39,6 @@ pub struct Runtime<R, P> {
     boot: Id,
     revision: u64,
     last_ms: u64,
-    lease_epoch: u64,
     instance_counter: u64,
     loader_budget: usize,
     phase: Phase,
@@ -47,7 +46,7 @@ pub struct Runtime<R, P> {
     selected: Option<ProgramKey>,
     loaded: Option<Loaded>,
     instance: Option<Instance>,
-    control: Option<Control>,
+    control: Authority<Action, State>,
     policy: P,
 }
 impl<R: ReadAt, P: PlaybackPolicy> Runtime<R, P> {
@@ -65,7 +64,6 @@ impl<R: ReadAt, P: PlaybackPolicy> Runtime<R, P> {
             boot,
             revision: 0,
             last_ms: now_ms,
-            lease_epoch: 0,
             instance_counter: 0,
             loader_budget,
             phase: Phase::Quiescing(Quiescence { boot, revision: 0 }),
@@ -73,7 +71,7 @@ impl<R: ReadAt, P: PlaybackPolicy> Runtime<R, P> {
             selected: None,
             loaded: None,
             instance: None,
-            control: None,
+            control: Authority::new(boot, now_ms)?,
             policy,
         })
     }
@@ -98,7 +96,7 @@ impl<R: ReadAt, P: PlaybackPolicy> Runtime<R, P> {
                 .as_ref()
                 .and_then(|p| p.player.index().map(|i| p.labels[i].id)),
             elapsed_ms: self.loaded.as_ref().map_or(0, |p| p.player.elapsed_ms()),
-            owner: self.control.as_ref().map(|c| c.owner),
+            owner: self.control.owner(),
         }
     }
     #[must_use]
@@ -131,93 +129,8 @@ impl<R: ReadAt, P: PlaybackPolicy> Runtime<R, P> {
             loaded.player.advance(now_ms).map_err(|_| Code::Playback)?;
         }
         self.last_ms = now_ms;
-        if self
-            .control
-            .as_ref()
-            .is_some_and(|c| now_ms >= c.owner.expires_ms)
-        {
-            self.control = None;
-        }
+        self.control.tick(now_ms)?;
         Ok(())
-    }
-    /// Claim verified input authority; takeover must be an explicit trusted-host decision.
-    /// # Errors
-    /// Refuse invalid grants, active ownership without takeover, clocks or exhausted counters.
-    pub fn acquire(&mut self, grant: Grant, takeover: bool, now_ms: u64) -> Result<Lease, Code> {
-        self.tick(now_ms)?;
-        if self.control.is_some() && !takeover {
-            return Err(Code::Busy);
-        }
-        let epoch = self.lease_epoch.checked_add(1).ok_or(Code::Exhausted)?;
-        let revision = self.next_revision()?;
-        let control = Control::new(self.boot, epoch, grant, now_ms)?;
-        let lease = control.owner.lease;
-        self.control = Some(control);
-        self.lease_epoch = epoch;
-        self.revision = revision;
-        Ok(lease)
-    }
-    /// # Errors
-    /// Expired/replaced leases cannot be renewed or resurrected.
-    pub fn renew(&mut self, lease: Lease, duration_ms: u64, now_ms: u64) -> Result<(), Code> {
-        self.tick(now_ms)?;
-        if !(1..=crate::MAX_LEASE_MS).contains(&duration_ms) {
-            return Err(Code::Identity);
-        }
-        let expires = now_ms.checked_add(duration_ms).ok_or(Code::Exhausted)?;
-        let control = self
-            .control
-            .as_mut()
-            .filter(|c| c.owner.lease == lease)
-            .ok_or(Code::Lease)?;
-        control.owner.expires_ms = expires;
-        Ok(())
-    }
-    /// Disconnect relinquishes input authority only. It never stops the current program.
-    /// # Errors
-    /// An old disconnect must not revoke a newer owner's lease.
-    pub fn release(&mut self, lease: Lease, now_ms: u64) -> Result<(), Code> {
-        self.tick(now_ms)?;
-        if self.control.as_ref().is_none_or(|c| c.owner.lease != lease) {
-            return Err(Code::Lease);
-        }
-        self.control = None;
-        Ok(())
-    }
-    /// Return an immutable historical receipt, even while continuous playback advances.
-    /// # Errors
-    /// Protocol/lease/clock errors have no business receipt. Business refusals are cached results.
-    pub fn submit(&mut self, request: Request, now_ms: u64) -> Result<Receipt, Code> {
-        self.tick(now_ms)?;
-        let checked = self.control.as_ref().ok_or(Code::Lease)?.request(request);
-        match checked {
-            Ok(Some(receipt)) => return Ok(receipt),
-            Ok(None) => {}
-            Err(Code::Sequence) => {
-                self.control = None;
-                return Err(Code::Sequence);
-            }
-            Err(e) => return Err(e),
-        }
-        let result = if request.expected_revision != self.revision {
-            Err(Code::Revision)
-        } else if let Ok(next) = self.next_revision() {
-            let result = self.apply(request.action, next);
-            // A failed load may have released an old plan. Every processed business
-            // intent gets a new revision, including refusals; stale-context errors do not.
-            self.revision = next;
-            result
-        } else {
-            Err(Code::Exhausted)
-        };
-        self.control.as_mut().ok_or(Code::Lease)?.owner.serial = request.serial;
-        let receipt = Receipt {
-            request,
-            result,
-            state: self.state(),
-        };
-        self.control.as_mut().ok_or(Code::Lease)?.receipt = Some(receipt);
-        Ok(receipt)
     }
     fn next_revision(&self) -> Result<u64, Code> {
         self.revision.checked_add(1).ok_or(Code::Exhausted)

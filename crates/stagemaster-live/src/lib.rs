@@ -24,6 +24,24 @@ pub struct Session {
     fault: Option<String>,
 }
 impl Session {
+    #[must_use]
+    pub const fn boot(&self) -> [u8; 16] {
+        self.boot
+    }
+    #[must_use]
+    pub const fn observed_ms(&self) -> u64 {
+        self.now_ms
+    }
+    #[must_use]
+    pub fn layout_id(&self) -> [u8; 32] {
+        self.mixer.layout().id()
+    }
+    /// Only a newly prepared group can be handed to a new scheduling owner.
+    #[must_use]
+    pub const fn is_pristine(&self) -> bool {
+        self.sequence == 0 && self.fault.is_none()
+    }
+
     /// Last complete software frame. Timestamp is never refreshed by reads or input rejection.
     #[must_use]
     pub const fn frame(&self) -> Option<&Frame> {

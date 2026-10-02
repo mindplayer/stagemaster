@@ -22,12 +22,22 @@
 //! # Ok(())
 //! # }
 //! ```
+//! The default device queue cannot accept load/install operations:
+//! ```compile_fail
+//! use stagemaster_runtime_host::Client;
+//! fn load_in_playback_queue(client: &Client) {
+//!     let _ = client.submit(1, 0, stagemaster_runtime::Action::Load,
+//!         std::time::Duration::from_secs(1));
+//! }
+//! ```
 #![forbid(unsafe_code)]
+mod backend;
 mod client;
 mod host;
 mod observation;
 mod worker;
 
+pub use backend::{Backend, Device, Profile};
 pub use client::{Client, Connection, Ticket, WaitError};
 pub use host::Host;
 pub use observation::{Fault, Frame, Observation, Observer, Phase, Snapshot};

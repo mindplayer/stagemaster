@@ -1,5 +1,7 @@
 # 独立执行宿主
 
+HOST-003 已通过进程内 `Backend`／`Profile` 契约扩展到真实多来源组，原默认 API 和调度规则保留；新增接线见[多来源共享后台宿主](shared-live-host.md)。这不代表本机 HTTP 或桌面入口已经迁移。
+
 HOST-001／[ADR-098](../development/decisions/PRODUCT-ADR-098-independent-runtime-host.md)；`stagemaster-runtime-host` 组合既有 `stagemaster-runtime`，不依赖 Tauri、文件驱动、BLE、UE 或云端。本 crate 是标准系统的可嵌入宿主库；HOST-002 在外层增加[本机独立执行进程](local-execution-process.md)，尚未替换桌面。
 
 ## 所有权与调用

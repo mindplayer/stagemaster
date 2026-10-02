@@ -1,5 +1,7 @@
 # 实现状态
 
+[HOST-003](development/tasks/HOST-003-shared-live-host.md) 已把固定多来源组接入[现有后台宿主](module-api/shared-live-host.md)：共享输入控制权、唯一调度实现、有界属性批量和固定来源快照；旧默认设备调用与受限命令入口保持。6 项新增、842 项全工作区测试及 2 个文档示例、严格 Clippy／fmt 与 Xtensa 编译通过。当前是实际线程的软件适配，HOST-002 的 HTTP／桌面入口和物理端口尚未迁移，未宣称多时钟或硬实时性能验收。
+
 [MIX-003](development/tasks/MIX-003-prepared-source-compositor.md) 已提供[固定来源组](module-api/prepared-source-compositor.md)：真实场景／多个列表／手动层统一推进、按激活时刻接管、累计资源预算和完整帧故障保护。11 项新增、836 项全工作区、最终 9 项来源组专项、严格 Clippy／fmt 与 Xtensa 编译验证通过；不改变工程／设备包格式。当前仍为标准宿主软件后端，尚未接独立进程、桌面和物理端口，不代表 ESP32 多来源容量或硬实时性能验证。
 
 [MIX-002](development/tasks/MIX-002-sequence-contributions.md) 已在同一个 Player 上提供[列表贡献](module-api/live-sequence-contributions.md)：逐步继承／释放、延时、明确接管与普通推进、完整循环折叠和可见值渐变起点。修正从手动层接回位置时跳变，补亮度电平反算。12 项新增、825 项全工作区与最终 13 项工程专项通过；严格检查及 Xtensa 无标准库编译通过。独立宿主来源管理／多时钟调度、桌面和物理输出接线仍待完成。

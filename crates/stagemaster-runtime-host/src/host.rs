@@ -1,11 +1,12 @@
 use crate::{
-    Configuration, Connection, Error, Fault, Observer, Phase, QUEUE_CAPACITY, WaitError,
+    Backend, Configuration, Connection, Device, Error, Fault, Observer, Phase, Profile,
+    QUEUE_CAPACITY, WaitError,
     client::{Command, Ingress},
     observation::Shared,
     worker,
 };
 use stagemaster_package::ReadAt;
-use stagemaster_runtime::{Grant, Mode, PlaybackPolicy, Runtime, Status};
+use stagemaster_runtime::{Grant, PlaybackPolicy, Runtime};
 use std::{
     panic::{AssertUnwindSafe, catch_unwind},
     sync::{Arc, mpsc},
@@ -14,8 +15,8 @@ use std::{
 };
 
 /// Trusted process owner. Never expose its acquire/takeover/shutdown methods directly to peers.
-pub struct Host {
-    ingress: Ingress,
+pub struct Host<M: Profile = Device> {
+    ingress: Ingress<M>,
     thread: Option<thread::JoinHandle<()>>,
     done: mpsc::Receiver<()>,
 }
@@ -28,21 +29,26 @@ impl Host {
         runtime: Runtime<R, P>,
         configuration: Configuration,
     ) -> Result<Self, Error> {
+        Self::start_backend(runtime, configuration)
+    }
+}
+impl<M: Profile> Host<M> {
+    /// Transfer a prepared backend to the existing single scheduling worker.
+    /// # Errors
+    /// Reject invalid cadence, unprepared state or thread creation failure.
+    pub fn start_backend<B: Backend<Profile = M>>(
+        runtime: B,
+        configuration: Configuration,
+    ) -> Result<Self, Error> {
         if !(Duration::from_millis(1)..=Duration::from_millis(100)).contains(&configuration.period)
         {
             return Err(Error::Configuration);
         }
-        let state = runtime.state();
-        if state.mode != Mode::Operation
-            || state.loaded.is_none()
-            || state.selected != state.loaded
-            || state.status != Some(Status::Idle)
-            || state.instance.is_some()
-            || state.owner.is_some()
-        {
+        if !runtime.is_prepared() {
             return Err(Error::NotPrepared);
         }
-        let shared = Arc::new(Shared::new(state));
+        let state = runtime.state();
+        let shared = Arc::new(Shared::<M>::new(state));
         let (sender, receiver) = mpsc::sync_channel(QUEUE_CAPACITY);
         let (completed, done) = mpsc::sync_channel(1);
         let owner = shared.clone();
@@ -67,7 +73,7 @@ impl Host {
         })
     }
     #[must_use]
-    pub fn observer(&self) -> Observer {
+    pub fn observer(&self) -> Observer<M> {
         Observer {
             shared: self.ingress.shared.clone(),
         }
@@ -81,7 +87,7 @@ impl Host {
         grant: Grant,
         takeover: bool,
         ttl: Duration,
-    ) -> Result<Connection, Error> {
+    ) -> Result<Connection<M>, Error> {
         let ticket = self.ingress.send(ttl, |reply| Command::Acquire {
             grant,
             takeover,
@@ -119,7 +125,7 @@ impl Host {
         }
     }
 }
-impl Drop for Host {
+impl<M: Profile> Drop for Host<M> {
     fn drop(&mut self) {
         self.request_stop();
     }

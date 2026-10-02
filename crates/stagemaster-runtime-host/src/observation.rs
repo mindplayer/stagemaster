@@ -1,5 +1,5 @@
-use crate::Error;
-use stagemaster_runtime::{Code, FrameInfo, State};
+use crate::{Device, Error, Profile};
+use stagemaster_runtime::Code;
 use std::sync::{
     Arc, Mutex, OnceLock,
     atomic::{AtomicBool, AtomicU8, Ordering},
@@ -22,35 +22,35 @@ pub enum Fault {
 
 /// A software sample, never an acknowledgement of physical transmission.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Frame {
-    pub info: FrameInfo,
+pub struct Frame<M: Profile = Device> {
+    pub info: M::FrameInfo,
     pub slots: [u8; 512],
 }
 #[derive(Clone, Copy, Debug)]
-pub struct Snapshot {
-    pub state: State,
-    pub frame: Option<Frame>,
+pub struct Snapshot<M: Profile = Device> {
+    pub state: M::State,
+    pub frame: Option<Frame<M>>,
     pub cycles: u64,
     pub skipped_publications: u64,
     pub max_lateness_ms: u64,
     pub missed_periods: u64,
 }
 #[derive(Clone, Copy, Debug)]
-pub struct Observation {
+pub struct Observation<M: Profile = Device> {
     pub phase: Phase,
     pub fault: Option<Fault>,
     /// Terminal/stopping hosts never expose a still-valid frame or runtime snapshot.
-    pub snapshot: Option<Snapshot>,
+    pub snapshot: Option<Snapshot<M>>,
 }
 #[derive(Debug)]
-pub(crate) struct Shared {
+pub(crate) struct Shared<M: Profile = Device> {
     pub stop: AtomicBool,
     phase: AtomicU8,
     fault: OnceLock<Fault>,
-    pub snapshot: Mutex<Snapshot>,
+    pub snapshot: Mutex<Snapshot<M>>,
 }
-impl Shared {
-    pub fn new(state: State) -> Self {
+impl<M: Profile> Shared<M> {
+    pub fn new(state: M::State) -> Self {
         Self {
             stop: AtomicBool::new(false),
             phase: AtomicU8::new(Phase::Running as u8),
@@ -98,10 +98,10 @@ impl Shared {
     }
 }
 #[derive(Clone, Debug)]
-pub struct Observer {
-    pub(crate) shared: Arc<Shared>,
+pub struct Observer<M: Profile = Device> {
+    pub(crate) shared: Arc<Shared<M>>,
 }
-impl Observer {
+impl<M: Profile> Observer<M> {
     #[must_use]
     pub fn phase(&self) -> Phase {
         self.shared.phase()
@@ -110,7 +110,7 @@ impl Observer {
     /// Return copied state only; consumers cannot hold the publisher's lock.
     /// # Errors
     /// A contended or poisoned observation slot reports Busy; it never delays the runtime.
-    pub fn read(&self) -> Result<Observation, Error> {
+    pub fn read(&self) -> Result<Observation<M>, Error> {
         let phase = self.phase();
         if phase != Phase::Running {
             return Ok(Observation {

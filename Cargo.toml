@@ -9,6 +9,7 @@ members = [
   "crates/stagemaster-domain",
   "crates/stagemaster-engine",
   "crates/stagemaster-live",
+  "crates/stagemaster-live-host",
   "crates/stagemaster-show",
   "crates/stagemaster-project",
   "crates/stagemaster-playback",

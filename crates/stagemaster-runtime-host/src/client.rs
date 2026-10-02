@@ -1,5 +1,5 @@
-use crate::{Action, Error, MAX_COMMAND_TTL, Observer, Phase, observation::Shared};
-use stagemaster_runtime::{Grant, Lease, Receipt, Request, State};
+use crate::{Device, Error, MAX_COMMAND_TTL, Observer, Phase, Profile, observation::Shared};
+use stagemaster_runtime::{Grant, Lease, Request};
 use std::{
     sync::{
         Arc,
@@ -10,19 +10,19 @@ use std::{
 
 pub(crate) type Reply<T> = SyncSender<Result<T, Error>>;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct Acquisition {
+pub(crate) struct Acquisition<M: Profile = Device> {
     pub lease: Lease,
-    pub state: State,
+    pub state: M::State,
 }
-pub(crate) enum Command {
+pub(crate) enum Command<M: Profile = Device> {
     Acquire {
         grant: Grant,
         takeover: bool,
-        reply: Reply<Acquisition>,
+        reply: Reply<Acquisition<M>>,
     },
     Submit {
-        request: Request,
-        reply: Reply<Receipt>,
+        request: Request<M::Action>,
+        reply: Reply<M::Receipt>,
     },
     Renew {
         lease: Lease,
@@ -34,20 +34,20 @@ pub(crate) enum Command {
         reply: Reply<()>,
     },
 }
-pub(crate) struct Envelope {
+pub(crate) struct Envelope<M: Profile = Device> {
     pub deadline: Instant,
-    pub command: Command,
+    pub command: Command<M>,
 }
 #[derive(Clone, Debug)]
-pub(crate) struct Ingress {
-    pub sender: SyncSender<Envelope>,
-    pub shared: Arc<Shared>,
+pub(crate) struct Ingress<M: Profile = Device> {
+    pub sender: SyncSender<Envelope<M>>,
+    pub shared: Arc<Shared<M>>,
 }
-impl Ingress {
+impl<M: Profile> Ingress<M> {
     pub fn send<T>(
         &self,
         ttl: Duration,
-        make: impl FnOnce(Reply<T>) -> Command,
+        make: impl FnOnce(Reply<T>) -> Command<M>,
     ) -> Result<Ticket<T>, Error> {
         if ttl.is_zero() || ttl > MAX_COMMAND_TTL {
             return Err(Error::InvalidDeadline);
@@ -106,15 +106,15 @@ impl<T> Ticket<T> {
 }
 
 #[derive(Debug)]
-pub struct Connection {
-    pub(crate) ticket: Ticket<Acquisition>,
-    pub(crate) ingress: Ingress,
+pub struct Connection<M: Profile = Device> {
+    pub(crate) ticket: Ticket<Acquisition<M>>,
+    pub(crate) ingress: Ingress<M>,
 }
-impl Connection {
+impl<M: Profile> Connection<M> {
     /// Construct a scoped client only from the actual acquired lease.
     /// # Errors
     /// The same wait/outcome rules apply as for command tickets.
-    pub fn wait(&self, timeout: Duration) -> Result<Result<Client, Error>, WaitError> {
+    pub fn wait(&self, timeout: Duration) -> Result<Result<Client<M>, Error>, WaitError> {
         self.ticket.wait(timeout).map(|r| {
             r.map(|acquired| Client {
                 lease: acquired.lease,
@@ -127,20 +127,20 @@ impl Connection {
 
 /// Dropping a client never stops playback. Input ownership ends by release or lease expiry.
 #[derive(Clone, Debug)]
-pub struct Client {
+pub struct Client<M: Profile = Device> {
     lease: Lease,
-    acquisition: State,
-    ingress: Ingress,
+    acquisition: M::State,
+    ingress: Ingress<M>,
 }
-impl Client {
+impl<M: Profile> Client<M> {
     /// Historical acquisition result, independent of delayed observer publication.
     /// Use its revision for the first command; later commands use their own receipts.
     #[must_use]
-    pub const fn acquired_state(&self) -> State {
+    pub const fn acquired_state(&self) -> M::State {
         self.acquisition
     }
     #[must_use]
-    pub fn observer(&self) -> Observer {
+    pub fn observer(&self) -> Observer<M> {
         Observer {
             shared: self.ingress.shared.clone(),
         }
@@ -153,14 +153,14 @@ impl Client {
         &self,
         serial: u64,
         expected_revision: u64,
-        action: Action,
+        action: M::Action,
         ttl: Duration,
-    ) -> Result<Ticket<Receipt>, Error> {
+    ) -> Result<Ticket<M::Receipt>, Error> {
         let request = Request {
             lease: self.lease,
             serial,
             expected_revision,
-            action: action.into(),
+            action,
         };
         self.ingress
             .send(ttl, |reply| Command::Submit { request, reply })
