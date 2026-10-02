@@ -40,7 +40,7 @@ program.output.render(player.values(), &mut slots)?; // 无分配，512 字节�
 - `PackageFile::select(path, source)`：仅 `.smpkg`，不接受当前工程路径／符号链接；覆盖目标必须已经是完整有效包，其他文件或损坏包用新文件名。
 - `PackageFile::save(bytes)`：独立校验全包，复用工程存储的稳定锁、前后基线比较、目录内临时文件、fsync、原子替换／不覆盖创建。成功后可返回目录同步提醒；不修改工程修订。
 
-软件参考包的生成、保存、检查不表示设备安装就绪；当前没有包签名或播放许可。DEVICE-002 已完成专用开发身份下的真实 GATT 安装；物理输出另验收。执行端的 24 小时临时许可、到期结束本次节目后禁止新播放仍由独立授权协议实施。
+软件参考包的生成、保存、检查不表示设备安装就绪；当前没有包签名或播放许可。DEVICE-002 已完成专用开发身份下的真实 GATT 安装；物理输出另验收。商业身份、内容保护与许可独立于参考包；按 [ADR-101](../development/decisions/PRODUCT-ADR-101-commercial-security-boundaries.md)，暂不考虑限时，具体加密授权协议后议。
 
 ## 字节格式 v1
 

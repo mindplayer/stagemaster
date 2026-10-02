@@ -1,11 +1,11 @@
 # PRODUCT-ADR-004：手机／电脑中转加密播放包与设备授权
 
-- 状态：accepted（中转交付、按文件临时授权 24 小时及到期收尾）；离线签发、可信时间和量产加固实现待验证
+- 状态：partially superseded（2026-10-02，由 [ADR-101](PRODUCT-ADR-101-commercial-security-boundaries.md) 更新）。中转交付与商业保护方向保留；下文限时、临时／正式分型、离线委派签发及到期方案为历史提案，不再作为当前实施要求，具体方法后议。
 - 日期／负责人：2026-09-23，当前 Astra 会话
 - 基线：`2f681ca`；关联 PROJECT-001、PLAYER-002／003／004／005
 - 补充 [PRODUCT-ADR-002](PRODUCT-ADR-002-compiled-playback-and-transfer.md) 与 [PRODUCT-ADR-003](PRODUCT-ADR-003-project-data-contract.md)
 
-## 已明确的产品规则
+## 历史产品规则（当前实施以 ADR-101 为准）
 
 客户现场网络可能不稳定。用户要求由手机或电脑连接服务器，向 ESP32／ARM 下发加密的可执行节目文件；设备无需直接连接公网。随后明确：手机／电脑无法联网时，当前处理的文件可以作为临时包供设备使用 24 小时，设备识别其临时性质并提示；到期后允许已经开始的节目结束，再禁止开始新的播放。
 

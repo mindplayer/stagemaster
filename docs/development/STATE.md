@@ -1,5 +1,7 @@
 # 当前开发状态
 
+PLAN-005 范围收敛完成（2026-10-02；基线 `59b2b86`；结果为本次 `docs(architecture): clarify iteration and commercial security scope` 提交）：按用户最新要求，本大轮渐进完善框架、保持现有能力可用、优先修明显缺陷，具体细节以后迭代；软件／硬件商业保护保留独立边界，暂不考虑限时，具体加密授权方法后议，见 [ADR-101](decisions/PRODUCT-ADR-101-commercial-security-boundaries.md)／[工单](tasks/PLAN-005-commercial-security-scope.md)。现行计划／契约中的旧 24 小时要求已后移，历史 ADR 明确覆盖关系；连接认证、租约、请求超时和节目时间上限未改。仅文档及相关检查，生产保护尚未完成；持续 goal active，接续 HOST-002 的实际工程与独立进程验证，不回到局部 UI 全面丰满。用户 `output/`、窗口和设备保持。
+
 PLAN-004 设备家族收敛完成（2026-10-02；基线 `29e91e2`；结果为本次 `docs(architecture): define composable device product family` 提交）：采纳共享平台＋按能力组合，明确电脑、ESP32／ARM、纯输出节点、控制面和一体控台的角色／执行归属，以及云端／U 盘并行交付、统一许可与本地准备后执行；见 [ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)／[工单](tasks/PLAN-004-composable-device-family.md)。官方资料、链接、工作区清单和 diff 检查通过，运行代码未变。HOST-002 前置设计保留，尚无源码的提前模块注册已撤回，避免空模块破坏工作区；接续真实工程准备与独立进程生命周期，尚未通过进程验收。持续 goal active，未返回局部 UI，用户 `output/`、窗口及设备保持。
 
 HOST-001 宿主库增量完成（基线 `4a3f7c1`；结果为本次 `feat(runtime): add independently scheduled bounded host` 提交）：按 ADR-097 的框架优先级新增独立 Rust 调度宿主，复用既有 Runtime；预先载入、私有客户端租约、取得控制权回执、有界队列／截止时间、只读快照和独立关闭。753 项全工作区测试、24 个 crate 文档测试运行及最终 15 项宿主／1 文档示例、全工作区严格 Clippy／fmt／diff 通过，见 [HOST-001](tasks/HOST-001-independent-runtime-host.md)／[ADR-098](decisions/PRODUCT-ADR-098-independent-runtime-host.md)／[契约](../module-api/runtime-host.md)。真实线程证明客户端消失后继续运行、旧控制者拒绝、发布受阻不阻塞求值、运行不读存储、超时不重建线程和故障撤销有效帧。当前仅 Mac 软件库验证，尚未替换桌面或实现独立进程／认证网络／物理输出；接续实际工程准备、可信应用入口及进程生命周期，再做第二种软件承载。持续 goal active；AUDIO-020 可视细节仍后移，用户 `output/`、窗口、工程和设备保持。

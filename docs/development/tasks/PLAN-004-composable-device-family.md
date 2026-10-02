@@ -2,6 +2,8 @@
 
 状态：文档收敛已完成；基线 `29e91e2`，结果为本次 `docs(architecture): define composable device product family` 提交。main 工作区，当前 Astra 单写者；HOST-002 的前置设计仍在进行，用户 `output/` 保持。
 
+后续更新：用户已在本工单提交后要求暂不考虑限时，具体加密授权方法后议；下文 24 小时规则为当时记录，现以 [ADR-101](../decisions/PRODUCT-ADR-101-commercial-security-boundaries.md) 为准。
+
 ## 范围与判断
 
 用户补充 ESP32、ARM、自带推子／旋钮的控台可看作同类设备，按硬件装配功能与展示模块。核对官方 MA3／Titan 资料和现有架构后，采纳共享平台／产品家族，明确节点身份、能力与运行角色分离；当前桌面产品作为长期平台的一种组装。

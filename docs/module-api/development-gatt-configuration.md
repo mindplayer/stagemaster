@@ -41,4 +41,4 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-devi
 
 `install_device` 另支持 `cancel`／`resume`／`corrupt`／`lost-commit`；后三种需要与当前有效节目不同的真实包，不能把同包快速对账算作传输故障验收。`corrupt` 在加密前改一块，检查实板拒绝并取消失败事务；`lost-commit` 在主机测试层扣留已收到的真实提交回执，再断线重新认证、查询同代结果。它模拟上层丢回执，不声称制造了真实无线丢包。
 
-当前仅 macOS＋本台 ESP32 经过实际无线验证。跨端重用协议和 Rust 模块，不代表其他平台已经验收；未来云端归属／凭证签发按 ADR-046，24 小时文件许可按 ADR-004，均与上述连接许可分离。
+当前仅 macOS＋本台 ESP32 经过实际无线验证。跨端重用协议和 Rust 模块，不代表其他平台已经验收；未来云端归属／凭证签发按 ADR-046，商业保护范围按 ADR-101，具体加密授权方案后议，均与上述开发连接许可分离。

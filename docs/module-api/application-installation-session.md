@@ -70,4 +70,4 @@ if let Some(command) = gateway.receive(&complete_ciphertext, now())? {
 
 未来云端拥有设备登记、公钥、归属、权限及修订；新签名验证适配应在此边界验证签发者、设备受众、控制端公钥、范围、期限和撤销状态。现有 Gateway／Endpoint／工作器不应访问云端或系统配对记录。BLE peer UUID 仍只是本机定位提示。
 
-软件组合已覆盖真实导出包、维护门、存储恢复、取消、断线恢复、提交回执丢失及权限拒绝。后续 ADR-051 已将[专用开发配置](development-gatt-configuration.md)接入真实 GATT／桌面和 NOR，见[实板与桌面验收](../development/tasks/DEVICE-002-direct-installation-acceptance.md)。云端认领和 24 小时文件许可仍未实现；10 分钟开发连接许可不能替代文件播放规则。
+软件组合已覆盖真实导出包、维护门、存储恢复、取消、断线恢复、提交回执丢失及权限拒绝。后续 ADR-051 已将[专用开发配置](development-gatt-configuration.md)接入真实 GATT／桌面和 NOR，见[实板与桌面验收](../development/tasks/DEVICE-002-direct-installation-acceptance.md)。云端认领和生产商业许可仍未实现；10 分钟开发连接许可不能替代商业授权。按 ADR-101，当前不实施商业限时规则，既有开发连接期限保持。

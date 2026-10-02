@@ -12,7 +12,7 @@
 
 每项能力区分三个时间点：**边界何时必须确定、最小实现何时需要、专业扩展何时加入**。工程格式允许版本演进；现在用代表性用例验证边界，不试图一次冻结所有未来字段。相同能力只保留一个权威实现，桌面、平板、网页和实体面板复用命令。
 
-表中“首版子集”指首次软件＋单路播放盒所需部分；“专业迭代”不自动成为首版前置条件；“专项接入”须按目标设备与协议单独验收。商业授权按 AUTH-001 执行，不因云端协作后置而遗漏。
+表中“首版子集”指首次软件＋单路播放盒所需部分；“专业迭代”不自动成为首版前置条件；“专项接入”须按目标设备与协议单独验收。商业安全按 ADR-101 保留边界，具体加密授权方法在 AUTH-001 后续讨论，暂不考虑限时；不因云端协作后置而遗漏生产保护。
 
 ## 能力落位
 
@@ -36,7 +36,7 @@
 | CAP-14 编辑与恢复 | 原子批量编辑、具名撤销、连续拖动单次提交、错误草稿保留、自动恢复、保存冲突、迁移与版本比较 | [风险 H08／H09](architecture-change-risk-review.md)、[UX-010](development/tasks/UX-010-editing-recovery.md) | ProjectService／ProjectRepository；所有工作区共用 | 原子事务／撤销／保存冲突、RECOVERY-001 有效编辑恢复已实现；UX-020 共用非模态草稿事务，UX-032 专注编排保持任务布局／草稿及预演上下文。未应用输入草稿恢复、多版本比较仍后续 |
 | CAP-15 编译与自主播放 | 依赖闭合、目标能力／分层内存预算、可重复构建、校验／安装／激活、中断恢复、掉电保护、已安装／运行版本、离线本地控制 | [首版方案](development/decisions/PRODUCT-ADR-002-compiled-playback-and-transfer.md)、[ADR-052](development/decisions/PRODUCT-ADR-052-memory-and-host-audio-sync.md) | TargetService／BuildService／PlanManager／TransferService＋板级内存适配；设备与下发面板 | DEVICE-002 实测加密 GATT 安装，MEMORY-001 实测 8 MB PSRAM 与 2 MB 有界缓存；安装／运行模块独立。真实 DMX、正式运行控制和完整自主播放待验；包上限不因标称内存静默放宽 |
 | CAP-16 诊断与预检 | 工程错误定位、缺资源／不支持能力、输出来源／覆盖原因、原始通道值、端口故障、设备反馈新鲜度、触发记录、可导出的诊断包 | [M20](console-research/M20-maintenance-diagnostics.md)、S6 | 编译校验＋ObservationService；状态入口、问题列表、按需诊断 | CHECK-001 配适／编译诊断及导航、UX-028 音乐资源完整性／过期保护已实现；界面区分预览、安装和物理输出。完整来源链、端口实测和诊断包后续 |
-| CAP-17 云端与授权 | 工程／素材版本、发布与分发、权限、设备绑定、授权到期处理、同步冲突与离线副本 | [架构 C05](architecture-evolution-review.md)、[授权决定](development/decisions/PRODUCT-ADR-004-relayed-device-authorization.md) | Publication／Distribution、独立授权边界；项目／资源／设备管理 | 无云服务；AUTH-001 是相关商业交付门槛，协作／云盘后置，不进入输出时钟链 |
+| CAP-17 云端与授权 | 工程／素材版本、发布与分发、权限、设备绑定、授权状态、同步冲突与离线副本 | [架构 C05](architecture-evolution-review.md)、[商业安全边界](development/decisions/PRODUCT-ADR-101-commercial-security-boundaries.md) | Publication／Distribution、独立授权边界；项目／资源／设备管理 | 无云服务；AUTH-001 是相关商业交付门槛，协作／云盘后置，不进入输出时钟链 |
 | CAP-18 开放接入与跨端 | GDTF／MVR 等交换、Art-Net／sACN／RDM、OSC／MIDI 等协议适配、远程控制、网页／平板编辑、版本化扩展能力和兼容性报告 | [M16](console-research/M16-dmx-network.md)、[M17](console-research/M17-remotes-api.md)、[格式借鉴](development/decisions/PRODUCT-ADR-003-project-data-contract.md) | 导入导出适配、生成契约、宿主／传输；沿用四工作区 | 设计；现在保持接口可移植，协议按软硬件能力逐项验证，不承诺任意格式无损往返或现有板卡支持全部协议 |
 | CAP-19 运行连续性 | 断连策略、程序与系统故障恢复、运行记录、备份／恢复、后续主备切换与输出所有权交接 | [M18](console-research/M18-sessions-backup.md)、[架构 C09](architecture-evolution-review.md) | RuntimeKernel／PlanManager／OutputArbiter；现场与设备状态 | 已实现软件运行／安装故障恢复、读源租约、GATT 保活失效／恢复及双槽安装；[HOST-001](development/tasks/HOST-001-independent-runtime-host.md) 已补独立调度宿主库、有界入口／观察和客户端断连继续的软件验证，桌面／独立进程接入仍待完成；完整脱机演出、长时压力和热备／所有权接管未验收，不能仅靠心跳判定接管 |
 | CAP-20 现场交付资料 | 灯位图、地址／模式／通道表、设备与资源清单、标签、安装与校准记录、节目备注／检查单、带版本的导出 | [Depence 图纸职责](depence-r4-assessment.md)、[M04](console-research/M04-fixtures-patch.md) | 工程只读投影＋PlotService／导出；布置与工程菜单 | [REPORT-001](development/tasks/REPORT-001-patch-report-export.md) 已实现有界快照 CSV 配灯表与冲突保护，80 灯原生导出通过；[REPORT-002](development/tasks/REPORT-002-sequence-report-export.md) 已补场景列表节目单，六步剧本／时间／来源逐列验证通过；灯位图纸／其他交接资料待补，结构计算不在通用绘图能力内 |
