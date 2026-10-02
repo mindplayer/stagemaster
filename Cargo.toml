@@ -5,6 +5,7 @@ members = [
   "crates/stagemaster-audio",
   "apps/engine-demo",
   "crates/stagemaster-dmx",
+  "crates/stagemaster-output-port",
   "crates/stagemaster-domain",
   "crates/stagemaster-engine",
   "crates/stagemaster-show",

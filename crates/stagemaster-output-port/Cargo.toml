@@ -1,0 +1,18 @@
+[package]
+name = "stagemaster-output-port"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dev-dependencies]
+stagemaster-runtime = { path = "../stagemaster-runtime" }
+stagemaster-project = { path = "../stagemaster-project" }
+stagemaster-package = { path = "../stagemaster-package" }
+stagemaster-install = { path = "../stagemaster-install" }
+stagemaster-install-store = { path = "../stagemaster-install-store" }
+serde_json = "=1.0.151"
+tempfile = "=3.27.0"
+
+[lints]
+workspace = true

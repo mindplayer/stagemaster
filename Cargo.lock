@@ -4313,6 +4313,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-output-port"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-project",
+ "stagemaster-runtime",
+ "tempfile",
+]
+
+[[package]]
 name = "stagemaster-package"
 version = "0.1.0"
 dependencies = [
