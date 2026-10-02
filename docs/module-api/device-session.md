@@ -1,14 +1,14 @@
 # 应用层安全会话
 
-DEVICE-002B；实现 `crates/stagemaster-device-session`；依据 [ADR-047](../development/decisions/PRODUCT-ADR-047-noise-application-session.md)。这是已实现的协议核心，尚未接到正式 GATT／云端授权。实测边界见[验收](../development/tasks/DEVICE-002B-session-acceptance.md)。
+DEVICE-002B；实现 `crates/stagemaster-device-session`；依据 [ADR-047](../development/decisions/PRODUCT-ADR-047-noise-application-session.md)。协议核心的原始实测边界见[验收](../development/tasks/DEVICE-002B-session-acceptance.md)；后续已完成 [DEVICE-002 免配对 GATT 安装](../development/tasks/DEVICE-002-direct-installation-acceptance.md)，云端生产身份／许可仍未实现。TRANSPORT-001 抽取的[共同主机应用会话](application-record-carriers.md)复用该核心，不改变密码协议。
 
 ## 职责与依赖
 
 独立 no_std＋alloc Rust 模块，仅依赖选定的 Snow 密码原语、subtle、zeroize。安全随机源由宿主注入；BLE、文件、云端、安装任务和播放核心都在模块外。控制端必须预先取得可信设备公钥；广播里的公钥不能直接成为信任依据。
 
-[安全记录字节通道](secure-record-channel.md)已作为独立无堆适配实现并完成软件组合测试；双方生产依赖仍分离，仅由测试组合，不代表正式 GATT 已接通。
+[安全记录字节通道](secure-record-channel.md)提供 GATT 的独立无堆分片适配；后续正式主机／专用固件在外层将其与本核心组合，本核心仍不依赖 GATT。
 
-后续[免配对 GATT 实板实验](../development/tasks/DEVICE-002-secure-gatt-acceptance.md)已完成真实握手、保活、消息与故障拒绝。独立的[应用权限及安装适配](application-installation-session.md)已接入软件组合验证；实际凭据配置、正式 GATT／桌面接线和云端仍待完成。无线实验使用 USB 固定的启动期公钥，不代表云端认领。
+后续[免配对 GATT 实板实验](../development/tasks/DEVICE-002-secure-gatt-acceptance.md)完成真实握手、保活、消息与故障拒绝；[应用权限及安装适配](application-installation-session.md)及开发凭据已继续接入上述正式安装链。无线实验的 USB 固定公钥和开发配置均不代表云端认领或生产授权。
 
 `SecretKey` 持有本端秘密，不提供 Debug／Serialize／Clone；密钥存储与生产配置另由凭据适配负责。`Context` 绑定稳定设备号、启动身份和连接随机号。`PeerProof` 只能由完成相互确认的通道取得，表示当前对端持有相应密钥，**不是安装授权或账号归属**；保存它的副本不会冻结有效期。
 

@@ -1,5 +1,7 @@
 # 实现状态
 
+[TRANSPORT-001](development/tasks/TRANSPORT-001-record-carriers.md) 已将 BLE 的应用握手／保活／加密消息抽到[独立会话模块](module-api/application-record-carriers.md)，原生适配复用；真实本机 TCP 与 GATT 大小的软件分片通过同一安装器，落盘内容一致。14 项新测试、45 项原设备宿主回归及 779 项全工作区通过。当前仅新增软件字节流证据，通用发现／真实有线驱动／生产安全仍未完成。
+
 [HOST-002](development/tasks/HOST-002-local-execution-process.md) 已贯通实际工程准备与[本机独立执行进程](module-api/local-execution-process.md)：受保护只读／控制入口、服务端会话、有界命令／回执及进程生命周期。真实控制客户端被杀后同一节目继续，新控制者可接管、旧指令拒绝；12 项专项及 765 项全工作区测试通过。当前仅 Mac 软件执行验证，桌面迁移、远程认证、音视频协调及真实输出仍未完成。
 
 [HOST-001](development/tasks/HOST-001-independent-runtime-host.md) 提供上述程序复用的独立 Rust 调度宿主库，不依赖 Tauri／BLE／媒体：有界客户端入口、控制权回执、断连继续、只读观察与独立关闭／故障状态。其 15 项专项和可编译调用示例继续保留。

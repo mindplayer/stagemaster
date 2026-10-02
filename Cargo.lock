@@ -4127,6 +4127,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-device-channel"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.3.4",
+ "serde_json",
+ "stagemaster-device-auth",
+ "stagemaster-device-info",
+ "stagemaster-device-link",
+ "stagemaster-device-session",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-project",
+ "stagemaster-transfer",
+ "tempfile",
+ "tokio",
+ "zeroize",
+]
+
+[[package]]
 name = "stagemaster-device-host"
 version = "0.1.0"
 dependencies = [
@@ -4136,6 +4156,7 @@ dependencies = [
  "serde",
  "serde_json",
  "stagemaster-device-auth",
+ "stagemaster-device-channel",
  "stagemaster-device-info",
  "stagemaster-device-link",
  "stagemaster-device-session",

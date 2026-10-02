@@ -125,8 +125,7 @@ impl Transport for Ble {
                     .filter(|c| c.device() == desc.device)
                     && desc.declares(stagemaster_device_info::capability::INSTALLATION)
                 {
-                    self.application =
-                        Some(application::Channel::prepare(&peripheral, desc, config).await?);
+                    self.application = Some(application::prepare(&peripheral, desc, config).await?);
                 }
             } else if self.bonded_experiment {
                 self.installation = installation::Channel::prepare(&peripheral, &bytes).await?;
@@ -136,7 +135,14 @@ impl Transport for Ble {
     }
     fn installation_peer(&self) -> Option<crate::InstallationPeer> {
         if let Some(channel) = &self.application {
-            return channel.peer();
+            return channel.peer().map(|receipt| crate::InstallationPeer {
+                device: receipt.device,
+                boot: receipt.boot,
+                session: receipt.session,
+                authentication: stagemaster_device_session::AUTHENTICATION,
+                fragment_bytes: stagemaster_device_link::management::MESSAGE_BYTES,
+                message_bytes: stagemaster_device_link::management::MESSAGE_BYTES,
+            });
         }
         self.installation
             .as_ref()
@@ -145,7 +151,7 @@ impl Transport for Ble {
     async fn write_installation(&mut self, bytes: &[u8]) -> Result<(), Problem> {
         let peripheral = self.pending.as_ref().ok_or_else(|| Problem::new(C::Lost))?;
         if let Some(channel) = &mut self.application {
-            return channel.write(peripheral, bytes).await;
+            return channel.write(bytes).await.map_err(installation::wire);
         }
         self.installation
             .as_mut()
@@ -155,7 +161,7 @@ impl Transport for Ble {
     }
     fn try_installation_notification(&mut self) -> Result<Option<Vec<u8>>, Problem> {
         if let Some(channel) = &mut self.application {
-            return channel.receive();
+            return channel.receive().map_err(installation::wire);
         }
         match &mut self.installation {
             Some(channel) => channel.receive(),
@@ -164,8 +170,7 @@ impl Transport for Ble {
     }
     async fn write(&mut self, bytes: &[u8; 20]) -> Result<(), Problem> {
         if let Some(channel) = &mut self.application {
-            let peripheral = self.pending.as_ref().ok_or_else(|| Problem::new(C::Lost))?;
-            channel.heartbeat(peripheral).await?;
+            channel.heartbeat().await.map_err(installation::wire)?;
         }
         let (peripheral, characteristics) = self.active()?;
         peripheral
@@ -210,11 +215,13 @@ impl Transport for Ble {
             )?;
         }
         if let Some(channel) = &self.application {
-            channel.correlate(
-                bytes
-                    .as_deref()
-                    .ok_or_else(|| Problem::new(C::Description))?,
-            )?;
+            channel
+                .correlate(
+                    bytes
+                        .as_deref()
+                        .ok_or_else(|| Problem::new(C::Description))?,
+                )
+                .map_err(installation::wire)?;
         }
         Ok(bytes)
     }

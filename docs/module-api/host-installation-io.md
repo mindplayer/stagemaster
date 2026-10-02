@@ -28,7 +28,7 @@ while let Some(frame) = upload.outbound()?.cloned() {
 
 服务将事实与当前已关联的描述核对：稳定设备／启动相同、非零认证方法一致、实际声明安装能力、传输版本受支持、消息预算一致且不超过 1280 字节，片段在 1～消息上限内。业务会话必须非零。声明只用于拒绝矛盾信息，不能生成事实；中文显示标签不参与授权判断。
 
-当前原生 `Ble` 候选按 [ADR-045](../development/decisions/PRODUCT-ADR-045-authenticated-installation-gatt.md) 对实际安装能力使用受保护的回执读取、有界通知队列与连续片段序号；仅诊断设备仍返回 `None`。CoreBluetooth 不公开可移植的 LESC 等级检查，该适配依赖设备端实际安全栈授权，回执解析不是独立密码证明。用户后续确定 [ADR-046](../development/decisions/PRODUCT-ADR-046-cloud-owned-direct-gatt.md) 的免系统绑定方向，这一 LESC 适配仅为实验候选，下一步将由独立应用层安全会话接入本接口，不复用认证方式 1 冒充新机制。
+现行 `Ble` 按 [ADR-051](../development/decisions/PRODUCT-ADR-051-development-gatt-installation.md) 使用免系统配对的应用认证；TRANSPORT-001 将其握手／加密保活／就绪回执抽到[共同应用记录会话](application-record-carriers.md)，BLE 保留特征与有界分片适配。仅诊断设备或无可信配置仍返回 `None`。旧 [ADR-045](../development/decisions/PRODUCT-ADR-045-authenticated-installation-gatt.md) 的 LESC 实现仅在显式实验开关下使用，不作为正常连接的降级路径。
 
 ## 消息和时序
 
@@ -51,4 +51,4 @@ while let Some(frame) = upload.outbound()?.cloned() {
 - `service/installation/pending.rs`：分片、重组、消息期限、响应关联。
 - `installation_peer.rs`：可信事实与能力核对。
 
-原主机调度增量的证据见[主机调度验收](../development/tasks/DEVICE-002D-host-io-acceptance.md)。后续已接候选 GATT 与维护入口，但首次实板传输中断，完整安装／桌面出口未通过，见[当前检查点](../development/tasks/DEVICE-002-installation-gatt-checkpoint.md)。软件夹具显式提供测试权限，仅在测试构建中使用；不能作为真实硬件授权。
+原主机调度增量的证据见[主机调度验收](../development/tasks/DEVICE-002D-host-io-acceptance.md)；现行免配对路径的原生下发／取消／续传／对账证据见 [DEVICE-002 完整验收](../development/tasks/DEVICE-002-direct-installation-acceptance.md)，早期中断检查点已被该验收接续。TRANSPORT-001 对抽取后的软件路径重新回归，未重新实测射频或固件；测试夹具不能作为真实硬件授权。

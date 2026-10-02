@@ -1,75 +1,118 @@
-//! Native unbonded transport; device key trust comes only from injected local credentials.
-mod handshake;
+//! GATT carrier only. The shared application channel owns authentication and message semantics.
 mod incoming;
-mod io;
 use super::{C, Characteristic, Peripheral, Problem};
+use btleplug::api::{CharPropFlags, Peripheral as _, WriteType};
 use incoming::Incoming;
-use stagemaster_device_link::{management::ApplicationReceipt, secure::Sender};
-use stagemaster_device_session::Channel as Secure;
+use stagemaster_device_channel::{Error, RecordIo};
+use stagemaster_device_link::secure::Sender;
 use tokio::time::Instant;
 use uuid::Uuid;
+
 pub(super) const SERVICE: Uuid = Uuid::from_u128(0xf889eda0_0100_4e83_968e_799ab99558fa);
 const REQUEST: Uuid = Uuid::from_u128(0xf889eda2_0100_4e83_968e_799ab99558fa);
 const RESPONSE: Uuid = Uuid::from_u128(0xf889eda3_0100_4e83_968e_799ab99558fa);
-fn wire(error: impl core::fmt::Display) -> Problem {
-    Problem::new(C::Installation).detail(error.to_string())
-}
+pub(super) type Channel = stagemaster_device_channel::Channel<GattRecords>;
 fn now(origin: Instant) -> u64 {
     u64::try_from(origin.elapsed().as_millis()).unwrap_or(u64::MAX)
 }
-pub(super) struct Channel {
-    receipt: ApplicationReceipt,
-    secure: Secure,
-    sender: Sender,
-    incoming: Incoming,
+fn wire(error: impl std::fmt::Display) -> Error {
+    Error::Transport(error.to_string())
+}
+
+pub(super) async fn prepare(
+    peripheral: &Peripheral,
+    desc: stagemaster_device_info::Description,
+    config: &crate::DevelopmentConfiguration,
+) -> Result<Channel, Problem> {
+    let chars = peripheral.characteristics();
+    let find = |uuid, property| {
+        chars
+            .iter()
+            .find(|c| {
+                c.service_uuid == SERVICE && c.uuid == uuid && c.properties.contains(property)
+            })
+            .cloned()
+            .ok_or_else(|| Problem::new(C::Installation))
+    };
+    let request = find(REQUEST, CharPropFlags::WRITE_WITHOUT_RESPONSE)?;
+    let response = find(RESPONSE, CharPropFlags::NOTIFY)?;
+    let origin = Instant::now();
+    let budget = usize::from(peripheral.mtu().saturating_sub(3).min(244));
+    let sender = Sender::new(budget, 0).map_err(super::installation::wire)?;
+    let incoming = Incoming::spawn(
+        peripheral.notifications().await.map_err(super::error)?,
+        origin,
+        budget,
+    );
+    peripheral
+        .subscribe(&response)
+        .await
+        .map_err(super::error)?;
+    Channel::prepare(
+        GattRecords {
+            peripheral: peripheral.clone(),
+            request,
+            sender,
+            incoming: Some(incoming),
+            origin,
+            usable: true,
+        },
+        desc,
+        config,
+    )
+    .await
+    .map_err(super::installation::wire)
+}
+
+pub(super) struct GattRecords {
+    peripheral: Peripheral,
     request: Characteristic,
+    sender: Sender,
+    incoming: Option<Incoming>,
     origin: Instant,
-    received_at: u64,
-    until: u64,
-    pending: Option<Vec<u8>>,
     usable: bool,
 }
-impl Channel {
-    pub fn peer(&self) -> Option<crate::InstallationPeer> {
-        let now = now(self.origin);
-        (self.usable
-            && self.incoming.healthy()
-            && now < self.until
-            && now.saturating_sub(self.received_at) < stagemaster_device_session::LEASE_MS)
-            .then_some(crate::InstallationPeer {
-                device: self.receipt.device,
-                boot: self.receipt.boot,
-                session: self.receipt.session,
-                authentication: stagemaster_device_session::AUTHENTICATION,
-                fragment_bytes: stagemaster_device_link::management::MESSAGE_BYTES,
-                message_bytes: stagemaster_device_link::management::MESSAGE_BYTES,
-            })
-    }
-    pub fn correlate(&self, bytes: &[u8]) -> Result<(), Problem> {
-        let desc = stagemaster_device_info::Description::decode(bytes).map_err(wire)?;
-        if desc.device != self.receipt.device
-            || desc.boot != self.receipt.boot
-            || desc.session != self.receipt.diagnostic
-            || desc.authentication != stagemaster_device_session::AUTHENTICATION
-        {
-            return Err(Problem::new(C::Installation));
+impl RecordIo for GattRecords {
+    async fn send(&mut self, bytes: &[u8]) -> Result<(), Error> {
+        if !self.healthy() {
+            return Err(Error::Closed);
+        }
+        self.usable = false;
+        self.sender.queue(bytes, now(self.origin)).map_err(wire)?;
+        while let Some(packet) = self.sender.fragment(now(self.origin)).map_err(wire)? {
+            self.peripheral
+                .write(&self.request, packet.bytes(), WriteType::WithoutResponse)
+                .await
+                .map_err(wire)?;
+            self.sender.sent(now(self.origin)).map_err(wire)?;
+        }
+        self.usable = true;
+        if !self.healthy() {
+            return Err(Error::Closed);
         }
         Ok(())
     }
-    fn check(&mut self) -> Result<(), Problem> {
-        if self.peer().is_none() {
-            self.usable = false;
-            self.secure.close();
-            return Err(Problem::new(C::Installation));
+    fn try_receive(&mut self) -> Result<Option<Vec<u8>>, Error> {
+        if !self.healthy() {
+            return Err(Error::Closed);
         }
-        self.secure.poll(now(self.origin)).map_err(wire)
+        self.incoming
+            .as_mut()
+            .ok_or(Error::Closed)?
+            .next()
+            .map(|r| r.map(|r| r.bytes().to_vec()))
+            .map_err(wire)
     }
-    fn checked<T>(&mut self, result: Result<T, Problem>) -> Result<T, Problem> {
-        if result.is_err() {
-            self.usable = false;
-            self.secure.close();
-            self.pending = None;
-        }
-        result
+    fn healthy(&self) -> bool {
+        self.usable && self.incoming.as_ref().is_some_and(Incoming::healthy)
+    }
+    fn close(&mut self) {
+        self.usable = false;
+        self.incoming = None;
+    }
+}
+impl Drop for GattRecords {
+    fn drop(&mut self) {
+        self.close();
     }
 }

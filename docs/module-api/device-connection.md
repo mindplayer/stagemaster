@@ -4,7 +4,7 @@
 
 ## 所有权和调用
 
-`stagemaster-device-link::client`：无 I/O、无堆分配的主机请求／回执状态与诊断解码，和固件共用既有协议。`stagemaster-device-host`：应用级连接服务，`Transport` 窄接口，`Ble` 原生适配。Tauri `device_request` 仅转发；`ApplicationHost.device` 是组件唯一宿主入口。新增[主机安装消息接口](host-installation-io.md)复用传输编解码，与保活共用同一连接任务；不拥有工程／播放状态，不执行存储或 DMX I/O。
+`stagemaster-device-link::client`：无 I/O、无堆分配的主机请求／回执状态与诊断解码，和固件共用既有协议。`stagemaster-device-host`：应用级连接服务，现有 `Transport` 仍组合扫描／诊断／安装，`Ble` 为原生适配；它不是所有硬件必须实现的统一接口。TRANSPORT-001 已将[应用记录会话](application-record-carriers.md)抽为不依赖蓝牙的模块。Tauri `device_request` 仅转发；`ApplicationHost.device` 是组件唯一宿主入口。[主机安装消息接口](host-installation-io.md)与保活共用同一连接任务，不拥有工程／播放状态，不执行存储或 DMX I/O。
 
 ```rust,ignore
 // 应用管理一个实例，在 Tokio 运行时内调用。创建／查看不会初始化蓝牙。
@@ -46,4 +46,4 @@ devices.shutdown().await?;
 
 顶部“设备”在无工程时也可用。设备面板独立组件，收起／切工作区保留查询和选择，不提交编辑草稿；Esc 收起并还原入口焦点。状态查询每 0.7 秒，原生保活独立运行；IPC 5 秒无回应即显示状态不可用，避免保留过期在线标志。迟到响应通过修订拒绝。
 
-网页宿主明确不可原生连接。当前固件只有诊断服务，不提供安装／执行按钮。后续将能力查询、稳定身份／绑定、控制权、包传输与运行适配接入既有独立模块；本诊断会话不授予节目安装或播放权限。不在此模块重造播放器或云端授权，也不把平台 BLE 库的支持列表视为跨平台验收完成。
+网页宿主明确不可原生连接。早期诊断固件不提供安装；后续 [DEVICE-002](../development/tasks/DEVICE-002-direct-installation-acceptance.md) 已通过专用免配对 GATT 镜像与真实节目安装验收，无开发配置时仍只诊断。诊断会话不授予节目安装或播放权限。不在此模块重造播放器或云端授权，也不把平台 BLE 库的支持列表视为跨平台验收完成。

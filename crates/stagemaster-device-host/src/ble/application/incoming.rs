@@ -74,6 +74,7 @@ impl Incoming {
             Err(mpsc::error::TryRecvError::Disconnected) => Err(Problem::new(C::Lost)),
         }
     }
+    #[cfg(test)]
     pub async fn receive(&mut self) -> Result<Record, Problem> {
         let record = tokio::time::timeout(Duration::from_secs(5), async {
             loop {
