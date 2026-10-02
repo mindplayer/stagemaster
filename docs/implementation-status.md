@@ -1,6 +1,8 @@
 # 实现状态
 
-[MIX-001](development/tasks/MIX-001-live-contributions.md) 已提供有界[现场属性贡献](module-api/live-contributions.md)：两个真实动态保持场景与手动控制逐属性合成、明确接管／归还，亮度推子与释放分离，连续采样不抢占；工程快照绑定合成与编码。15 项新增测试（含 448 组参考对照）、813 项全工作区测试通过。当前为软件模块与软件端口组合验证，多步骤列表跟踪、桌面／独立宿主接线及物理输出仍待实现。
+[MIX-002](development/tasks/MIX-002-sequence-contributions.md) 已在同一个 Player 上提供[列表贡献](module-api/live-sequence-contributions.md)：逐步继承／释放、延时、明确接管与普通推进、完整循环折叠和可见值渐变起点。修正从手动层接回位置时跳变，补亮度电平反算。12 项新增、825 项全工作区与最终 13 项工程专项通过；严格检查及 Xtensa 无标准库编译通过。独立宿主来源管理／多时钟调度、桌面和物理输出接线仍待完成。
+
+[MIX-001](development/tasks/MIX-001-live-contributions.md) 已提供有界[现场属性贡献](module-api/live-contributions.md)：两个真实动态保持场景与手动控制逐属性合成、明确接管／归还，亮度推子与释放分离，连续采样不抢占；工程快照绑定合成与编码。15 项新增测试（含 448 组参考对照）、813 项全工作区测试通过。当前为软件模块与软件端口组合验证，列表适配见 MIX-002；桌面／独立宿主接线及物理输出仍待实现。
 
 [OUTPUT-001](development/tasks/OUTPUT-001-port-authority.md) 已提供无堆、no_std 的[单端口输出权](module-api/output-port.md)：独占来源、接管前静默、最新完整帧、驱动接纳／完成区别及故障撤权。真实工程编译／安装／Runtime 到软件驱动、控制断连继续和外部接管已验证；19 项专项与 798 项全工作区通过。桌面／独立进程接线与真实输出仍未完成；多来源基础合成见 MIX-001，现有固件 RS485 保持禁用。
 

@@ -1,6 +1,6 @@
 # 现场属性贡献
 
-MIX-001／[ADR-104](../development/decisions/PRODUCT-ADR-104-live-attribute-contributions.md)。`stagemaster_engine::live::LiveMixer` 是标准系统宿主的有界属性合成器；`Document::compile_live_scene` 使用既有 Player 准备动态保持场景，`LiveOutput` 使用既有包编码器。当前为软件模块和组合验收，尚未接桌面、HOST-002 或 ESP32；多步骤列表仍走原单列表路径。
+MIX-001／[ADR-104](../development/decisions/PRODUCT-ADR-104-live-attribute-contributions.md)。`stagemaster_engine::live::LiveMixer` 是标准系统宿主的有界属性合成器；`Document::compile_live_scene` 使用既有 Player 准备动态保持场景，`LiveOutput` 使用既有包编码器。当前为软件模块和组合验收，尚未接桌面、HOST-002 或 ESP32；MIX-002 另提供[列表贡献适配](live-sequence-contributions.md)，原产品单列表路径仍保持。
 
 ## 对象和实际调用
 
@@ -61,7 +61,7 @@ let universe = output.render(&mixer, &mut slots)?;
 
 来源命令序号非零严格递增，允许跳号，所有来源变更由单一宿主协调；最终 u64 序号保留给 close，发布／电平不能耗尽释放路径。属性接管顺序与句柄代际同样不回绕，耗尽时拒绝新的取得／断言，已有贡献仍可显式释放。错误来源／布局／长度、旧命令和对 None 的接管声明在写入前拒绝，不部分消费批次。
 
-输出值和 winners 只在成功 render 后读取，是历史逻辑结果，不是灯具反馈；初次 render 前的初始化缓冲不构成结果。`LiveOutput` 返回错误时不得把旧槽缓冲换一个新时间戳继续发送。HTP 胜出来源只是所选值的诊断，不替代完整贡献链；来源到步骤／预设的完整诊断、多步骤跟踪／延时／释放包络、混合多时钟和专业现场模式仍待后续验证。
+输出值和 winners 只在成功 render 后读取，是历史逻辑结果，不是灯具反馈；初次 render 前的初始化缓冲不构成结果。`LiveOutput` 返回错误时不得把旧槽缓冲换一个新时间戳继续发送。HTP 胜出来源只是所选值的诊断，不替代完整贡献链；多步骤静态跟踪、延时后释放及明确接管由 MIX-002 软件适配提供；来源到步骤／预设的完整诊断、高级跟踪／释放包络、混合多时钟和专业现场模式仍待后续验证。
 
 ## 参考边界
 

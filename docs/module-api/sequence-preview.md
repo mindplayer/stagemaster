@@ -32,6 +32,8 @@ let output = compiled.output.render(player.values())?;
 
 `Player` 提供 execute、next、pause、resume、stop、advance，所有调用使用外部单调毫秒；没有休眠、线程和物理输出。直接执行中间步骤也具有确定目标，渐变从当时值开始。停止恢复灯具默认属性，未配适通道为零；不能把整帧全零当所有灯具或机构的安全状态。
 
+MIX-002 新增[列表贡献适配与同步转换观察](live-sequence-contributions.md)，供多来源宿主复用同一个 Player。原入口通过空观察者执行，数值行为和 Plan／设备包格式保持；列表贡献中的释放是归还来源，与原单列表完整向量回落默认值分开。
+
 执行计划上限：512 属性、1024 步、262144 个 u16 目标值，每项时间最多 24 小时。`value_buffer_bytes()` 是目标／默认／当前／起点值数组的有效数据字节数，不包括元数据、分配器额外容量、宿主工程和 DMX／IPC 缓冲；PLAYER-002A 已测 ESP32-S3 上 2 步／512 属性的执行与堆占用，见[设备诊断接口](device-link-probe.md)；未验证全部上限容量，也未包含 DMX 发送预算。
 
 ## 离散属性执行基础

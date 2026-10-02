@@ -1,6 +1,6 @@
 //! Prepared, snapshot-bound output encoding for the host compositor.
-use crate::LiveScenePlayer;
-use stagemaster_engine::live::{Handle, LayoutId, LiveMixer};
+use crate::{CompiledOutput, LiveScenePlayer};
+use stagemaster_engine::live::{Handle, Layout, LayoutId, LiveMixer};
 
 pub struct LiveOutput {
     identity: LayoutId,
@@ -13,9 +13,14 @@ impl LiveScenePlayer {
     /// # Errors
     /// Reject an internally inconsistent output mapping.
     pub fn prepare_output(&self) -> Result<LiveOutput, String> {
-        let output = self.output.portable_output()?;
+        LiveOutput::prepare(&self.output, &self.layout)
+    }
+}
+impl LiveOutput {
+    pub(crate) fn prepare(compiled: &CompiledOutput, layout: &Layout) -> Result<Self, String> {
+        let output = compiled.portable_output()?;
         Ok(LiveOutput {
-            identity: self.layout.id(),
+            identity: layout.id(),
             values: vec![0; output.mappings.len()],
             winners: vec![None; output.mappings.len()],
             output,
