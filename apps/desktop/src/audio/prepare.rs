@@ -18,17 +18,9 @@ pub(crate) struct Prepared {
     asset: AudioAsset,
     waveform: Waveform,
 }
-struct Guard<'a>(&'a Service);
-impl Drop for Guard<'_> {
-    fn drop(&mut self) {
-        self.0.preparing.store(false, Ordering::Release);
-    }
-}
 #[tauri::command]
 pub(crate) fn audio_cancel(app: tauri::AppHandle) {
-    app.state::<Service>()
-        .cancelled
-        .store(true, Ordering::Release);
+    app.state::<Service>().cancel();
     // Release the command-owned application handle after the immediate cancellation signal.
     drop(app);
 }
@@ -39,7 +31,8 @@ pub(crate) async fn audio_prepare(
     generation: u32,
     kind: Preparation,
 ) -> Result<Option<Prepared>, String> {
-    tauri::async_runtime::spawn_blocking(move || prepare(&app, generation, kind))
+    let cancellation = app.state::<Service>().cancellation_version();
+    tauri::async_runtime::spawn_blocking(move || prepare(&app, generation, kind, cancellation))
         .await
         .map_err(|_| "音乐准备未完成".to_string())?
 }
@@ -47,18 +40,18 @@ fn prepare(
     app: &tauri::AppHandle,
     generation: u32,
     kind: Preparation,
+    cancellation: u64,
 ) -> Result<Option<Prepared>, String> {
     let service = app.state::<Service>();
-    service
-        .preparing
-        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-        .map_err(|_| "已有音乐正在准备，请稍候或取消")?;
-    let _guard = Guard(&service);
-    service.cancelled.store(false, Ordering::Release);
+    let _guard = service.begin_preparation(cancellation)?;
     let session = app.state::<crate::previs::SharedSession>();
-    let (doc, project) = {
+    let (doc, project, intent) = {
         let s = session.lock().map_err(|_| "工程会话发生错误")?;
-        (s.check_snapshot(generation)?, s.export_source(generation)?)
+        (
+            s.check_snapshot(generation)?,
+            s.export_source(generation)?,
+            s.audio_load_intent(generation)?,
+        )
     };
     let previous = doc.audio_timeline();
     if kind == Preparation::Import && previous.is_some() {
@@ -112,18 +105,7 @@ fn prepare(
             .to_owned();
         (path, digest, extension, name)
     };
-    let cached = service
-        .waveform
-        .lock()
-        .map_err(|_| "波形缓存不可用")?
-        .as_ref()
-        .filter(|(key, _)| key == &digest)
-        .map(|(_, w)| w.clone());
-    let waveform = if let Some(waveform) = cached {
-        waveform
-    } else {
-        analyze(&path, &service.cancelled)?
-    };
+    let waveform = load_waveform(&service, &path, &digest)?;
     if service.cancelled.load(Ordering::Acquire) {
         return Err("音乐准备已取消".into());
     }
@@ -133,14 +115,36 @@ fn prepare(
         file_name: name,
         duration_ms: waveform.duration_ms,
     };
+    if let Some(track) = &previous
+        && waveform.duration_ms != track.asset.duration_ms
+    {
+        return Err("音乐时长与工程记录不一致，请检查原文件".into());
+    }
+    let prepared = intent
+        .map(|i| i.prepare(path, &service.cancelled))
+        .transpose()?;
     let mut s = session.lock().map_err(|_| "工程会话发生错误")?;
+    service.check_cancelled()?;
+    service.check_cancellation_version(cancellation)?;
     s.check_snapshot(generation)?;
-    if let Some(track) = previous {
-        if waveform.duration_ms != track.asset.duration_ms {
-            return Err("音乐时长与工程记录不一致，请检查原文件".into());
-        }
-        s.load_audio(generation, path, track)?;
+    if let Some(prepared) = prepared {
+        s.apply_audio_load(generation, prepared)?;
     }
     *service.waveform.lock().map_err(|_| "波形缓存不可用")? = Some((digest, waveform.clone()));
     Ok(Some(Prepared { asset, waveform }))
+}
+
+fn load_waveform(
+    service: &Service,
+    path: &std::path::Path,
+    digest: &str,
+) -> Result<Waveform, String> {
+    let cached = service
+        .waveform
+        .lock()
+        .map_err(|_| "波形缓存不可用")?
+        .as_ref()
+        .filter(|(key, _)| key == digest)
+        .map(|(_, w)| w.clone());
+    cached.map_or_else(|| analyze(path, &service.cancelled), Ok)
 }

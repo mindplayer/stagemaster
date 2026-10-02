@@ -30,7 +30,7 @@ export function AudioTransportBar({
         <>
           <button
             className="primary"
-            disabled={blocked || !ready}
+            disabled={!ready || (blocked && !position.playing)}
             onClick={() =>
               command({
                 kind: position.playing ? "pause" : "play",
@@ -39,7 +39,7 @@ export function AudioTransportBar({
           >
             {position.playing ? "暂停" : "播放"}
           </button>
-          <button disabled={blocked} onClick={() => command({ kind: "stop" })}>
+          <button disabled={!ready} onClick={() => command({ kind: "stop" })}>
             停止
           </button>
           <output>

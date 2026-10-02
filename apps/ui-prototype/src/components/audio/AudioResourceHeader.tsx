@@ -61,7 +61,7 @@ export function AudioResourceHeader({
       )}
       {preparing && (
         <div role="status" className="audio-progress">
-          正在准备音乐波形…
+          正在准备音乐…
           <button onClick={() => cancelPrepare()}>取消准备</button>
         </div>
       )}

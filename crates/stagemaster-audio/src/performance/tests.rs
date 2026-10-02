@@ -10,7 +10,7 @@ mod lifecycle;
 
 static TEST_LOCK: Mutex<()> = Mutex::new(());
 
-fn serial() -> MutexGuard<'static, ()> {
+pub(crate) fn serial() -> MutexGuard<'static, ()> {
     let lock = TEST_LOCK
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
@@ -29,7 +29,7 @@ fn await_workers(count: usize) {
     }
 }
 
-fn audio_file(rate: u32, channels: u16, frames: u32) -> (tempfile::TempDir, PathBuf) {
+pub(crate) fn audio_file(rate: u32, channels: u16, frames: u32) -> (tempfile::TempDir, PathBuf) {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("performance.wav");
     let size = frames * u32::from(channels) * 2;

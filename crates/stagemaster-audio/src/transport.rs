@@ -1,15 +1,15 @@
 use crate::looping::{LoopBuffer, LoopRange, LoopRequest, PreparedLoop};
-use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source};
+use rodio::{Decoder, Player, Source};
 use serde::Serialize;
-use std::{
-    fs::File,
-    path::PathBuf,
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
-    time::Duration,
+use std::{fs::File, path::PathBuf, sync::Arc, time::Duration};
+mod output;
+mod performance;
+mod preparation;
+mod voice;
+pub use preparation::{
+    AudioLoadRequest, AudioLoadTicket, AudioSeekRequest, PreparedAudioLoad, PreparedAudioSeek,
 };
+pub use voice::{PendingExit, PerformancePosition};
 #[derive(Default, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Position {
@@ -19,13 +19,15 @@ pub struct Position {
     pub problem: Option<String>,
     pub volume_percent: u8,
     pub loop_range: Option<LoopRange>,
+    pub performance: Option<PerformancePosition>,
 }
 /// Single local audition voice. Position is software consumption, not calibrated DAC time.
 #[derive(Default)]
 pub struct Transport {
     player: Option<Player>,
-    stream: Option<MixerDeviceSink>,
-    failed: Arc<AtomicBool>,
+    output: Option<output::Output>,
+    performance: Option<voice::Performance>,
+    owner: Arc<()>,
     file: Option<PathBuf>,
     in_ms: u64,
     duration_ms: u64,
@@ -50,16 +52,16 @@ impl Transport {
     pub fn clear(&mut self) {
         self.revision = self.revision.wrapping_add(1);
         self.loop_buffer = None;
+        self.performance = None;
         self.player = None;
-        self.stream = None;
+        self.output = None;
         self.file = None;
         self.base_ms = 0;
         self.duration_ms = 0;
-        self.failed.store(false, Ordering::Relaxed);
     }
     #[must_use]
     pub fn position(&self) -> Position {
-        let position = self.player.as_ref().map_or(self.base_ms, |p| {
+        let mut position = self.player.as_ref().map_or(self.base_ms, |p| {
             if let Some(buffer) = &self.loop_buffer {
                 buffer.position(self.base_ms, p.get_pos())
             } else if p.empty() {
@@ -70,14 +72,27 @@ impl Transport {
                     .min(self.duration_ms)
             }
         });
-        let failed = self.failed.load(Ordering::Relaxed);
+        let failed = self.output.as_ref().is_some_and(output::Output::failed);
+        let mut problem = failed.then(|| "音频输出中断，请检查系统输出设备后重新播放".into());
+        let performance = self.performance.as_ref().map(|p| {
+            let (time, status, source_problem) = p.observe();
+            position = time;
+            problem = problem.take().or(source_problem);
+            status
+        });
         Position {
-            playing: !failed && self.player.as_ref().is_some_and(|p| !p.empty()),
+            playing: problem.is_none()
+                && self
+                    .player
+                    .as_ref()
+                    .is_some_and(|p| !p.empty() && !p.is_paused())
+                && !performance.as_ref().is_some_and(|p| p.ended),
             position_ms: position,
             duration_ms: self.duration_ms,
             volume_percent: self.volume_percent.unwrap_or(100),
             loop_range: self.loop_buffer.as_ref().map(LoopBuffer::range),
-            problem: failed.then(|| "音频输出中断，请检查系统输出设备后重新播放".into()),
+            problem,
+            performance,
         }
     }
     /// # Errors
@@ -94,17 +109,29 @@ impl Transport {
     }
     pub fn pause(&mut self) {
         self.revision = self.revision.wrapping_add(1);
+        if self.performance.is_some() {
+            if let Some(player) = &self.player {
+                player.pause();
+            }
+            return;
+        }
         self.base_ms = self.position().position_ms;
         self.player = None;
     }
     pub fn stop(&mut self) {
         self.revision = self.revision.wrapping_add(1);
+        if let Some(performance) = &mut self.performance {
+            performance.voice = None;
+        }
         self.player = None;
         self.base_ms = self.loop_buffer.as_ref().map_or(0, |b| b.range().start_ms);
     }
     /// # Errors
     /// Reject missing files/devices and unsupported seeks. A failure never starts another output route.
     pub fn play(&mut self) -> Result<(), String> {
+        if self.performance.is_some() {
+            return self.play_performance();
+        }
         self.revision = self.revision.wrapping_add(1);
         if self.position().playing {
             return Ok(());
@@ -123,30 +150,18 @@ impl Transport {
                 .map_err(|e| format!("音乐定位失败：{e}"))?;
             Box::new(source.take_duration(Duration::from_millis(self.duration_ms - self.base_ms)))
         };
-        if self.failed.swap(false, Ordering::Relaxed) {
-            self.stream = None;
-        }
-        if self.stream.is_none() {
-            let failed = self.failed.clone();
-            let mut stream = DeviceSinkBuilder::from_default_device()
-                .map_err(|e| format!("无法打开系统音频输出：{e}"))?
-                .with_error_callback(move |_| {
-                    failed.store(true, Ordering::Relaxed);
-                })
-                .open_stream()
-                .map_err(|e| format!("无法打开系统音频输出：{e}"))?;
-            stream.log_on_drop(false);
-            self.stream = Some(stream);
-        }
-        let player = Player::connect_new(self.stream.as_ref().ok_or("音频设备未就绪")?.mixer());
-        player.set_volume(f32::from(self.volume_percent.unwrap_or(100)) / 100.0);
+        let player = self.new_player()?;
         player.append(source);
+        player.play();
         self.player = Some(player);
         Ok(())
     }
     /// # Errors
     /// Reject positions outside the clip; decoder failure leaves audition paused.
     pub fn seek(&mut self, position_ms: u64) -> Result<(), String> {
+        if self.performance.is_some() {
+            return Err("演出定位须先完成音源准备".into());
+        }
         if position_ms > self.duration_ms {
             return Err("播放位置超出音乐范围".into());
         }
@@ -169,6 +184,9 @@ impl Transport {
     /// # Errors
     /// Reject configuring while playing or an invalid range.
     pub fn loop_request(&self, range: Option<LoopRange>) -> Result<LoopRequest, String> {
+        if self.performance.is_some() {
+            return Err("正式演出循环启用时不能叠加临时试听循环".into());
+        }
         if self.position().playing {
             return Err("请暂停音乐后调整循环范围".into());
         }
@@ -205,4 +223,18 @@ impl Transport {
         self.revision = self.revision.wrapping_add(1);
         Ok(())
     }
+
+    fn new_player(&mut self) -> Result<Player, String> {
+        if self.output.as_ref().is_none_or(output::Output::failed) {
+            self.output = Some(output::Output::open()?);
+        }
+        Ok(self
+            .output
+            .as_ref()
+            .ok_or("音频设备未就绪")?
+            .player(self.volume_percent.unwrap_or(100)))
+    }
 }
+
+#[cfg(test)]
+mod tests;

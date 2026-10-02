@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-020 继续实施（本增量基线 `0d22eb9`；结果为本次 `feat(audio): connect performance loop transport and runtime controls` 提交）：有界音源已接 Transport／桌面加载和定位，实际 Player 暂停保留遍数／退出意图，停止使旧实例和排队播放失效；共享运行栏显示真实区段／遍数及圈末继续／取消。737 项全工作区测试与最后 89 项桌面回归（现有总数 738）、307 UI、类型、严格 Clippy／fmt、桌面构建及隔离组件交互通过，见[工单](tasks/AUDIO-020-performance-loop-sections.md)／[契约](../module-api/performance-loops.md)。桌面正式加载拒绝保护已由真实准备路径替代；可见区段创建／精确和成组编辑／时间线显示、真实音乐／UE 与原生保存重开仍未完成，接续完整工单。未操作用户原生窗口或设备，`output/` 保持；持续 goal active。
+
 AUDIO-020 实施中（原生音源基线 `abb4f38`；结果为本次 `feat(audio): stream bounded multi-region performance sources` 提交）：核心／工程层已提交，本次补有界 PCM／流式音源、真实消费游标、带遍数的边界退出与取消、解码线程预算和故障报告。新增 13 项专项，最终 728 Rust／23 crate 文档测试、fmt、严格全工作区 Clippy 与 diff 检查通过；见[工单](tasks/AUDIO-020-performance-loop-sections.md)／[契约](../module-api/performance-loops.md)。Transport／桌面控制／可见编辑和实际声卡／UE 验收仍未完成，桌面仍明确拒绝启用的正式循环；继续完整工单，不以独立音源增量作为产品交付。本项未操作原生窗口或真实设备，用户 `output/` 保留；持续 goal active。另已在 `f9d2af9` 记录 Gemini 建议的[官方来源复核](../console-research/evidence-issues.md)，保持既有技术框架，星闪未成为已选方案。
 
 AUDIO-019 完成（基线 `ad500e7`，结果为本次 `feat(audio): sustain both effects across clip crossfades` 提交）：Rust 双动态求值、严格工程来源／时间预算、唯一音频游标、单／批量过渡方式、交叉内分割／截取和引用审阅。700 Rust／302 UI／178 格式、严格检查／类型／桌面，以及原生取消／锁定／第三源拒绝／历史／UE 循环播放／保存重开通过，见[工单](tasks/AUDIO-019-dynamic-crossfade.md)／[ADR-095](decisions/PRODUCT-ADR-095-dynamic-crossfade-sampling.md)。独立副本 26 片段已保存，来源与灯具／场景／卡点保持；当前音乐停止于 0、局部循环关闭、UE 关闭、设备未连接。持续 goal active；接续正式演出区段循环，多轨与真实输出仍未完成。

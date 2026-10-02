@@ -2,24 +2,26 @@
 use stagemaster_audio::{Position, Transport};
 use stagemaster_project::AudioSegmentPlayer;
 use stagemaster_project::{AudioTimeline, CompiledOutput, Document};
+#[cfg(test)]
 use std::path::PathBuf;
 #[derive(Default)]
 pub(crate) struct AudioPreview {
     pub transport: Transport,
-    track: Option<AudioTimeline>,
-    lighting: Option<Lighting>,
+    pub(super) track: Option<AudioTimeline>,
+    pub(super) lighting: Option<Lighting>,
 }
-struct Lighting {
+pub(super) struct Lighting {
     key: (u64, Option<String>, u64),
     elapsed: u64,
     player: AudioSegmentPlayer,
     output: CompiledOutput,
 }
 impl AudioPreview {
+    #[cfg(test)]
     pub fn load(&mut self, path: PathBuf, track: AudioTimeline) -> Result<(), String> {
-        // AUDIO-020: remove this guard only when the native multi-region source is connected.
+        // Linear-only convenience for paused rendering tests. Product loading is prepared.
         if track.loop_regions.iter().any(|r| r.enabled) {
-            return Err("当前播放器尚不支持演出循环，音乐未载入".into());
+            return Err("正式演出循环须先完成音源准备".into());
         }
         self.transport.load(path, track.in_ms, track.out_ms)?;
         self.track = Some(track);
@@ -36,12 +38,7 @@ impl AudioPreview {
     }
     pub fn synchronize(&mut self, doc: &Document) {
         match (&mut self.track, doc.audio_timeline()) {
-            (Some(current), Some(next))
-                if current.asset == next.asset
-                    && current.in_ms == next.in_ms
-                    && current.out_ms == next.out_ms
-                    && !next.loop_regions.iter().any(|r| r.enabled) =>
-            {
+            (Some(current), Some(next)) if super::loading::same_playback(current, &next) => {
                 *current = next;
                 self.lighting = None;
             }

@@ -2,7 +2,7 @@ use super::*;
 use crate::audio::Command;
 use stagemaster_audio::LoopRange;
 use stagemaster_project::{AudioAsset, AudioEdit, AudioMarker};
-fn session() -> (Session, tempfile::TempDir) {
+pub(super) fn session() -> (Session, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("rehearsal.wav");
     let mut bytes = Vec::new();

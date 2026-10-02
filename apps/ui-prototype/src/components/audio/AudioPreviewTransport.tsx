@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { AudioTimeline } from "../../audio-types";
 import { audioTime } from "../../audio-tools";
 import type { useAudio } from "./useAudio";
+import { AudioPerformanceControls } from "./AudioPerformanceControls";
+import { audioMediaKey } from "../../audio-performance-tools";
 import "./audio-preview-transport.css";
 
 /** Shared native audio voice, with one seek on release instead of a queue per pixel. */
@@ -17,9 +19,7 @@ export function AudioPreviewTransport({
   const [draft, setDraft] = useState<number | null>(null);
   const gesture = useRef<"idle" | "dragging" | "cancelled">("idle");
   const pending = useRef<number | null>(null);
-  const identity = track
-    ? `${track.asset.digest}:${track.inMs}:${track.outMs}`
-    : "";
+  const identity = audioMediaKey(track);
   function cancel() {
     if (gesture.current === "dragging") gesture.current = "cancelled";
     pending.current = null;
@@ -43,7 +43,7 @@ export function AudioPreviewTransport({
       <div className="audio-preview-controls">
         <span title={track.asset.fileName}>音乐</span>
         <button
-          disabled={session.preparing || (busy && !session.position.playing)}
+          disabled={(session.preparing || busy) && !session.position.playing}
           onClick={async () => {
             if (!ready && !(await session.prepare("load"))) return;
             await session.command({
@@ -54,7 +54,7 @@ export function AudioPreviewTransport({
           {session.position.playing ? "暂停音乐" : "播放音乐"}
         </button>
         <button
-          disabled={!ready || session.preparing}
+          disabled={!ready && !session.preparing}
           onClick={() => {
             cancel();
             void session.command({ kind: "stop" });
@@ -110,6 +110,18 @@ export function AudioPreviewTransport({
             cancel();
           }
         }}
+      />
+      {session.preparing && (
+        <span role="status">
+          正在准备音乐…
+          <button onClick={() => void session.cancel()}>取消准备</button>
+        </span>
+      )}
+      <AudioPerformanceControls
+        track={track}
+        position={session.position}
+        disabled={!ready || session.preparing}
+        command={session.command}
       />
       {(session.problem || session.position.problem) && (
         <span role="alert">{session.problem || session.position.problem}</span>

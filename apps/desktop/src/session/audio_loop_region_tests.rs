@@ -63,7 +63,7 @@ fn loop_group_history_is_atomic_and_noop_or_failure_preserves_generation_and_red
 }
 
 #[test]
-fn unconnected_native_loop_adapter_must_not_silently_play_once() {
+fn linear_only_test_loader_rejects_formal_loops_and_preserves_the_old_voice() {
     let mut doc = Document::new("循环准备保护").unwrap();
     doc.edit(
         serde_json::from_value(json!({"op":"audio","command":{"kind":"setAsset","asset":{

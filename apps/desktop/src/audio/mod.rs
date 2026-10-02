@@ -1,16 +1,22 @@
+mod loading;
 mod looping;
+mod performing;
+mod preparation_guard;
+pub(crate) use loading::{LoadIntent, PreparedLoad};
 pub(crate) mod prepare;
 mod preview;
 pub(crate) use preview::AudioPreview;
 use serde::Deserialize;
 use stagemaster_audio::{Position, Resources, Waveform};
-use std::sync::{Mutex, atomic::AtomicBool};
-use tauri::Manager;
+use std::sync::{
+    Mutex,
+    atomic::{AtomicBool, AtomicU64},
+};
 pub(crate) struct Service {
     pub resources: Resources,
     preparing: AtomicBool,
-    loop_preparing: AtomicBool,
     cancelled: AtomicBool,
+    cancellation: AtomicU64,
     waveform: Mutex<Option<(String, Waveform)>>,
 }
 impl Service {
@@ -18,13 +24,13 @@ impl Service {
         Self {
             resources: Resources::new(root),
             preparing: AtomicBool::new(false),
-            loop_preparing: AtomicBool::new(false),
             cancelled: AtomicBool::new(false),
+            cancellation: AtomicU64::new(0),
             waveform: Mutex::new(None),
         }
     }
 }
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(
     tag = "kind",
     rename_all = "camelCase",
@@ -45,6 +51,12 @@ pub(crate) enum Command {
     SetLoop {
         range: Option<stagemaster_audio::LoopRange>,
     },
+    ExitLoop {
+        instance: String,
+        region_id: String,
+        pass: String,
+        requested: bool,
+    },
 }
 #[tauri::command]
 pub(crate) async fn audio_request(
@@ -52,15 +64,14 @@ pub(crate) async fn audio_request(
     generation: u32,
     command: Command,
 ) -> Result<Position, String> {
+    use tauri::Manager;
+    let service = app.state::<Service>();
+    let cancellation = service.cancellation_version();
     tauri::async_runtime::spawn_blocking(move || {
-        if let Command::SetLoop { range } = command {
-            return looping::configure(&app, generation, range);
+        if let Command::SetLoop { range } = &command {
+            return looping::configure(&app, generation, *range, cancellation);
         }
-
-        app.state::<crate::previs::SharedSession>()
-            .lock()
-            .map_err(|_| "工程会话发生错误")?
-            .audio_request(generation, command)
+        performing::execute(&app, generation, command, cancellation)
     })
     .await
     .map_err(|_| "音频操作未完成".to_string())?

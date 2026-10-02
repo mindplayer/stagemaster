@@ -1,0 +1,30 @@
+.audio-performance {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 6px 0;
+  font-size: 12px;
+}
+.audio-performance output {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.audio-performance strong {
+  overflow-wrap: anywhere;
+}
+.audio-performance small {
+  color: var(--wb-muted);
+}
+.audio-performance [role="status"] {
+  color: #e6be7a;
+}
+.audio-preview-transport {
+  flex-wrap: wrap;
+}
+.audio-preview-transport .audio-performance {
+  flex-basis: 100%;
+  padding: 0;
+}

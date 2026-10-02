@@ -1,8 +1,58 @@
 use super::Session;
 use crate::audio::Command;
 use stagemaster_audio::Position;
+#[cfg(test)]
 use stagemaster_project::AudioTimeline;
 impl Session {
+    pub(crate) fn audio_load_intent(
+        &self,
+        generation: u32,
+    ) -> Result<Option<crate::audio::LoadIntent>, String> {
+        self.guard(generation)?;
+        Ok(self
+            .document
+            .as_ref()
+            .and_then(stagemaster_project::Document::audio_timeline)
+            .map(|track| self.audio.load_intent(track)))
+    }
+
+    pub(crate) fn apply_audio_load(
+        &mut self,
+        generation: u32,
+        prepared: crate::audio::PreparedLoad,
+    ) -> Result<(), String> {
+        self.guard(generation)?;
+        self.audio.apply_load(prepared)?;
+        self.preview.clear();
+        Ok(())
+    }
+
+    pub(crate) fn audio_preparation(
+        &self,
+        generation: u32,
+        command: &Command,
+    ) -> Result<Option<stagemaster_audio::AudioSeekRequest>, String> {
+        self.guard(generation)?;
+        match command {
+            Command::Play => self.audio.transport.play_preparation(),
+            Command::Seek { position_ms } => self
+                .audio
+                .transport
+                .seek_preparation(*position_ms, self.audio.position().playing),
+            _ => Ok(None),
+        }
+    }
+
+    pub(crate) fn apply_audio_preparation(
+        &mut self,
+        generation: u32,
+        prepared: stagemaster_audio::PreparedAudioSeek,
+    ) -> Result<Position, String> {
+        self.guard(generation)?;
+        self.audio.transport.apply_seek(prepared)?;
+        self.previs_source = crate::previs::protocol::Source::Playback;
+        Ok(self.audio.position())
+    }
     pub(crate) fn audio_loop_request(
         &self,
         generation: u32,
@@ -22,6 +72,7 @@ impl Session {
         Ok(self.audio.position())
     }
 
+    #[cfg(test)]
     pub(crate) fn load_audio(
         &mut self,
         generation: u32,
@@ -42,6 +93,14 @@ impl Session {
         match command {
             Command::Snapshot => {}
             Command::SetLoop { .. } => return Err("循环准备须由独立音频入口执行".into()),
+            Command::ExitLoop {
+                instance,
+                region_id,
+                pass,
+                requested,
+            } => self
+                .audio
+                .exit_loop(&instance, &region_id, &pass, requested)?,
             Command::Volume { percent } => self.audio.transport.set_volume(percent)?,
             Command::Play => {
                 self.audio.transport.play()?;

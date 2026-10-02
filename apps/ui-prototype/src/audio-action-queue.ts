@@ -1,6 +1,9 @@
 import type { AudioCommand } from "./audio-types";
 
-type Runner = (commands: AudioCommand[]) => Promise<boolean>;
+type Runner = (
+  commands: AudioCommand[],
+  current: () => boolean,
+) => Promise<boolean>;
 interface Action {
   commands: AudioCommand[];
   context: string;
@@ -8,6 +11,7 @@ interface Action {
   promise: Promise<boolean>;
   resolve(value: boolean): void;
   reject(error: unknown): void;
+  cancellation: number;
 }
 const coalescible = (commands: AudioCommand[]) =>
   commands.length === 1 && ["seek", "volume"].includes(commands[0].kind)
@@ -19,16 +23,33 @@ export class AudioActionQueue {
   private waiting: Action[] = [];
   private running = false;
   private revision = 0;
+  private cancellation = 0;
+  private interrupting = 0;
 
   observation(): number | null {
-    return this.running || this.waiting.length ? null : this.revision;
+    return this.running || this.waiting.length || this.interrupting
+      ? null
+      : this.revision;
   }
   acceptsObservation(revision: number): boolean {
     return this.observation() === revision;
   }
   invalidate(): void {
     this.revision++;
+    this.cancellation++;
     for (const action of this.waiting.splice(0)) action.resolve(false);
+  }
+  /** Stop/pause bypass slow preparation; invalidate the remainder of every old batch. */
+  async interrupt(commands: AudioCommand[], run: Runner): Promise<boolean> {
+    this.invalidate();
+    const cancellation = this.cancellation;
+    this.interrupting++;
+    try {
+      return await run(commands, () => cancellation === this.cancellation);
+    } finally {
+      this.interrupting--;
+      void this.drain();
+    }
   }
   enqueue(
     commands: AudioCommand[],
@@ -55,18 +76,31 @@ export class AudioActionQueue {
       resolve = yes;
       reject = no;
     });
-    this.waiting.push({ commands, context, run, promise, resolve, reject });
+    this.waiting.push({
+      commands,
+      context,
+      run,
+      promise,
+      resolve,
+      reject,
+      cancellation: this.cancellation,
+    });
     void this.drain();
     return promise;
   }
   private async drain(): Promise<void> {
-    if (this.running) return;
+    if (this.running || this.interrupting) return;
     this.running = true;
     try {
-      while (this.waiting.length) {
+      while (this.waiting.length && !this.interrupting) {
         const action = this.waiting.shift()!;
         try {
-          action.resolve(await action.run(action.commands));
+          action.resolve(
+            await action.run(
+              action.commands,
+              () => action.cancellation === this.cancellation,
+            ),
+          );
         } catch (error) {
           action.reject(error);
         }

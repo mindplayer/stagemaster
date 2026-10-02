@@ -15,7 +15,12 @@ export type ClipFadeMode = "snapshot" | "dynamic";
 export interface ClipEntryCrossfade {
   durationMs: number;
   offsetMs: number;
-  source: { sceneId: string | null; effectOffsetMs: number; elapsedMs: number; entryFade?: ClipEntryFade };
+  source: {
+    sceneId: string | null;
+    effectOffsetMs: number;
+    elapsedMs: number;
+    entryFade?: ClipEntryFade;
+  };
 }
 export interface AudioLightingClip {
   id: string;
@@ -42,6 +47,7 @@ export interface AudioTimeline {
   outMs: number;
   markers: AudioMarker[];
   lightingClips?: AudioLightingClip[];
+  loopRegions?: AudioLoopRegion[];
 }
 export interface AudioWaveform {
   durationMs: number;
@@ -57,6 +63,7 @@ export interface AudioLoopRange {
   endMs: number;
 }
 export interface AudioPosition {
+  performance?: AudioPerformancePosition | null;
   loopRange?: AudioLoopRange | null;
   volumePercent: number;
   playing: boolean;
@@ -65,6 +72,13 @@ export interface AudioPosition {
   problem: string | null;
 }
 export type AudioCommand =
+  | {
+      kind: "exitLoop";
+      instance: string;
+      regionId: string;
+      pass: string;
+      requested: boolean;
+    }
   | { kind: "setLoop"; range: AudioLoopRange | null }
   | { kind: "volume"; percent: number }
   | { kind: "snapshot" | "play" | "pause" | "stop" }
@@ -107,3 +121,7 @@ export type AudioEdit =
   | { kind: "trim"; inMs: number; outMs: number }
   | { kind: "putMarker"; marker: AudioMarker }
   | { kind: "removeMarker"; id: string };
+import type {
+  AudioLoopRegion,
+  AudioPerformancePosition,
+} from "./audio-performance-types";

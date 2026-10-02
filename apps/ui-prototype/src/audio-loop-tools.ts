@@ -59,6 +59,10 @@ export function audioDisplayTime(
   const time =
     position.positionMs +
     (position.playing ? Math.min(120, Math.max(0, delta)) : 0);
+  if (position.performance) {
+    if (position.performance.snapshotPending) return position.positionMs;
+    return Math.min(position.durationMs, position.performance.boundaryMs, time);
+  }
   const range = position.loopRange;
   return range && position.playing
     ? range.startMs + ((time - range.startMs) % (range.endMs - range.startMs))

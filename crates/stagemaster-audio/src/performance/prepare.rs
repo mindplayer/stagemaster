@@ -107,6 +107,19 @@ impl PerformanceAudio {
         self.data.format.rate.get()
     }
 
+    pub(crate) fn boundary_ms(&self, tick: u64) -> u64 {
+        let boundary = self
+            .data
+            .schedule
+            .regions()
+            .iter()
+            .find(|r| r.end > tick)
+            .map_or(self.data.schedule.duration(), |r| {
+                if tick < r.start { r.start } else { r.end }
+            });
+        (boundary * 1_000).div_ceil(u64::from(self.sample_rate()))
+    }
+
     /// Start a new local pass; preparation never advances the consumer cursor.
     /// # Errors
     /// Reject an out-of-range position, cancellation, decoder failure or busy worker budget.

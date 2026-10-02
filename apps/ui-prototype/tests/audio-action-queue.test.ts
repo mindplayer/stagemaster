@@ -3,6 +3,42 @@ import assert from "node:assert/strict";
 import type { AudioCommand } from "../src/audio-types.ts";
 import { AudioActionQueue } from "../src/audio-action-queue.ts";
 import { runAudioCommands } from "../src/audio-command-sequence.ts";
+test("停止绕过尚未完成的定位，取消旧批次的后续播放并等停止完成后接受新命令", async () => {
+  const queue = new AudioActionQueue(),
+    slow = deferred(),
+    stop = deferred();
+  const seen: string[] = [];
+  const first = queue.enqueue(
+    [{ kind: "seek", positionMs: 100 }, { kind: "play" }],
+    "one",
+    (commands, current) =>
+      runAudioCommands(commands, current, async (command) => {
+        seen.push(command.kind);
+        return slow.promise;
+      }),
+  );
+  const discarded = queue.enqueue(seek(200), "one", async () => {
+    throw new Error("不应执行");
+  });
+  const priority = queue.interrupt([{ kind: "stop" }], async () => {
+    seen.push("stop");
+    return stop.promise;
+  });
+  const next = queue.enqueue([{ kind: "play" }], "one", async () => {
+    seen.push("new-play");
+    return true;
+  });
+  assert.equal(await discarded, false);
+  assert.deepEqual(seen, ["seek", "stop"]);
+  slow.resolve(true);
+  assert.equal(await first, false);
+  assert.equal(queue.observation(), null);
+  assert.deepEqual(seen, ["seek", "stop"]);
+  stop.resolve(true);
+  assert.equal(await priority, true);
+  assert.equal(await next, true);
+  assert.deepEqual(seen, ["seek", "stop", "new-play"]);
+});
 function deferred() {
   let resolve!: (value: boolean) => void;
   const promise = new Promise<boolean>((yes) => {

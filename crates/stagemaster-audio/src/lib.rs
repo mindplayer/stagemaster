@@ -12,5 +12,8 @@ pub use performance::{
 mod transport;
 mod waveform;
 pub use resources::{MAX_FILE_BYTES, Resources, verify};
-pub use transport::{Position, Transport};
+pub use transport::{
+    AudioLoadRequest, AudioLoadTicket, AudioSeekRequest, PendingExit, PerformancePosition,
+    Position, PreparedAudioLoad, PreparedAudioSeek, Transport,
+};
 pub use waveform::{BUCKET_MS, MAX_DURATION_MS, Waveform, analyze};

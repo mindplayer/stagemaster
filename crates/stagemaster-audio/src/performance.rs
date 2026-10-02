@@ -11,4 +11,4 @@ pub use prepare::{MAX_PERFORMANCE_CACHE_BYTES, PerformanceAudio};
 pub use source::PerformanceSource;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

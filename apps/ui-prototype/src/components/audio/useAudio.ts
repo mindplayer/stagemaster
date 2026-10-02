@@ -9,6 +9,10 @@ import type {
 } from "../../audio-types";
 import { AudioActionQueue } from "../../audio-action-queue";
 import { runAudioCommands } from "../../audio-command-sequence";
+import {
+  audioMediaKey,
+  enabledAudioLoops,
+} from "../../audio-performance-tools";
 const idle: AudioPosition = {
   volumePercent: 100,
   playing: false,
@@ -29,10 +33,9 @@ export function useAudio(
   const [preparing, setPreparing] = useState(false);
   const [problem, setProblem] = useState("");
   const epoch = useRef(0);
+  const preparationSerial = useRef(0);
   const preparedKey = useRef("");
-  const mediaKey = track
-    ? `${projectId}:${track.asset.digest}:${track.inMs}:${track.outMs}`
-    : `${projectId}:empty`;
+  const mediaKey = audioMediaKey(track, projectId);
   const queue = useRef(new AudioActionQueue());
   const intentSerial = useRef(0);
   const [seekTarget, setSeekTarget] = useState<{
@@ -69,6 +72,7 @@ export function useAudio(
     setSeekTarget(null);
     setVolumeTarget(null);
     preparedKey.current = "";
+    preparationSerial.current++;
     setPreparing(false);
     setProblem("");
     setWaveform(null);
@@ -80,6 +84,7 @@ export function useAudio(
     setSeekTarget(null);
     setVolumeTarget(null);
     const loadingKey = mediaKey;
+    const preparation = ++preparationSerial.current;
     setPreparing(true);
     setProblem("");
     try {
@@ -100,7 +105,8 @@ export function useAudio(
         setProblem(error instanceof Error ? error.message : String(error));
       return null;
     } finally {
-      if (mounted.current && version === epoch.current) setPreparing(false);
+      if (mounted.current && preparation === preparationSerial.current)
+        setPreparing(false);
     }
   }
   useEffect(() => {
@@ -187,10 +193,11 @@ export function useAudio(
       return await queue.current.enqueue(
         sequence,
         `${targetKey}:${targetGeneration}`,
-        (values) =>
+        (values, current) =>
           runAudioCommands(
             values,
             () =>
+              current() &&
               mounted.current &&
               targetKey === state.current.mediaKey &&
               targetGeneration === state.current.generation(),
@@ -209,13 +216,38 @@ export function useAudio(
     }
   }
   async function command(command: AudioCommand) {
-    await enqueue([command]);
+    if (command.kind !== "stop" && command.kind !== "pause") {
+      await enqueue([command]);
+      return;
+    }
+    const targetGeneration = state.current.generation();
+    const targetKey = state.current.mediaKey;
+    epoch.current++;
+    setSeekTarget(null);
+    setVolumeTarget(null);
+    await queue.current.interrupt([command], (values, current) =>
+      runAudioCommands(
+        values,
+        () =>
+          current() &&
+          mounted.current &&
+          targetKey === state.current.mediaKey &&
+          targetGeneration === state.current.generation(),
+        (value) => send(value, targetGeneration),
+      ),
+    );
   }
   function previewAt(positionMs: number) {
     return enqueue([{ kind: "seek", positionMs }, { kind: "play" }]);
   }
   async function send(command: AudioCommand, targetGeneration: number) {
     const version = ++epoch.current;
+    const preparation =
+      enabledAudioLoops(state.current.track).length &&
+      (command.kind === "seek" || command.kind === "play")
+        ? ++preparationSerial.current
+        : null;
+    if (preparation !== null) setPreparing(true);
     setProblem("");
     try {
       const next = await host.audio(targetGeneration, command);
@@ -226,6 +258,13 @@ export function useAudio(
     } catch (error) {
       if (mounted.current && version === epoch.current)
         setProblem(error instanceof Error ? error.message : String(error));
+    } finally {
+      if (
+        mounted.current &&
+        preparation !== null &&
+        preparation === preparationSerial.current
+      )
+        setPreparing(false);
     }
     return false;
   }

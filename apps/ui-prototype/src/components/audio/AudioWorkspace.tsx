@@ -8,10 +8,9 @@ import { clipsInRange } from "./clip-selection";
 import { AudioResourceHeader } from "./AudioResourceHeader";
 import { AudioClipLibrary } from "./AudioClipLibrary";
 import { useAudioClipActions } from "./useAudioClipActions";
-import { AudioLoopControls } from "./AudioLoopControls";
+import { AudioWorkspaceTransport } from "./AudioWorkspaceTransport";
 import { DockPane } from "../layout/DockPane";
 import { AudioMarkerLibrary } from "./AudioMarkerBatch";
-import { AudioTransportBar } from "./AudioTransportBar";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type {
   ApplicationHost,
@@ -321,29 +320,14 @@ export const AudioWorkspace = forwardRef<
               </div>
             ) : (
               <>
-                <AudioTransportBar
-                  position={audio.position}
-                  requestedPosition={audio.requestedPosition}
-                  requestedVolume={audio.requestedVolume}
-                  command={audio.command}
-                  ready={!!audio.waveform}
-                  duration={track.outMs - track.inMs}
-                  markerCount={track.markers.length}
-                  blocked={blocked}
-                  addMarker={addMarker}
-                  editingOnly={sharedTransport}
-                />
-                <AudioLoopControls
+                <AudioWorkspaceTransport
                   key={trackIdentity}
                   track={track}
+                  session={audio}
+                  blocked={blocked}
+                  shared={sharedTransport}
                   selected={batch || clipBatch ? "" : selected}
-                  position={audio.position}
-                  disabled={
-                    blocked ||
-                    !audio.waveform ||
-                    audio.position.durationMs !== track.outMs - track.inMs
-                  }
-                  configure={audio.configureLoop}
+                  addMarker={addMarker}
                 />
                 <AudioWaveform
                   track={track}
