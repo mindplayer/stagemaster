@@ -95,10 +95,11 @@ pub(crate) fn prepare(project: &Path, manifest: &Path) -> Result<Prepared<Live>,
     let source = json!({"mode":"softwareOutput","physicalOutput":false,"execution":"sourceGroup","protocol":2,
         "layout":layout,"projectId":view.id,"sources":description,"fixtures":view.fixtures,
         "limits":{"sources":64,"manualChanges":512,"requestBytes":8192,"commandTtlMs":5000,"outputUniverses":1},
-        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch"]});
+        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject"]});
     let adapter = Catalog {
         entries,
         output: output.ok_or("来源组缺少节目")?,
+        project: document.encode()?,
     };
     let host = Host::start_backend(
         LiveBackend::new(session).map_err(|e| e.to_string())?,

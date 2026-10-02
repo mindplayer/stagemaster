@@ -39,6 +39,11 @@ impl Manager {
         }
         Ok(())
     }
+    pub fn discovery_path(&self) -> Result<PathBuf, String> {
+        files::read_run(&self.root)?
+            .map(|run| run.join("host/discovery.json"))
+            .ok_or_else(|| "请先在执行视图载入后台节目".into())
+    }
     fn terminal(&mut self) -> Result<bool, String> {
         if let Some(child) = &mut self.child {
             if child.try_wait().map_err(|e| e.to_string())?.is_some() {

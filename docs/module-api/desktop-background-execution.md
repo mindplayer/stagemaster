@@ -1,6 +1,6 @@
 # 桌面后台执行
 
-依据 [ADR-109](../development/decisions/PRODUCT-ADR-109-desktop-background-execution.md)，实施记录 [HOST-005](../development/tasks/HOST-005-desktop-background-execution.md)。此入口接实际 [v2 多来源进程](multi-source-process.md)，仍为单域软件输出，不会自动接物理设备或 UE。
+依据 [ADR-109](../development/decisions/PRODUCT-ADR-109-desktop-background-execution.md)，实施记录 [HOST-005](../development/tasks/HOST-005-desktop-background-execution.md)。此入口接实际 [v2 多来源进程](multi-source-process.md)，仍为单域软件输出，不会自动接物理设备；[后台预演](background-previsualization.md) 通过显式只读来源接 UE。
 
 ## 职责与接口
 
@@ -41,4 +41,4 @@ client.shutdown()                             // 明确结束整个后台
 
 入口位于“执行步骤 → 执行视图 → 后台执行”，可检索／多选载入，读取固定来源和步骤，明确控制、独立操作并关闭后台。编辑预演保留旧音乐／草稿语义；两者切换不让旧键盘操作控制后台。UI 当前不显示后台进度秒数，也不把编辑预演总控当后台总控。
 
-远程设备、物理输出、多时钟、专业预演观察、云端分发和生产安全仍按框架主线实施。若应用在创建启动记录与操作系统启动之间异常退出，且后台尚未留下生命周期证据，当前保留记录、禁止自动重启；专门的异常启动记录恢复工具后续补充，不能把连接超时视为进程死亡。
+后台只读预演已按 PREVIS-003 接入；远程设备、物理输出、多时钟、完整光学、云端分发和生产安全仍按框架主线实施。若应用在创建启动记录与操作系统启动之间异常退出，且后台尚未留下生命周期证据，当前保留记录、禁止自动重启；专门的异常启动记录恢复工具后续补充，不能把连接超时视为进程死亡。

@@ -116,6 +116,17 @@ bool FPreviewValidationTest::RunTest(const FString& Parameters)
     Object = Parse(TEXT(R"json({"protocol":2,"bridgeId":"bridge","generation":0,"version":"2","status":"running",
         "source":{"kind":"playback"},"canEdit":false,"lights":[{"fixtureId":"fixture","intensity":0.5,"color":[1,0.25,0]}]})json"));
     TestTrue(TEXT("playback frame accepted"), StageMaster::ReadFrame(Object, Frame, Error));
+    Object->GetObjectField(TEXT("source"))->SetStringField(TEXT("kind"), TEXT("background"));
+    Object->GetObjectField(TEXT("source"))->SetStringField(TEXT("hostId"), TEXT("host-a"));
+    Object->SetStringField(TEXT("status"), TEXT("background"));
+    TestTrue(TEXT("read-only background accepted"), StageMaster::ReadFrame(Object, Frame, Error));
+    Object->SetBoolField(TEXT("canEdit"), true);
+    TestFalse(TEXT("background never grants editing"), StageMaster::ReadFrame(Object, Frame, Error));
+    Object->SetBoolField(TEXT("canEdit"), false);
+    Object->GetObjectField(TEXT("source"))->RemoveField(TEXT("hostId"));
+    TestFalse(TEXT("background requires bound identity"), StageMaster::ReadFrame(Object, Frame, Error));
+    Object->GetObjectField(TEXT("source"))->SetStringField(TEXT("kind"), TEXT("playback"));
+    Object->SetStringField(TEXT("status"), TEXT("running"));
     Object->GetArrayField(TEXT("lights"))[0]->AsObject()->SetNumberField(TEXT("intensity"), 1.1);
     TestFalse(TEXT("unbounded brightness rejected"), StageMaster::ReadFrame(Object, Frame, Error));
     TestEqual(TEXT("bad frame retains previous light values"), Frame.Lights[0].Intensity, 0.5f);

@@ -13,6 +13,9 @@ pub(crate) trait Application: Profile {
     fn state(state: &Self::State, context: &Self::Context) -> Value;
     fn receipt(receipt: Self::Receipt, context: &Self::Context) -> Value;
     fn frame(frame: &Frame<Self>) -> Value;
+    fn project(_context: &Self::Context) -> Option<&[u8]> {
+        None
+    }
 }
 impl Application for Device {
     const PROTOCOL: u8 = 1;

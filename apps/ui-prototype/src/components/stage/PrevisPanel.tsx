@@ -104,6 +104,10 @@ export function PrevisPanel({
     };
   }, [host, followCurrent, sceneId]);
   const source = status?.source;
+  const background = source?.kind === "background";
+  const unmodeled = background
+    ? (status?.background?.unmodeledFixtures ?? [])
+    : limitedFixtures.map((f) => f.name);
   const value =
     followCurrent && currentScene
       ? "current"
@@ -120,7 +124,11 @@ export function PrevisPanel({
     void run(async () => {
       revision.current++;
       setStatus(
-        await host.previs({ kind: "source", generation: generation(), source }),
+        await host.previs(
+          value === "background"
+            ? { kind: "background", generation: generation() }
+            : { kind: "source", generation: generation(), source },
+        ),
       );
       onFollowCurrent?.(follow);
     });
@@ -155,6 +163,7 @@ export function PrevisPanel({
             {currentScene && <option value="current">当前场景 · 静态值</option>}
             <option value="defaults">灯具默认值</option>
             <option value="playback">跟随播放预览</option>
+            <option value="background">后台节目 · 只读</option>
             {scenes.map((scene) => (
               <option key={scene.id} value={`scene:${scene.id}`}>
                 {scene.name}
@@ -167,6 +176,9 @@ export function PrevisPanel({
               )}
           </select>
         </label>
+        {background && status?.background && (
+          <span>{status.background.projectName} · 已载入版本</span>
+        )}
         <span role="status">
           {problem ||
             status?.problem ||
@@ -177,12 +189,12 @@ export function PrevisPanel({
                 : "三维已关闭")}
         </span>
       </section>
-      {!!limitedFixtures.length && (
+      {!!unmodeled.length && (
         <details className="previs-limitations">
           <summary>
-            {limitedFixtures.length} 台灯具仅显示灯位与朝向，功能光束暂未模拟
+            {unmodeled.length} 台灯具仅显示灯位与朝向，功能光束暂未模拟
           </summary>
-          <p>{limitedFixtures.map((f) => f.name).join("、")}</p>
+          <p>{unmodeled.join("、")}</p>
           <p>
             色盘、图案、快门、棱镜、变焦、调焦和光圈尚无光学模型，因此隐藏这些灯具的光束。实际通道值以播放监看为准。
           </p>
@@ -191,10 +203,17 @@ export function PrevisPanel({
       <PrevisViewport
         url={status?.viewerUrl ?? null}
         busy={busy}
-        allowPlacement={allowPlacement}
-        placementLocked={placementLocked}
-        contextKey={contextKey}
-        {...interactions}
+        allowPlacement={allowPlacement && !background}
+        placementLocked={placementLocked || background}
+        contextKey={background ? `background:${source.hostId}` : contextKey}
+        {...(background
+          ? {
+              selectedIds: [],
+              onSelect: async () => true,
+              onPrepareMove: async () => false,
+              onTranslation: async () => false,
+            }
+          : interactions)}
       />
     </div>
   );

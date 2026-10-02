@@ -108,7 +108,7 @@ mod stage_locks;
 mod stage_translation;
 pub use audio_group::MarkerGroupAction;
 pub use compilation::{CompiledSequence, CompiledStep};
-pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, PreviewOutput};
+pub use output::{AttributeOutput, CompiledOutput, FixtureOutput, OutputObserver, PreviewOutput};
 pub use rigging::{RigAttachment, RigKind, RigLayout, RigShape};
 pub use sequence::{Repeat, SequenceEdit, Tracking};
 pub use sequence_script::StepScript;

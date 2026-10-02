@@ -15,6 +15,9 @@ pub(crate) enum Source {
         scene_id: String,
     },
     Playback,
+    Background {
+        host_id: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -57,6 +60,7 @@ pub(crate) enum Request {
     Status,
     Enable,
     Disable,
+    Background { generation: u32 },
     Source { generation: u32, source: Source },
     Editing { generation: u32, allowed: bool },
 }

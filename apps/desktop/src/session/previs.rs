@@ -54,7 +54,8 @@ impl Session {
         Ok(InputFrame {
             revision: self.previs_revision(),
             source: self.previs_source.clone(),
-            can_edit: self.previs_edit_allowed,
+            can_edit: self.previs_edit_allowed
+                && !matches!(self.previs_source, Source::Background { .. }),
             playback,
             master: self.output_control.master(),
         })
@@ -104,6 +105,9 @@ impl Session {
         version: &str,
     ) -> Result<(), String> {
         self.guard(generation)?;
+        if matches!(self.previs_source, Source::Background { .. }) {
+            return Err("后台场地仅供观察，请切换到编辑来源后修改灯位".into());
+        }
         if version != self.content_version.to_string() {
             return Err("场地版本已变化，请刷新三维预演".into());
         }

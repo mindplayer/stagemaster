@@ -11,6 +11,12 @@ use tokio::sync::Mutex;
 
 pub(crate) struct Service(Arc<Mutex<Manager>>);
 impl Service {
+    pub fn discovery_path(&self) -> Result<PathBuf, String> {
+        self.0
+            .try_lock()
+            .map_err(|_| "后台操作正在处理，请稍后重试")?
+            .discovery_path()
+    }
     pub fn new(app: &tauri::AppHandle, root: PathBuf) -> Self {
         // An unavailable bundled program is reported on preparation, not an editor startup failure.
         let binary = process::binary(app).unwrap_or_else(|_| PathBuf::new());

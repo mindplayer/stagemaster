@@ -25,6 +25,15 @@ impl Transport {
         suffix: &str,
         body: Option<Value>,
     ) -> Result<T, String> {
+        let bytes = self.bytes(method, suffix, body).await?;
+        serde_json::from_slice(&bytes).map_err(|_| "后台响应格式无效".into())
+    }
+    pub async fn bytes(
+        &self,
+        method: Method,
+        suffix: &str,
+        body: Option<Value>,
+    ) -> Result<Vec<u8>, String> {
         let control = method != Method::GET;
         let mut request = self
             .client
@@ -65,6 +74,6 @@ impl Transport {
                 status.as_u16()
             ));
         }
-        serde_json::from_slice(&bytes).map_err(|_| "后台响应格式无效".into())
+        Ok(bytes)
     }
 }

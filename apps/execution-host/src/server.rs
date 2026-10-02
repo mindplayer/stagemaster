@@ -70,6 +70,7 @@ pub(crate) async fn serve<M: Application>(
     let route = |suffix: &str| format!("/v{}/{{host}}{suffix}", M::PROTOCOL);
     let router = Router::new()
         .route(&route("/source"), get(source::<M>))
+        .route(&route("/project"), get(project::<M>))
         .route(&route("/state"), get(state::<M>))
         .route(&route("/sessions"), post(create_session::<M>))
         .route(&route("/sessions/{session}/commands"), post(submit::<M>))
@@ -160,6 +161,16 @@ async fn limited(request: Request<Body>, next: Next) -> Response {
 }
 async fn source<M: Application>(State(context): State<Arc<Context<M>>>) -> Json<Value> {
     Json(context.service.source.clone())
+}
+async fn project<M: Application>(
+    State(context): State<Arc<Context<M>>>,
+) -> Result<Response, Failure> {
+    let bytes = M::project(&context.service.adapter).ok_or(Failure(
+        StatusCode::NOT_FOUND,
+        "unsupported",
+        "此后台不提供固定工程观察",
+    ))?;
+    Ok(([(header::CONTENT_TYPE, "application/json")], bytes.to_vec()).into_response())
 }
 async fn state<M: Application>(
     State(context): State<Arc<Context<M>>>,

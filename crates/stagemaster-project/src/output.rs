@@ -1,7 +1,9 @@
 //! Validated fixture bindings and output encoding, independent of scene timing.
 mod live;
 mod manual;
+mod observed;
 use crate::{array, text};
+pub use observed::OutputObserver;
 use serde::Serialize;
 use stagemaster_dmx::{
     ChannelMapping, DmxAddress, FixtureProfile, Patch, PatchedFixture, Universe,

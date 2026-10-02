@@ -2,7 +2,7 @@
 
 初始草案日期：2026-09-11。依据：[架构 v0.5](../architecture.md)、[完整目标再评估](../architecture-evolution-review.md)、[声光视频设计](../audiovisual-stage-design.md)与[硬件控制面](../hardware-control-surfaces.md)。初始伪 API 描述计划中的接口、调用和约束；后续运行契约按各工单维护，不能将草案类型等同于已实现服务或完整跨设备播放。
 
-HOST-005 已提供[桌面后台执行](desktop-background-execution.md)：独立 Rust 客户端、随包后台、明确控制会话和来源操作，重开只读观察，退出桌面不停止后台。复用 HOST-004 的[多来源独立进程](multi-source-process.md)，旧 v1 保留；旧音频／草稿编辑预演尚未迁移，后台物理输出与专业渲染观察后续。
+HOST-005 已提供[桌面后台执行](desktop-background-execution.md)：独立 Rust 客户端、随包后台、明确控制会话和来源操作，重开只读观察，退出桌面不停止后台。复用 HOST-004 的[多来源独立进程](multi-source-process.md)，旧 v1 保留；旧音频／草稿编辑预演尚未迁移，[后台只读预演](background-previsualization.md) 已接固定场地／完整软件帧和独立 Reader，原生关闭／重开 UE 不改变执行与控制权；后台物理输出与完整专业光学后续。
 
 0.3 在 0.2 的外部控制、监看与硬件边界上，拆分操作会话与节目上下文、稳定监看键与连接引用、工程包与执行包，补齐单域编译／激活、空运行状态及服务契约声明。协议草案为 draft-0.3；这是设计阶段的破坏性修订，不宣称兼容旧版或已有迁移实现。
 

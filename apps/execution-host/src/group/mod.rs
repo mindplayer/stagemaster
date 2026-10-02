@@ -22,6 +22,7 @@ pub(crate) struct Entry {
 pub(crate) struct Catalog {
     pub entries: Vec<Entry>,
     pub output: CompiledOutput,
+    pub project: Vec<u8>,
 }
 impl Application for Live {
     const PROTOCOL: u8 = 2;
@@ -92,5 +93,8 @@ impl Application for Live {
     }
     fn frame(frame: &Frame<Self>) -> Value {
         projection::frame(frame)
+    }
+    fn project(catalog: &Catalog) -> Option<&[u8]> {
+        Some(&catalog.project)
     }
 }

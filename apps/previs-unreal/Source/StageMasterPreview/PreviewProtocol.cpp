@@ -185,8 +185,13 @@ bool ReadFrame(const TSharedPtr<FJsonObject>& Object, FFrame& Out, FString& Erro
     const TArray<TSharedPtr<FJsonValue>>* Lights = nullptr;
     if (!ReadStamp(Object, Next.Stamp) || !Text(Object, TEXT("status"), Next.Status) || StatusLabel(Next.Status).IsEmpty() ||
         !ObjectField(Object, TEXT("source"), Source) || !Text(Source, TEXT("kind"), Next.Source) ||
-        (Next.Source != TEXT("defaults") && Next.Source != TEXT("scene") && Next.Source != TEXT("playback")) ||
+        (Next.Source != TEXT("defaults") && Next.Source != TEXT("scene") && Next.Source != TEXT("playback") && Next.Source != TEXT("background")) ||
         !Object->TryGetBoolField(TEXT("canEdit"), Next.CanEdit) || !Array(Object, TEXT("lights"), Lights, 128)) return false;
+    if (Next.Source == TEXT("background"))
+    {
+        FString HostId;
+        if (Next.CanEdit || !Text(Source, TEXT("hostId"), HostId)) return false;
+    }
     TSet<FString> Ids;
     for (const auto& Value : *Lights)
     {
@@ -231,6 +236,7 @@ TSharedPtr<FJsonObject> MoveRequest(const FStamp& Stamp, const FFixture& Fixture
 }
 FString StatusLabel(const FString& Status)
 {
+    if (Status == TEXT("background")) return TEXT("后台节目 · 只读观察");
     if (Status == TEXT("editing")) return TEXT("场景预演");
     if (Status == TEXT("idle")) return TEXT("待执行");
     if (Status == TEXT("running")) return TEXT("正在执行");

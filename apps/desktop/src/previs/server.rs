@@ -1,3 +1,6 @@
+#[path = "editing.rs"]
+mod editing;
+use super::background::{Background, SharedBackground};
 use super::protocol::{Frame, PlacementRequest, Source, Stamp};
 use super::{SharedSession, Status};
 use axum::{
@@ -9,6 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
+use editing::{frame_response, scene_response};
 use serde::Serialize;
 use std::{
     net::SocketAddr,
@@ -41,6 +45,7 @@ struct SceneResponse<'a> {
 }
 struct Context {
     shared: SharedSession,
+    background: SharedBackground,
     bridge_id: String,
     authorization: String,
     // Lock held through the mutation: disable revokes even already-authenticated requests.
@@ -66,13 +71,22 @@ impl Server {
             )
             .env("STAGEMASTER_PREVIS_SESSION", &self.context.bridge_id);
     }
+    #[cfg(test)]
     pub(super) async fn start(shared: SharedSession, changed: Changed) -> Result<Self, String> {
+        Self::with_background(shared, changed, SharedBackground::default()).await
+    }
+    pub(super) async fn with_background(
+        shared: SharedSession,
+        changed: Changed,
+        background: SharedBackground,
+    ) -> Result<Self, String> {
         let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0))
             .await
             .map_err(|_| "无法建立本机预演连接")?;
         let address = listener.local_addr().map_err(|_| "无法读取预演端口")?;
         let context = Arc::new(Context {
             shared,
+            background,
             changed,
             bridge_id: uuid::Uuid::new_v4().to_string(),
             authorization: format!(
@@ -129,6 +143,7 @@ impl Server {
             viewer_url: None,
             source,
             problem: activity.and_then(|a| a.problem.clone()),
+            background: None,
         }
     }
 }
@@ -207,7 +222,67 @@ fn credential_matches(headers: &HeaderMap, expected: &str) -> bool {
 }
 
 async fn scene(State(context): State<Arc<Context>>) -> Result<Response, Failure> {
+    if let Some(background) = background(&context)? {
+        let bytes = serde_json::to_vec(&SceneResponse {
+            stamp: Stamp::new(&context.bridge_id, background.revision),
+            scene: &background.scene,
+        })
+        .map_err(|_| Failure::invalid("后台场地序列化失败"))?;
+        if bytes.len() > MAX_SCENE_BYTES {
+            return Err(Failure::invalid("场地预演数据超出 32 MiB 限制"));
+        }
+        return Ok(([(header::CONTENT_TYPE, "application/json")], bytes).into_response());
+    }
     blocking(context, |context| scene_response(&context)).await
+}
+async fn frame(State(context): State<Arc<Context>>) -> Result<Json<Frame>, Failure> {
+    if let Some(binding) = background(&context)? {
+        let lights = match binding.lights().await {
+            Ok(lights) => lights,
+            Err(message) => {
+                if let Ok(mut activity) = context.activity.lock() {
+                    activity.problem = Some(message.clone());
+                }
+                return Err(Failure::conflict(message));
+            }
+        };
+        let current = background(&context)?.ok_or_else(|| Failure::conflict("预演来源已变化"))?;
+        if !Arc::ptr_eq(&current, &binding) {
+            return Err(Failure::conflict("后台观察已变化"));
+        }
+        let mut activity = context.activity.lock().map_err(|_| Failure::busy())?;
+        activity.seen = Some(Instant::now());
+        activity.problem = None;
+        return Ok(Json(Frame {
+            stamp: Stamp::new(&context.bridge_id, binding.revision),
+            source: Source::Background {
+                host_id: binding.host_id.clone(),
+            },
+            status: "background",
+            can_edit: false,
+            lights,
+        }));
+    }
+    blocking(context, |context| frame_response(&context)).await
+}
+fn background(context: &Context) -> Result<Option<Arc<Background>>, Failure> {
+    let source = context
+        .shared
+        .try_lock()
+        .map_err(|_| Failure::busy())?
+        .previs_source();
+    let Source::Background { host_id } = source else {
+        return Ok(None);
+    };
+    let value = context
+        .background
+        .lock()
+        .map_err(|_| Failure::busy())?
+        .current
+        .clone()
+        .filter(|value| value.host_id == host_id)
+        .ok_or_else(|| Failure::conflict("请重新连接后台三维来源"))?;
+    Ok(Some(value))
 }
 async fn blocking<T: Send + 'static>(
     context: Arc<Context>,
@@ -225,114 +300,6 @@ async fn blocking<T: Send + 'static>(
     })
     .await
     .map_err(|_| Failure::busy())?
-}
-fn scene_response(context: &Context) -> Result<Response, Failure> {
-    let cached = context.cache.lock().map_err(|_| Failure::busy())?.clone();
-    let (revision, document) = {
-        let session = context.shared.try_lock().map_err(|_| Failure::busy())?;
-        let revision = session.previs_revision();
-        let document = if cached
-            .as_ref()
-            .is_some_and(|c| c.version == revision.content)
-        {
-            None
-        } else {
-            Some(session.previs_document().map_err(Failure::conflict)?)
-        };
-        (revision, document)
-    };
-    let cached = if let Some(document) = document {
-        let projected = stagemaster_previs::scene(&document).map_err(Failure::invalid)?;
-        Arc::new(Cached {
-            version: revision.content,
-            scene: projected,
-            rig: stagemaster_previs::LightRig::new(&document),
-        })
-    } else {
-        cached.ok_or_else(Failure::busy)?
-    };
-    let bytes = serde_json::to_vec(&SceneResponse {
-        stamp: Stamp::new(&context.bridge_id, revision),
-        scene: &cached.scene,
-    })
-    .map_err(|_| Failure::invalid("场地序列化失败"))?;
-    if bytes.len() > MAX_SCENE_BYTES {
-        return Err(Failure::invalid("场地预演数据超出 32 MiB 限制"));
-    }
-    // A concurrent edit must not be reported as a current scene.
-    let current = context
-        .shared
-        .try_lock()
-        .map_err(|_| Failure::busy())?
-        .previs_revision();
-    if current != revision {
-        return Err(Failure::conflict("场地已变化，请重新读取"));
-    }
-    let mut cache = context.cache.lock().map_err(|_| Failure::busy())?;
-    if cache.as_ref().is_none_or(|c| c.version <= cached.version) {
-        *cache = Some(cached);
-    }
-    Ok(([(header::CONTENT_TYPE, "application/json")], bytes).into_response())
-}
-async fn frame(State(context): State<Arc<Context>>) -> Result<Json<Frame>, Failure> {
-    blocking(context, |context| frame_response(&context)).await
-}
-fn frame_response(context: &Context) -> Result<Json<Frame>, Failure> {
-    let cached = context
-        .cache
-        .lock()
-        .map_err(|_| Failure::busy())?
-        .clone()
-        .ok_or_else(|| Failure::conflict("请先读取场地"))?;
-    let input = context
-        .shared
-        .try_lock()
-        .map_err(|_| Failure::busy())?
-        .previs_frame()
-        .map_err(Failure::invalid)?;
-    if cached.version != input.revision.content {
-        return Err(Failure::conflict("场地已变化，请重新读取"));
-    }
-    let (status, mut lights) = match &input.source {
-        Source::Defaults => (
-            "editing",
-            cached.rig.editing(None).map_err(Failure::invalid)?,
-        ),
-        Source::Scene { scene_id } => match cached.rig.editing(Some(scene_id)) {
-            Ok(lights) => ("editing", lights),
-            Err(_) => ("missingScene", vec![]),
-        },
-        Source::Playback => {
-            let output = input.playback.ok_or_else(Failure::busy)?;
-            let lights = output
-                .output
-                .as_ref()
-                .map_or_else(Vec::new, |values| cached.rig.playback(values));
-            (output.status, lights)
-        }
-    };
-    if !matches!(input.source, Source::Playback) {
-        let factor = f64::from(input.master.effective_percent()) / 100.0;
-        for light in &mut lights {
-            light.intensity *= factor;
-        }
-    }
-    let mut activity = context.activity.lock().map_err(|_| Failure::busy())?;
-    activity.seen = Some(Instant::now());
-    activity.problem = match status {
-        "missingScene" => Some("原预演场景已删除，请重新选择".into()),
-        "stalePlayback" => Some("工程已修改，请重新载入场景列表预览".into()),
-        "unloaded" => Some("请先载入一个场景列表".into()),
-        _ => None,
-    };
-    Ok(Json(Frame {
-        stamp: Stamp::new(&context.bridge_id, input.revision),
-        source: input.source,
-        status,
-        can_edit: input.can_edit
-            && !matches!(status, "stalePlayback" | "missingScene" | "unloaded"),
-        lights,
-    }))
 }
 async fn placement(
     State(context): State<Arc<Context>>,

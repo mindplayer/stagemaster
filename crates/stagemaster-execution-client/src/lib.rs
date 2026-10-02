@@ -2,9 +2,12 @@
 #![allow(clippy::missing_errors_doc)]
 mod control;
 mod discovery;
+mod freshness;
 mod http;
+mod reader;
 mod types;
 use http::Transport;
+pub use reader::{Reader, Sample};
 use reqwest::Method;
 use serde_json::Value;
 use std::path::Path;

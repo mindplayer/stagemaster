@@ -1,6 +1,8 @@
 //! Desktop transport boundary. The renderer never owns a document, show clock or output lease.
+mod background;
 pub(crate) mod protocol;
 mod renderer;
+mod selection;
 mod server;
 mod session_access;
 
@@ -19,6 +21,7 @@ pub(crate) type SharedSession = Arc<Mutex<Session>>;
 pub(crate) struct Bridge {
     runtime: tokio::sync::Mutex<Runtime>,
     closing: AtomicBool,
+    background: background::SharedBackground,
 }
 
 #[derive(Default)]
@@ -75,6 +78,7 @@ pub(crate) struct Status {
     viewer_url: Option<String>,
     source: Source,
     problem: Option<String>,
+    background: Option<background::Summary>,
 }
 
 #[tauri::command]
@@ -85,28 +89,8 @@ pub(crate) async fn previs_request(
     let state = app.state::<Bridge>();
     state.check_open()?;
     let shared = app.state::<SharedSession>().inner().clone();
-    match request {
-        Request::Source {
-            generation,
-            ref source,
-        } => {
-            session_access::access(&shared, |session| {
-                session.set_previs_source(generation, source.clone())
-            })
-            .await?;
-        }
-        Request::Editing {
-            generation,
-            allowed,
-        } => {
-            session_access::access(&shared, |session| {
-                session.set_previs_editing(generation, allowed)
-            })
-            .await?;
-        }
-        Request::Status | Request::Enable | Request::Disable => {}
-    }
     let mut runtime = state.access().await?;
+    selection::apply(&app, &state, &shared, &request).await?;
     runtime.observe_exit();
     match request {
         Request::Enable
@@ -122,11 +106,12 @@ pub(crate) async fn previs_request(
             .await?;
             runtime.stop();
             let notify_app = app.clone();
-            let server = server::Server::start(
+            let server = server::Server::with_background(
                 shared.clone(),
                 Arc::new(move || {
                     let _ = notify_app.emit("project-updated", ());
                 }),
+                state.background.clone(),
             )
             .await?;
             let renderer = renderer::Renderer::start(&app, &server)?;
@@ -149,6 +134,7 @@ pub(crate) async fn previs_request(
             viewer_url: None,
             source: source.clone(),
             problem: runtime.problem.clone(),
+            background: None,
         },
         |server| server.status(source, Instant::now()),
     );
@@ -156,6 +142,16 @@ pub(crate) async fn previs_request(
         .renderer
         .as_ref()
         .map(|renderer| renderer.viewer_url().to_string());
+    if let Source::Background { host_id } = &status.source {
+        status.background = state
+            .background
+            .lock()
+            .map_err(|_| "后台观察不可用")?
+            .current
+            .as_ref()
+            .filter(|value| &value.host_id == host_id)
+            .map(|value| value.summary());
+    }
     Ok(status)
 }
 
