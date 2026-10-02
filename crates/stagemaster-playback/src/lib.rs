@@ -6,12 +6,16 @@ extern crate alloc;
 use alloc::{string::String, vec::Vec};
 mod crossfade;
 mod effect;
+mod loop_schedule;
 mod output_master;
 mod plan;
 mod rate_clock;
 mod render;
 pub use crossfade::{CrossfadeTiming, SceneCrossfade};
 pub use effect::{Curve, EffectChannel, Keyframe, Transition};
+pub use loop_schedule::{
+    LoopPlayback, LoopPlays, LoopPosition, LoopRegion, LoopSchedule, MAX_LOOP_REGIONS,
+};
 pub use output_master::OutputMaster;
 pub use plan::{Plan, Step};
 pub use rate_clock::RateClock;

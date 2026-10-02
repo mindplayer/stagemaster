@@ -3291,6 +3291,13 @@
           "items": {
             "$ref": "#/$defs/AudioLightingClip"
           }
+        },
+        "loopRegions": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/AudioLoopRegion"
+          }
         }
       },
       "required": [
@@ -3299,6 +3306,39 @@
         "outMs",
         "markers"
       ],
+      "additionalProperties": false
+    },
+    "AudioLoopPlays": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "count" },
+            "count": { "type": "integer", "minimum": 1, "maximum": 4294967295 }
+          },
+          "required": ["kind", "count"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "kind": { "const": "untilExit" } },
+          "required": ["kind"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AudioLoopRegion": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "startMs": { "type": "integer", "minimum": 0, "maximum": 3600000 },
+        "endMs": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+        "plays": { "$ref": "#/$defs/AudioLoopPlays" },
+        "enabled": { "type": "boolean" },
+        "locked": { "type": "boolean" }
+      },
+      "required": ["id", "name", "startMs", "endMs", "plays", "enabled", "locked"],
       "additionalProperties": false
     },
     "AudioAsset": {

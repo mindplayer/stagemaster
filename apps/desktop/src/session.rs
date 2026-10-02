@@ -15,6 +15,8 @@ mod audio_clip_trim_tests;
 #[cfg(test)]
 mod audio_crossfade_tests;
 #[cfg(test)]
+mod audio_loop_region_tests;
+#[cfg(test)]
 mod audio_tests;
 mod files;
 mod output;

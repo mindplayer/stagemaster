@@ -201,4 +201,6 @@ AUDIO-008 按 [ADR-072](../development/decisions/PRODUCT-ADR-072-lighting-clip-e
 
 AUDIO-010 在独立灯光片段增加可选 `effectOffsetMs`（缺省 0、最大 3,600,000 且加片段长度不越界），非零须 `media.audio-clip-offset@1`。用于保持分割后的动态效果源时间，进入渐变仍按片段本地时钟；当前仅允许渐变结束后分割，完整边界见 [ADR-073](../development/decisions/PRODUCT-ADR-073-audio-clip-effect-offset.md)。现有设备包不支持非零偏移，不能静默编码。
 
+AUDIO-020 新增可选 `media.audioEditing.loopRegions` 与 `media.audio-loop-regions@1`：最多 128 个具独立身份的有序非重叠循环区段、固定总次数／持续循环、启停与锁定。工程规则与整数调度见[演出循环契约](../module-api/performance-loops.md)；原生音频与 UI 尚未接通，格式支持不代表已经可播放，启用区段由当前播放器明确拒绝。
+
 STAGE-004 按 [ADR-075](../development/decisions/PRODUCT-ADR-075-curved-seating.md) 增加可选 seating.arc（radiusMeters）与 `stage.seating.arc@1`，省略／null 保持矩形；实际弧形不得无能力声明。参数和几何约束见[场地契约](../module-api/stage-spaces.md#stage-004-弧形座区)，逐座生成角度不写入工程。当前实施验收中。

@@ -6,6 +6,12 @@ mod audio_segment;
 pub use audio_crossfade::{ClipCrossfadeSource, ClipEntryCrossfade, ClipFadeMode};
 pub use audio_segment::{AudioSegmentPlan, AudioSegmentPlayer, CompiledAudioSegment};
 mod audio;
+mod audio_loop_edit;
+mod audio_loops;
+pub use audio_loop_edit::{AudioLoopEdit, AudioLoopGroupAction};
+pub use audio_loops::{
+    AudioLoopPlays, AudioLoopRegion, CompiledAudioLoops, MAX_AUDIO_LOOP_REGIONS,
+};
 mod audio_clip_compile;
 mod audio_clip_edit;
 mod audio_clip_fade;

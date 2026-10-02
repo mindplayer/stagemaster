@@ -17,6 +17,10 @@ struct Lighting {
 }
 impl AudioPreview {
     pub fn load(&mut self, path: PathBuf, track: AudioTimeline) -> Result<(), String> {
+        // AUDIO-020: remove this guard only when the native multi-region source is connected.
+        if track.loop_regions.iter().any(|r| r.enabled) {
+            return Err("当前播放器尚不支持演出循环，音乐未载入".into());
+        }
         self.transport.load(path, track.in_ms, track.out_ms)?;
         self.track = Some(track);
         self.lighting = None;
@@ -35,7 +39,8 @@ impl AudioPreview {
             (Some(current), Some(next))
                 if current.asset == next.asset
                     && current.in_ms == next.in_ms
-                    && current.out_ms == next.out_ms =>
+                    && current.out_ms == next.out_ms
+                    && !next.loop_regions.iter().any(|r| r.enabled) =>
             {
                 *current = next;
                 self.lighting = None;

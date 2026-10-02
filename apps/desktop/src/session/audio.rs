@@ -29,8 +29,8 @@ impl Session {
         track: AudioTimeline,
     ) -> Result<(), String> {
         self.guard(generation)?;
-        self.preview.clear();
         self.audio.load(path, track)?;
+        self.preview.clear();
         Ok(())
     }
     pub(crate) fn audio_request(

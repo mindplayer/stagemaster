@@ -2,9 +2,11 @@ import { auditCrossfades } from "./audio-crossfade-audit.mjs";
 import assert from 'node:assert/strict';
 import { auditAudioClips } from './audio-clips-audit.mjs';
 import { auditClipFades } from './audio-fade-audit.mjs';
+import { auditAudioLoops } from './audio-loop-audit.mjs';
 
 export function auditAudioEditing(project, declared, add, get) {
   const track = project.media?.audioEditing;
+  auditAudioLoops(track, declared, add);
   auditClipFades(track, declared, get);
   auditCrossfades(track, declared, get);
   if (!track) { assert(!declared.has('media.audio-clip-state@1') && !declared.has('media.audio-clip-offset@1'), '片段状态或效果起点能力缺少音乐轨道'); assert(!declared.has('media.audio-clips@1'), '独立片段能力缺少音乐轨道'); return; }

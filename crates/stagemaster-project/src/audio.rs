@@ -37,6 +37,8 @@ pub struct AudioTimeline {
     pub markers: Vec<AudioMarker>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lighting_clips: Option<Vec<crate::AudioLightingClip>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub loop_regions: Vec<crate::AudioLoopRegion>,
 }
 impl AudioTimeline {
     #[must_use]
@@ -59,6 +61,9 @@ impl AudioTimeline {
     deny_unknown_fields
 )]
 pub enum AudioEdit {
+    LoopRegions {
+        command: crate::AudioLoopEdit,
+    },
     SetAsset {
         asset: AudioAsset,
     },
@@ -146,6 +151,7 @@ fn clear(root: &mut Value) -> Result<(), String> {
                 && r["key"] != crate::audio_clip_offset::CAPABILITY
                 && r["key"] != crate::audio_clip_fade::CAPABILITY
                 && r["key"] != crate::audio_crossfade::CAPABILITY
+                && r["key"] != crate::audio_loops::CAPABILITY
         });
     Ok(())
 }
@@ -163,11 +169,13 @@ pub(super) fn apply(root: &mut Value, command: AudioEdit) -> Result<(), String> 
             asset: asset.clone(),
             markers: vec![],
             lighting_clips: None,
+            loop_regions: vec![],
         }
     } else {
         read(root).ok_or("请先导入音乐")?
     };
     match command {
+        AudioEdit::LoopRegions { command } => crate::audio_loop_edit::apply(&mut track, command)?,
         command @ (AudioEdit::ConvertLightingClips
         | AudioEdit::AddLightingClip { .. }
         | AudioEdit::TrimLightingClip { .. }
@@ -241,6 +249,7 @@ fn write_track(root: &mut Value, track: &AudioTimeline) -> Result<(), String> {
             .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
     }
     crate::audio_clip_fade::declare_if_needed(root, track)?;
+    crate::audio_loops::declare_if_needed(root, track)?;
     crate::audio_crossfade_validate::declare_if_needed(root, track)?;
     crate::audio_clip_state::declare_if_needed(root, track)?;
     crate::audio_clip_offset::declare_if_needed(root, track)?;
@@ -258,6 +267,7 @@ fn write_track(root: &mut Value, track: &AudioTimeline) -> Result<(), String> {
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
+        crate::audio_loops::validate(root, None)?;
         crate::audio_clip_fade::validate(root, None)?;
         crate::audio_crossfade_validate::validate(root, None)?;
         crate::audio_clip_state::validate(root, None)?;
@@ -315,6 +325,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         previous = Some(marker.time_ms);
     }
     crate::audio_lighting::validate(root, &track)?;
+    crate::audio_loops::validate(root, Some(&track))?;
     crate::audio_clips::validate(root, &track)?;
     crate::audio_clip_fade::validate(root, Some(&track))?;
     crate::audio_crossfade_validate::validate(root, Some(&track))?;

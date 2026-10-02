@@ -24,6 +24,7 @@ fn document() -> (Document, AudioTimeline) {
         in_ms: 500,
         out_ms: 9500,
         lighting_clips: None,
+        loop_regions: vec![],
         markers: vec![
             AudioMarker {
                 id: "a0000000-0000-4000-8000-000000000001".into(),
