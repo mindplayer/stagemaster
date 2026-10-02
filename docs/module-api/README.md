@@ -10,6 +10,8 @@
 
 2026-09-24 新增独立的[AI 辅助编辑扩展 draft-1](assisted-editing.md)，依据 [ADR-011](../development/decisions/PRODUCT-ADR-011-assisted-editing.md)。复用现有工程命令，补能力发现、受限上下文、不可变提案、范围内连续编辑及撤销；未改主协议／StageClient，服务和模型尚未接入。
 
+2026-10-02 框架优先依据为 [ADR-097](../development/decisions/PRODUCT-ADR-097-integrated-stage-platform.md)：电脑、平板、手机和专业实体控台共用工程／应用语义；声光电执行、仿真渲染、设备传输与云端商业化分别拥有状态。宿主基础音频已有[实际接口](audio-editing.md)，泛化媒体执行与跨端服务仍按能力验证后细化；不能把本目录旧伪 API 的完整形状当成已实现 SDK，也不为每端复制一套核心。最新实现与剩余边界看 [STATE](../development/STATE.md) 和对应工单。
+
 ## 直接从哪里看
 
 [双动态场景交叉](scene-crossfade.md)：两个持续动态来源、独立源时间／交叉进度与可逆定位的 Rust 核心；工程格式、宿主与时间线界面已接入，完整回归与原生验收进行中，当前尚未结项。

@@ -1,12 +1,14 @@
 # stagemaster · 匀为舞台大师
 
-专业灯光编排、舞台预演与演出控制系统。能力对标 grandMA3／Avolites Titan，编排界面借鉴剪映式连续工作流。当前在 MacBook 开发，核心为 Rust，桌面为 Tauri 2＋React＋TypeScript；未来云端使用 Fastify＋PostgreSQL＋对象存储。
+声光电一体化的编排、现场控制与专业预演系统。编排／现场控对标 grandMA3／Avolites Titan，专业展示与仿真对标 Depence，编排界面借鉴剪映式连续工作流。长期覆盖电脑、平板、手机及专业实体控台，并支持云端资源／分发／商业授权与有线／无线解码器。当前在 MacBook 开发，核心为 Rust，桌面为 Tauri 2＋React＋TypeScript；未来云端使用 Fastify＋PostgreSQL＋对象存储。
+
+2026-10-02 当前优先级：先扎实共享工程、执行与同步、控制权、渲染、设备适配和云端商业化的框架边界，再按可用增量丰满具体操作。各端共享语义和接口，按设备能力适配交互、宿主及渲染。见 [ADR-097](docs/development/decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 与 [PLAN-003](docs/development/tasks/PLAN-003-platform-framework.md)。
 
 当前是具备真实编辑、音乐卡点、应用内 UE 和设备安装链路的开发版，**还不能作为完整商业控台交付**。RS485 物理 DMX 仍禁止发送，完整灯具功能、多执行器、跨设备声光同步和生产授权仍待实现／验收。首次目标仍为软件＋独立播放盒、一条可独立运行的 DMX 输出链。
 
 ## 当前入口
 
-更新至 2026-10-01、EFFECT-003（`ed240c4`）。[实现状态](docs/implementation-status.md)是当前能力与证据表；[开发状态](docs/development/STATE.md)记录最新工单、工作区和应用／硬件状态；历史过程见各工单。不要用早期研究文档的“尚未实现”替代当前结果。
+框架定位更新于 2026-10-02。[实现状态](docs/implementation-status.md)是能力与证据索引；[开发状态](docs/development/STATE.md)记录最新工单、工作区和应用／硬件状态；历史过程见各工单。不要用早期研究文档的“尚未实现”替代当前结果，也不把本次框架定位更新视为新增运行能力。
 
 - [独立产品审核](docs/product-audit-2026-10-01.md)：功能与体验差距、交付门槛及后续增量索引。
 - [当前执行计划](docs/development/execution-plan.md)、[产品能力规划](docs/product-capability-plan.md)：依赖和长期覆盖；规划不等于实现。
