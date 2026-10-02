@@ -1,13 +1,16 @@
-//! Deterministic, bounded single-list execution. The caller owns clocks and all I/O.
+//! Deterministic, bounded lighting execution and scene sampling. The caller owns clocks and all I/O.
 #![no_std]
 #![forbid(unsafe_code)]
 
 extern crate alloc;
 use alloc::{string::String, vec::Vec};
+mod crossfade;
 mod effect;
 mod output_master;
 mod plan;
 mod rate_clock;
+mod render;
+pub use crossfade::{CrossfadeTiming, SceneCrossfade};
 pub use effect::{Curve, EffectChannel, Keyframe, Transition};
 pub use output_master::OutputMaster;
 pub use plan::{Plan, Step};
@@ -138,30 +141,13 @@ impl Player {
     }
     fn render(&mut self) {
         let index = self.index.expect("active step");
-        let step = &self.plan.steps[index];
-        if self.elapsed_ms < step.delay_ms {
-            self.values.copy_from_slice(&self.from);
-            return;
-        }
-        let elapsed = self.elapsed_ms - step.delay_ms;
-        self.values.copy_from_slice(&step.target);
-        for effect in &self.plan.effects[index] {
-            self.values[effect.index] = effect.sample(elapsed, self.plan.effect_time_offset_ms);
-        }
-        let fade_elapsed = elapsed.saturating_add(self.plan.entry_fade_offset_ms);
-        if fade_elapsed < step.fade_ms {
-            let mut snap = self.plan.snap_attributes.iter().peekable();
-            for (index, (value, from)) in self.values.iter_mut().zip(&self.from).enumerate() {
-                if snap.peek().is_some_and(|&&i| usize::from(i) == index) {
-                    snap.next();
-                    continue;
-                }
-                let weighted = u64::from(*from) * (step.fade_ms - fade_elapsed)
-                    + u64::from(*value) * fade_elapsed;
-                *value = u16::try_from((weighted + step.fade_ms / 2) / step.fade_ms)
-                    .expect("bounded interpolation");
-            }
-        }
+        render::step(
+            &self.plan,
+            index,
+            self.elapsed_ms,
+            &self.from,
+            &mut self.values,
+        );
     }
     /// Execute a selected step from the current visible values; selection alone is external.
     /// # Errors

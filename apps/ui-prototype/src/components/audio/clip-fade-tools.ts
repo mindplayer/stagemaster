@@ -9,7 +9,8 @@ export function entryFadePreview(
   complete = false,
 ) {
   const changed =
-    source.sceneId !== next.sceneId || source.fadeMs !== next.fadeMs;
+    source.sceneId !== next.sceneId || source.fadeMs !== next.fadeMs ||
+    (source.fadeMode ?? "snapshot") !== (next.fadeMode ?? "snapshot");
   if (complete && changed)
     throw new AudioDraftError(
       "内部截取时请保留原场景和渐变，或使用重新安排",
@@ -17,7 +18,7 @@ export function entryFadePreview(
     );
   const fade = changed
     ? null
-    : (source.entryFade ??
+    : (source.entryCrossfade ?? source.entryFade ??
       (complete && source.fadeMs > 0
         ? { durationMs: source.fadeMs, offsetMs: 0 }
         : null));
@@ -27,6 +28,15 @@ export function entryFadePreview(
     throw new AudioDraftError("裁切开始不能早于原渐变零点", "clipStart");
   if (offsetMs + next.endMs - next.startMs > 3_600_000)
     throw new AudioDraftError("保留渐变源范围不能超过 3600 秒", "clipEnd");
+  if (!changed && source.entryCrossfade) {
+    const origin = source.entryCrossfade.source;
+    const elapsed = origin.elapsedMs + (trim ? next.startMs - source.startMs : 0);
+    if (elapsed < 0)
+      throw new AudioDraftError("裁切开始不能早于交叉来源零点", "clipStart");
+    const span = elapsed + next.endMs - next.startMs;
+    if (span + Math.max(origin.effectOffsetMs, origin.entryFade?.offsetMs ?? 0) > 3_600_000)
+      throw new AudioDraftError("交叉来源范围不能超过 3600 秒", "clipEnd");
+  }
   return {
     offsetMs,
     durationMs: fade.durationMs,
@@ -40,6 +50,6 @@ export function entryFadePreview(
 export function clipRestoreStart(clip: AudioLightingClip, complete = false) {
   const effect = clip.effectOffsetMs ?? 0;
   const fade =
-    clip.entryFade?.offsetMs ?? (complete && clip.fadeMs > 0 ? 0 : effect);
-  return Math.max(0, clip.startMs - Math.min(effect, fade));
+    clip.entryCrossfade?.offsetMs ?? clip.entryFade?.offsetMs ?? (complete && clip.fadeMs > 0 ? 0 : effect);
+  return Math.max(0, clip.startMs - Math.min(effect, fade, clip.entryCrossfade?.source.elapsedMs ?? effect));
 }

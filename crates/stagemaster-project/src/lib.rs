@@ -1,4 +1,10 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
+mod audio_crossfade;
+mod audio_crossfade_compile;
+mod audio_crossfade_validate;
+mod audio_segment;
+pub use audio_crossfade::{ClipCrossfadeSource, ClipEntryCrossfade, ClipFadeMode};
+pub use audio_segment::{AudioSegmentPlan, AudioSegmentPlayer, CompiledAudioSegment};
 mod audio;
 mod audio_clip_compile;
 mod audio_clip_edit;

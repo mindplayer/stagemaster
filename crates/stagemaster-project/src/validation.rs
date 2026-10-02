@@ -112,6 +112,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::audio_clip_state::CAPABILITY,
             crate::audio_clip_offset::CAPABILITY,
             crate::audio_clip_fade::CAPABILITY,
+            crate::audio_crossfade::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
             crate::fixture_appearance::CAPABILITY,

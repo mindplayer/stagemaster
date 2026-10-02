@@ -25,7 +25,7 @@ pub(super) fn split(
         return Err("分割位置必须在片段开始与结束之间".into());
     }
     let elapsed = time_ms - source.start_ms;
-    if elapsed < source.fade_ms && source.entry_fade.is_none() {
+    if elapsed < source.fade_ms && source.entry_fade.is_none() && source.entry_crossfade.is_none() {
         crate::audio_clip_fade::prepare(root, track, id)?;
     }
     let clips = track.lighting_clips.as_mut().expect("clip track");
@@ -38,7 +38,10 @@ pub(super) fn split(
         .ok_or("分割后的效果起点超出范围")?;
     right.id = crate::id();
     right.start_ms = time_ms;
-    if let Some(fade) = &mut right.entry_fade {
+    if let Some(fade) = &mut right.entry_crossfade {
+        fade.shift(i128::from(elapsed))?;
+        right.fade_ms = fade.visible_ms(right.end_ms - time_ms);
+    } else if let Some(fade) = &mut right.entry_fade {
         fade.offset_ms = fade
             .offset_ms
             .checked_add(elapsed)
@@ -46,6 +49,9 @@ pub(super) fn split(
         right.fade_ms = fade.visible_ms(right.end_ms - time_ms);
     } else {
         right.fade_ms = 0;
+    }
+    if let Some(fade) = &clips[index].entry_crossfade {
+        clips[index].fade_ms = fade.visible_ms(elapsed);
     }
     if let Some(fade) = &clips[index].entry_fade {
         clips[index].fade_ms = fade.visible_ms(elapsed);
@@ -81,5 +87,6 @@ pub(super) fn reset_entry(track: &mut AudioTimeline, id: &str) -> Result<(), Str
         return Err("此灯光片段已锁定，请先解锁".into());
     }
     clip.entry_fade = None;
+    clip.entry_crossfade = None;
     Ok(())
 }

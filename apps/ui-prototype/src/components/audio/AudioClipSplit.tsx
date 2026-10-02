@@ -11,11 +11,13 @@ export function AudioClipSplit({
   disabled,
   ready,
   actions,
+  sourceName,
 }: {
   clip: AudioLightingClip;
   disabled: boolean;
   ready: boolean;
   actions: ClipSplitActions;
+  sourceName?: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const focusPending = useRef(false);
@@ -70,9 +72,11 @@ export function AudioClipSplit({
   }
   return (
     <section className="audio-clip-split" aria-label="片段分割与效果起点">
-      {clip.entryFade && (
+      {(clip.entryFade || clip.entryCrossfade) && (
         <AudioClipEntryFade
-          fade={clip.entryFade}
+          fade={(clip.entryCrossfade ?? clip.entryFade)!}
+          dynamic={!!clip.entryCrossfade}
+          sourceName={sourceName}
           disabled={blocked}
           onReset={() => void run("resetEntry")}
         />

@@ -51,7 +51,7 @@ pub(super) fn validate(root: &Value, track: Option<&AudioTimeline>) -> Result<()
     }
     Ok(())
 }
-fn validate_fade(
+pub(super) fn validate_fade(
     root: &Value,
     clip: &AudioLightingClip,
     fade: &ClipEntryFade,
@@ -97,7 +97,7 @@ pub(super) fn prepare(root: &Value, track: &mut AudioTimeline, id: &str) -> Resu
         .position(|clip| clip.id == id)
         .ok_or("此灯光片段已不存在")?;
     let clip = &clips[index];
-    if clip.entry_fade.is_some() || clip.fade_ms == 0 {
+    if clip.entry_fade.is_some() || clip.entry_crossfade.is_some() || clip.fade_ms == 0 {
         return Ok(());
     }
     if clip.locked {
@@ -107,6 +107,11 @@ pub(super) fn prepare(root: &Value, track: &mut AudioTimeline, id: &str) -> Resu
         root: root.clone(),
         saved_revision: None,
     };
+    if clip.fade_mode == crate::ClipFadeMode::Dynamic {
+        let fade = Document::crossfade_origin(clips, clip)?;
+        clips[index].entry_crossfade = Some(fade);
+        return Ok(());
+    }
     let compiled = document.compile_clip(clips, clip)?;
     let from = compiled
         .output

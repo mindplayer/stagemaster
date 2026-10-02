@@ -15,6 +15,10 @@ pub struct AudioLightingClip {
     pub end_ms: u64,
     pub fade_ms: u64,
     pub locked: bool,
+    #[serde(default, skip_serializing_if = "crate::ClipFadeMode::is_snapshot")]
+    pub fade_mode: crate::ClipFadeMode,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub entry_crossfade: Option<crate::ClipEntryCrossfade>,
     #[serde(default, skip_serializing_if = "crate::audio_clip_offset::is_zero")]
     pub effect_offset_ms: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]

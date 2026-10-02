@@ -1,5 +1,7 @@
 # 当前开发状态
 
+AUDIO-019 完成（基线 `ad500e7`，结果为本次 `feat(audio): sustain both effects across clip crossfades` 提交）：Rust 双动态求值、严格工程来源／时间预算、唯一音频游标、单／批量过渡方式、交叉内分割／截取和引用审阅。700 Rust／302 UI／178 格式、严格检查／类型／桌面，以及原生取消／锁定／第三源拒绝／历史／UE 循环播放／保存重开通过，见[工单](tasks/AUDIO-019-dynamic-crossfade.md)／[ADR-095](decisions/PRODUCT-ADR-095-dynamic-crossfade-sampling.md)。独立副本 26 片段已保存，来源与灯具／场景／卡点保持；当前音乐停止于 0、局部循环关闭、UE 关闭、设备未连接。持续 goal active；接续正式演出区段循环，多轨与真实输出仍未完成。
+
 STAGE-005 完成（基线 `b9275f8`，结果为本次 `feat(stage): share fixture selection and move groups in 3D` 提交）：二维／三维共享有序选择、原子整组水平／升降、锁定／取消与版本保护；修复空白误选固定灯及遮挡下操作点命中。684 Rust／297 UI／7 UE、严格检查／类型／双端构建及原生不同高度整组、单灯历史、混合锁定、取消、俯视保护与保存重开通过，见[工单](tasks/STAGE-005-shared-3d-fixture-movement.md)／[ADR-094](decisions/PRODUCT-ADR-094-shared-3d-fixture-movement.md)。独立副本已保存，来源未改，UE 关闭、音乐 0、设备未连；持续 goal active，接续双场景动态交叉的时间线边界。旋转／缩放、混合构件组、三维框选与原生按住 Esc 验收仍后续。
 
 AUDIO-018 完成（基线 `2aba0fd`，结果为本次 `feat(audio): preserve entry fades across clip splits and slices` 提交）：渐变中分割、完整内部截取、有界连续属性快照与独立渐变时钟、显式重新计算及源范围保护；678 Rust／291 UI／160 格式、类型／严格检查／Xtensa 检查／桌面及原生取消／越界焦点／历史／保存重开通过，见[工单](tasks/AUDIO-018-preserved-entry-fades.md)／[ADR-093](decisions/PRODUCT-ADR-093-preserved-clip-entry-fades.md)。独立副本 25 片段已保存，原工程未改，音乐 0、UE 关闭、设备未连。持续 goal active；多轨、双动态交叉、正式演出循环及真实输出仍后续。

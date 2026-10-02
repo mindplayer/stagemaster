@@ -1,3 +1,4 @@
+import { ClipFadeModeSelect } from "./ClipFadeModeSelect";
 import { AudioClipTimeMode } from "./AudioClipTimeMode";
 import { AudioClipSplit } from "./AudioClipSplit";
 import type { ClipSplitActions } from "./clip-split-tools";
@@ -112,6 +113,8 @@ export function AudioClipInspector({
           ))}
         </select>
       </label>
+      <ClipFadeModeSelect value={data.fadeMode ?? "snapshot"} disabled={blocked || data.copy || !!data.preserveEntry}
+        onChange={value => onChange({...data, fadeMode: value || "snapshot"})} />
       {clip && !data.copy && (
         <AudioClipTimeMode
           data={data}
@@ -151,18 +154,18 @@ export function AudioClipInspector({
           />
         </label>
       ))}
-      {clip?.entryFade &&
+      {(clip?.entryFade || clip?.entryCrossfade) &&
         !data.preserveEntry &&
         (Number(data.fade) !== clip.fadeMs / 1000 ||
-          data.sceneId !== clip.sceneId) && (
-          <small>修改场景或渐变时长后，将重新计算进入渐变。</small>
+          data.sceneId !== clip.sceneId || (data.fadeMode ?? "snapshot") !== (clip.fadeMode ?? "snapshot")) && (
+          <small>修改场景、方式或渐变时长后，将重新计算进入渐变。</small>
         )}
       <p>
         {data.copy
           ? "复制保留原片段时长、渐变和启停状态，副本解除锁定。"
           : locked
             ? "已锁定位置与内容，解锁后可修改。"
-            : data.preserveEntry || clip?.entryFade
+            : data.preserveEntry || clip?.entryFade || clip?.entryCrossfade
               ? "单轨片段不能重叠；保留的渐变随截取范围调整。"
               : "单轨片段不能重叠，进入渐变不能超过新片段长度。"}
       </p>
@@ -210,10 +213,13 @@ export function AudioClipInspector({
           disabled={blocked || dirty}
           ready={ready}
           actions={splitActions}
+          sourceName={clip.entryCrossfade?.source.sceneId
+            ? scenes.find(scene => scene.id === clip.entryCrossfade?.source.sceneId)?.name
+            : "灯具默认值"}
         />
       )}
       <small>
-        空隙使用灯具默认值。普通渐变从相邻前段的边界状态开始；保留原渐变的片段沿用已记录的起始值。
+        空隙使用灯具默认值。动态交叉期间前后效果持续运行；色盘等离散功能进入片段时直接切换。
       </small>
     </form>
   );

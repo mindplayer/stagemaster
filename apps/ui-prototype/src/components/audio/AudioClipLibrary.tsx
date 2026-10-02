@@ -134,7 +134,10 @@ export function AudioClipLibrary({
                   {c.enabled === false ? " · 已停用" : ""}
                   {c.locked ? " · 已锁定" : ""}
                 </strong>
-                <span>{scenes.find((s) => s.id === c.sceneId)?.name}</span>
+                <span>
+                  {c.fadeMode === "dynamic" && c.fadeMs > 0 ? "动态交叉 · " : ""}
+                  {scenes.find((s) => s.id === c.sceneId)?.name}
+                </span>
               </button>
             ))}
           </div>

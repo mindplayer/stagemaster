@@ -3484,6 +3484,16 @@
         },
         "entryFade": {
           "$ref": "#/$defs/ClipEntryFade"
+        },
+        "fadeMode": {
+          "enum": [
+            "snapshot",
+            "dynamic"
+          ],
+          "default": "snapshot"
+        },
+        "entryCrossfade": {
+          "$ref": "#/$defs/ClipEntryCrossfade"
         }
       },
       "required": [
@@ -3875,6 +3885,64 @@
         "durationMs",
         "offsetMs",
         "from"
+      ],
+      "additionalProperties": false
+    },
+    "ClipCrossfadeSource": {
+      "type": "object",
+      "properties": {
+        "sceneId": {
+          "oneOf": [
+            {
+              "$ref": "urn:stagemaster:schema:common:0.1.0-draft.1#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effectOffsetMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "elapsedMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "entryFade": {
+          "$ref": "#/$defs/ClipEntryFade"
+        }
+      },
+      "required": [
+        "sceneId",
+        "effectOffsetMs",
+        "elapsedMs"
+      ],
+      "additionalProperties": false
+    },
+    "ClipEntryCrossfade": {
+      "type": "object",
+      "properties": {
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "offsetMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000
+        },
+        "source": {
+          "$ref": "#/$defs/ClipCrossfadeSource"
+        }
+      },
+      "required": [
+        "durationMs",
+        "offsetMs",
+        "source"
       ],
       "additionalProperties": false
     }

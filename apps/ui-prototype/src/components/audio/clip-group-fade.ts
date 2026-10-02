@@ -6,6 +6,7 @@ export interface ClipGroupFadeDraft {
   kind: "clipGroupFade";
   ids: string[];
   fade: string;
+  fadeMode?: "snapshot" | "dynamic" | "";
 }
 export function groupFadeItems(track: AudioTimeline, ids: string[]) {
   const selected = new Set(ids);
@@ -44,7 +45,7 @@ export function collectGroupFade(
     return {
       kind: "editLightingClips",
       ids: [...value.ids],
-      action: { kind: "fade", fadeMs },
+      action: { kind: "fade", fadeMs, ...(value.fadeMode ? {fadeMode:value.fadeMode} : {}) },
     };
   } catch (error) {
     throw new AudioDraftError(

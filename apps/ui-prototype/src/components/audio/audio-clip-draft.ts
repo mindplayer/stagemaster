@@ -9,6 +9,7 @@ import { AudioDraftError } from "./audio-draft-error.ts";
 import { entryFadePreview } from "./clip-fade-tools.ts";
 export interface ClipDraft {
   kind: "clip";
+  fadeMode?: AudioLightingClip["fadeMode"];
   id: string | null;
   copy: boolean;
   preserveProgress?: boolean;
@@ -24,6 +25,7 @@ export function clipDraft(c: AudioLightingClip): ClipDraft {
     kind: "clip",
     id: c.id,
     copy: false,
+    ...(c.fadeMode ? {fadeMode:c.fadeMode} : {}),
     name: c.name,
     sceneId: c.sceneId,
     start: (c.startMs / 1000).toFixed(3),
@@ -92,6 +94,8 @@ export function collectClipDraft(
       endMs,
       fadeMs,
       locked: source?.locked ?? false,
+      ...(d.fadeMode ? {fadeMode:d.fadeMode} : {}),
+      ...(source?.entryCrossfade ? {entryCrossfade:source.entryCrossfade} : {}),
       ...(source?.effectOffsetMs
         ? { effectOffsetMs: source.effectOffsetMs }
         : {}),
@@ -134,6 +138,7 @@ export function collectClipDraft(
       throw new Error("灯光片段最多 512 个");
     return {
       kind: "addLightingClip",
+      ...(d.fadeMode ? {fadeMode:d.fadeMode} : {}),
       name: clip.name,
       sceneId: clip.sceneId,
       startMs,

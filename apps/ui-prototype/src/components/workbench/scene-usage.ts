@@ -31,6 +31,14 @@ export function sceneUsages(
         title: clip.name,
         detail: `灯光片段 · ${audioTime(clip.startMs)}—${audioTime(clip.endMs)}${clip.enabled === false ? " · 已停用" : ""}${clip.locked ? " · 已锁定" : ""}`,
       });
+  for (const clip of project.audio?.lightingClips ?? [])
+    if (clip.entryCrossfade?.source.sceneId === sceneId)
+      result.push({
+        key: `crossfade:${clip.id}`,
+        target: { kind: "clip", id: clip.id },
+        title: clip.name,
+        detail: `交叉来源 · ${audioTime(clip.startMs)}—${audioTime(clip.endMs)}${clip.enabled === false ? " · 已停用" : ""}${clip.locked ? " · 已锁定" : ""}`,
+      });
   for (const marker of project.audio?.markers ?? [])
     if (marker.sceneId === sceneId)
       result.push({

@@ -1,6 +1,6 @@
 //! Lighting follows the native audio cursor. UI polling never supplies elapsed time.
 use stagemaster_audio::{Position, Transport};
-use stagemaster_playback::Player;
+use stagemaster_project::AudioSegmentPlayer;
 use stagemaster_project::{AudioTimeline, CompiledOutput, Document};
 use std::path::PathBuf;
 #[derive(Default)]
@@ -12,7 +12,7 @@ pub(crate) struct AudioPreview {
 struct Lighting {
     key: (u64, Option<String>, u64),
     elapsed: u64,
-    player: Player,
+    player: AudioSegmentPlayer,
     output: CompiledOutput,
 }
 impl AudioPreview {
@@ -70,9 +70,8 @@ impl AudioPreview {
                     output: None,
                 });
             }
-            let compiled = doc.compile_audio_lighting(marker.map(|m| m.id))?;
-            let mut player = Player::new(compiled.plan, 0);
-            player.execute(0, 0)?;
+            let compiled = doc.compile_audio_segment(marker.map(|m| m.id))?;
+            let player = compiled.playback.into_player()?;
             self.lighting = Some(Lighting {
                 key,
                 elapsed: 0,

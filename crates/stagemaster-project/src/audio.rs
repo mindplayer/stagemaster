@@ -95,6 +95,8 @@ pub enum AudioEdit {
     },
     ConvertLightingClips,
     AddLightingClip {
+        #[serde(default)]
+        fade_mode: crate::ClipFadeMode,
         name: String,
         scene_id: String,
         start_ms: u64,
@@ -143,6 +145,7 @@ fn clear(root: &mut Value) -> Result<(), String> {
                 && r["key"] != crate::audio_clip_state::CAPABILITY
                 && r["key"] != crate::audio_clip_offset::CAPABILITY
                 && r["key"] != crate::audio_clip_fade::CAPABILITY
+                && r["key"] != crate::audio_crossfade::CAPABILITY
         });
     Ok(())
 }
@@ -238,6 +241,7 @@ fn write_track(root: &mut Value, track: &AudioTimeline) -> Result<(), String> {
             .push(json!({"key":crate::audio_clips::CAPABILITY,"version":1}));
     }
     crate::audio_clip_fade::declare_if_needed(root, track)?;
+    crate::audio_crossfade_validate::declare_if_needed(root, track)?;
     crate::audio_clip_state::declare_if_needed(root, track)?;
     crate::audio_clip_offset::declare_if_needed(root, track)?;
     root["media"] = json!({"systems":[],"objects":[],"audioEditing":track});
@@ -255,6 +259,7 @@ fn write_track(root: &mut Value, track: &AudioTimeline) -> Result<(), String> {
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     let Some(media) = root.get("media") else {
         crate::audio_clip_fade::validate(root, None)?;
+        crate::audio_crossfade_validate::validate(root, None)?;
         crate::audio_clip_state::validate(root, None)?;
         crate::audio_clip_offset::validate(root, None)?;
         return if array(root, "requires")
@@ -312,6 +317,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
     crate::audio_lighting::validate(root, &track)?;
     crate::audio_clips::validate(root, &track)?;
     crate::audio_clip_fade::validate(root, Some(&track))?;
+    crate::audio_crossfade_validate::validate(root, Some(&track))?;
     crate::audio_clip_state::validate(root, Some(&track))?;
     crate::audio_clip_offset::validate(root, Some(&track))?;
     Ok(())

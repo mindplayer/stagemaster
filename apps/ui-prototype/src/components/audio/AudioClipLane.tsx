@@ -294,7 +294,8 @@ export function AudioClipLane({
                     {c.locked ? "锁定 · " : ""}
                     {c.name}
                   </strong>
-                  <small>{c.enabled === false ? "灯具默认值" : label}</small>
+                  <small>{c.enabled === false ? "灯具默认值" :
+                    `${c.fadeMode === "dynamic" && fadeMs > 0 ? "动态交叉 · " : ""}${label}`}</small>
                 </button>
                 {c.enabled !== false &&
                   fadeMs > 0 &&

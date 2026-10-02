@@ -1,3 +1,4 @@
+import { ClipFadeModeSelect } from "./ClipFadeModeSelect";
 import { useEffect, useRef, type RefObject } from "react";
 import type { AudioTimeline } from "../../audio-types";
 import type { ClipGroupFadeDraft } from "./clip-group-fade";
@@ -64,6 +65,8 @@ export function AudioClipGroupFadeInspector({
           onChange={(e) => onChange({ ...draft, fade: e.target.value })}
         />
       </label>
+      <ClipFadeModeSelect value={draft.fadeMode ?? ""} optional disabled={busy}
+        onChange={fadeMode => onChange({...draft, fadeMode})} />
       {shortest && (
         <small>
           最多 {((shortest.endMs - shortest.startMs) / 1000).toFixed(3)} 秒，受“

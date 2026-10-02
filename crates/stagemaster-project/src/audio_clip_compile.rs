@@ -1,6 +1,6 @@
 //! Bounded compilation of historical entry fades; no predecessor recursion or extra clocks.
 use crate::{AudioLightingClip, ClipEntryFade, CompiledSequence, Document};
-use stagemaster_playback::{Plan, Player};
+use stagemaster_playback::Plan;
 
 impl Document {
     pub(super) fn compile_clip(
@@ -8,6 +8,11 @@ impl Document {
         clips: &[AudioLightingClip],
         clip: &AudioLightingClip,
     ) -> Result<CompiledSequence, String> {
+        if clip.fade_mode == crate::ClipFadeMode::Dynamic
+            && (clip.fade_ms > 0 || clip.entry_crossfade.is_some())
+        {
+            return Err("动态交叉须使用宿主复合采样，不能编译为设备单计划".into());
+        }
         if let Some(fade) = &clip.entry_fade {
             return self.compile_clip_slice(clip, fade);
         }
@@ -17,20 +22,7 @@ impl Document {
                 .iter()
                 .find(|previous| previous.enabled && previous.end_ms == clip.start_ms)
             {
-                let source = if let Some(fade) = &previous.entry_fade {
-                    self.compile_clip_slice(previous, fade)?
-                } else {
-                    // Ordinary entry fades are complete at their clip's end.
-                    let mut source = self.compile_audio_scene(Some(&previous.scene_id))?;
-                    source.plan = source
-                        .plan
-                        .with_effect_time_offset(previous.effect_offset_ms)?;
-                    source
-                };
-                let mut player = Player::new(source.plan, 0);
-                player.execute(0, 0)?;
-                player.advance(previous.end_ms - previous.start_ms)?;
-                player.values().to_vec()
+                self.clip_boundary(previous)?
             } else {
                 compiled.plan.defaults().to_vec()
             };
@@ -48,21 +40,27 @@ impl Document {
         fade: &ClipEntryFade,
     ) -> Result<CompiledSequence, String> {
         let mut compiled = self.compile_audio_scene(Some(&clip.scene_id))?;
-        let mut from = compiled.plan.defaults().to_vec();
-        for (fixture, attribute, index, discrete) in compiled.output.attribute_bindings() {
-            if !discrete
-                && let Some(value) = fade
-                    .from
-                    .iter()
-                    .find(|value| value.fixture_id == fixture && value.attribute == attribute)
-            {
-                from[index] = value.value;
-            }
-        }
-        compiled.plan = entry_plan(&compiled.plan, from, fade.duration_ms, fade.offset_ms)?
-            .with_effect_time_offset(clip.effect_offset_ms)?;
+        compiled.plan =
+            historical_plan(&compiled, fade)?.with_effect_time_offset(clip.effect_offset_ms)?;
         Ok(compiled)
     }
+}
+pub(super) fn historical_plan(
+    compiled: &CompiledSequence,
+    fade: &ClipEntryFade,
+) -> Result<Plan, String> {
+    let mut from = compiled.plan.defaults().to_vec();
+    for (fixture, attribute, index, discrete) in compiled.output.attribute_bindings() {
+        if !discrete
+            && let Some(value) = fade
+                .from
+                .iter()
+                .find(|value| value.fixture_id == fixture && value.attribute == attribute)
+        {
+            from[index] = value.value;
+        }
+    }
+    entry_plan(&compiled.plan, from, fade.duration_ms, fade.offset_ms)
 }
 
 fn entry_plan(plan: &Plan, from: Vec<u16>, duration: u64, offset: u64) -> Result<Plan, String> {

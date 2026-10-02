@@ -28,6 +28,7 @@ export function AudioClipTimeMode({
         {
           ...clip,
           sceneId: data.sceneId,
+          fadeMode: data.fadeMode,
           fadeMs: audioMilliseconds(data.fade, "渐变"),
           startMs: audioMilliseconds(data.start, "裁切开始"),
           endMs: audioMilliseconds(data.end, "裁切结束"),
@@ -61,6 +62,7 @@ export function AudioClipTimeMode({
               ...(e.target.value === "slice"
                 ? {
                     sceneId: clip.sceneId,
+                    fadeMode: clip.fadeMode,
                     fade: (clip.fadeMs / 1000).toFixed(3),
                   }
                 : {}),
@@ -77,7 +79,7 @@ export function AudioClipTimeMode({
           <small>
             可向左恢复至 {clipRestoreStart(clip, !!data.preserveEntry) / 1000}{" "}
             秒；
-            {clip.entryFade || data.preserveEntry
+            {clip.entryFade || clip.entryCrossfade || data.preserveEntry
               ? "保留原渐变进度。"
               : "进入渐变从新边界开始。"}
           </small>

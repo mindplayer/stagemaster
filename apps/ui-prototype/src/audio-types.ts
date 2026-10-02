@@ -11,6 +11,12 @@ export interface AudioMarker {
   sceneId: string | null;
   fadeMs?: number;
 }
+export type ClipFadeMode = "snapshot" | "dynamic";
+export interface ClipEntryCrossfade {
+  durationMs: number;
+  offsetMs: number;
+  source: { sceneId: string | null; effectOffsetMs: number; elapsedMs: number; entryFade?: ClipEntryFade };
+}
 export interface AudioLightingClip {
   id: string;
   name: string;
@@ -22,6 +28,8 @@ export interface AudioLightingClip {
   enabled?: boolean;
   effectOffsetMs?: number;
   entryFade?: ClipEntryFade;
+  fadeMode?: ClipFadeMode;
+  entryCrossfade?: ClipEntryCrossfade;
 }
 export interface ClipEntryFade {
   durationMs: number;
@@ -64,7 +72,7 @@ export type AudioCommand =
 export type MarkerGroupAction =
   { kind: "move" | "copy"; destinationMs: number } | { kind: "remove" };
 export type LightingClipGroupAction =
-  | { kind: "fade"; fadeMs: number }
+  | { kind: "fade"; fadeMs: number; fadeMode?: ClipFadeMode }
   | { kind: "enabled"; enabled: boolean }
   | { kind: "move" | "copy"; destinationMs: number }
   | { kind: "remove" };
@@ -81,6 +89,7 @@ export type AudioEdit =
   | { kind: "convertLightingClips" }
   | {
       kind: "addLightingClip";
+      fadeMode?: ClipFadeMode;
       name: string;
       sceneId: string;
       startMs: number;

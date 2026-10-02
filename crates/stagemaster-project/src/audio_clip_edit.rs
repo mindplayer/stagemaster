@@ -12,6 +12,7 @@ pub(super) fn apply(track: &mut AudioTimeline, command: AudioEdit) -> Result<(),
         .ok_or("请先转换为独立灯光片段")?;
     match command {
         AudioEdit::AddLightingClip {
+            fade_mode,
             name,
             scene_id,
             start_ms,
@@ -32,6 +33,8 @@ pub(super) fn apply(track: &mut AudioTimeline, command: AudioEdit) -> Result<(),
                 enabled: true,
                 effect_offset_ms: 0,
                 entry_fade: None,
+                fade_mode,
+                entry_crossfade: None,
             });
         }
         AudioEdit::PutLightingClip { clip } => replace(clips, clip, false)?,
@@ -101,6 +104,8 @@ fn convert(track: &mut AudioTimeline) -> Result<(), String> {
             enabled: true,
             effect_offset_ms: 0,
             entry_fade: None,
+            fade_mode: crate::ClipFadeMode::Snapshot,
+            entry_crossfade: None,
         })
         .collect();
     track.lighting_clips = Some(clips);
@@ -132,13 +137,20 @@ fn replace(
     if clip.effect_offset_ms != previous.effect_offset_ms {
         return Err("请使用片段裁切、分割或重置效果起点操作修改源时间".into());
     }
-    if clip.entry_fade != previous.entry_fade {
+    if clip.entry_fade != previous.entry_fade || clip.entry_crossfade != previous.entry_crossfade {
         return Err("请使用分割、内部截取或重新设置渐变操作修改保留渐变".into());
     }
-    if clip.fade_ms != previous.fade_ms || clip.scene_id != previous.scene_id {
+    if clip.fade_ms != previous.fade_ms
+        || clip.scene_id != previous.scene_id
+        || clip.fade_mode != previous.fade_mode
+    {
         clip.entry_fade = None;
+        clip.entry_crossfade = None;
     }
     if trim {
+        if let Some(fade) = &mut clip.entry_crossfade {
+            fade.shift(i128::from(clip.start_ms) - i128::from(previous.start_ms))?;
+        }
         if let Some(fade) = &mut clip.entry_fade {
             fade.offset_ms = if clip.start_ms >= previous.start_ms {
                 fade.offset_ms
@@ -161,6 +173,9 @@ fn replace(
                 .ok_or("裁切开始不能早于效果源零点，请使用重新安排或移动片段")?
         };
     }
+    if let Some(fade) = &clip.entry_crossfade {
+        clip.fade_ms = fade.visible_ms(clip.end_ms.saturating_sub(clip.start_ms));
+    }
     if let Some(fade) = &clip.entry_fade {
         clip.fade_ms = fade.visible_ms(clip.end_ms.saturating_sub(clip.start_ms));
     }
@@ -181,14 +196,30 @@ pub(super) fn slice(
         .iter()
         .find(|source| source.id == clip.id)
         .ok_or("此灯光片段已不存在")?;
-    if clip.entry_fade != source.entry_fade || clip.effect_offset_ms != source.effect_offset_ms {
+    if clip.entry_fade != source.entry_fade
+        || clip.entry_crossfade != source.entry_crossfade
+        || clip.effect_offset_ms != source.effect_offset_ms
+    {
         return Err("内部截取不能直接修改源时间或保留渐变".into());
     }
-    if clip.fade_ms != source.fade_ms || clip.scene_id != source.scene_id {
+    if clip.fade_ms != source.fade_ms
+        || clip.scene_id != source.scene_id
+        || clip.fade_mode != source.fade_mode
+    {
         return Err("内部截取时请保留原场景和渐变，或使用重新安排".into());
     }
     if (clip.start_ms, clip.end_ms) != (source.start_ms, source.end_ms) {
         crate::audio_clip_fade::prepare(root, track, &clip.id)?;
+        clip.entry_crossfade.clone_from(
+            &track
+                .lighting_clips
+                .as_ref()
+                .expect("clip track")
+                .iter()
+                .find(|source| source.id == clip.id)
+                .expect("source clip")
+                .entry_crossfade,
+        );
         clip.entry_fade.clone_from(
             &track
                 .lighting_clips

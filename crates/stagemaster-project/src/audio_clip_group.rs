@@ -11,11 +11,21 @@ use std::collections::BTreeSet;
     deny_unknown_fields
 )]
 pub enum LightingClipGroupAction {
-    Move { destination_ms: u64 },
-    Copy { destination_ms: u64 },
+    Move {
+        destination_ms: u64,
+    },
+    Copy {
+        destination_ms: u64,
+    },
     Remove {},
-    Enabled { enabled: bool },
-    Fade { fade_ms: u64 },
+    Enabled {
+        enabled: bool,
+    },
+    Fade {
+        fade_ms: u64,
+        #[serde(default)]
+        fade_mode: Option<crate::ClipFadeMode>,
+    },
 }
 
 pub(super) fn apply(
@@ -45,7 +55,7 @@ pub(super) fn apply(
         return Err(format!("片段“{}”已锁定，请先解锁或移出选择", locked.name));
     }
     let destination = match action {
-        LightingClipGroupAction::Fade { fade_ms } => {
+        LightingClipGroupAction::Fade { fade_ms, fade_mode } => {
             if let Some(short) = sources.iter().find(|c| fade_ms > c.end_ms - c.start_ms) {
                 return Err(format!(
                     "进入渐变超出片段“{}”的长度，请缩短渐变",
@@ -54,7 +64,11 @@ pub(super) fn apply(
             }
             for clip in clips.iter_mut().filter(|c| selected.contains(&c.id)) {
                 clip.fade_ms = fade_ms;
+                if let Some(mode) = fade_mode {
+                    clip.fade_mode = mode;
+                }
                 clip.entry_fade = None;
+                clip.entry_crossfade = None;
             }
             return Ok(());
         }
