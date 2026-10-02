@@ -1,5 +1,7 @@
 # 实现状态
 
+[HOST-001](development/tasks/HOST-001-independent-runtime-host.md) 已补不依赖 Tauri／BLE／媒体的独立 Rust 调度宿主库：有界客户端入口、控制权回执、断连继续、只读观察与独立关闭／故障状态。753 Rust 全工作区、最终 15 宿主专项及调用示例、严格检查通过。当前仅 Mac 软件验证，尚未替换桌面、提供独立进程／认证远程入口或真实输出；不等于专业后台执行器已经交付。
+
 [STAGE-005](development/tasks/STAGE-005-shared-3d-fixture-movement.md) 已接二维／三维共享选灯、整组水平与升降、混合锁定／取消保护和一次历史；684 Rust／297 UI／7 UE、类型／严格检查／构建及原生高差双灯、单灯、取消、锁定与保存重开通过。完整组旋转／缩放、混合构件与三维框选仍后续。
 
 [AUDIO-018](development/tasks/AUDIO-018-preserved-entry-fades.md) 已补渐变内分割与完整内部截取，保留原起始值、渐变权重与效果进度；678 Rust／291 UI／160 格式及原生越界焦点、取消／历史／保存重开通过。设备包不支持的渐变偏移会显式拒绝，多轨与双动态持续交叉仍后续。

@@ -4340,6 +4340,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-runtime-host"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "stagemaster-install",
+ "stagemaster-install-store",
+ "stagemaster-package",
+ "stagemaster-playback",
+ "stagemaster-project",
+ "stagemaster-runtime",
+ "tempfile",
+]
+
+[[package]]
 name = "stagemaster-show"
 version = "0.1.0"
 dependencies = [
