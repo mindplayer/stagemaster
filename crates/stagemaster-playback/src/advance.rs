@@ -1,4 +1,4 @@
-use crate::{Observer, Player, Status, render};
+use crate::{Activation, Observer, Player, Status, render};
 use alloc::string::String;
 
 impl Player {
@@ -19,7 +19,14 @@ impl Player {
             };
             let step = &self.plan.steps[index];
             if !self.activated && self.elapsed_ms >= step.delay_ms {
-                observer.activated(index, self.reassert, &mut self.from);
+                observer.activated_at(
+                    Activation {
+                        step: index,
+                        reassert: self.reassert,
+                        at_ms: now_ms - (self.elapsed_ms - step.delay_ms),
+                    },
+                    &mut self.from,
+                );
                 self.activated = true;
             }
             let Some(duration) = step.duration() else {
@@ -42,7 +49,7 @@ impl Player {
                 // the ownership/claim effects of complete cycles that were not sampled.
                 if let Some(cycle) = self.plan.cycle_ms {
                     if self.elapsed_ms >= cycle {
-                        observer.cycles_skipped();
+                        observer.cycles_skipped_at(now_ms - self.elapsed_ms % cycle - cycle);
                     }
                     self.elapsed_ms %= cycle;
                 }

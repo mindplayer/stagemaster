@@ -19,7 +19,7 @@ pub use effect::{Curve, EffectChannel, Keyframe, Transition};
 pub use loop_schedule::{
     LoopPlayback, LoopPlays, LoopPosition, LoopRegion, LoopSchedule, MAX_LOOP_REGIONS,
 };
-pub use observation::{Command, Observer};
+pub use observation::{Activation, Command, Observer};
 pub use output_master::OutputMaster;
 pub use plan::{Plan, Step};
 pub use rate_clock::RateClock;

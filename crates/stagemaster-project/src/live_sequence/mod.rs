@@ -1,5 +1,6 @@
 //! Prepared list contribution: timing stays in Player, ownership stays in the source.
 mod compile;
+mod contribution;
 mod ownership;
 use crate::{CompiledOutput, CompiledStep, LiveOutput};
 use ownership::{Ownership, StepOwnership};
@@ -102,7 +103,7 @@ impl LiveSequencePlayer {
                 assert: &self.ownership.claims,
             },
         )?;
-        self.ownership.claims.fill(false);
+        self.acknowledge_contribution();
         Ok(())
     }
 }

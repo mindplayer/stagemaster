@@ -1,5 +1,7 @@
 # 实现状态
 
+[MIX-003](development/tasks/MIX-003-prepared-source-compositor.md) 已提供[固定来源组](module-api/prepared-source-compositor.md)：真实场景／多个列表／手动层统一推进、按激活时刻接管、累计资源预算和完整帧故障保护。11 项新增、836 项全工作区、最终 9 项来源组专项、严格 Clippy／fmt 与 Xtensa 编译验证通过；不改变工程／设备包格式。当前仍为标准宿主软件后端，尚未接独立进程、桌面和物理端口，不代表 ESP32 多来源容量或硬实时性能验证。
+
 [MIX-002](development/tasks/MIX-002-sequence-contributions.md) 已在同一个 Player 上提供[列表贡献](module-api/live-sequence-contributions.md)：逐步继承／释放、延时、明确接管与普通推进、完整循环折叠和可见值渐变起点。修正从手动层接回位置时跳变，补亮度电平反算。12 项新增、825 项全工作区与最终 13 项工程专项通过；严格检查及 Xtensa 无标准库编译通过。独立宿主来源管理／多时钟调度、桌面和物理输出接线仍待完成。
 
 [MIX-001](development/tasks/MIX-001-live-contributions.md) 已提供有界[现场属性贡献](module-api/live-contributions.md)：两个真实动态保持场景与手动控制逐属性合成、明确接管／归还，亮度推子与释放分离，连续采样不抢占；工程快照绑定合成与编码。15 项新增测试（含 448 组参考对照）、813 项全工作区测试通过。当前为软件模块与软件端口组合验证，列表适配见 MIX-002；桌面／独立宿主接线及物理输出仍待实现。

@@ -8,6 +8,7 @@ members = [
   "crates/stagemaster-output-port",
   "crates/stagemaster-domain",
   "crates/stagemaster-engine",
+  "crates/stagemaster-live",
   "crates/stagemaster-show",
   "crates/stagemaster-project",
   "crates/stagemaster-playback",

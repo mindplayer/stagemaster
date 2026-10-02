@@ -4299,6 +4299,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-live"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "stagemaster-engine",
+ "stagemaster-playback",
+ "stagemaster-project",
+]
+
+[[package]]
 name = "stagemaster-nor-store"
 version = "0.1.0"
 dependencies = [

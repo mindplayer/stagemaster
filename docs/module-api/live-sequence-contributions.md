@@ -1,5 +1,7 @@
 # 列表属性贡献
 
+MIX-003 补充：Player 事件包含实际生效时刻，整圈折叠包含最后完整圈起点；`compile_live_source` 统一保持场景与列表，`copy_contribution`／`acknowledge_contribution` 供可信固定来源组读取并确认逐属性声明。详见[统一合成入口](prepared-source-compositor.md)，旧逐来源发布接口继续保留。
+
 MIX-002／[ADR-105](../development/decisions/PRODUCT-ADR-105-sequence-contribution-boundaries.md)，接续[现场属性贡献](live-contributions.md)。本接口供可信宿主组合列表、场景和手动层，桌面／独立进程及物理驱动仍待接线。
 
 ## 准备与调用
