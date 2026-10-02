@@ -3,7 +3,12 @@ mod resource_health;
 mod resources;
 pub use resource_health::{ResourceFileHealth, ResourceHealth, ResourceSource};
 mod looping;
+mod performance;
 pub use looping::{LoopRange, LoopRequest, MAX_LOOP_MS, PreparedLoop};
+pub use performance::{
+    LoopExitIntent, MAX_PERFORMANCE_CACHE_BYTES, PerformanceAudio, PerformanceControl,
+    PerformanceSnapshot, PerformanceSource,
+};
 mod transport;
 mod waveform;
 pub use resources::{MAX_FILE_BYTES, Resources, verify};

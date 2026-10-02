@@ -1,6 +1,6 @@
 # 演出循环区段
 
-依据 [ADR-096](../development/decisions/PRODUCT-ADR-096-performance-loop-sections.md) 与 [AUDIO-020](../development/tasks/AUDIO-020-performance-loop-sections.md)。当前实现到工程数据／编辑命令与独立调度核心；原生多区段音频、运行控制和可见编辑尚未接通，不能据此宣称正式循环可播放。
+依据 [ADR-096](../development/decisions/PRODUCT-ADR-096-performance-loop-sections.md) 与 [AUDIO-020](../development/tasks/AUDIO-020-performance-loop-sections.md)。当前已实现工程数据／编辑命令、独立调度核心和可独立验证的原生多区段音源；Transport／桌面运行控制和可见编辑尚未接通，不能据此宣称正式循环已在产品中可播放。
 
 ## 工程归属与兼容
 
@@ -33,7 +33,21 @@
 
 `AudioTimeline::compile_loops(ticksPerSecond)` 生成 `CompiledAudioLoops {region_ids,schedule}`，只纳入启用段；身份数组与调度索引一一对应，编译结果独立于后续工程编辑。统一用整数 `ms * rate / 1000` 换算端点，拒绝零时基或量化消失的范围。此接口不运行解码器、不申请音频设备。
 
-## 音频适配出口仍待完成
+## 原生音源适配
+
+`stagemaster-audio::PerformanceAudio::prepare(path,inMs,&scheduleMs,cancel)` 接收毫秒编排，宿主可由 `compile_loops(1000)` 提供；读取采样率后按端点转换为样本帧，返回不可变可共享缓存。宿主须提供已核对内容摘要、生命周期内不改写的归档音乐；准备不持有工程锁、不申请声卡，也不改变现有播放器。
+
+- `cached_bytes()` 返回全部循环 PCM 载荷，`sample_rate()`／`duration_ms()` 提供时基和原时间线长度。
+- `.source(positionMs,cancel)` 在后台预热普通段落后返回 `(PerformanceSource,PerformanceControl)`，不消费播放帧。每次创建从所选原位置开始局部第 1 遍，不继承另一音源的退出意图；此准备应在工程锁外执行。
+- `PerformanceSource` 实现 rodio 的 `Source`；只有完整声道帧消费后才推进 LoopPlayback。重复段取固定缓存，普通段取有界非阻塞队列。准备读到哪里不影响运行游标。暂停必须保留同一个源；销毁重建会重置圈数。`check_ready()` 在宿主替换旧源前再次拒绝已知后台故障或取消，不代替工程版本检查，也不承诺后续 I/O 永不出错。
+- `PerformanceControl::snapshot()` 返回源帧位置、当前区段／遍数／已应用退出、待应用退出、控制拒绝、播放故障和音源释放状态。原子发布避免混合两次更新；短暂读冲突返回可重试错误。这里不判断声卡是否暂停，宿主须合并 Player 状态，不能将队列非空当作正在播放。
+- `request_exit(index,pass,desired)` 校验并绑定当前源的区段和播放遍数，同值幂等，尚未应用时以最后意图为准；实际帧边界再次核验，迟到操作报告拒绝，既不影响下一段，也不暗中退出同段的下一圈。`pending_exit` 为 `LoopExitIntent {region,pass,requested}`。`cancel()` 通知源在完整帧边界结束，丢弃源则直接释放消费端和解码线程。宿主仍须校验播放实例身份。
+
+预算：最多 64 MiB 重复 PCM，播放次数为 1 的区段不缓存，持续重复也只存一份；预读 128 块，每块最多 1024 帧、最多两声道，样本载荷约 1 MiB，另有固定块和编解码器空间。全局最多两条流式解码线程；新旧缓存替换期可同时存在，64 MiB 不代表应用总内存。文件沿用 512 MiB 上限；准备最多两分钟，每 1024 帧检查取消。精确定位目前从源头数帧，长文件定位可能需要准备时间。
+
+欠载、短数据／解码错误、游标异常明确终止并保留最后真实消费位置，不补零伪造继续运行；控制目标过期是独立可恢复提示。普通段预读失败不被视为整首正常结束。音源不输出 DMX，也不控制 UE；其发布游标供宿主统一采样灯光。这不是已校准的扬声器输出时间。
+
+## 桌面适配出口仍待完成
 
 原生播放必须从真实样本消费获得同一游标，暂停保存圈数与退出意图，定位重置、停止归零，边界退出／取消具有播放实例保护。循环 PCM 和流式队列须有总预算；多区段不等于整场 PCM 常驻，回环不得每圈重新解码。准备、取消、版本改变、内存不足和欠载均须验证后才替换已有可用状态。
 

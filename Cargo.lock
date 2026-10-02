@@ -4087,6 +4087,7 @@ dependencies = [
  "rodio",
  "serde",
  "sha2",
+ "stagemaster-playback",
  "tempfile",
 ]
 
