@@ -30,6 +30,11 @@ pub use audio::{
 };
 mod check;
 mod compilation;
+mod live_output;
+mod live_player;
+mod live_scene;
+pub use live_output::LiveOutput;
+pub use live_player::LiveScenePlayer;
 mod package;
 mod patch_report;
 mod report_csv;

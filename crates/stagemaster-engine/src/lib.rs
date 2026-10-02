@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+pub mod live;
+
 use std::collections::BTreeMap;
 
 use stagemaster_domain::{AttributeAddress, AttributeDescriptor, NormalizedValue, PlaybackId};

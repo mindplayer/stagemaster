@@ -4361,6 +4361,7 @@ dependencies = [
  "stagemaster-dmx",
  "stagemaster-domain",
  "stagemaster-engine",
+ "stagemaster-output-port",
  "stagemaster-package",
  "stagemaster-playback",
  "stagemaster-spatial",

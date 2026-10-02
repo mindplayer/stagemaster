@@ -1,6 +1,6 @@
 # 当前执行计划
 
-更新：2026-10-02。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
+更新：2026-10-03。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
 
 ## 当前任务
 
@@ -10,7 +10,7 @@
 
 本轮 [PLAN-003](tasks/PLAN-003-platform-framework.md) 收敛总体职责并核对代码边界；随后先验证不依赖界面的执行宿主、跨端应用入口与第二种软件传输承载，再推进多执行器／独立同步组、专业预演角色和云端交付／离线许可。各项以代表性调用与故障用例证明，不一次实现所有平台，不预建空服务。具体协议／格式变更另有独立工单和审查。
 
-[HOST-001](tasks/HOST-001-independent-runtime-host.md) 已完成独立调度宿主库；[HOST-002](tasks/HOST-002-local-execution-process.md) 已贯通实际工程准备、受保护本机应用入口与独立执行子进程。[TRANSPORT-001](tasks/TRANSPORT-001-record-carriers.md) 已抽取共同应用会话并以本机 TCP／GATT 软件分片验证相同安装链，BLE 正式适配复用该边界。[OUTPUT-001](tasks/OUTPUT-001-port-authority.md) 已实现独立单端口输出权，并以真实 Runtime＋软件驱动验证来源切换、最新帧、完成回执与静默维护。当前接续复用属性核心的多执行器／手动覆盖代表性验证，不在端口层混合粗细通道字节。桌面执行迁移、通用端点目录、认证远程入口与真实输出仍未完成，不把本机程序或第二承载视为完整专业后台执行器交付。
+[HOST-001](tasks/HOST-001-independent-runtime-host.md) 已完成独立调度宿主库；[HOST-002](tasks/HOST-002-local-execution-process.md) 已贯通实际工程准备、受保护本机应用入口与独立执行子进程。[TRANSPORT-001](tasks/TRANSPORT-001-record-carriers.md) 已抽取共同应用会话并以本机 TCP／GATT 软件分片验证相同安装链，BLE 正式适配复用该边界。[OUTPUT-001](tasks/OUTPUT-001-port-authority.md) 已实现独立单端口输出权，并以真实 Runtime＋软件驱动验证来源切换、最新帧、完成回执与静默维护。[MIX-001](tasks/MIX-001-live-contributions.md) 已复用实际 Player／工程编码器验证两个动态保持场景与手动层的有界属性合成、接管与归还，完整属性合成后才编码粗细通道。接续多步骤列表的跟踪所有权及延时／释放、跳步／循环后的接管事件，复用 Player 权威转换，不另建时间引擎。桌面执行迁移、通用端点目录、认证远程入口与真实输出仍未完成，不把单项软件验证视为完整专业后台执行器交付。
 
 [PLAN-004](tasks/PLAN-004-composable-device-family.md)／[ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)进一步明确按能力组装的设备家族：当前桌面是共享基座的一种产品，纯输出、独立播放、控制面可组合但角色不混同。接续独立进程验证只代表电脑／ARM 类宿主的适配，不要求 ESP32 使用同一操作系统或网络栈；不扩大为立即开发所有硬件版本。
 

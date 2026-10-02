@@ -1,4 +1,5 @@
 //! Validated fixture bindings and output encoding, independent of scene timing.
+mod live;
 use crate::{array, text};
 use serde::Serialize;
 use stagemaster_dmx::{

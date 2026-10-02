@@ -21,3 +21,6 @@ csv = "=1.4.0"
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+stagemaster-output-port = { path = "../stagemaster-output-port" }

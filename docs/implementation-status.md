@@ -1,6 +1,8 @@
 # 实现状态
 
-[OUTPUT-001](development/tasks/OUTPUT-001-port-authority.md) 已提供无堆、no_std 的[单端口输出权](module-api/output-port.md)：独占来源、接管前静默、最新完整帧、驱动接纳／完成区别及故障撤权。真实工程编译／安装／Runtime 到软件驱动、控制断连继续和外部接管已验证；19 项专项与 798 项全工作区通过。桌面／独立进程接线、真实输出和多执行器合成仍未完成；现有固件 RS485 保持禁用。
+[MIX-001](development/tasks/MIX-001-live-contributions.md) 已提供有界[现场属性贡献](module-api/live-contributions.md)：两个真实动态保持场景与手动控制逐属性合成、明确接管／归还，亮度推子与释放分离，连续采样不抢占；工程快照绑定合成与编码。15 项新增测试（含 448 组参考对照）、813 项全工作区测试通过。当前为软件模块与软件端口组合验证，多步骤列表跟踪、桌面／独立宿主接线及物理输出仍待实现。
+
+[OUTPUT-001](development/tasks/OUTPUT-001-port-authority.md) 已提供无堆、no_std 的[单端口输出权](module-api/output-port.md)：独占来源、接管前静默、最新完整帧、驱动接纳／完成区别及故障撤权。真实工程编译／安装／Runtime 到软件驱动、控制断连继续和外部接管已验证；19 项专项与 798 项全工作区通过。桌面／独立进程接线与真实输出仍未完成；多来源基础合成见 MIX-001，现有固件 RS485 保持禁用。
 
 [TRANSPORT-001](development/tasks/TRANSPORT-001-record-carriers.md) 已将 BLE 的应用握手／保活／加密消息抽到[独立会话模块](module-api/application-record-carriers.md)，原生适配复用；真实本机 TCP 与 GATT 大小的软件分片通过同一安装器，落盘内容一致。14 项新测试、45 项原设备宿主回归及 779 项全工作区通过。当前仅新增软件字节流证据，通用发现／真实有线驱动／生产安全仍未完成。
 
