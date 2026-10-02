@@ -39,3 +39,17 @@ E05–E09 来源：[Titan PC Suite](https://www.avolites.com/support/all-titan-p
 本轮完成的是全模块功能地图、重点行为对照、当前版本差异和完整官方主题入口。没有逐字翻译每一页手册，也没有把每个按钮、命令参数、维护零件、旧版修复或多语言重复页面都列为独立功能。完整目录和逐模块整理的数量分别在[来源覆盖表](source-coverage.md)说明。
 
 对于未来选择进入开发范围的功能，应继续沿功能编号查原文，把本系统默认行为、边界及验收明确下来；不能把目前的“概念相近”直接改为“兼容实现”。
+
+## 2026-10-02：外部架构建议核对
+
+用户提供 Gemini 对 Rust／标准灯具库／UE／星闪和抓包分析的建议。复核结论：采用开放标准、可替换传输和成熟渲染组件有价值；本次没有改变 Rust＋TypeScript＋UE 的既有职责，也没有把星闪确定为硬件路线。
+
+| 建议 | 可吸收内容与必要修正 |
+| --- | --- |
+| GDTF／MVR | 优先采用标准交换；GDTF 的灯具描述与 MVR 的场景描述分别实现。GDTF 主文件是 `description.xml`，MVR 是 `GeneralSceneDescription.xml`。XML 解析只是入口，仍须实现几何／通道依赖、模式、资源引用与受支持能力报告；库内有档案不等于真实灯具已验证。见 [GDTF 格式](https://gdtf-share.com/help/users/gdtf_builder/dataformat/index.html)、[MVR 格式](https://gdtf-share.com/help/developers/mvr_1_6/changes/v1.5/index.html)、[官方规范仓库](https://github.com/mvrdevelopment/spec)。 |
+| Rust／Tokio 与抓包 | 抓包用于验证报文和时序，不能仅由报文推断对方线程／队列实现。Tokio 定时器不保证精确唤醒，不能承诺微秒级端到端同步或未经测量的 10 毫秒重连。传输延迟、输出刷新、声卡缓冲和渲染帧分别测量。见 [Tokio 定时器说明](https://docs.rs/tokio/latest/tokio/time/enum.MissedTickBehavior.html)、[Art-Net 原始规范](https://art-net.org.uk/downloads/art-net.pdf)。 |
+| UE 渲染 | 复用 DMX Engine／Protocol、灯具示例和 MVR 导入；不能以接通 Niagara 或体积雾代替光度、光束遮挡、图案和目标平台性能验收。保留现有中立场景／渲染适配边界，不为预演再建一套核心播放语义。见 [Epic DMX Quick Start](https://dev.epicgames.com/documentation/en-us/unreal-engine/dmx-quick-start-in-unreal-engine)。 |
+| 星闪 | 作为未来可测传输候选；现有 ESP32-S3 集成 Wi-Fi 和 BLE，不具备原生星闪，不能通过软件升级获得。需另选硬件并验证手机／电脑接入、干扰环境、重连与成本，不能直接承诺优于既有链路。见 [Espressif 芯片资料](https://www.espressif.com/en/products/socs/esp32-s3)。 |
+| 曲线和颜色 | 效果公式、插值和统一颜色语义可复用，但单一贝塞尔曲线不能保证任意摇头灯电机不失步；统一 HSV 也不能靠一个通用矩阵保证所有 RGBW／CMY／固定色盘灯实物一致。保留逐灯行程／反向／零偏、实测色盘变体与降级报告；这些属于本项目工程判断，需要实灯验证。 |
+
+当前实施重点继续是已经建立的统一语义和可验收增量。标准导入与更精确光学按各自能力工单推进，不将“拥有现代技术栈”当作已达到成熟控台功能、稳定性或画质的证据。
