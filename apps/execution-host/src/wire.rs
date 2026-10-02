@@ -60,7 +60,13 @@ pub(crate) enum Command {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) enum Operation {
-    Start { step: String },
+    Source {
+        source: String,
+        action: crate::group::wire::Operation,
+    },
+    Start {
+        step: String,
+    },
     Pause {},
     Resume {},
     Next {},
@@ -69,6 +75,7 @@ pub(crate) enum Operation {
 impl Operation {
     pub fn action(&self) -> Result<Action, Failure> {
         Ok(match self {
+            Self::Source { .. } => return Err(Failure::invalid()),
             Self::Start { step } => Action::Start {
                 step: *Uuid::parse_str(step)
                     .map_err(|_| Failure::invalid())?
@@ -91,6 +98,13 @@ impl Input {
                 if !(1..=60_000).contains(duration_ms) =>
             {
                 Err(Failure::invalid())
+            }
+            Command::Submit {
+                action: Operation::Source { source, action },
+                ..
+            } => {
+                crate::group::wire::identity(source)?;
+                action.validate()
             }
             Command::Submit { action, .. } => action.action().map(|_| ()),
             _ => Ok(()),

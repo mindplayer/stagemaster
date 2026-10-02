@@ -21,7 +21,7 @@ fn code<T>(result: Result<T, Failure>) -> &'static str {
 
 #[test]
 fn contiguous_serials_retain_one_receipt_and_never_replay_old_work() {
-    let mut r = Registry::new();
+    let mut r = Registry::<stagemaster_runtime_host::Device>::new();
     let now = Instant::now();
     let id = r.create(now).unwrap();
     assert_eq!(code(r.begin(id, input(2), now, true)), "sequence");
@@ -48,7 +48,7 @@ fn contiguous_serials_retain_one_receipt_and_never_replay_old_work() {
 }
 #[test]
 fn session_capacity_expiry_and_pending_work_are_bounded() {
-    let mut r = Registry::new();
+    let mut r = Registry::<stagemaster_runtime_host::Device>::new();
     let now = Instant::now();
     let id = r.create(now).unwrap();
     r.begin(id, input(1), now, true).unwrap();
@@ -71,7 +71,7 @@ fn session_capacity_expiry_and_pending_work_are_bounded() {
 }
 #[test]
 fn maximum_serial_and_shutdown_do_not_reset_a_session() {
-    let mut r = Registry::new();
+    let mut r = Registry::<stagemaster_runtime_host::Device>::new();
     let now = Instant::now();
     let id = r.create(now).unwrap();
     r.begin(id, input(1), now, true).unwrap();

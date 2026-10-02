@@ -1,4 +1,4 @@
-use crate::directory::Directory;
+use crate::{application::Application, directory::Directory};
 use serde_json::{Value, json};
 use stagemaster_install::{Identity, Installer};
 use stagemaster_install_store::FileStore;
@@ -8,12 +8,13 @@ use stagemaster_project_store::DiskFile;
 use stagemaster_runtime::{
     self as runtime, Grant, Origin, PlaybackPolicy, ProgramKey, Request, Runtime,
 };
-use stagemaster_runtime_host::{Configuration, Host};
+use stagemaster_runtime_host::{Configuration, Device, Host};
 use std::path::Path;
 use uuid::Uuid;
 
-pub(crate) struct Prepared {
-    pub host: Host,
+pub(crate) struct Prepared<M: Application = Device> {
+    pub host: Host<M>,
+    pub adapter: M::Context,
     pub source: Value,
     pub boot: Uuid,
 }
@@ -113,5 +114,10 @@ pub(crate) fn prepare(
         .collect();
     let source = json!({"mode":"softwareOutput","physicalOutput":false,"report":built.report,"selection":selection,"steps":steps});
     let host = Host::start(runtime, Configuration::default()).map_err(|e| e.to_string())?;
-    Ok(Prepared { host, source, boot })
+    Ok(Prepared {
+        host,
+        source,
+        boot,
+        adapter: (),
+    })
 }

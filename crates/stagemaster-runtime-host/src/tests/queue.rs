@@ -12,6 +12,32 @@ use std::{
 };
 
 #[test]
+fn forwarded_absolute_deadlines_are_preserved_and_expired_or_unbounded_inputs_are_refused() {
+    let fixture = Fixture::new();
+    let runtime = fixture.prepared(SoftwareAcceptance);
+    let shared = Arc::new(Shared::new(runtime.state()));
+    let (sender, receiver) = mpsc::sync_channel(QUEUE_CAPACITY);
+    let ingress = Ingress::<crate::Device> { sender, shared };
+    let acquire = |reply| Command::Acquire {
+        grant: grant(3, 60_000),
+        takeover: false,
+        reply,
+    };
+    let deadline = Instant::now() + TTL;
+    let _ticket = ingress.send(deadline, acquire).unwrap();
+    assert_eq!(receiver.try_recv().unwrap().deadline, deadline);
+    assert!(matches!(
+        ingress.send(Instant::now(), acquire),
+        Err(Error::Deadline)
+    ));
+    assert!(matches!(
+        ingress.send(Instant::now() + Duration::from_mins(1), acquire),
+        Err(Error::InvalidDeadline)
+    ));
+    assert!(receiver.try_recv().is_err());
+}
+
+#[test]
 fn admission_and_receipts_are_bounded_without_waiting_for_consumers() {
     let fixture = Fixture::new();
     let mut runtime = fixture.prepared(SoftwareAcceptance);

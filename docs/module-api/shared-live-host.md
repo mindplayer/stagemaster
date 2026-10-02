@@ -1,5 +1,7 @@
 # 多来源共享后台宿主
 
+HOST-004 已进一步接入[多来源独立进程应用入口](multi-source-process.md)，下面的库边界保持；桌面和物理输出仍未迁移。
+
 HOST-003／[ADR-107](../development/decisions/PRODUCT-ADR-107-shared-host-backends.md)。`stagemaster-runtime-host` 保留一个调度实现，`stagemaster-live-host` 将[固定来源组](prepared-source-compositor.md)接入其中。当前为灯光软件后台，不是统一音视频渲染回调；音视频独立时钟与设备回调仍走各自模块。
 
 ## 所有权与准备
@@ -13,6 +15,8 @@ HOST-003／[ADR-107](../development/decisions/PRODUCT-ADR-107-shared-host-backen
 ## 后端契约
 
 `Profile` 定义进程内命令、状态、回执和帧元数据；不是未经认证客户端协商的任意协议。`Backend` 提供准备检查、单调时间基点、状态、推进、完整帧、取得／续期／释放控制权及提交操作。调用有界且不阻塞，不另起播放线程。快照和帧元数据为固定大小、可复制数据；生产命令克隆不得引入无界工作或 I/O。
+
+HOST-004 将接纳期限扩展为 `impl Into<Deadline>`：原 `Duration` 调用继续有效，也可传入同进程原始 `Instant`，后者原样写入队列信封；过去的时刻拒绝，未来不得超过 5 秒。网络层只传相对请求预算，由可信应用首次接纳时生成 Instant，不能跨机器传该时钟值。
 
 共有机制保持：32 项有界队列、每周期最多 8 条命令、1～100 毫秒调度周期、最多 5 秒的入队操作期限、过期未执行、不等待已丢弃回执、只读观察争用时跳过发布、错过周期不突发补帧、队列外关闭及超时后保留同一宿主句柄。终止／故障撤回有效观察，不返回可继续发送的旧帧。
 

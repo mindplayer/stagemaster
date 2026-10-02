@@ -4248,6 +4248,8 @@ dependencies = [
  "serde_json",
  "stagemaster-install",
  "stagemaster-install-store",
+ "stagemaster-live",
+ "stagemaster-live-host",
  "stagemaster-package",
  "stagemaster-project",
  "stagemaster-project-store",

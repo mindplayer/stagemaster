@@ -1,6 +1,8 @@
 # 模块伪 API 方案 0.3
 
-日期：2026-09-11。依据：[架构 v0.5](../architecture.md)、[完整目标再评估](../architecture-evolution-review.md)、[声光视频设计](../audiovisual-stage-design.md)与[硬件控制面](../hardware-control-surfaces.md)。本目录描述计划中的接口、调用和实现约束，**没有服务实现，不表示已能跨设备播放**。
+初始草案日期：2026-09-11。依据：[架构 v0.5](../architecture.md)、[完整目标再评估](../architecture-evolution-review.md)、[声光视频设计](../audiovisual-stage-design.md)与[硬件控制面](../hardware-control-surfaces.md)。初始伪 API 描述计划中的接口、调用和约束；后续运行契约按各工单维护，不能将草案类型等同于已实现服务或完整跨设备播放。
+
+HOST-004 已提供[多来源独立进程](multi-source-process.md)：组模式 v2 目录、场景／列表控制、语义手动修改、只读帧与回执，复用原本机服务；旧 v1 单节目入口保留。桌面与物理输出尚未迁移。
 
 0.3 在 0.2 的外部控制、监看与硬件边界上，拆分操作会话与节目上下文、稳定监看键与连接引用、工程包与执行包，补齐单域编译／激活、空运行状态及服务契约声明。协议草案为 draft-0.3；这是设计阶段的破坏性修订，不宣称兼容旧版或已有迁移实现。
 

@@ -1,4 +1,4 @@
-use crate::{Device, Error, MAX_COMMAND_TTL, Observer, Phase, Profile, observation::Shared};
+use crate::{Deadline, Device, Error, Observer, Phase, Profile, observation::Shared};
 use stagemaster_runtime::{Grant, Lease, Request};
 use std::{
     sync::{
@@ -46,18 +46,13 @@ pub(crate) struct Ingress<M: Profile = Device> {
 impl<M: Profile> Ingress<M> {
     pub fn send<T>(
         &self,
-        ttl: Duration,
+        ttl: impl Into<Deadline>,
         make: impl FnOnce(Reply<T>) -> Command<M>,
     ) -> Result<Ticket<T>, Error> {
-        if ttl.is_zero() || ttl > MAX_COMMAND_TTL {
-            return Err(Error::InvalidDeadline);
-        }
+        let deadline = ttl.into().resolve()?;
         if self.shared.phase() != Phase::Running {
             return Err(Error::Closed);
         }
-        let deadline = Instant::now()
-            .checked_add(ttl)
-            .ok_or(Error::InvalidDeadline)?;
         let (reply, receiver) = mpsc::sync_channel(1);
         self.sender
             .try_send(Envelope {
@@ -154,7 +149,7 @@ impl<M: Profile> Client<M> {
         serial: u64,
         expected_revision: u64,
         action: M::Action,
-        ttl: Duration,
+        ttl: impl Into<Deadline>,
     ) -> Result<Ticket<M::Receipt>, Error> {
         let request = Request {
             lease: self.lease,
@@ -167,7 +162,7 @@ impl<M: Profile> Client<M> {
     }
     /// # Errors
     /// Admission can fail; lease validation occurs on the runtime thread.
-    pub fn renew(&self, duration_ms: u64, ttl: Duration) -> Result<Ticket<()>, Error> {
+    pub fn renew(&self, duration_ms: u64, ttl: impl Into<Deadline>) -> Result<Ticket<()>, Error> {
         self.ingress.send(ttl, |reply| Command::Renew {
             lease: self.lease,
             duration_ms,
@@ -176,7 +171,7 @@ impl<M: Profile> Client<M> {
     }
     /// # Errors
     /// An expired or replaced lease cannot release a newer controller.
-    pub fn release(&self, ttl: Duration) -> Result<Ticket<()>, Error> {
+    pub fn release(&self, ttl: impl Into<Deadline>) -> Result<Ticket<()>, Error> {
         self.ingress.send(ttl, |reply| Command::Release {
             lease: self.lease,
             reply,

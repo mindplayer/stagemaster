@@ -1,6 +1,6 @@
 use crate::wire::{Failure, Input, RecordView};
 use serde_json::Value;
-use stagemaster_runtime_host::Client;
+use stagemaster_runtime_host::{Client, Device, Profile};
 use std::{
     collections::HashMap,
     sync::Arc,
@@ -11,50 +11,50 @@ use uuid::Uuid;
 pub(crate) const MAX_SESSIONS: usize = 8;
 const IDLE: Duration = Duration::from_mins(1);
 #[derive(Clone)]
-pub(crate) struct Binding {
-    pub client: Arc<Client>,
+pub(crate) struct Binding<M: Profile = Device> {
+    pub client: Arc<Client<M>>,
     pub next: Option<u64>,
 }
 struct Record {
     input: Input,
     view: RecordView,
 }
-struct Session {
+struct Session<M: Profile = Device> {
     touched: Instant,
-    binding: Option<Binding>,
+    binding: Option<Binding<M>>,
     record: Option<Record>,
 }
-impl Session {
+impl<M: Profile> Session<M> {
     fn pending(&self) -> bool {
         self.record
             .as_ref()
             .is_some_and(|r| r.view.outcome.is_none())
     }
 }
-pub(crate) struct Registry {
+pub(crate) struct Registry<M: Profile = Device> {
     pub accepting: bool,
-    entries: HashMap<Uuid, Session>,
+    entries: HashMap<Uuid, Session<M>>,
 }
-pub(crate) struct Job {
+pub(crate) struct Job<M: Profile = Device> {
     pub session: Uuid,
     pub input: Input,
-    pub binding: Option<Binding>,
+    pub binding: Option<Binding<M>>,
     pub deadline: Instant,
 }
-pub(crate) enum Admission {
+pub(crate) enum Admission<M: Profile = Device> {
     Existing(RecordView),
-    New(Job),
+    New(Job<M>),
 }
-pub(crate) enum Change {
+pub(crate) enum Change<M: Profile = Device> {
     Keep,
-    Set(Binding),
+    Set(Binding<M>),
     Clear,
 }
-pub(crate) struct Completion {
+pub(crate) struct Completion<M: Profile = Device> {
     pub outcome: Value,
-    pub change: Change,
+    pub change: Change<M>,
 }
-impl Registry {
+impl<M: Profile> Registry<M> {
     pub fn new() -> Self {
         Self {
             accepting: true,
@@ -88,7 +88,7 @@ impl Registry {
         );
         Ok(id)
     }
-    fn session(&mut self, id: Uuid, now: Instant) -> Result<&mut Session, Failure> {
+    fn session(&mut self, id: Uuid, now: Instant) -> Result<&mut Session<M>, Failure> {
         self.check(now)?;
         let s = self
             .entries
@@ -103,7 +103,7 @@ impl Registry {
         input: Input,
         now: Instant,
         worker_available: bool,
-    ) -> Result<Admission, Failure> {
+    ) -> Result<Admission<M>, Failure> {
         input.validate()?;
         let s = self.session(id, now)?;
         let mut next = Some(1);
@@ -157,7 +157,7 @@ impl Registry {
             })?;
         Ok(r.view.clone())
     }
-    pub fn finish(&mut self, id: Uuid, serial: u64, result: Completion, now: Instant) {
+    pub fn finish(&mut self, id: Uuid, serial: u64, result: Completion<M>, now: Instant) {
         if let Some(s) = self.entries.get_mut(&id)
             && let Some(r) = s
                 .record

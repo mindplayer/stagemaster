@@ -1,5 +1,5 @@
 use crate::{
-    Backend, Configuration, Connection, Device, Error, Fault, Observer, Phase, Profile,
+    Backend, Configuration, Connection, Deadline, Device, Error, Fault, Observer, Phase, Profile,
     QUEUE_CAPACITY, WaitError,
     client::{Command, Ingress},
     observation::Shared,
@@ -86,7 +86,7 @@ impl<M: Profile> Host<M> {
         &self,
         grant: Grant,
         takeover: bool,
-        ttl: Duration,
+        ttl: impl Into<Deadline>,
     ) -> Result<Connection<M>, Error> {
         let ticket = self.ingress.send(ttl, |reply| Command::Acquire {
             grant,

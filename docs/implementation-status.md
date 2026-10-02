@@ -1,5 +1,7 @@
 # 实现状态
 
+[HOST-004](development/tasks/HOST-004-multi-source-process.md) 已提供同一程序的 [v2 多来源入口](module-api/multi-source-process.md)：准备目录、受保护场景／列表操作、手动功能值批量、电平和回执，复用原会话与调度；独立客户端被杀、准备文件移除后同一组继续。848 项全工作区测试通过；随后原始截止时刻转发补强后的 33 项专项及 2 个文档示例通过，最终严格检查通过。桌面尚未迁移，当前仍为单域软件采样，无物理输出、跨时钟或商业安全完成声明。
+
 [HOST-003](development/tasks/HOST-003-shared-live-host.md) 已把固定多来源组接入[现有后台宿主](module-api/shared-live-host.md)：共享输入控制权、唯一调度实现、有界属性批量和固定来源快照；旧默认设备调用与受限命令入口保持。6 项新增、842 项全工作区测试及 2 个文档示例、严格 Clippy／fmt 与 Xtensa 编译通过。当前是实际线程的软件适配，HOST-002 的 HTTP／桌面入口和物理端口尚未迁移，未宣称多时钟或硬实时性能验收。
 
 [MIX-003](development/tasks/MIX-003-prepared-source-compositor.md) 已提供[固定来源组](module-api/prepared-source-compositor.md)：真实场景／多个列表／手动层统一推进、按激活时刻接管、累计资源预算和完整帧故障保护。11 项新增、836 项全工作区、最终 9 项来源组专项、严格 Clippy／fmt 与 Xtensa 编译验证通过；不改变工程／设备包格式。当前仍为标准宿主软件后端，尚未接独立进程、桌面和物理端口，不代表 ESP32 多来源容量或硬实时性能验证。

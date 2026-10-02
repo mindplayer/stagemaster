@@ -6,6 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stagemaster-live = { path = "../../crates/stagemaster-live" }
+stagemaster-live-host = { path = "../../crates/stagemaster-live-host" }
 stagemaster-runtime-host = { path = "../../crates/stagemaster-runtime-host" }
 stagemaster-runtime = { path = "../../crates/stagemaster-runtime" }
 stagemaster-project = { path = "../../crates/stagemaster-project" }

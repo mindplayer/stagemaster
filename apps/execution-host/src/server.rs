@@ -1,4 +1,5 @@
 use crate::{
+    application::Application,
     bounded_io::BoundedListener,
     directory::Directory,
     preparation::Prepared,
@@ -29,8 +30,8 @@ struct Discovery {
     read_token: String,
     control_token: String,
 }
-struct Context {
-    service: Arc<Service>,
+struct Context<M: Application> {
+    service: Arc<Service<M>>,
     read_header: String,
     control_header: String,
 }
@@ -45,16 +46,19 @@ fn matches(actual: &[u8], expected: &str) -> bool {
             .fold(0u8, |difference, (a, b)| difference | (a ^ b))
             == 0
 }
-pub(crate) async fn serve(prepared: Prepared, mut directory: Directory) -> Result<(), String> {
+pub(crate) async fn serve<M: Application>(
+    prepared: Prepared<M>,
+    mut directory: Directory,
+) -> Result<(), String> {
     let service = Service::new(prepared);
     let listener = tokio::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
         .await
         .map_err(|e| e.to_string())?;
     let address = listener.local_addr().map_err(|e| e.to_string())?;
     let discovery = Discovery {
-        protocol: 1,
+        protocol: M::PROTOCOL,
         host_id: service.id.to_string(),
-        url: format!("http://{address}/v1/{}", service.id),
+        url: format!("http://{address}/v{}/{}", M::PROTOCOL, service.id),
         read_token: token(),
         control_token: token(),
     };
@@ -63,18 +67,22 @@ pub(crate) async fn serve(prepared: Prepared, mut directory: Directory) -> Resul
         read_header: format!("Bearer {}", discovery.read_token),
         control_header: format!("Bearer {}", discovery.control_token),
     });
+    let route = |suffix: &str| format!("/v{}/{{host}}{suffix}", M::PROTOCOL);
     let router = Router::new()
-        .route("/v1/{host}/source", get(source))
-        .route("/v1/{host}/state", get(state))
-        .route("/v1/{host}/sessions", post(create_session))
-        .route("/v1/{host}/sessions/{session}/commands", post(submit))
+        .route(&route("/source"), get(source::<M>))
+        .route(&route("/state"), get(state::<M>))
+        .route(&route("/sessions"), post(create_session::<M>))
+        .route(&route("/sessions/{session}/commands"), post(submit::<M>))
         .route(
-            "/v1/{host}/sessions/{session}/receipts/{serial}",
-            get(receipt),
+            &route("/sessions/{session}/receipts/{serial}"),
+            get(receipt::<M>),
         )
-        .route("/v1/{host}/shutdown", post(shutdown))
+        .route(&route("/shutdown"), post(shutdown::<M>))
         .layer(DefaultBodyLimit::max(8192))
-        .layer(middleware::from_fn_with_state(context.clone(), authorize))
+        .layer(middleware::from_fn_with_state(
+            context.clone(),
+            authorize::<M>,
+        ))
         .with_state(context);
     directory.publish(&discovery).map_err(|e| e.to_string())?;
     println!("独立执行宿主已就绪：{}（仅软件执行）", service.id);
@@ -94,8 +102,8 @@ pub(crate) async fn serve(prepared: Prepared, mut directory: Directory) -> Resul
     }
     result.map_err(|e| e.to_string())
 }
-async fn authorize(
-    State(context): State<Arc<Context>>,
+async fn authorize<M: Application>(
+    State(context): State<Arc<Context<M>>>,
     request: Request<Body>,
     next: Next,
 ) -> Response {
@@ -150,19 +158,24 @@ async fn limited(request: Request<Body>, next: Next) -> Response {
         .into_response(),
     }
 }
-async fn source(State(context): State<Arc<Context>>) -> Json<Value> {
+async fn source<M: Application>(State(context): State<Arc<Context<M>>>) -> Json<Value> {
     Json(context.service.source.clone())
 }
-async fn state(State(context): State<Arc<Context>>) -> Result<Json<Value>, Failure> {
+async fn state<M: Application>(
+    State(context): State<Arc<Context<M>>>,
+) -> Result<Json<Value>, Failure> {
     Ok(Json(projection::observation(
         &context
             .service
             .observer
             .read()
             .map_err(|_| Failure::busy())?,
+        &context.service.adapter,
     )))
 }
-async fn create_session(State(context): State<Arc<Context>>) -> Result<Json<Value>, Failure> {
+async fn create_session<M: Application>(
+    State(context): State<Arc<Context<M>>>,
+) -> Result<Json<Value>, Failure> {
     Ok(Json(
         json!({"hostId":context.service.id.to_string(),"sessionId":context.service.create_session()?.to_string(),"nextSerial":"1"}),
     ))
@@ -170,8 +183,8 @@ async fn create_session(State(context): State<Arc<Context>>) -> Result<Json<Valu
 fn session_id(value: &str) -> Result<Uuid, Failure> {
     Uuid::parse_str(value).map_err(|_| Failure::invalid())
 }
-async fn submit(
-    State(context): State<Arc<Context>>,
+async fn submit<M: Application>(
+    State(context): State<Arc<Context<M>>>,
     Path((_, session)): Path<(String, String)>,
     input: Result<Json<Input>, JsonRejection>,
 ) -> Result<Json<RecordView>, Failure> {
@@ -191,8 +204,8 @@ async fn submit(
         .submit(session_id(&session)?, input)
         .map(Json)
 }
-async fn receipt(
-    State(context): State<Arc<Context>>,
+async fn receipt<M: Application>(
+    State(context): State<Arc<Context<M>>>,
     Path((_, session, serial)): Path<(String, String, String)>,
 ) -> Result<Json<RecordView>, Failure> {
     let serial = Decimal::try_from(serial).map_err(|_| Failure::invalid())?;
@@ -201,7 +214,9 @@ async fn receipt(
         .receipt(session_id(&session)?, serial.0)
         .map(Json)
 }
-async fn shutdown(State(context): State<Arc<Context>>) -> Result<Json<Value>, Failure> {
+async fn shutdown<M: Application>(
+    State(context): State<Arc<Context<M>>>,
+) -> Result<Json<Value>, Failure> {
     context.service.begin_shutdown()?;
     Ok(Json(json!({"status":"stopping"})))
 }

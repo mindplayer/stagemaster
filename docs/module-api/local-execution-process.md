@@ -1,5 +1,7 @@
 # 本机独立执行进程
 
+HOST-004 已在同一程序提供 [v2 多来源入口](multi-source-process.md)，复用本篇的权限、会话和生命周期；以下 v1 单节目接口继续有效。
+
 [HOST-002](../development/tasks/HOST-002-local-execution-process.md)／[ADR-099](../development/decisions/PRODUCT-ADR-099-local-execution-process.md)。`apps/execution-host` 组合工程、包、安装存储与 [HOST-001](runtime-host.md)，通过独立进程拥有运行生命周期。本接口是第一个本机适配，不是全产品冻结 SDK；没有物理输出驱动，也未替换桌面运行链。
 
 ## 准备与启动

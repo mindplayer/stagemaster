@@ -1,4 +1,5 @@
 use crate::{
+    application::Application,
     commands,
     preparation::Prepared,
     sessions::{Admission, Change, Completion, MAX_SESSIONS, Registry},
@@ -14,19 +15,21 @@ use std::{
 use tokio::sync::{Notify, Semaphore};
 use uuid::Uuid;
 
-pub(crate) struct Service {
+pub(crate) struct Service<M: Application> {
     pub id: Uuid,
-    pub observer: Observer,
+    pub observer: Observer<M>,
+    pub adapter: M::Context,
     pub source: Value,
-    host: Mutex<Host>,
-    sessions: Mutex<Registry>,
+    host: Mutex<Host<M>>,
+    sessions: Mutex<Registry<M>>,
     workers: Arc<Semaphore>,
     pub shutdown: Notify,
 }
-impl Service {
-    pub fn new(prepared: Prepared) -> Arc<Self> {
+impl<M: Application> Service<M> {
+    pub fn new(prepared: Prepared<M>) -> Arc<Self> {
         Arc::new(Self {
             id: prepared.boot,
+            adapter: prepared.adapter,
             observer: prepared.host.observer(),
             source: prepared.source,
             host: Mutex::new(prepared.host),
@@ -60,7 +63,7 @@ impl Service {
                 // Spawn synchronously after admission, before any HTTP await/cancellation point.
                 tokio::task::spawn_blocking(move || {
                     let _permit = permit;
-                    let completion=catch_unwind(AssertUnwindSafe(||commands::run(&service.host,&job))).unwrap_or_else(|_|Completion {
+                    let completion=catch_unwind(AssertUnwindSafe(||commands::run(&service.host,&service.adapter,&job))).unwrap_or_else(|_|Completion {
                         outcome:json!({"kind":"unknown","code":"workerFailed","message":"无法确认操作结果，请读取状态并重新取得控制权"}),change:Change::Clear,
                     });
                     if let Ok(mut sessions) = service.sessions.lock() {

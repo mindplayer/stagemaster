@@ -1,4 +1,5 @@
 #![allow(dead_code)] // Shared by independently compiled integration-test executables.
+pub mod group;
 use reqwest::{Client, RequestBuilder};
 use serde_json::{Value, json};
 use std::{
@@ -55,16 +56,30 @@ pub struct Harness {
 }
 impl Harness {
     pub fn start() -> Self {
+        Self::prepared(|path| {
+            project(path);
+            None
+        })
+    }
+    pub fn start_group() -> Self {
+        Self::prepared(|path| Some(group::write(path)))
+    }
+    fn prepared(setup: impl FnOnce(&Path) -> Option<PathBuf>) -> Self {
         let directory = temporary();
         let project_path = directory.path().join("show.json");
-        project(&project_path);
+        let manifest = setup(&project_path);
         let original = fs::read(&project_path).unwrap();
         let run = directory.path().join("run");
         let stderr = directory.path().join("stderr.log");
+        let mut command = Command::new(env!("CARGO_BIN_EXE_stagemaster-execution-host"));
+        command.arg(&project_path);
+        if let Some(manifest) = manifest {
+            command.arg("group").arg(manifest);
+        } else {
+            command.args(["sequence", SEQUENCE]);
+        }
         let mut process = Process(
-            Command::new(env!("CARGO_BIN_EXE_stagemaster-execution-host"))
-                .arg(&project_path)
-                .args(["sequence", SEQUENCE])
+            command
                 .arg(&run)
                 .arg("--software-output")
                 .stdout(Stdio::null())
@@ -109,6 +124,9 @@ impl Harness {
             .bearer_auth(self.discovery["controlToken"].as_str().unwrap())
     }
     pub async fn state(&self) -> Value {
+        self.snapshot().await["state"].clone()
+    }
+    pub async fn snapshot(&self) -> Value {
         let deadline = Instant::now() + Duration::from_secs(8);
         loop {
             let response = self.get("/state").send().await.unwrap();
@@ -118,7 +136,7 @@ impl Harness {
                 continue;
             }
             assert!(response.status().is_success());
-            return response.json::<Value>().await.unwrap()["snapshot"]["state"].clone();
+            return response.json::<Value>().await.unwrap()["snapshot"].clone();
         }
     }
     pub async fn session(&self) -> String {

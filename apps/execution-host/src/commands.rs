@@ -1,5 +1,5 @@
 use crate::{
-    projection,
+    application::Application,
     sessions::{Binding, Change, Completion, Job},
     wire::Command,
 };
@@ -36,8 +36,12 @@ fn resolve<T>(
         }
     }
 }
-pub(crate) fn run(host: &Mutex<Host>, job: &Job) -> Completion {
-    execute(host,job).unwrap_or_else(|error| {
+pub(crate) fn run<M: Application>(
+    host: &Mutex<Host<M>>,
+    adapter: &M::Context,
+    job: &Job<M>,
+) -> Completion<M> {
+    execute(host,adapter,job).unwrap_or_else(|error| {
         let (code,message,change)=match error {
             Problem::Host(e)=>(format!("{e:?}"),e.to_string(),Change::Keep),
             Problem::Unknown=>("unknown".into(),"操作结果无法确认，请重新核对状态和控制权".into(),Change::Clear),
@@ -48,9 +52,12 @@ pub(crate) fn run(host: &Mutex<Host>, job: &Job) -> Completion {
         Completion { outcome:json!({"kind":if code=="unknown" {"unknown"} else {"rejected"},"code":code,"message":message}),change }
     })
 }
-fn execute(host: &Mutex<Host>, job: &Job) -> Result<Completion, Problem> {
-    let ttl = job.deadline.saturating_duration_since(Instant::now());
-    if ttl.is_zero() {
+fn execute<M: Application>(
+    host: &Mutex<Host<M>>,
+    adapter: &M::Context,
+    job: &Job<M>,
+) -> Result<Completion<M>, Problem> {
+    if Instant::now() >= job.deadline {
         return Err(Error::Deadline.into());
     }
     if let Command::Acquire {
@@ -65,10 +72,11 @@ fn execute(host: &Mutex<Host>, job: &Job) -> Result<Completion, Problem> {
                 duration_ms: *duration_ms,
             },
             *takeover,
-            ttl,
+            job.deadline,
         )?;
         let client = resolve(|timeout| pending.wait(timeout))?;
-        let outcome = json!({"kind":"acquired","state":projection::state(client.acquired_state())});
+        let outcome =
+            json!({"kind":"acquired","state":M::state(&client.acquired_state(), adapter)});
         return Ok(Completion {
             outcome,
             change: Change::Set(Binding {
@@ -84,20 +92,14 @@ fn execute(host: &Mutex<Host>, job: &Job) -> Result<Completion, Problem> {
             action,
         } => {
             let serial = binding.next.ok_or(Problem::Exhausted)?;
-            let pending = binding.client.submit(
-                serial,
-                expected_revision.0,
-                action.action().map_err(|_| Problem::Invalid)?,
-                ttl,
-            )?;
+            let action = M::action(action, adapter).map_err(|_| Problem::Invalid)?;
+            let pending =
+                binding
+                    .client
+                    .submit(serial, expected_revision.0, action, job.deadline)?;
             let receipt = resolve(|timeout| pending.wait(timeout))?;
             // A business refusal still consumed a runtime serial. Admission/lease errors did not.
-            let outcome = match receipt.result {
-                Ok(()) => json!({"kind":"applied","state":projection::state(receipt.state)}),
-                Err(code) => {
-                    json!({"kind":"rejected","code":format!("{code:?}"),"message":code.to_string(),"state":projection::state(receipt.state)})
-                }
-            };
+            let outcome = M::receipt(receipt, adapter);
             Ok(Completion {
                 outcome,
                 change: Change::Set(Binding {
@@ -107,7 +109,7 @@ fn execute(host: &Mutex<Host>, job: &Job) -> Result<Completion, Problem> {
             })
         }
         Command::Renew { duration_ms } => {
-            let pending = binding.client.renew(*duration_ms, ttl)?;
+            let pending = binding.client.renew(*duration_ms, job.deadline)?;
             resolve(|timeout| pending.wait(timeout))?;
             Ok(Completion {
                 outcome: json!({"kind":"renewed"}),
@@ -115,7 +117,7 @@ fn execute(host: &Mutex<Host>, job: &Job) -> Result<Completion, Problem> {
             })
         }
         Command::Release {} => {
-            let pending = binding.client.release(ttl)?;
+            let pending = binding.client.release(job.deadline)?;
             resolve(|timeout| pending.wait(timeout))?;
             Ok(Completion {
                 outcome: json!({"kind":"released"}),

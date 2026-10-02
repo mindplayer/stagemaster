@@ -1,3 +1,4 @@
+use crate::application::Application;
 use serde_json::{Value, json};
 use stagemaster_runtime::{ProgramKey, State};
 use stagemaster_runtime_host::{Observation, Phase};
@@ -18,15 +19,15 @@ pub(crate) fn state(state: State) -> Value {
         "owner":state.owner.map(|o|json!({"sessionId":Uuid::from_bytes(o.principal).to_string(),"expiresMs":o.expires_ms.to_string()}))
     })
 }
-pub(crate) fn observation(value: &Observation) -> Value {
+pub(crate) fn observation<M: Application>(value: &Observation<M>, adapter: &M::Context) -> Value {
     json!({
         "phase":match value.phase {Phase::Running=>"running",Phase::Stopping=>"stopping",Phase::Stopped=>"stopped",Phase::Faulted=>"faulted"},
         "fault":value.fault.map(|f|format!("{f:?}")),
         "snapshot":value.snapshot.map(|s|json!({
-            "state":state(s.state),"cycles":s.cycles.to_string(),
+            "state":M::state(&s.state, adapter),"cycles":s.cycles.to_string(),
             "missedPeriods":s.missed_periods.to_string(),"maxLatenessMs":s.max_lateness_ms.to_string(),
             "skippedPublications":s.skipped_publications.to_string(),
-            "frame":s.frame.map(|f|json!({"kind":"softwareSample","universe":f.info.universe,"revision":f.info.revision.to_string(),"sampledMs":f.info.sampled_ms.to_string(),"slots":f.slots.as_slice()}))
+            "frame":s.frame.as_ref().map(M::frame)
         }))
     })
 }

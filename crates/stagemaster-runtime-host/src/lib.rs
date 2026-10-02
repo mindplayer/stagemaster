@@ -33,12 +33,14 @@
 #![forbid(unsafe_code)]
 mod backend;
 mod client;
+mod deadline;
 mod host;
 mod observation;
 mod worker;
 
 pub use backend::{Backend, Device, Profile};
 pub use client::{Client, Connection, Ticket, WaitError};
+pub use deadline::Deadline;
 pub use host::Host;
 pub use observation::{Fault, Frame, Observation, Observer, Phase, Snapshot};
 use stagemaster_runtime::Code;
