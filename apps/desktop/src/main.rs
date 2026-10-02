@@ -3,6 +3,7 @@ mod audio;
 mod check;
 mod device;
 mod effect_template;
+mod execution;
 mod installation;
 mod lifecycle;
 mod output_control;
@@ -16,6 +17,7 @@ mod recovery;
 mod report_export;
 mod sequence_report;
 mod session;
+mod startup;
 use serde::Deserialize;
 use session::{Session, Snapshot};
 use stagemaster_project::{EditCommand, FixturePlacement, SpatialVector3};
@@ -209,16 +211,7 @@ fn main() {
         .manage(effect_template::Service::default())
         .manage(devices)
         .manage(installation)
-        .setup(|app| {
-            let data = recovery::directory(app)?
-                .parent()
-                .ok_or("缺少数据目录")?
-                .to_path_buf();
-            app.manage(audio::Service::new(data.join("audio")));
-            app.manage(recent::Service::new(data.join("navigation")));
-            app.manage(recovery::Service::new(recovery::directory(app)?));
-            Ok(())
-        })
+        .setup(startup::setup)
         .plugin(tauri_plugin_dialog::init())
         .menu(|app| {
             let app_menu = Submenu::with_items(
@@ -269,6 +262,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             project_request,
+            execution::execution_request,
             audio::audio_request,
             audio::prepare::audio_prepare,
             audio::prepare::audio_cancel,

@@ -26,7 +26,7 @@ import {
   type SequenceDraft as Draft,
 } from "../../sequence-tools";
 import { SequenceInspector } from "./SequenceInspector";
-import { PreviewPanel } from "./PreviewPanel";
+import { SequenceExecutionPanel } from "../execution/SequenceExecutionPanel";
 import { DeleteDialog } from "./DeleteDialog";
 
 export interface SequenceHandle {
@@ -68,6 +68,7 @@ export const SequenceWorkspace = forwardRef<
   const [revealRequest, setRevealRequest] = useState<RevealItem | null>(null);
   const revealRoot = useRevealItem(revealRequest, visible, busy);
   const [batch, setBatch] = useState(false);
+  const [background, setBackground] = useState(false);
   const groupProperties = useRef<GroupPropertiesHandle>(null);
   const [position, setPosition] = useState(() => executionPosition(null));
   const [sequenceId, setSequenceId] = useState(project.sequences[0]?.id ?? "");
@@ -300,6 +301,7 @@ export const SequenceWorkspace = forwardRef<
           ref={revealRoot}
           className="wb-sequence-content"
           data-execution={execution}
+          data-background={execution && background}
         >
           <SequenceWorkspaceHeading
             sequence={sequence}
@@ -321,6 +323,7 @@ export const SequenceWorkspace = forwardRef<
             }}
           />
           {sequence &&
+            !(execution && background) &&
             (!execution && batch ? (
               <SequenceGroupEditor
                 key={sequence.id}
@@ -376,7 +379,10 @@ export const SequenceWorkspace = forwardRef<
                 />
               </SequenceStepBrowser>
             ))}
-          <PreviewPanel
+          <SequenceExecutionPanel
+            project={project}
+            background={background}
+            onBackgroundChange={setBackground}
             host={host}
             sequence={sequence}
             stepId={!execution && batch ? "" : (step?.id ?? "")}

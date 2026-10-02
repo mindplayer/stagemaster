@@ -4102,6 +4102,7 @@ dependencies = [
  "stagemaster-audio",
  "stagemaster-device-host",
  "stagemaster-device-upload",
+ "stagemaster-execution-client",
  "stagemaster-playback",
  "stagemaster-previs",
  "stagemaster-project",
@@ -4239,6 +4240,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "stagemaster-execution-client"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "stagemaster-execution-host"
 version = "0.1.0"
 dependencies = [
@@ -4246,6 +4257,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "stagemaster-execution-client",
  "stagemaster-install",
  "stagemaster-install-store",
  "stagemaster-live",

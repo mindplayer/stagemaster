@@ -12,6 +12,7 @@ development-device-access = []
 tauri-build = { version = "=2.6.3", features = [] }
 
 [dependencies]
+stagemaster-execution-client = { path = "../../crates/stagemaster-execution-client" }
 stagemaster-audio = { path = "../../crates/stagemaster-audio" }
 stagemaster-device-host = { path = "../../crates/stagemaster-device-host" }
 stagemaster-device-upload = { path = "../../crates/stagemaster-device-upload" }

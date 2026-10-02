@@ -2,6 +2,7 @@
 members = [
   "apps/desktop",
   "apps/execution-host",
+  "crates/stagemaster-execution-client",
   "crates/stagemaster-audio",
   "apps/engine-demo",
   "crates/stagemaster-dmx",

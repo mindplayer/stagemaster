@@ -40,6 +40,7 @@ const unsupported = async () => {
   throw new Error("此隔离组件不调用该接口");
 };
 const host: ApplicationHost = {
+  execution: async () => { throw new Error("此测试不提供后台执行"); },
   importEffectTemplate: unsupported,
   exportEffectTemplate: unsupported,
   cancelEffectTemplate: unsupported,

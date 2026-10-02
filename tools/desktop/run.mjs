@@ -1,3 +1,4 @@
+import { prepareHost } from "./prepare-host.mjs";
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -8,6 +9,7 @@ const command = process.argv[2] ?? "dev";
 if (!["dev", "build"].includes(command)) throw new Error("仅支持 dev 或 build");
 for (const directory of ["tmp", "tmp/cargo-home", "logs/DESKTOP-001"])
   mkdirSync(resolve(root, directory), { recursive: true });
+prepareHost();
 const cli = resolve(
   root,
   "apps/ui-prototype/node_modules/@tauri-apps/cli/tauri.js",

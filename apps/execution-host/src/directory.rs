@@ -9,6 +9,7 @@ use std::{
 pub(crate) struct Directory {
     root: PathBuf,
     published: bool,
+    _lifetime: fs::File,
 }
 impl Directory {
     pub fn create(path: &Path) -> io::Result<Self> {
@@ -17,9 +18,19 @@ impl Directory {
         return Err(io::Error::other("此宿主尚未验证当前系统的私有目录权限"));
         #[cfg(unix)]
         {
-            use std::{fs::DirBuilder, os::unix::fs::DirBuilderExt};
+            use std::{
+                fs::DirBuilder,
+                os::unix::fs::{DirBuilderExt, OpenOptionsExt},
+            };
             DirBuilder::new().mode(0o700).create(path)?;
+            let lifetime = OpenOptions::new()
+                .create_new(true)
+                .write(true)
+                .mode(0o600)
+                .open(path.join("lifetime.lock"))?;
+            lifetime.try_lock().map_err(io::Error::other)?;
             Ok(Self {
+                _lifetime: lifetime,
                 root: path.canonicalize()?,
                 published: false,
             })
