@@ -25,3 +25,12 @@ pub async fn device_request(
 ) -> Result<Snapshot, Problem> {
     state.request(request)
 }
+
+#[tauri::command]
+pub async fn device_runtime_request(
+    state: tauri::State<'_, Connections>,
+    access: tauri::State<'_, stagemaster_device_host::runtime_ui::ExpectedAccess>,
+    request: stagemaster_device_host::runtime_ui::Request,
+) -> Result<stagemaster_device_host::runtime_ui::View, Problem> {
+    state.runtime_request(request, &access).await
+}

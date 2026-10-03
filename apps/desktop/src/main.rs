@@ -197,9 +197,9 @@ async fn preview_request(
     .map_err(|_| "预览操作未完成".to_string())?
 }
 fn main() {
-    let devices = Arc::new(stagemaster_device_host::Service::new(
-        device::backend().expect("设备连接配置无效"),
-    ));
+    let backend = device::backend().expect("设备连接配置无效");
+    let runtime_access = backend.runtime_access();
+    let devices = Arc::new(stagemaster_device_host::Service::new(backend));
     let installation = installation::Service::new(devices.clone());
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(Session::default())))
@@ -210,6 +210,7 @@ fn main() {
         .manage(profile_file::Service::default())
         .manage(effect_template::Service::default())
         .manage(devices)
+        .manage(runtime_access)
         .manage(installation)
         .setup(startup::setup)
         .plugin(tauri_plugin_dialog::init())
@@ -281,6 +282,7 @@ fn main() {
             recovery::recovery_request,
             recent::recent_request,
             device::device_request,
+            device::device_runtime_request,
             installation::installation_request,
             installation::installation_start,
             previs::previs_request

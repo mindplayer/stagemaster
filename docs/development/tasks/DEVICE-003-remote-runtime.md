@@ -1,10 +1,10 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权、运行应用入口、有界消息、共享客户端、原生运行服务及运行队列增量已验证；固件运行入口已完成软件测试／交叉构建，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，第七增量 `5688d6a`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
+状态：分权、运行应用入口、有界消息、共享客户端、原生服务／队列及桌面节目操作已完成软件验收；固件运行入口已交叉构建，完整设备运行链路接续实板与物理输出验收。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，第七增量 `5688d6a`，第八增量 `c0fc927`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
-Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。原生 Service／Ble 已有明确运行入口，新 runtime-gatt 固件已接软件运行但未刷入；当前实板与桌面设备页面仍只有原诊断／安装路径。不得再造播放器，也不能把安装成功显示为运行或物理输出。接续桌面正式操作与可见状态，再取得实板／物理输出证据。
+Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。原生 Service／Ble 已有明确运行入口，新 runtime-gatt 固件已接软件运行但未刷入；当前实板仍是原诊断／安装固件；桌面正式节目操作、可见状态和维护入口已实现并打包，但未连接实板验证。不得再造播放器，也不能把安装成功显示为运行或物理输出。接续实板 GATT、自主运行和物理输出证据。
 
 第一增量依 [ADR-127](../decisions/PRODUCT-ADR-127-device-operation-permissions.md)：限定 `device-auth::application`、原 `install-worker::secure`、相关验收和契约。既有安装凭据不提升权限；不修改工程／设备包／配置字节或固件。源码按许可范围、准入、安装适配与测试分文件，目标新增文件低于 300 行。全量基线仍运行时使用项目 `tmp/framework-001-light-target` 隔离构建，不覆盖原测试产物。
 
@@ -147,3 +147,26 @@ SMDV v2 仅在可信本地配置中显式表示安装／观察／控制范围，
 初始检查的 base feature 未用分支、测试误读 Installed 字段与 Settings 参数 lint 已修复；最终追加“仅观察许可”真实固件测试，未删断言或放宽规则。新增手写文件最大 212 行；所涉 ble.rs 为 323 行，保留 GATT 声明／平台连接组装，应用协议已抽取。无文件超过 500 行，无新第三方依赖或锁文件变化。
 
 本增量软件出口按 `feat(esp32): integrate authenticated runtime scheduling and GATT` 集成。完整 DEVICE-003、AUDIT-001 与 goal 保持 active；下一项桌面设备目录／操作／状态和维护切换，再实板无线、自主运行、时序／内存与 UART DMX 验收。用户 output/、工程、窗口、设备均未操作；FRAMEWORK-001 保持已完成。
+
+
+## 第八增量：桌面设备节目操作
+
+基线 `c0fc927`，main，当前会话单写者。上一回合仅答复用户进度，分类 no progress；本回合核对未提交源码、真实存活的 Vite 验收服务和已有终止作业，接续原增量。依 [ADR-134](../decisions/PRODUCT-ADR-134-desktop-device-runtime.md)，新增[本机 JSON 投影与桌面接口](../../module-api/desktop-device-runtime.md)，复用原 Service、控制租约、协议和设备工作器；Tauri 只转发，界面只协调命令和观察。
+
+运行连接与原诊断／安装连接明确选择。目录搜索、载入、步骤选择／执行、暂停、继续、下一步、停止、取得／归还／确认接管、维护切换均已接原生运行端口。面板收起保留草稿，外部接管撤销本界面的续期资格；发送或读取失败立即禁用操作，历史状态与未确认结果保留，重连不自动重播／抢权。目录取消等待当前请求结束并丢弃结果；未读完整与真实空目录分开。未知通信耗时不显示空单位，断线后不展示旧诊断为当前事实。
+
+原生连接的期望权限只来自本机已加载配置，旧安装配置不升级。全部 u64 以十进制字符串投影，严格拒绝额外字段和非法标识。续期使用原生剩余准入期限并保留传输余量，不允许前端任意延长；这不是商业授权限时方案。
+
+实际验证：
+
+- `logs/device-003-desktop-runtime-regression.log`：device-host／device-channel／device-upload 共 102 项通过，0 失败／忽略，含新增 JSON 操作、权限拒绝、维护／期限和全宽计数投影 4 项。随后追加可信配置实际连接，`logs/device-003-desktop-runtime-native-final.log` 中 13 项原生运行测试全通过。去重合计 103 项，新增 5 项；不是全工作区全部测试。
+- 新原生测试经过真实安全会话、原安装包和 Runtime，验证无自动控制／执行、目录到暂停继续、旧修订拒绝、断线历史／自主运行、维护取消、租约期限、非法 JSON 未派发、u64::MAX 精确字符串、v1 拒绝及 v2 观察／控制范围实际握手。
+- `logs/device-003-desktop-runtime-clippy-final-reviewed.log`：全工作区全部目标严格 Clippy（application）通过。初次检查的值传递、长字面量已修复；状态枚举与维护测试权限夹具按原真实契约修正，未放宽规则。Serde 空动作改用空结构体变体后，额外 duration 字段确实被拒绝。
+- `logs/device-003-desktop-runtime-ui-tests.log`：314 项 UI 逻辑通过，含新增 3 项回复／精度、租约／续期、状态标签测试。最终类型检查 `logs/device-003-desktop-runtime-ui-check-final.log` 通过。前端没有另建节目计时器或权限判定器。
+- 隔离页面使用正式 DeviceCenter／DeviceRuntime，人工交互验证连接仅观察、显式取得／接管取消与确认、选择／载入／执行／暂停／继续／下一步／停止、当前步骤、筛选隐藏选择、收起保持、维护执行禁用、目录取消与刷新恢复、读取失败即时禁用、发送后断线提示及重连无新增控制请求。旧在途目录在取消后没有被发布；最终全新页面控制台无错误。原热更新测试页曾出现夹具 createRoot 重执行告警，清洁页面复验无此问题，未将开发热更新混作正式运行。桌面 1440×940 DOM 尺寸检查无横向溢出，默认窄面板亦可滚动操作。
+- 界面记录 `logs/device-003-desktop-runtime-ui-acceptance.txt`，截图 `data/DEVICE-003/ui-validation/program-controls.png` 与 `uncertain-disconnect.png`；均是隔离夹具，不是实板。临时标签和本轮 Vite 服务已正常关闭，测试视口已恢复。
+- `logs/device-003-desktop-runtime-build.log`：正式桌面 Tauri 构建／应用包通过，产物在 `tmp/framework-001-light-target/debug/bundle/macos/舞台大师.app`。原 Vite 主包大于 500 kB 提示保留，未调整阈值掩盖。本轮未启动此应用连接实板，不声称完成真实原生 GATT 交互；固件源码未变化，没有重跑 Xtensa 或刷机。
+
+审查结论：桌面软件入口增量按 `feat(device): add desktop program runtime controls` 集成。Rust 投影、类型、状态协调、显示组件、发现组件、测试分别组织；三个前端手写文件约 318～328 行，评估后保留各自完整状态／视图职责，发现列表已抽出，无文件超过 500 行。两条原有本地测试依赖移为显式生产依赖，没有新增第三方或锁文件变化；核心不依赖 UI。用户 output/、工程、正式应用窗口、UE、声卡与物理设备未操作。
+
+完整 DEVICE-003／AUDIT-001／goal 保持 active。下一步核对实板和原凭据，准备对应运行固件与受控实板验证，再贯通 UART DMX；必须分别证明无线保活、独立调度、峰值内存和真实输出。FRAMEWORK-001 已完成的框架轮不重开，不能将本次打包／隔离界面证据当成硬件已经可交付。

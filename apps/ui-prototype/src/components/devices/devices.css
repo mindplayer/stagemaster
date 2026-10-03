@@ -234,3 +234,7 @@
     display: none;
   }
 }
+
+.wb-device-center[hidden] {
+  display: none;
+}

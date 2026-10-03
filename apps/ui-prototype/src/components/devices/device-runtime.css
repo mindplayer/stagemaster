@@ -1,0 +1,64 @@
+.wb-device-runtime {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--wb-border);
+}
+.wb-device-runtime select {
+  width: 100%;
+  margin-top: 10px;
+  min-width: 0;
+  padding: 8px;
+}
+.wb-device-runtime select[size] {
+  min-height: 80px;
+}
+.wb-run-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.wb-run-status span {
+  color: var(--wb-muted);
+  font-variant-numeric: tabular-nums;
+}
+.wb-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+.wb-run-step {
+  display: block;
+  margin-top: 16px;
+  color: var(--wb-muted);
+}
+.wb-run-maintenance {
+  margin-top: 18px;
+}
+.wb-run-maintenance summary {
+  cursor: pointer;
+  color: var(--wb-muted);
+}
+.wb-run-confirm {
+  border: 1px solid var(--wb-border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+.wb-run-confirm button {
+  margin: 8px 8px 0 0;
+}
+.workbench .wb-device-mode {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.wb-device-mode select {
+  flex: 1;
+  min-width: 0;
+}

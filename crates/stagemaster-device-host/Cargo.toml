@@ -9,6 +9,8 @@ license.workspace = true
 bonded-experiment = []
 
 [dependencies]
+stagemaster-runtime = { path = "../stagemaster-runtime" }
+stagemaster-package = { path = "../stagemaster-package" }
 stagemaster-runtime-protocol = { path = "../stagemaster-runtime-protocol" }
 getrandom = "=0.3.4"
 zeroize = { version = "=1.9.0", default-features = false }
@@ -26,11 +28,9 @@ uuid = "=1.26.1"
 
 [dev-dependencies]
 stagemaster-install-worker = { path = "../stagemaster-install-worker", features = ["application"] }
-stagemaster-runtime = { path = "../stagemaster-runtime" }
 stagemaster-playback = { path = "../stagemaster-playback" }
 stagemaster-install = { path = "../stagemaster-install" }
 stagemaster-install-store = { path = "../stagemaster-install-store" }
-stagemaster-package = { path = "../stagemaster-package" }
 stagemaster-project = { path = "../stagemaster-project" }
 tempfile = "=3.27.0"
 tokio = { version = "=1.53.1", features = ["test-util", "rt-multi-thread", "net"] }

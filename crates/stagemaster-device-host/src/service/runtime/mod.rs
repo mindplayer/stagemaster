@@ -27,6 +27,23 @@ impl Call {
 }
 
 impl<B: Transport> Service<B> {
+    pub(crate) fn runtime_control_duration(&self, epoch: u32) -> Result<u64, Problem> {
+        let mut state = self.inner.lock().map_err(|_| Problem::new(C::Closed))?;
+        check_connected(&mut state, epoch)?;
+        let remaining = state
+            .runtime_until
+            .and_then(|until| until.checked_duration_since(Instant::now()))
+            .map_or(0, |duration| {
+                u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
+            });
+        // Leave transport margin. Device authorization remains the final authority.
+        let duration = remaining.saturating_sub(1000).min(60_000);
+        if duration == 0 {
+            Err(Problem::new(C::Timeout))
+        } else {
+            Ok(duration)
+        }
+    }
     /// Explicit native runtime connection; never installs, takes control or starts playback.
     /// Expected access is a local expectation, not a remote permission grant.
     /// # Errors

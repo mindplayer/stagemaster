@@ -50,6 +50,17 @@ fn error(value: btleplug::Error) -> Problem {
     };
     Problem::new(code).detail(value.to_string())
 }
+impl Ble {
+    /// Copy non-secret expectations before moving this adapter into its sole service.
+    #[must_use]
+    pub fn runtime_access(&self) -> crate::runtime_ui::ExpectedAccess {
+        self.credentials
+            .as_ref()
+            .map_or_else(Default::default, |c| {
+                crate::runtime_ui::ExpectedAccess::from_configuration(c)
+            })
+    }
+}
 impl Transport for Ble {
     async fn start_scan(&mut self) -> Result<(), Problem> {
         self.scan().await

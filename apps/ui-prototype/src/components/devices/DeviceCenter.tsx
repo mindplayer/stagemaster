@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  BluetoothIcon,
-  MagnifyingGlassIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { BluetoothIcon, XIcon } from "@phosphor-icons/react";
 import type { ApplicationHost } from "../../application-host";
 import type { DeviceRequest, DeviceSnapshot } from "../../device-types";
 import {
@@ -11,11 +7,13 @@ import {
   deviceDeadline,
   deviceError,
   deviceLabels,
-  deviceMatches,
   newerDeviceSnapshot,
 } from "../../device-tools";
 import { DeviceIdentity } from "./DeviceIdentity";
 import "./devices.css";
+import { DeviceDiscovery } from "./DeviceDiscovery";
+import { DeviceRuntime } from "./DeviceRuntime";
+import { useDeviceRuntime } from "./useDeviceRuntime";
 
 // This component stays mounted when the panel closes. The native service owns
 // connectivity even if the entire webview disappears.
@@ -33,6 +31,8 @@ export function DeviceCenter({
     if (dismiss) setOpen(false);
   }, [dismiss]);
   const [snapshot, setSnapshot] = useState<DeviceSnapshot | null>(null);
+  const runtime = useDeviceRuntime(host.deviceRuntime, snapshot);
+  const [mode, setMode] = useState<"installation" | "runtime">("installation");
   const [transportError, setTransportError] = useState("");
   const [actionError, setActionError] = useState("");
   const [query, setQuery] = useState("");
@@ -89,6 +89,26 @@ export function DeviceCenter({
       if (mounted.current) setBusy(false);
     }
   }
+  async function connect(id: string) {
+    if (mode === "installation" || !host.deviceRuntime) {
+      await request({ kind: "connect", epoch: snapshot!.epoch, id });
+      return;
+    }
+    if (pending.current || !snapshot) return;
+    pending.current = true;
+    setBusy(true);
+    setActionError("");
+    try {
+      await host.deviceRuntime({ kind: "connect", epoch: snapshot.epoch, id });
+      const next = await host.device({ kind: "status" });
+      if (mounted.current) accept(next);
+    } catch (error) {
+      if (mounted.current) setActionError(deviceError(error));
+    } finally {
+      pending.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  }
   function close() {
     setOpen(false);
     button.current?.focus();
@@ -101,13 +121,9 @@ export function DeviceCenter({
     ["preparing", "scanning", "connecting", "connected"].includes(phase) &&
     !busy &&
     !transportError;
-  const candidates = snapshot?.candidates ?? [];
-  const visible = candidates.filter((candidate) =>
-    deviceMatches(candidate, query),
-  );
-  const target = candidates.find((candidate) => candidate.id === selected);
   const current = snapshot?.selected;
-  const diagnostics = transportError ? null : snapshot?.diagnostics;
+  const diagnostics =
+    transportError || phase !== "connected" ? null : snapshot?.diagnostics;
   const label = transportError
     ? "状态不可用"
     : phase === "fault" && !current
@@ -144,8 +160,9 @@ export function DeviceCenter({
         />
         <span>{label}</span>
       </button>
-      {open && (
+      {
         <aside
+          hidden={!open}
           id="device-center"
           className="wb-device-center"
           aria-labelledby="device-heading"
@@ -232,110 +249,35 @@ export function DeviceCenter({
                   </div>
                   <div>
                     <dt>最近通信</dt>
-                    <dd>{snapshot!.roundTripMs} 毫秒</dd>
+                    <dd>
+                      {snapshot!.roundTripMs == null
+                        ? "尚未测得"
+                        : `${snapshot!.roundTripMs} 毫秒`}
+                    </dd>
                   </div>
                 </dl>
                 <DeviceIdentity description={snapshot?.description ?? null} />
               </section>
             )}
-            <section className="wb-device-discovery" aria-label="搜索设备">
-              <div className="wb-device-section-title">
-                <h3>
-                  附近设备 <span>{candidates.length}</span>
-                </h3>
-                <button
-                  className="wb-primary"
-                  disabled={!startable}
-                  onClick={() => {
-                    setSelected("");
-                    void request({ kind: "scan", epoch: snapshot!.epoch });
-                  }}
-                >
-                  <MagnifyingGlassIcon />
-                  {candidates.length ? "重新搜索" : "搜索设备"}
-                </button>
-              </div>
-              <div className="wb-device-search">
-                <input
-                  aria-label="筛选设备"
-                  placeholder="搜索名称或连接标识"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
-                {query && (
-                  <button
-                    aria-label="清除设备筛选"
-                    onClick={() => setQuery("")}
-                  >
-                    <XIcon />
-                  </button>
-                )}
-              </div>
-              <div
-                className="wb-device-list"
-                role="radiogroup"
-                aria-label="选择蓝牙设备"
-              >
-                {visible.map((candidate) => (
-                  <label
-                    key={candidate.id}
-                    className={selected === candidate.id ? "selected" : ""}
-                  >
-                    <input
-                      type="radio"
-                      name="device-selection"
-                      value={candidate.id}
-                      checked={selected === candidate.id}
-                      onChange={() => setSelected(candidate.id)}
-                    />
-                    <div>
-                      <strong>{candidate.name || "未命名设备"}</strong>
-                      <span>{candidate.id}</span>
-                    </div>
-                    <span>
-                      {candidate.rssi === null
-                        ? "信号未知"
-                        : `${candidate.rssi} dBm`}
-                    </span>
-                  </label>
-                ))}
-                {!visible.length && (
-                  <p className="wb-device-empty">
-                    {query && candidates.length
-                      ? "没有匹配设备，可清除筛选"
-                      : phase === "preparing"
-                        ? "蓝牙就绪后开始搜索"
-                        : phase === "scanning"
-                          ? "正在查找附近的播放设备…"
-                          : snapshot?.scanPerformed
-                            ? "未发现设备，请检查供电与距离后重新搜索"
-                            : "搜索并选择要连接的播放设备"}
-                  </p>
-                )}
-              </div>
-              {snapshot?.truncated && (
-                <p>设备较多，仅显示前 32 台；请缩小搜索范围后重试。</p>
-              )}
-              {target && !deviceMatches(target, query) && (
-                <p>已选择的设备被筛选隐藏：{target.name}</p>
-              )}
-              <div className="wb-device-connect">
-                <span>{target ? `已选：${target.name}` : "请选择设备"}</span>
-                <button
-                  className="wb-primary"
-                  disabled={!startable || !target}
-                  onClick={() =>
-                    void request({
-                      kind: "connect",
-                      epoch: snapshot!.epoch,
-                      id: target!.id,
-                    })
-                  }
-                >
-                  连接设备
-                </button>
-              </div>
-            </section>
+            {host.deviceRuntime && (
+              <DeviceRuntime
+                runtime={runtime}
+                outputDisabled={diagnostics?.outputDisabled}
+              />
+            )}
+            <DeviceDiscovery
+              snapshot={snapshot}
+              query={query}
+              setQuery={setQuery}
+              selected={selected}
+              setSelected={setSelected}
+              startable={!!startable}
+              request={request}
+              connect={connect}
+              mode={mode}
+              setMode={setMode}
+              runtimeSupported={!!host.deviceRuntime}
+            />
             <details className="wb-device-details">
               <summary>连接详情</summary>
               <dl>
@@ -380,7 +322,7 @@ export function DeviceCenter({
           </div>
           <footer>收起面板后保持连接；退出应用后断开。</footer>
         </aside>
-      )}
+      }
     </>
   );
 }

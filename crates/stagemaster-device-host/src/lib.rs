@@ -6,6 +6,7 @@ mod description;
 pub use credentials::{DevelopmentConfiguration, read_development_configuration};
 mod installation_peer;
 mod runtime;
+pub mod runtime_ui;
 pub use runtime::{RuntimeIntent, RuntimeSnapshot};
 mod service;
 mod transport;

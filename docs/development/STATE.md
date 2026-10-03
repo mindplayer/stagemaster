@@ -1,5 +1,8 @@
 # 当前开发状态
 
+DEVICE-003 桌面节目操作增量完成（基线 `c0fc927`，main；结果为本次 `feat(device): add desktop program runtime controls` 提交）：依 [ADR-134](decisions/PRODUCT-ADR-134-desktop-device-runtime.md) 接通原生 JSON 投影、可信运行连接、目录／步骤、节目操作、控制权及维护界面。103 项去重相关 Rust、工作区严格 Clippy、314 UI／最终类型和正式桌面打包通过；隔离组件已验证上下文保持、外部接管、取消读取、状态故障与断线不重播。新原生配置与 u64 精度保护通过；没有新增第三方或锁文件变化，相关组件最大 328 行。新固件未刷入、未连接真实蓝牙／DMX；接续实板与物理输出，完整 DEVICE-003／AUDIT-001／goal active，框架轮保持完成。临时验收服务／页面已关闭，用户 output/、工程和正式窗口保持。
+
+
 DEVICE-003 固件运行接线增量完成（基线 `5688d6a`，main；结果为本次 `feat(esp32): integrate authenticated runtime scheduling and GATT` 提交）：依 [ADR-133](decisions/PRODUCT-ADR-133-firmware-runtime-gatt.md)，安装／运行共用安全记录，显式 v2 开发配置不提升旧权限；第二核原工作器独立推进、单格回复背压和 Live 同步撤销已接。217 项去重相关 Rust 测试通过，含 9 项新增；工作区全部目标严格 Clippy、旧安装／新运行 Xtensa 严格检查及最终固件构建通过。应用镜像 808,704 字节，占 3 MiB 分区的 25.71%，静态资源与原 RWX 链接告警如实记录；不能替代实板峰值／时序。构建夹具是虚构编号，新固件未刷入，整个镜像仍禁用物理发送。无第三方或锁文件变化，新增文件不超 212 行；接续桌面节目目录／运行操作／模式切换，再实板和物理输出。完整 DEVICE-003／AUDIT-001／goal active，已完成框架轮不重开；用户 output/、工程、窗口及设备保持。
 
 DEVICE-003 设备运行队列增量完成（基线 `9f63a80`，main；结果为本次 `feat(device): dispatch runtime work through bounded authenticated queues` 提交）：依 [ADR-132](decisions/PRODUCT-ADR-132-runtime-worker-queue.md)，真实 Session 的通信网关、独立有效性发布与原工作器端点已接通，慢载入、保活、固定期限、历史重试及撤销各自处理。221 项相关 Rust 回归通过，含 20 项新增；全工作区全部目标严格 Clippy（application）及 Xtensa application-gatt 检查通过。实际 TCP／20 字节 GATT 软件分片经过共享客户端、真实单格队列和独立工作线程；实际包载入途中撤销、断线自主推进和完整软件灯值验证成立。修复新心跳发布恰晚于工作器采样时的误撤销边界；无新增依赖／锁文件／固件行为修改，新文件低于 300 行。接续固件运行 GATT、同步槽与非阻塞独立调度，再接桌面目录／操作和物理输出；完整 DEVICE-003／AUDIT-001／goal active，已完成框架轮保持收尾，用户 output/、工程及设备未操作。

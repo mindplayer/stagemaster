@@ -9,3 +9,9 @@ mod flows;
 mod runtime_support;
 #[path = "../../stagemaster-device-channel/tests/support/mod.rs"]
 mod support;
+#[path = "runtime/ui.rs"]
+mod ui;
+#[path = "runtime/ui_connection.rs"]
+mod ui_connection;
+#[path = "runtime/ui_projection.rs"]
+mod ui_projection;

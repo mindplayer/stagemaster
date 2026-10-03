@@ -16,9 +16,9 @@
 
 [FRAMEWORK-001](tasks/FRAMEWORK-001-platform-exit-review.md) 已完成六组职责的[整体审查](../architecture-framework-review-2026-10-03.md)。完整 `8464d8a` 基线 979 项单元／集成＋2 项文档测试通过，0 失败、1 原有子进程入口忽略；R1 组装修复 `4d741a4` 另有 68 项宿主＋8 项 HTTP、两种严格检查、实际依赖／链接／桌面准备证据，311 UI 与类型／伪 API 通过。基线与后续差异明确分列。软件框架轮收尾，完整 TIME-001／AUDIT-001／持续目标仍未完成；接续 DEVICE-003，不重复旧框架验证或无限细化音频。
 
-[DEVICE-003](tasks/DEVICE-003-remote-runtime.md) 接续正式设备运行链路；ADR-127～132 已逐项完成分权、原工作器入口、有界协议、共享客户端、原生服务及运行队列。按 [ADR-133](decisions/PRODUCT-ADR-133-firmware-runtime-gatt.md) 接通固件独立运行服务和第二核调度，217 项相关软件测试、工作区／两种 Xtensa 严格检查与最终镜像构建通过；未刷机、未发 DMX。旧安装凭据不提升权限，新运行构建用独立显式 v2 开发配置。下一项桌面节目目录／操作／回执及模式切换；随后实板无线、自主推进、恢复和物理输出验收，不把软件完成当成设备已经可交付。
+[DEVICE-003](tasks/DEVICE-003-remote-runtime.md) 接续正式设备运行链路；ADR-127～132 已逐项完成分权、原工作器入口、有界协议、共享客户端、原生服务及运行队列。按 [ADR-133](decisions/PRODUCT-ADR-133-firmware-runtime-gatt.md) 接通固件独立运行服务和第二核调度，217 项相关软件测试、工作区／两种 Xtensa 严格检查与最终镜像构建通过；未刷机、未发 DMX。旧安装凭据不提升权限，新运行构建用独立显式 v2 开发配置。按 [ADR-134](decisions/PRODUCT-ADR-134-desktop-device-runtime.md) 的桌面目录／操作／回执及模式切换也已完成软件验收：103 项相关 Rust、314 UI、严格检查／类型、隔离组件和正式桌面打包通过，尚未连接新固件实板。下一项实板无线、自主推进、恢复和物理输出验收，不把软件完成当成设备已经可交付。
 
-第三增量 [ADR-129](decisions/PRODUCT-ADR-129-runtime-wire-protocol.md) 的 [SMRT v1](../module-api/device-runtime-wire.md) 与工作器适配已完成：74 项相关测试通过，含 16 项新增；同上两类严格检查通过，最长步骤页 1,142 字节。第四增量 [ADR-130](decisions/PRODUCT-ADR-130-runtime-client-channel.md) 已接共享 Channel 的运行握手／[客户端](../module-api/device-runtime-client.md)，155 项相关回归（含 16 项新增）、全工作区严格 Clippy 与 Xtensa application-gatt 检查通过。下一接线点为原生设备服务／生产队列与固件独立调度，随后桌面操作；保留物理输出出口，完整 DEVICE-003 不关闭。
+第三增量 [ADR-129](decisions/PRODUCT-ADR-129-runtime-wire-protocol.md) 的 [SMRT v1](../module-api/device-runtime-wire.md) 与工作器适配已完成：74 项相关测试通过，含 16 项新增；同上两类严格检查通过，最长步骤页 1,142 字节。第四增量 [ADR-130](decisions/PRODUCT-ADR-130-runtime-client-channel.md) 已接共享 Channel 的运行握手／[客户端](../module-api/device-runtime-client.md)，155 项相关回归（含 16 项新增）、全工作区严格 Clippy 与 Xtensa application-gatt 检查通过。后续原生设备服务、运行队列、固件调度和桌面软件入口均已分别验证，见上方 DEVICE-003 当前记录；保留实板和物理输出出口，完整 DEVICE-003 不关闭。
 
 第五增量 [ADR-131](decisions/PRODUCT-ADR-131-native-device-runtime-service.md) 已将客户端接入原 [Service／Ble](../module-api/native-device-runtime-service.md)，独立运行端点、互斥连接、历史／未确认意图和取消清理通过 96 项相关回归（含 9 项新增），全工作区全部目标严格 Clippy 通过。当前入口推进到生产队列／运行 GATT 服务及固件独立调度，随后桌面节目／状态／操作；不将软件承载验证当作当前实板已有运行能力。
 
