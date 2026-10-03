@@ -1,6 +1,10 @@
 //! Board-local owner of the install service; only the live authenticated epoch may dispatch.
 #[cfg(feature = "runtime-gatt")]
 mod dispatch;
+#[cfg(feature = "runtime-gatt")]
+mod frame_metrics;
+#[cfg(feature = "runtime-gatt")]
+mod frame_probe;
 mod runtime;
 #[cfg(feature = "application-gatt")]
 pub mod runtime_io;
@@ -63,7 +67,7 @@ pub fn sample_stack() {
 }
 
 pub fn report() {
-    esp_println::println!(
+    crate::diagnostics::report_line(format_args!(
         "INSTALL WORKER operations={} max_operation_us={} sampled_stack={} heap={}/{} heap_peak={}",
         OPERATIONS.load(Ordering::Relaxed),
         MAX_OPERATION_US.load(Ordering::Relaxed),
@@ -71,9 +75,11 @@ pub fn report() {
         esp_alloc::HEAP.used(),
         esp_alloc::HEAP.free(),
         esp_alloc::HEAP.stats().max_usage
-    );
+    ));
     crate::measured_nor::report();
     crate::memory::report();
+    #[cfg(feature = "runtime-gatt")]
+    frame_probe::report();
 }
 fn record_operation(start: esp_hal::time::Instant) {
     MAX_OPERATION_US.fetch_max(
@@ -81,9 +87,12 @@ fn record_operation(start: esp_hal::time::Instant) {
         Ordering::Relaxed,
     );
     let count = OPERATIONS.fetch_add(1, Ordering::Relaxed) + 1;
+    #[cfg(not(feature = "runtime-gatt"))]
     if count <= 4 || count.is_multiple_of(32) {
         report();
     }
+    #[cfg(feature = "runtime-gatt")]
+    let _ = count; // Only the first core prints runtime statistics.
 }
 
 #[embassy_executor::task]

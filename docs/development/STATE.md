@@ -1,5 +1,7 @@
 # 当前开发状态
 
+DEVICE-003 实际帧测量增量完成（基线 `d9cba78`，main；结果为本次 `fix(esp32): measure program frames and bound diagnostic writes` 提交）：原工作器实际 tick／render 增加固定内存统计。首轮出现 50.136 ms 调度间隔，按原判据失败；修正长临界区诊断输出后，同板同包 180 秒复测、断线连续 41.475 秒约 40 Hz，最大间隔 25.810 ms、最大计算及采样 492 µs、零帧错误，暂停／重连／停止通过。内部堆峰值 53,140 字节，8 MiB PSRAM 自检通过；不是完整栈峰值或长期资源证明。106 项相关 Rust、5 项分析器、工作区及两种固件严格检查／实际构建通过。结论：ESP32-S3 可继续承担受限设备包解析和独立节目状态机，无需当前降为纯网桥；完整 JSON、媒体／三维继续由主机承担。详见[测量与职责判断](tasks/DEVICE-003-runtime-frame-measurement.md)。GPIO21 全程禁用，后续仍需物理输出、最重负载和长期验收；设备已停止归还，用户窗口／工程／output/ 保持。完整 DEVICE-003／AUDIT-001／goal active，框架轮不重开。
+
 DEVICE-003 实板与桌面联合验收增量完成（基线 `3af3e98`，main；结果为本次 `fix(device): validate board runtime and preserve controls during polling` 提交）：真实 v2 配置／固定分区刷写后恢复原 28 场景，原生 GATT 及正式桌面载入、开始／暂停／继续／停止、收起保持、运行中断线重连通过；同一实例进度继续、重连不抢权。实测发现后台刷新短暂禁用按钮，已抽出小型串行协调器修复。103 项相关 Rust、318 UI／类型、全工作区严格 Clippy、实际固件严格检查／构建、最终桌面打包和 fmt／差异通过；细节见[实板工单](tasks/DEVICE-003-runtime-board-acceptance.md)。600 秒观察只有采样证据，不代表完整内存峰值或实际节目帧时序，UART DMX 全程禁用。最后节目已停止、控制权归还；用户正在查看的隔离验收窗口保留，原工程／output/ 不改。接续实际节目帧时序、持续资源观测及物理输出；完整 DEVICE-003／AUDIT-001／goal active，框架轮保持完成。
 
 DEVICE-003 桌面节目操作增量完成（基线 `c0fc927`，main；结果为本次 `feat(device): add desktop program runtime controls` 提交）：依 [ADR-134](decisions/PRODUCT-ADR-134-desktop-device-runtime.md) 接通原生 JSON 投影、可信运行连接、目录／步骤、节目操作、控制权及维护界面。103 项去重相关 Rust、工作区严格 Clippy、314 UI／最终类型和正式桌面打包通过；隔离组件已验证上下文保持、外部接管、取消读取、状态故障与断线不重播。新原生配置与 u64 精度保护通过；没有新增第三方或锁文件变化，相关组件最大 328 行。新固件未刷入、未连接真实蓝牙／DMX；接续实板与物理输出，完整 DEVICE-003／AUDIT-001／goal active，框架轮保持完成。临时验收服务／页面已关闭，用户 output/、工程和正式窗口保持。

@@ -12,18 +12,21 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
     let mut install_reply: Option<stagemaster_install_worker::Completion> = None;
     let mut runtime_reply: Option<stagemaster_install_worker::runtime_queue::Completion> = None;
     let mut frame = [0; 512];
+    let mut sampler = super::frame_probe::Sampler::default();
     loop {
         worker.observe(live_epoch());
         if endpoint
             .tick(worker, runtime::now(), runtime_io::live)
             .is_err()
         {
+            sampler.failed();
             return false;
         }
         // main holds the actual disabled transmitter; no output queue exists in this image.
         if let Some(request) = worker.quiescence_request()
             && worker.confirm_quiescent(request, runtime::now()).is_err()
         {
+            sampler.failed();
             return false;
         }
         if let Some(reply) = install_reply.take()
@@ -45,11 +48,7 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
         if install_reply.is_some() || runtime_reply.is_some() {
             // Backpressure is bounded; it never waits inside a blocking completion send.
             ticker.next().await;
-            if endpoint
-                .tick(worker, runtime::now(), runtime_io::live)
-                .is_err()
-                || worker.render(&mut frame).is_err()
-            {
+            if !sampler.sample(&mut endpoint, worker, &mut frame, true) {
                 return false;
             }
             continue;
@@ -62,11 +61,7 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
         .await
         {
             Either3::First(()) => {
-                if endpoint
-                    .tick(worker, runtime::now(), runtime_io::live)
-                    .is_err()
-                    || worker.render(&mut frame).is_err()
-                {
+                if !sampler.sample(&mut endpoint, worker, &mut frame, false) {
                     return false;
                 }
             }
@@ -74,6 +69,7 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
                 super::sample_stack();
                 let start = esp_hal::time::Instant::now();
                 install_reply = Some(worker.process(command, runtime::now(), live_epoch));
+                sampler.command();
                 super::record_operation(start);
             }
             Either3::Third(command) => {
@@ -81,6 +77,7 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
                 let start = esp_hal::time::Instant::now();
                 runtime_reply =
                     Some(endpoint.process(worker, command, runtime::now, runtime_io::live));
+                sampler.command();
                 super::record_operation(start);
             }
         }

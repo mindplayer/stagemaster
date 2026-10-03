@@ -28,6 +28,8 @@ DEVICE-003 第七增量，依据 [ADR-133](../development/decisions/PRODUCT-ADR-
 
 ## 构建与证据
 
+第十增量新增真实工作器 `RUNTIME_SAMPLE` 累计诊断，固定内存计数／每秒发布、第一核低频分段输出；不改变运行协议或上述时间语义。首轮最长 50.136 ms 按原门槛失败，修正日志长临界区后约 180 秒实板复测通过，最长尝试间隔 25.810 ms、断线同实例约 40 Hz；细节与资源限制见[实际帧工单](../development/tasks/DEVICE-003-runtime-frame-measurement.md)。此时实际镜像 812,384 字节；下文 808,704 字节等静态链接数值属于第七增量，不混用。物理输出仍关闭。
+
 ```sh
 STAGEMASTER_DEVICE_CONFIGURATION="$PWD/data/DEVICE-003/runtime-build-validation/device.smddev" bash tools/hardware/firmware.sh runtime-application-check
 STAGEMASTER_DEVICE_CONFIGURATION="$PWD/data/DEVICE-003/runtime-build-validation/device.smddev" bash tools/hardware/firmware.sh runtime-application-build

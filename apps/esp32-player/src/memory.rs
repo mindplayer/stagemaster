@@ -68,12 +68,12 @@ unsafe fn verify(pointer: *mut u32, words: usize) -> bool {
 
 pub fn report() {
     let stats = esp_alloc::HEAP.stats();
-    esp_println::println!(
+    crate::diagnostics::report_line(format_args!(
         "MEMORY internal_used={} internal_free={} internal_peak={} psram_detected={} cache_capacity={}",
         esp_alloc::HEAP.used(),
         esp_alloc::HEAP.free(),
         stats.max_usage,
         DETECTED.load(Ordering::Relaxed),
         CACHE.load(Ordering::Relaxed),
-    );
+    ));
 }

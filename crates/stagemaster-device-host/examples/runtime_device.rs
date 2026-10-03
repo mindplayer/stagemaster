@@ -34,11 +34,12 @@ async fn run(probe: &Probe, mode: &str, locator: Option<&str>) -> Result<()> {
             scene = Some(program["key"].clone());
         }
     }
-    if mode == "exercise" {
+    if mode != "observe" {
         exercise::run(
             probe,
             &locator,
             scene.ok_or("当前目录没有可用于验收的保持场景")?,
+            mode == "measure",
         )
         .await?;
     }
@@ -50,9 +51,11 @@ async fn run(probe: &Probe, mode: &str, locator: Option<&str>) -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if !(2..=3).contains(&args.len()) || !["observe", "exercise"].contains(&args[1].as_str()) {
+    if !(2..=3).contains(&args.len())
+        || !["observe", "exercise", "measure"].contains(&args[1].as_str())
+    {
         return Err(
-            "用法：runtime_device <项目 data 内控制端配置> <observe|exercise> [本次发现标识]"
+            "用法：runtime_device <项目 data 内控制端配置> <observe|exercise|measure> [本次发现标识]"
                 .into(),
         );
     }

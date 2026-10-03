@@ -3,7 +3,7 @@ use serde_json::{Value, json};
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn run(probe: &Probe, locator: &str, program: Value) -> Result<()> {
+pub async fn run(probe: &Probe, locator: &str, program: Value, measure: bool) -> Result<()> {
     let initial = probe.read().await?;
     if !state(&initial)["owner"].is_null() || state(&initial)["instance"].is_string() {
         return Err("设备已有控制者或运行实例，验收不自动接管或停止".into());
@@ -24,23 +24,26 @@ pub async fn run(probe: &Probe, locator: &str, program: Value) -> Result<()> {
     assert_eq!(state(&running)["status"], "running");
     let instance = state(&running)["instance"].clone();
     let boot = running["reply"]["boot"].clone();
-    sleep(Duration::from_secs(3)).await;
+    let running_seconds = if measure { 10 } else { 3 };
+    let paused_seconds = if measure { 10 } else { 2 };
+    let disconnected_seconds = if measure { 45 } else { 5 };
+    sleep(Duration::from_secs(running_seconds)).await;
     let paused = probe.apply(json!({"kind":"pause"})).await?;
     assert_eq!(state(&paused)["status"], "paused");
     assert!(elapsed(&paused) >= 2500);
-    sleep(Duration::from_secs(2)).await;
+    sleep(Duration::from_secs(paused_seconds)).await;
     assert_eq!(elapsed(&probe.read().await?), elapsed(&paused));
     probe.apply(json!({"kind":"resume"})).await?;
     let before = probe.read().await?;
     probe.disconnect().await?;
-    sleep(Duration::from_secs(5)).await;
+    sleep(Duration::from_secs(disconnected_seconds)).await;
     probe.connect(locator).await?;
     let after = probe.read().await?;
     assert_eq!(after["reply"]["boot"], boot);
     assert_eq!(state(&after)["instance"], instance);
     assert_eq!(state(&after)["status"], "running");
     assert!(state(&after)["owner"].is_null());
-    assert!(elapsed(&after) >= elapsed(&before) + 4500);
+    assert!(elapsed(&after) >= elapsed(&before) + disconnected_seconds * 1000 - 500);
     println!("断线后同一节目继续 {after}");
     probe
         .apply(json!({"kind":"acquire","takeover":false}))

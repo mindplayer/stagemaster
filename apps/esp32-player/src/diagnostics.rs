@@ -1,7 +1,18 @@
 //! Probe-only playback workload and status. The transport receives a snapshot callback.
 use core::sync::atomic::{AtomicU32, Ordering};
 use embassy_time::{Instant, Timer};
-use esp_println::println;
+
+#[cfg(feature = "runtime-gatt")]
+mod chunked;
+
+pub fn report_line(args: core::fmt::Arguments<'_>) {
+    #[cfg(feature = "runtime-gatt")]
+    // esp-println's ordinary macro holds its interrupt-masking lock for the
+    // entire formatted line. Release between bounded writes so timer wakes run.
+    chunked::write_line(args, esp_println::Printer::write_bytes).unwrap();
+    #[cfg(not(feature = "runtime-gatt"))]
+    esp_println::println!("{}", args);
+}
 
 static LIVE_TICKS: AtomicU32 = AtomicU32::new(0);
 
@@ -27,13 +38,15 @@ pub async fn run() {
         ticks = ticks.wrapping_add(1);
         LIVE_TICKS.store(ticks, Ordering::Relaxed);
         if ticks.is_multiple_of(200) {
-            println!(
+            report_line(format_args!(
                 "LIVE ticks={} elapsed_ms={} value={} heap_used={}",
                 ticks,
                 start.elapsed().as_millis(),
                 player.values()[0],
                 esp_alloc::HEAP.used()
-            );
+            ));
+            #[cfg(feature = "runtime-gatt")]
+            crate::installation::report();
         }
         Timer::after_millis(25).await;
     }

@@ -62,7 +62,7 @@ impl<F: NorFlash> NorFlash for MeasuredNor<F> {
     }
 }
 pub fn report() {
-    esp_println::println!(
+    crate::diagnostics::report_line(format_args!(
         "NOR max_read_us={} max_write_us={} max_erase_us={} writes={} erases={} reads={}",
         READ_US.load(Ordering::Relaxed),
         WRITE_US.load(Ordering::Relaxed),
@@ -70,5 +70,5 @@ pub fn report() {
         WRITES.load(Ordering::Relaxed),
         ERASES.load(Ordering::Relaxed),
         READS.load(Ordering::Relaxed)
-    );
+    ));
 }

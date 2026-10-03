@@ -6,6 +6,8 @@ PLAYER-002A 仅诊断：共享播放内核自检／负载、BLE GATT 直连及�
 
 DEVICE-003 新增 `runtime-gatt`，对应 `runtime-application-build`／`runtime-application-check`；要求显式 v2 设备开发配置，产物独立位于 `target/esp32-runtime-application/`。运行服务与安装服务共用安全通信，第二核独立推进软件节目；仍保持 GPIO21 禁用，不声明物理发送。协议主机测试与 Xtensa 完整构建已通过，第九增量另以真实配置完成受控刷写、启动恢复与运行 GATT 实测；[运行入口、权限、维护切换和构建夹具](../../docs/module-api/firmware-runtime-gatt.md)。这不是自动安装／刷写命令，虚构编号的构建夹具禁止刷入实板。
 
+DEVICE-003 帧测量增量在原工作器记录 `RUNTIME_SAMPLE v=1`，和旧 `LIVE` 诊断负载严格分开。`runtime_device` 原生例程的 `observe` 只读；`exercise` 会载入／运行已有节目；`measure` 将运行／暂停延长到各 10 秒、断线到 45 秒，最后停止归还。后两种会真实改变设备软件播放状态，须已有设备测试授权且没有其他控制者／实例；GPIO21 仍禁用。例程通过只表示控制链通过，必须另对单次完整启动串口记录执行 `python3 tools/hardware/runtime_frame_report.py --log logs/<本次记录>.log --output data/DEVICE-003/<本次报告>.json` 检查实际帧时序。失败报告照常保存，退出码为 1，不删超时采样；完整流程、资源边界及首轮失败见[帧测量工单](../../docs/development/tasks/DEVICE-003-runtime-frame-measurement.md)。USB 串口打开可能复位，不能中途开第二个读者。
+
 HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断开／保活过期后熄灭；板级代码始终保持 GPIO21 低。串口会报告对应引脚驱动状态。此灯接在 TXD1，未来接入 UART／DMX 时必须把发送脚的独占权交给输出适配，不能再调用诊断灯控制。灯的实际颜色／亮度仍需肉眼核验；日志不证明已发送 DMX。见[硬件记录](../../docs/development/tasks/HW-003-link-indicator.md)。
 
 ## 项目内环境
