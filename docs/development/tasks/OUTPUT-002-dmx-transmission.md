@@ -1,5 +1,7 @@
 # OUTPUT-002：DMX 完整帧发送适配
 
+后续容量证据见 [MEMORY-002](MEMORY-002-device-capacity-acceptance.md)：近加载预算的四类输入与满 64 目录经过同一 Runtime／队列／逻辑 UART 的实板验收，仍保持 GPIO21 禁用。新增慢命令前采样、严格元数据填充比较的目标板修正和有界 UART 就绪写入；最终四类包停止后持续观察 228.775 秒通过；下文保留既有独立看门狗与原包联测记录，最新结果及尚未完成的最大文件／长期／物理测量以当前工单为准。
+
 本轮结果：独立硬件看门狗及原服务 UART 逻辑侧实板联测增量完成；基线 `80076c0`，main，结果为本次 `fix(esp32): supervise and isolate bounded DMX output` 提交，当前会话单写者，分类 progress。按 [ADR-138](../decisions/PRODUCT-ADR-138-device-watchdog.md)／[ADR-139](../decisions/PRODUCT-ADR-139-s3-output-scheduling.md) 复用原 Receiver 和官方 Wdt／InterruptExecutor，修复实测栈保护与发送调度故障。无新播放器、协议或第三方版本变化；完整输出链／DEVICE-003／goal 继续开放。用户 output/、工程及窗口保持。
 
 本轮开工前原生只读验收确认同一设备 `534d4553503332533300288485569774`、28 节目、原包摘要、无运行实例／无控制者，串口无占用；`logs/output-002-watchdog-before-device.log`。沿用既有板卡测试／替换固件授权，原分区表与节目区保持，GPIO21 全程禁用。独立探针注入发送任务同步卡死／退出、第二核停顿／主动失败，必须看到 CoreMwdt1 和后续稳定启动；不以软件策略测试、编译或一次重启替代硬件故障证据。宿主日志时间只估计复位延迟，预定发送停顿／退出和主动失败 0.5～2 秒、第二核失活 2～4 秒触发复位，不是示波器精度。结束恢复带真实设备配置的原服务逻辑侧镜像，验证目录和实际播放／停止。

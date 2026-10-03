@@ -24,7 +24,13 @@ pub(crate) fn read<F: NorFlash>(shared: &Shared<F>, slot: Slot) -> Result<Record
     if b[..7] == MAGIC[..7] && hash_valid && b[7] != MAGIC[7] {
         return Err(Code::Format.into());
     }
-    if &b[..8] != MAGIC || b[12..32] != [0; 20] || b[160..256] != [0xff; 96] || !hash_valid {
+    // Explicit padding predicates avoid the S3 nested-call array comparison failure
+    // observed in MEMORY-002, while retaining every required byte check.
+    if &b[..8] != MAGIC
+        || b[12..32].iter().any(|v| *v != 0)
+        || b[160..256].iter().any(|v| *v != 0xff)
+        || !hash_valid
+    {
         return Ok(Record::Invalid);
     }
     let capacity = u32::from_le_bytes(core::array::from_fn(|i| b[8 + i]));

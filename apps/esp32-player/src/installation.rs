@@ -2,6 +2,8 @@
 #[cfg(feature = "runtime-gatt")]
 mod dispatch;
 #[cfg(feature = "runtime-gatt")]
+mod frame_cadence;
+#[cfg(feature = "runtime-gatt")]
 mod frame_metrics;
 #[cfg(feature = "runtime-gatt")]
 mod frame_probe;

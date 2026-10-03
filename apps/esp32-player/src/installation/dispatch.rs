@@ -103,6 +103,21 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(
                 super::record_operation(start);
             }
             Either3::Third(command) => {
+                // Do not combine an almost-expired frame period with a slow load.
+                // Endpoint still validates this command at its actual execution time.
+                if sampler.before_command()
+                    && !sample(
+                        &mut sampler,
+                        &mut endpoint,
+                        worker,
+                        &mut frame,
+                        false,
+                        #[cfg(feature = "runtime-dmx-probe")]
+                        &mut output,
+                    )
+                {
+                    return false;
+                }
                 super::sample_stack();
                 let start = esp_hal::time::Instant::now();
                 runtime_reply =

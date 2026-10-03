@@ -14,9 +14,18 @@ static LATEST: Mutex<CriticalSectionRawMutex, Cell<Option<Report>>> = Mutex::new
 #[derive(Default)]
 pub(super) struct Sampler {
     metrics: Metrics,
+    cadence: super::frame_cadence::Cadence,
     published_us: u64,
 }
 impl Sampler {
+    pub(super) fn before_command(&self) -> bool {
+        self.cadence.before_command(
+            esp_hal::time::Instant::now()
+                .duration_since_epoch()
+                .as_micros(),
+        )
+    }
+
     pub(super) fn command(&mut self) {
         self.metrics.command();
     }
@@ -36,6 +45,7 @@ impl Sampler {
         let start_us = esp_hal::time::Instant::now()
             .duration_since_epoch()
             .as_micros();
+        self.cadence.sampled(start_us);
         let result = endpoint
             .tick(worker, runtime::now(), runtime_io::live)
             .and_then(|()| worker.render(frame));

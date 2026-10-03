@@ -1,12 +1,12 @@
 # 当前执行计划
 
-OUTPUT-002 看门狗及逻辑 UART 联测增量完成：四类独立硬件故障注入和原包 180 秒真实服务复测通过，修复栈保护与发送超时；第二核中断执行器隔离发送，最大间隔 29.888 ms、断线约 40 Hz、堆峰值 53,140 字节。详见[输出工单](tasks/OUTPUT-002-dmx-transmission.md)。当前实板已刷入通过联测的实验运行镜像、GPIO21 仍禁用；接续真实差分线路、最重负载／长期验收及产品输出状态。完整持续目标 active，框架轮不重开。
+[MEMORY-002](tasks/MEMORY-002-device-capacity-acceptance.md)代表性容量验收增量完成：近加载预算四类节目与满 64 目录实板通过，发现并修复采样调度、维护退出元数据比较和 UART 写入等待。最终四类包 360 秒采集、停止后 228.775 秒观察通过，断线约 40 Hz、堆峰值 80,616 字节；支持 ESP32-S3 受限独立播放器定位。原 28 节目已恢复且无控制者／实例，GPIO21 禁用。下一项最大完整文件安装／恢复期限，再完整栈与长期稳定性、真实差分线路及产品输出状态；完整持续目标 active，框架轮不重开。
 
 更新：2026-10-04。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
 
 ## 当前任务
 
-[OUTPUT-002](tasks/OUTPUT-002-dmx-transmission.md)已完成单帧事务、固定交接、原 Runtime 协调、独立硬件看门狗及实际 UART 逻辑侧短测；原 Port／Queue／Transmitter 继续复用。下一项明确实物线路测量条件，按原时序与资源预算验收代表性最重负载和长期运行，再接产品输出状态；没有测量工具时不得把软件回执或绿色指示灯当作差分波形通过。
+[OUTPUT-002](tasks/OUTPUT-002-dmx-transmission.md)已完成单帧事务、固定交接、原 Runtime 协调、独立硬件看门狗及实际 UART 逻辑侧短测；原 Port／Queue／Transmitter 继续复用。[MEMORY-002](tasks/MEMORY-002-device-capacity-acceptance.md)补充代表性联合边界、超限拒绝及实板状态机；不等于所有合法输入、最大 2 MiB 文件或 8 小时通过。接续先验证最大完整文件的安装／启动恢复，现有 799,587 字节包单次维护操作已达 1.630 秒，接近原 2 秒工作进度预算；必要时分步处理，不提高看门狗期限。随后推进完整栈／长期和实物线路；没有测量工具时不得把软件回执或绿色指示灯当作差分波形通过。
 
 最新 DEVICE-003 [实际帧测量及设备职责判断](tasks/DEVICE-003-runtime-frame-measurement.md)已完成：首轮时序失败后修正诊断输出，实板复测约 40 Hz、最长 25.810 ms、零错误；保留 ESP32-S3 受限包解析／自主状态机，纯网桥保持独立可选角色。接续 UART DMX 物理节拍与快照交接、最重负载及长期验收；不重开框架轮，不将短测当商业交付。
 

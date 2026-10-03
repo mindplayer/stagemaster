@@ -222,3 +222,22 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-devi
 ```
 
 固件构建须选择该目录的 `device.smddev`，不要用虚构编号夹具；刷写显式指定 runtime-application ELF 和原 `partitions-storage.csv`／ota_0。该配置及 ELF 含开发秘密，不提交或发布。串口打开可能使板卡 USB 复位；不要在正在运行的无线验收中另开串口读者。正常结束后工具退出并断开；如果断言失败，须保留日志并重新观察实际状态，不能假定失败已撤销设备上执行的操作。
+
+## 联合容量验收（MEMORY-002）
+
+`stagemaster-package` 的 `capacity` 示例使用原 Builder／Archive 搜索有效边界，将四类节目和满 64 目录分别写到 `data/MEMORY-002/{capacity,catalog}.smpkg`。`stagemaster-runtime` 的 `capacity` 测试逐个加载，完整 512 槽软件帧对照源计划，并验证边界外拒绝；不修改原资源限额。
+
+```sh
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-package --example capacity --locked --offline
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo test -p stagemaster-runtime --test capacity --locked --offline
+```
+
+以下是需要既有实板测试授权的操作顺序，不是普通构建的自动步骤。先 `runtime_device … observe` 确认无控制者／实例、记录原包摘要并确认本机原文件完整有效；临时包会覆盖备用槽，结束必须通过原安装链恢复原内容。
+
+1. 运行 `runtime_device … enter-maintenance`，等待原工作器真正静默并归还控制，再经原 `install_device … install` 安装测试包。维护例程不隐式停止节目或接管控制者；安装例程的成功回执也不等于退出维护。
+2. 等安装例程正常结束，再显式 `leave-maintenance` 或开始新的完整启动采集。用 `serial_observe.py` 采集包含本次启动的串口记录，然后运行 `capacity_device 配置绝对路径 测试包绝对路径`；例程只接受指定测试身份、4／64 目录和禁止物理输出的设备，不接受普通用户包。不要在测试运行中另开串口。
+3. 原生流程逐个载入／开始／停止／归还，末项暂停后继续、断线 45 秒并核对同一启动和运行实例。四类包还逐项验证暂停／继续／下一步。控制通过后继续采集，最终停止后保留至少 180 秒连续出帧观察，覆盖停止后才出现的故障；不能仅凭命令回复宣布通过。
+4. `python3 tools/hardware/capacity_report.py --board logs/本次串口.log --controls logs/本次原生.log --programs 4 --post-stop-seconds 180 --output data/MEMORY-002/本次报告.json`；满目录使用 `--programs 64`，按控制流程长度安排总采集时间。原 39～41 Hz／50 ms／单启动／暂停判据保持，另查全部节目控制、看门狗、UART 故障和停止后的持续出帧。停止后门槛默认 0 仅用于重读历史短采集，不用于新的完整验收。报告明确不验证差分线路或完整栈高水位。
+5. 停止测试采集，进入维护、安装原包、退出维护，再 `observe` 确认原摘要／目录、空闲且无控制者；安装代次正常增加，不把恢复原内容称作没有写入。
+
+原生例程沿用 `stagemaster-device-host` 的应用开发配置入口；配置使用项目已有真实配置，不输出其秘密，不额外启用系统配对实验。详细边界、失败与复测记录见 [MEMORY-002](../../docs/development/tasks/MEMORY-002-device-capacity-acceptance.md)。

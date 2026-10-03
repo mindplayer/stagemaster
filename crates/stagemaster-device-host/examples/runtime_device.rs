@@ -4,6 +4,8 @@
 mod client;
 #[path = "runtime_device/exercise.rs"]
 mod exercise;
+#[path = "runtime_device/maintenance.rs"]
+mod maintenance;
 use client::{Probe, Result};
 use serde_json::{Value, json};
 use stagemaster_device_host::{Ble, Service, runtime_ui::ExpectedAccess};
@@ -14,6 +16,9 @@ async fn run(probe: &Probe, mode: &str, locator: Option<&str>) -> Result<()> {
     probe.connect(&locator).await?;
     let initial = probe.read().await?;
     println!("初始运行状态 {initial}");
+    if matches!(mode, "enter-maintenance" | "leave-maintenance") {
+        return maintenance::run(probe, mode == "enter-maintenance").await;
+    }
     let count = initial["reply"]["programCount"]
         .as_u64()
         .ok_or("缺少目录计数")?;
@@ -52,10 +57,17 @@ async fn run(probe: &Probe, mode: &str, locator: Option<&str>) -> Result<()> {
 async fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !(2..=3).contains(&args.len())
-        || !["observe", "exercise", "measure"].contains(&args[1].as_str())
+        || ![
+            "observe",
+            "exercise",
+            "measure",
+            "enter-maintenance",
+            "leave-maintenance",
+        ]
+        .contains(&args[1].as_str())
     {
         return Err(
-            "用法：runtime_device <项目 data 内控制端配置> <observe|exercise|measure> [本次发现标识]"
+            "用法：runtime_device <项目 data 内控制端配置> <observe|exercise|measure|enter-maintenance|leave-maintenance> [本次发现标识]"
                 .into(),
         );
     }

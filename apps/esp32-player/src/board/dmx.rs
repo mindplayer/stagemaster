@@ -75,7 +75,12 @@ impl Line for DmxLine {
     async fn write(&mut self, bytes: &[u8]) -> Result<usize, TxError> {
         #[cfg(feature = "runtime-dmx-probe")]
         let operation = metrics::Operation::begin(1);
-        let result = self.tx.write_async(bytes).await;
+        // Sole writer: once ready, FIFO capacity cannot decrease before write.
+        // The transmitter's unchanged deadline bounds this cooperative wait.
+        while !bytes.is_empty() && !self.tx.write_ready() {
+            Timer::after_millis(1).await;
+        }
+        let result = self.tx.write(bytes);
         #[cfg(feature = "runtime-dmx-probe")]
         operation.complete();
         result
