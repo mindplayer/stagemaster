@@ -4319,8 +4319,10 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
  "stagemaster-engine",
+ "stagemaster-output-port",
  "stagemaster-playback",
  "stagemaster-project",
+ "stagemaster-time",
 ]
 
 [[package]]
@@ -4458,6 +4460,10 @@ dependencies = [
  "geo",
  "glam",
 ]
+
+[[package]]
+name = "stagemaster-time"
+version = "0.1.0"
 
 [[package]]
 name = "stagemaster-transfer"

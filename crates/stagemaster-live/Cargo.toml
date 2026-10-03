@@ -9,8 +9,10 @@ license.workspace = true
 stagemaster-engine = { path = "../stagemaster-engine" }
 stagemaster-playback = { path = "../stagemaster-playback" }
 stagemaster-project = { path = "../stagemaster-project" }
+stagemaster-time = { path = "../stagemaster-time" }
 
 [dev-dependencies]
+stagemaster-output-port = { path = "../stagemaster-output-port" }
 serde_json = "=1.0.151"
 
 [lints]

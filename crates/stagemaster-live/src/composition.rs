@@ -18,7 +18,13 @@ impl Session {
         self.finish(result)
     }
     fn advance(&mut self, now_ms: u64) -> Result<(), String> {
+        for group in &mut self.media {
+            group.expire(now_ms)?;
+        }
         for entry in &mut self.sources {
+            if entry.media_group.is_some() {
+                continue;
+            }
             if let Some(player) = &mut entry.player {
                 player.apply(Command::Advance, now_ms, &self.mixer, entry.handle)?;
             }
@@ -32,6 +38,15 @@ impl Session {
                 player
                     .copy_contribution(&mut entry.values, &mut entry.times)
                     .map_err(|e| e.to_string())?;
+            }
+            if entry.media_group.is_some() {
+                for (value, time) in entry.values.iter().zip(&mut entry.times) {
+                    if let Some(at) = entry.reassert_at_ms {
+                        *time = value.map(|_| at);
+                    } else if time.is_some() {
+                        *time = Some(entry.sampled_at_ms);
+                    }
+                }
             }
             for (attribute, time) in entry.times.iter().enumerate() {
                 if let Some(at_ms) = time {
@@ -75,6 +90,7 @@ impl Session {
         let universe = self.output.render(&self.mixer, &mut slots)?;
         for entry in &mut self.sources {
             entry.times.fill(None);
+            entry.reassert_at_ms = None;
             if let Some(player) = &mut entry.player {
                 player.acknowledge_contribution();
             }

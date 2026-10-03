@@ -14,6 +14,7 @@ members = [
   "crates/stagemaster-show",
   "crates/stagemaster-project",
   "crates/stagemaster-playback",
+  "crates/stagemaster-time",
   "crates/stagemaster-package",
   "crates/stagemaster-install",
   "crates/stagemaster-install-store",

@@ -6,6 +6,7 @@ pub(super) struct StepOwnership {
     pub activation_offset_ms: u64,
 }
 pub(super) struct Ownership {
+    pub use_live_baseline: bool,
     pub steps: Vec<StepOwnership>,
     pub owned: Vec<bool>,
     pub claims: Vec<bool>,
@@ -16,7 +17,7 @@ pub(super) struct Ownership {
 impl Ownership {
     fn enter(&mut self, step: usize, reassert: bool, at_ms: u64, from: Option<&mut [u16]>) {
         let target = &self.steps[step];
-        if let Some(from) = from {
+        if let Some(from) = from.filter(|_| self.use_live_baseline) {
             for (index, value) in from.iter_mut().enumerate() {
                 let asserting = reassert || target.claims[index];
                 if target.owned[index]

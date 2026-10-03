@@ -102,6 +102,7 @@ impl Document {
             output: compiled.output,
             layout,
             ownership: Ownership {
+                use_live_baseline: true,
                 steps: ownership,
                 owned: vec![false; count],
                 claims: vec![false; count],

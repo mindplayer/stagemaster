@@ -2,6 +2,7 @@
 //! No threads, clocks, transport, storage or UI are created here.
 mod commands;
 mod composition;
+pub mod media;
 mod prepare;
 mod source;
 mod types;
@@ -14,6 +15,7 @@ pub use types::{Change, Frame, Key, SourceInfo, SourceSpec};
 
 pub struct Session {
     boot: [u8; 16],
+    clock: stagemaster_time::Clock,
     mixer: LiveMixer,
     output: LiveOutput,
     sources: Vec<Entry>,
@@ -22,6 +24,7 @@ pub struct Session {
     sequence: u64,
     frame: Option<Frame>,
     fault: Option<String>,
+    media: Vec<media::Group>,
 }
 impl Session {
     #[must_use]
@@ -72,7 +75,10 @@ impl Session {
                 },
                 id: s.id,
                 level: s.level,
-                status: s.player.as_ref().map(LiveSequencePlayer::status),
+                status: s.player.as_ref().map(|p| {
+                    s.media_group
+                        .map_or_else(|| p.status(), |g| self.media[g].player_status(p.status()))
+                }),
                 step: s.player.as_ref().and_then(LiveSequencePlayer::index),
             })
     }
@@ -96,6 +102,9 @@ impl Session {
         }
         if now_ms < self.now_ms {
             return Err("播放时钟不能倒退".into());
+        }
+        if !self.media.is_empty() {
+            media::nanos(now_ms)?;
         }
         Ok(())
     }

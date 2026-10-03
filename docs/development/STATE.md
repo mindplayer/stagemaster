@@ -1,6 +1,6 @@
 # 当前开发状态
 
-当前接续 [TIME-001](tasks/TIME-001-independent-clock-boundaries.md)，基线 `3826db5`：已核对宿主单调时间／租约、来源接管时刻与音频消费游标的区别，并记录 GStreamer／NTP 的可复用机制。下一步先评估具体时钟契约，再接两个真实编译／播放来源的独立时间域；不可用纯映射测试替代跨边界验收。尚未修改时钟运行代码，持续 goal active。
+TIME-001 独立时钟／媒体组软件增量完成（基线 `b89b3a4`；结果为本次 `feat(live): isolate media-following source clocks` 提交，main）：[工单](tasks/TIME-001-independent-clock-boundaries.md)／[ADR-111](decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](decisions/PRODUCT-ADR-112-media-following-source-groups.md)／[契约](../module-api/media-source-groups.md)。已实现有界时钟映射、可独立移交的准备器、整组播放代次与媒体跟随，复用实际 Player／属性合成及完整软件端口；自主来源不随媒体暂停／定位改变。17 项新增专项、877 项全工作区测试（原有忽略 1 项）、2 个文档示例、严格全工作区 Clippy／fmt、700 个本地文档链接及差异检查通过。新增生产文件最大 123 行，无第三方升级或持久／网络格式变化。原生音频实际游标、原宿主有界入口／回执和提供方重启重绑定仍待接通，不能视为完整 TIME-001 或声光同步完成。持续 goal active；用户 `output/`、工程、窗口及设备保持。
 
 PREVIS-003 软件增量完成（基线 `c8f94cd`；结果为本次 `feat(previs): observe independent background execution` 提交）：[工单](tasks/PREVIS-003-background-observation.md)／[ADR-110](decisions/PRODUCT-ADR-110-background-previsualization.md)／[契约](../module-api/background-previsualization.md) 已接后台固定工程、仅读取凭据的 Reader、实际 8／16 位完整帧投影和唯一内嵌 UE 的只读来源。真实进程验证文件移除／编辑变化隔离、坏身份与过期帧拒绝；原生默认值／后台切换、编辑总控隔离及关闭／重开 UE 后同一节目／控制权／输出保持通过。392 项相关 Rust、307 UI、7 项 UE、类型、全工作区严格 Clippy／fmt、标准桌面打包与差异检查通过，未重跑全工作区 Rust 测试。新增生产文件最大 119 行，预演 server 拆至 330 行；无依赖升级或工程／设备包格式变化。当前单域软件观察，完整光学／外部控台输入／UE 客户打包／物理输出仍后续。持续 goal active，下一项验证独立时间域的准备／定位／漂移／失联，再推进云端／U 盘共用交付。隔离验收进程已关闭；用户 `output/`、原工程、窗口与设备保持。
 

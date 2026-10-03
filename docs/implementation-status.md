@@ -1,5 +1,7 @@
 # 实现状态
 
+[TIME-001](development/tasks/TIME-001-independent-clock-boundaries.md) 正在接独立时间域：[媒体跟随组](module-api/media-source-groups.md) 已有真实编译／Player／统一合成／软件端口实现，准备可在独立工作线程完成。时钟映射、暂停／定位与自主执行隔离、失联及旧代次拒绝通过 17 项新增专项及 877 项全工作区测试、2 个文档示例和严格检查；原生音频观测、宿主入口与真实同步仍未完成。
+
 [PREVIS-003](development/tasks/PREVIS-003-background-observation.md) 已接[后台只读三维观察](module-api/background-previsualization.md)：固定工程／完整软件帧、独立只读客户端、8／16 位还原及内嵌 UE 来源切换。真实进程与原生渲染重启证明执行身份、控制权及输出不变，编辑总控不再叠加后台灯光。392 项相关 Rust、307 UI、7 UE、类型、严格检查及标准桌面打包通过。此项更新下文历史“专业渲染观察尚未接入”的限定缺口；完整专业光学、外部控台输入、客户 UE 打包、多时钟、真实输出及统一云端交付仍未完成。
 
 [HOST-005](development/tasks/HOST-005-desktop-background-execution.md) 已接[桌面后台执行](module-api/desktop-background-execution.md)：独立客户端、已准备目录、明确控制权／回执、来源独立操作和随包进程。原生退出后同一节目继续、重开只读接管及正常关闭通过；112 项相关 Rust、307 UI、严格检查和标准桌面打包通过。编辑预演仍保留既有音频／草稿语义；当前后台只有软件输出，多时钟、专业渲染观察、真实输出及云端交付仍待完成。下列记录为各增量当时的证据，旧记录中的“桌面尚未迁移”由本项限定范围更新，不能据此视为全部迁移。

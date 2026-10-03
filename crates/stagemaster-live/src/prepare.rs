@@ -76,6 +76,10 @@ impl Session {
                 serial: 0,
                 level: u16::MAX,
                 player,
+                selection: spec.playback.clone(),
+                media_group: None,
+                sampled_at_ms: now_ms,
+                reassert_at_ms: None,
                 values: vec![None; count],
                 times: vec![None; count],
                 assertions: vec![false; count],
@@ -83,6 +87,7 @@ impl Session {
         }
         Ok(Self {
             boot,
+            clock: stagemaster_time::Clock::new(boot, 0).map_err(|e| e.to_string())?,
             mixer,
             output,
             sources,
@@ -91,6 +96,7 @@ impl Session {
             sequence: 0,
             frame: None,
             fault: None,
+            media: Vec::new(),
         })
     }
 }

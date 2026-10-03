@@ -1,5 +1,5 @@
 use stagemaster_engine::live::{Frame, Handle, LiveMixer};
-use stagemaster_project::LiveSequencePlayer;
+use stagemaster_project::{LiveSequencePlayer, PackageSelection};
 
 pub(super) struct Entry {
     pub id: [u8; 16],
@@ -7,6 +7,10 @@ pub(super) struct Entry {
     pub serial: u64,
     pub level: u16,
     pub player: Option<LiveSequencePlayer>,
+    pub selection: Option<PackageSelection>,
+    pub media_group: Option<usize>,
+    pub sampled_at_ms: u64,
+    pub reassert_at_ms: Option<u64>,
     pub values: Vec<Option<u16>>,
     pub times: Vec<Option<u64>>,
     pub assertions: Vec<bool>,

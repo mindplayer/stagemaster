@@ -62,6 +62,7 @@ impl LiveSequencePlayer {
             return Err("场景列表与当前合成工程不一致".into());
         }
         let source = mixer.source(handle).map_err(|e| e.to_string())?;
+        self.ownership.use_live_baseline = true;
         mixer
             .render(&mut self.ownership.baseline, &mut self.winners)
             .map_err(|e| e.to_string())?;
@@ -80,6 +81,16 @@ impl LiveSequencePlayer {
         }
         self.player
             .apply_observed(command, now_ms, &mut self.ownership)
+    }
+
+    /// Evaluate an authored timeline independently of live faders and other sources.
+    /// Time is monotonic within one prepared playback generation; reconstruct before a seek.
+    /// # Errors
+    /// Reject invalid steps or backwards time without publishing any contribution.
+    pub fn apply_timeline(&mut self, command: Command, position_ms: u64) -> Result<(), String> {
+        self.ownership.use_live_baseline = false;
+        self.player
+            .apply_observed(command, position_ms, &mut self.ownership)
     }
 
     /// Publish the final sparse state and pending explicit claims. Failure retains all claims.

@@ -9,6 +9,9 @@ impl Session {
     pub fn control(&mut self, key: Key, command: Command, now_ms: u64) -> Result<(), String> {
         self.ready(now_ms)?;
         let index = self.index(key)?;
+        if self.sources[index].media_group.is_some() {
+            return Err("媒体跟随来源须通过所属同步组控制".into());
+        }
         match (&self.sources[index].player, command) {
             (Some(p), Command::Execute(i)) if i >= p.plan().steps().len() => {
                 return Err("所选步骤不存在".into());
