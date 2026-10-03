@@ -36,7 +36,7 @@ impl PerformanceSource {
         let schedule =
             LoopSchedule::new(data.schedule.duration(), data.schedule.regions().to_vec())?;
         let playback = LoopPlayback::new(schedule, tick)?;
-        let shared = Shared::new(playback.position());
+        let shared = Shared::new(playback.position(), data.format.rate.get())?;
         let feed = Feed::prepare(data.clone(), tick, shared.cancelled.clone(), cancel)?;
         decode::checkpoint(cancel, started)?;
         let control = PerformanceControl {
@@ -117,7 +117,11 @@ impl Iterator for PerformanceSource {
         if self.channel == usize::from(self.data.format.channels.get()) {
             self.channel = 0;
             match self.playback.advance(1) {
-                Ok(position) => self.shared.publish(position),
+                Ok(position) => {
+                    if let Err(failure) = self.shared.consume(position) {
+                        self.fail(failure);
+                    }
+                }
                 Err(_) => {
                     self.fail(Failure::Cursor);
                 }

@@ -3,6 +3,7 @@ use crate::performance::tests::{audio_file, serial};
 use rodio::mixer::MixerSource;
 use stagemaster_playback::{LoopPlays, LoopRegion, LoopSchedule};
 use std::sync::atomic::AtomicBool;
+mod observation;
 
 fn schedule() -> LoopSchedule {
     LoopSchedule::new(

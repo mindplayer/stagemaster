@@ -3,12 +3,7 @@ use crate::{
 };
 use serde::Serialize;
 use stagemaster_playback::LoopPosition;
-use std::{
-    cell::Cell,
-    sync::atomic::{AtomicU64, Ordering},
-};
-
-static NEXT_INSTANCE: AtomicU64 = AtomicU64::new(1);
+use std::cell::Cell;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -53,10 +48,7 @@ pub(super) struct Voice {
 impl Voice {
     pub fn new(source: PerformanceSource, control: PerformanceControl) -> Result<Self, String> {
         let snapshot = control.snapshot()?;
-        let instance = NEXT_INSTANCE
-            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| n.checked_add(1))
-            .map_err(|_| "播放实例编号已耗尽，请重新启动应用")?
-            .to_string();
+        let instance = control.instance().to_string();
         Ok(Self {
             source: Some(source),
             control,
@@ -66,7 +58,7 @@ impl Voice {
     }
 
     pub fn snapshot(&self) -> (PerformanceSnapshot, bool) {
-        if let Ok(value) = self.control.snapshot() {
+        if let Ok(value) = self.control.try_snapshot() {
             self.last.set(value);
             (value, false)
         } else {
@@ -102,6 +94,7 @@ impl Performance {
             (
                 PerformanceSnapshot {
                     position: self.initial,
+                    consumption: None,
                     pending_exit: None,
                     control_problem: None,
                     problem: None,
@@ -133,5 +126,42 @@ impl Performance {
             },
             snapshot.problem.map(str::to_owned),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::performance::tests::{audio_file, serial};
+    use stagemaster_playback::LoopSchedule;
+    use std::sync::atomic::AtomicBool;
+
+    #[test]
+    fn fallback_keeps_the_original_consumption_instead_of_restamping_cached_position() {
+        let _guard = serial();
+        let (_dir, path) = audio_file(8000, 2, 80);
+        let audio = PerformanceAudio::prepare(
+            path,
+            0,
+            &LoopSchedule::new(10, vec![]).unwrap(),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        let (source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
+        let mut voice = Voice::new(source, control).unwrap();
+        assert_eq!(voice.instance, voice.control.instance().to_string());
+        let source = voice.source.as_mut().unwrap();
+        source.next().unwrap();
+        source.next().unwrap();
+        let (first, pending) = voice.snapshot();
+        assert!(!pending);
+        assert!(first.consumption.is_some());
+        voice.control.block_snapshot_for_test();
+        for _ in 0..10 {
+            let (cached, pending) = voice.snapshot();
+            assert!(pending);
+            assert_eq!(cached.position, first.position);
+            assert_eq!(cached.consumption, first.consumption);
+        }
     }
 }

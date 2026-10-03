@@ -1,6 +1,6 @@
 # TIME-001：独立时间域与同步组边界
 
-实施中。准备基线 `3826db5`，本增量代码基线 `b89b3a4`，main 主工作区，当前会话单写者。已按 [ADR-111](../decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../decisions/PRODUCT-ADR-112-media-following-source-groups.md) 实现时钟区间映射、独立媒体准备器与真实来源合成；[运行契约](../../module-api/media-source-groups.md)。本回合分类为 progress，持续 goal active。原生音频／独立宿主入口尚未接通，本工单未完成；不以当前库级出口替代完整跨边界验收。
+实施中。准备基线 `3826db5`，时钟／媒体组增量 `b89b3a4` → `773ca5f`，原生消费观测增量基线 `773ca5f`，main 主工作区，当前会话单写者。已按 [ADR-111](../decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../decisions/PRODUCT-ADR-112-media-following-source-groups.md) 实现时钟区间映射、独立媒体准备器与真实来源合成，并按 [ADR-113](../decisions/PRODUCT-ADR-113-audio-consumption-observation.md) 补正式音频原生消费观测；[运行契约](../../module-api/media-source-groups.md)。本回合分类为 progress，持续 goal active。独立宿主入口尚未接通，本工单未完成；不以当前库级出口替代完整跨边界验收。
 
 ## 实施前代码证据
 
@@ -49,9 +49,19 @@
 
 ## 尚未关闭的出口
 
-1. 原生音频需要带播放实例、定位代次、采样时间的真实消费游标适配；普通软件消费位置仍不能称为声卡呈现时刻。
+1. 正式原生音源现已提供实例、完整帧计数、位置与原采样时间；普通试听／临时循环尚未接入，播放意图与实际消费仍须由后台适配协调。软件消费位置不能称为声卡呈现时刻。
 2. 媒体观测、准备激活及回收要接入既有独立宿主的有界入口／原控制权与回执，不能创建平行控制服务。当前直接 Session 软件测试没有替代该入口的权限及租约验收。
 3. 提供方重启后的显式时钟重绑定、外部循环回跳／混合人工段落、设备部分启动／失败回执及失联恢复需在实际适配中继续验证。当前提供方固定于组准备；错代次拒绝已测，不能宣称自动重绑定已完成。
 4. 当前没有外部机构动作派发，不能将“不会发动作”当成已验收动作去重；真实声卡／蓝牙音箱／板卡同步精度、远程媒体协议及物理输出另验收。TIME-001 与整体 goal 均保持未完成。
 
 接续代码核对：`audio::Transport::revision` 用于准备作业失效，暂停／播放也会改变它，不能直接充当媒体播放代次；普通 `Position` 尚无提供方身份及消费采样序号。正式演出 `Voice::snapshot` 在读取冲突时会返回上次快照并标记 `snapshot_pending`，后续适配绝不能给这份缓存重新打时间戳来续命。`live-host::Action` 和 `State` 目前只有自主来源控制／状态，新入口应复用原宿主并分别管理受控的准备激活与连续媒体观测，而不是让控制客户端保活决定后台音频生命周期。
+
+## 原生音频消费观测增量
+
+基线 `773ca5f`，结果为本次 `feat(audio): publish native consumption observations` 提交。复用实际 PerformanceSource／LoopPlayback 和原 seqlock；完整采样帧才增加消费计数并记录原发布时间，首帧前没有消费观测。控制元数据、结束／取消、重复读取与缓存回退不刷新时间；时间／计数／循环位置在同一快照内，实例与 Voice 统一且不回绕。
+
+`Transport::performance_observation` 提供原生窄接口，竞争／输出故障返回错误，没有正式音源返回 None。`requested_playing` 只表示主机意图；暂停在音频回调生效有延迟，不能拿这个布尔值证明硬件已停止发声。界面可保留明确待更新的旧快照，执行观测不以旧缓存替代。新回调发布不引入分配、文件／网络或阻塞锁，开销尚未量化。
+
+9 项新增专项覆盖真实 WAV 解码、半帧／整帧、循环计数、耗尽拒绝、并发一致性、控制竞争、界面缓存及实际 Rodio Player／虚拟 Mixer 的暂停／继续／停止／重建。`cargo test -p stagemaster-audio -p stagemaster-desktop --locked --offline` 共 129 项通过（37 音频、92 桌面），全工作区严格 Clippy／fmt、7 份修改文档的 642 个本地链接及差异检查通过；本次改动的音频职责文件最大 224 行（含测试）。日志 `logs/time-001-audio-desktop-regression.log`／`time-001-audio-consumption-clippy.log`。本增量未重跑全工作区测试，前一提交 877 项结果不充作本次全量验收。按职责拆分，无第三方依赖、序列化格式或界面改动，不操作物理声卡／设备／窗口。
+
+审查结论：原生消费观测增量通过，完整 TIME-001 仍未完成。接续真实后台有界入口／原回执、准备与激活期间音源推进的协调、循环回跳和提供方重启重绑定；普通试听／临时循环的统一适配与实际声卡呈现延迟不得遗漏，不以新观测类型存在代替这些出口。

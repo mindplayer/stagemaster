@@ -2,10 +2,12 @@ use crate::looping::{LoopBuffer, LoopRange, LoopRequest, PreparedLoop};
 use rodio::{Decoder, Player, Source};
 use serde::Serialize;
 use std::{fs::File, path::PathBuf, sync::Arc, time::Duration};
+mod observation;
 mod output;
 mod performance;
 mod preparation;
 mod voice;
+pub use observation::PerformanceObservation;
 pub use preparation::{
     AudioLoadRequest, AudioLoadTicket, AudioSeekRequest, PreparedAudioLoad, PreparedAudioSeek,
 };

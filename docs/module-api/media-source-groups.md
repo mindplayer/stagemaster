@@ -1,6 +1,6 @@
 # 独立时钟与媒体跟随组
 
-状态：TIME-001 的软件运行增量；依据 [ADR-111](../development/decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../development/decisions/PRODUCT-ADR-112-media-following-source-groups.md)。原生音频、独立宿主入口及真实设备同步尚未接通，不是已发布的远程协议。
+状态：TIME-001 的软件运行增量；依据 [ADR-111](../development/decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../development/decisions/PRODUCT-ADR-112-media-following-source-groups.md)／[ADR-113](../development/decisions/PRODUCT-ADR-113-audio-consumption-observation.md)。正式音频已有原生消费观测；独立宿主入口与真实设备同步尚未接通，不是已发布的远程协议。
 
 ## 状态归属与调用
 
@@ -36,3 +36,13 @@
 实际工程包含媒体列表、自主动态效果和手动层；双时钟采用不同原点与 100 ppm 速率差的软件前向模型。测试覆盖暂停／恢复首个差值、反向定位、整组成员切换、失联保持／恢复、旧键与坏观测原子拒绝、渐变与现场起点隔离、独立准备线程及晚到结果。完整帧另进入现有 Port＋软件驱动，确认定位不重置序号、外部端口接管仍拒绝旧许可。
 
 下一增量要将提供方的实际消费游标、播放代次、采样时间与准备结果接入现有独立宿主的有界入口，继续使用原控制权与回执。不能把本次测试线程当作已经完成这一产品入口；原生音频仍没有声卡呈现时刻校准，蓝牙音箱／实板／多设备启动精度未验收。没有修改工程 JSON、设备执行包、HTTP／GATT 格式或界面。
+
+## 原生音频消费观测
+
+`stagemaster-audio::Transport::performance_observation()` 返回当前正式演出音源的进程内实例、主机播放意图和一致的 `PerformanceSnapshot`。没有正式音源时返回 `None`；输出故障或读取竞争返回错误，不用界面旧缓存代替执行观测。普通试听／临时循环仍未接此接口。
+
+快照中的 `consumption` 在首个完整采样帧消费前为 `None`，之后包含实例、累计完整帧数、采样率与原消费时刻 `std::time::Instant`。素材位置／循环遍数与消费计数配对读取；循环回跳不倒退消费计数。暂停／继续保持实例，重新准备／定位后重建会更换实例。实例只在当前进程内唯一，适配时仍须绑定宿主与时钟身份，不能直接作为远程设备身份。
+
+`requested_playing` 仅表示主机意图；不代表音频回调已经暂停，也不确认音箱实际发声。控制元数据、重复读取、结束／取消及缓存回退不会刷新消费时间；界面忙时保留原快照并标记待更新。适配器须分别处理播放意图、实际消费与错误状态，不能将暂停时不变的消费计数伪造成新样本。
+
+原生 Rodio Player／虚拟 Mixer 的测试验证真实消费、暂停／继续、停止／重建与忙读取；没有打开物理音频设备。消费发布不新增阻塞锁、分配或 I/O；回调开销和硬件呈现延迟尚未量化。异步准备期间继续播放的有界追赶、循环回跳、提供方重启重绑定和有界宿主入口仍是接续工作。

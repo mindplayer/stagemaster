@@ -8,6 +8,8 @@ use std::sync::{
 #[derive(Clone, Copy, Debug)]
 pub struct PerformanceSnapshot {
     pub position: LoopPosition,
+    /// None until the consumer finishes its first complete sample frame.
+    pub consumption: Option<crate::Consumption>,
     /// Accepted intent, not yet applied at an audio frame boundary.
     pub pending_exit: Option<LoopExitIntent>,
     pub control_problem: Option<&'static str>,
@@ -40,7 +42,7 @@ impl Failure {
             1 => Some("音乐预读不足，播放已停止"),
             2 => Some("音乐解码失败或样本不足，播放已停止"),
             3 => Some("音乐样本与编排位置不一致，播放已停止"),
-            4 => Some("音乐循环计数超出范围，播放已停止"),
+            4 => Some("音乐消费计数或时间超出范围，播放已停止"),
             5 => Some("音乐播放已取消"),
             _ => Some("音乐运行控制异常，播放已停止"),
         }
@@ -57,15 +59,19 @@ pub(super) struct Shared {
 }
 
 impl Shared {
-    pub fn new(position: LoopPosition) -> Arc<Self> {
-        Arc::new(Self {
-            position: PublishedPosition::new(position),
+    pub fn new(position: LoopPosition, sample_rate: u32) -> Result<Arc<Self>, String> {
+        Ok(Arc::new(Self {
+            position: PublishedPosition::new(position, sample_rate)?,
             pending: Mutex::new(None),
             control_rejected: AtomicBool::new(false),
             failure: AtomicU8::new(0),
             stopped: AtomicBool::new(false),
             cancelled: Arc::new(AtomicBool::new(false)),
-        })
+        }))
+    }
+
+    pub fn consume(&self, position: LoopPosition) -> Result<(), Failure> {
+        self.position.consume(position).map_err(|_| Failure::Cursor)
     }
 
     pub fn publish(&self, position: LoopPosition) {
@@ -108,6 +114,15 @@ pub struct PerformanceControl {
 }
 
 impl PerformanceControl {
+    #[must_use]
+    pub fn instance(&self) -> u64 {
+        self.shared.position.instance()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn block_snapshot_for_test(&self) {
+        self.shared.position.block_for_test();
+    }
     /// # Errors
     /// Reject a busy snapshot or a poisoned control state.
     pub fn snapshot(&self) -> Result<PerformanceSnapshot, String> {
@@ -116,9 +131,30 @@ impl PerformanceControl {
             .pending
             .lock()
             .map_err(|_| "音乐运行控制不可用")?;
+        self.observe(*pending)
+    }
+
+    /// Read without waiting for a control writer or substituting an old cached snapshot.
+    /// # Errors
+    /// Report busy/poisoned control or an inconsistent position snapshot.
+    pub fn try_snapshot(&self) -> Result<PerformanceSnapshot, String> {
+        let pending = self
+            .shared
+            .pending
+            .try_lock()
+            .map_err(|error| match error {
+                TryLockError::WouldBlock => "音乐观测正在更新，请重试读取",
+                TryLockError::Poisoned(_) => "音乐运行控制不可用",
+            })?;
+        self.observe(*pending)
+    }
+
+    fn observe(&self, pending_exit: Option<LoopExitIntent>) -> Result<PerformanceSnapshot, String> {
+        let (position, consumption) = self.shared.position.observe()?;
         Ok(PerformanceSnapshot {
-            position: self.shared.position.read()?,
-            pending_exit: *pending,
+            position,
+            consumption,
+            pending_exit,
             control_problem: self
                 .shared
                 .control_rejected
@@ -158,5 +194,31 @@ impl PerformanceControl {
 
     pub fn cancel(&self) {
         self.shared.cancelled.store(true, Ordering::Release);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn observed_control_contention_returns_busy_without_relabeling_old_consumption() {
+        let shared = Shared::new(
+            LoopPosition {
+                tick: 0,
+                region: None,
+                pass: None,
+                exit_requested: false,
+                ended: false,
+            },
+            48_000,
+        )
+        .unwrap();
+        let control = PerformanceControl {
+            shared: shared.clone(),
+        };
+        let guard = shared.pending.lock().unwrap();
+        assert!(control.try_snapshot().unwrap_err().contains("正在更新"));
+        drop(guard);
+        assert!(control.try_snapshot().unwrap().consumption.is_none());
     }
 }

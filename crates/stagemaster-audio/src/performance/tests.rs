@@ -6,6 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+mod consumption;
 mod lifecycle;
 
 static TEST_LOCK: Mutex<()> = Mutex::new(());
