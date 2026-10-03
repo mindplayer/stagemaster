@@ -1,7 +1,10 @@
 #![allow(dead_code)] // Shared by independently compiled integration-test executables.
+#[cfg(feature = "audio")]
 pub mod audio;
+#[cfg(feature = "audio")]
 pub mod client_audio;
 pub mod group;
+#[cfg(feature = "audio")]
 pub mod loops;
 pub mod rejection;
 use reqwest::{Client, RequestBuilder};

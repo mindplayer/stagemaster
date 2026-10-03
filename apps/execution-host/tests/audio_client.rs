@@ -1,3 +1,4 @@
+#![cfg(feature = "audio")]
 mod support;
 use stagemaster_execution_client::{
     Action, AudioOutput, Client, MediaAction, MediaStatus, Reader, View,

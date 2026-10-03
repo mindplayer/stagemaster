@@ -1,3 +1,5 @@
+#[cfg(feature = "audio")]
+mod audio;
 mod catalog;
 mod manifest;
 mod prepare;
@@ -25,12 +27,14 @@ pub(crate) struct Catalog {
     pub entries: Vec<Entry>,
     pub output: CompiledOutput,
     pub project: Vec<u8>,
+    #[cfg(feature = "audio")]
     pub media: Option<crate::media::Owner>,
 }
 impl Application for Live {
     const PROTOCOL: u8 = 2;
     type Context = Catalog;
     fn action(operation: &Operation, catalog: &Catalog) -> Result<Action, Failure> {
+        #[cfg(feature = "audio")]
         if let Operation::Media {
             group,
             generation,
@@ -111,6 +115,7 @@ impl Application for Live {
     fn frame(frame: &Frame<Self>) -> Value {
         projection::frame(frame)
     }
+    #[cfg(feature = "audio")]
     fn close(catalog: &Catalog) -> Result<(), String> {
         catalog
             .media

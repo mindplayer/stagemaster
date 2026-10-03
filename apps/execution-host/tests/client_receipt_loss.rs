@@ -50,18 +50,16 @@ async fn forward(State(proxy): State<Arc<Proxy>>, request: Request<Body>) -> Res
 }
 #[test]
 fn admitted_command_with_lost_reply_recovers_only_through_original_receipt() {
-    runtime().block_on(run(false));
+    runtime().block_on(async { run(Harness::start_group(), false).await });
 }
+#[cfg(feature = "audio")]
 #[test]
 fn accepted_audio_with_lost_reply_is_not_replayed_or_confused_with_actual_completion() {
-    runtime().block_on(run(true));
+    runtime().block_on(async {
+        run(Harness::prepared(|p| Some(support::audio::write(p))), true).await;
+    });
 }
-async fn run(audio: bool) {
-    let mut h = if audio {
-        Harness::prepared(|p| Some(support::audio::write(p)))
-    } else {
-        Harness::start_group()
-    };
+async fn run(mut h: Harness, audio: bool) {
     let discovery_path = h.directory.path().join("run/discovery.json");
     let (proxy, task) = install_proxy(&h, &discovery_path).await;
     let mut control = Client::open(&discovery_path).await.unwrap();

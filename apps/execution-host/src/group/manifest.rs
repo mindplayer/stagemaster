@@ -1,4 +1,5 @@
 use super::wire::identity;
+#[cfg(feature = "audio")]
 use crate::media::OutputKind;
 use serde::Deserialize;
 use stagemaster_live::{PlaybackSelection, SourceSpec};
@@ -9,8 +10,12 @@ use std::{fs::File, io::Read, path::Path};
 pub(super) struct Manifest {
     version: u8,
     sources: Vec<Source>,
+    #[cfg(feature = "audio")]
     pub audio: Option<Audio>,
+    #[cfg(not(feature = "audio"))]
+    audio: Option<serde::de::IgnoredAny>,
 }
+#[cfg(feature = "audio")]
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Audio {
@@ -48,6 +53,9 @@ impl Manifest {
             .iter()
             .filter(|s| matches!(s.selection, Selection::AudioTimeline {}))
             .count();
+        if !cfg!(feature = "audio") && (manifest.audio.is_some() || audio_count != 0) {
+            return Err("当前执行程序未包含音频功能，不能载入音乐来源".into());
+        }
         if !(1..=2).contains(&manifest.version)
             || !(1..=64).contains(&manifest.sources.len())
             || audio_count > 1

@@ -1,3 +1,4 @@
+#![cfg(feature = "audio")]
 mod support;
 use serde_json::{Value, json};
 use std::{fs, process::Command};

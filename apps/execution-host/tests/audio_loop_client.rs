@@ -1,3 +1,4 @@
+#![cfg(feature = "audio")]
 mod support;
 use serde_json::json;
 use stagemaster_execution_client::{Client, MediaAction, Reader};

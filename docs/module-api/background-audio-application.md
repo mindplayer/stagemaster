@@ -4,6 +4,8 @@
 
 ## 准备与所有权
 
+依 [ADR-126](../development/decisions/PRODUCT-ADR-126-optional-host-audio.md)，执行程序默认组装 `audio`，桌面构建显式启用；`--no-default-features` 生成共用灯光核心的纯灯光宿主，不链接解码／声卡后端。纯灯光程序拒绝本节音频清单、媒体控制与 `--audio-scope`，只发布实际能力；启用本后端仍需原内容、输出与控制权检查，不因编译进模块而自动播放。
+
 现有 `stagemaster-execution-host <工程> group <来源清单> <新运行目录> --software-output` 入口支持清单版本 2。`--software-output` 表示灯光为软件输出；声音路由在清单中独立声明。按 [ADR-124](../development/decisions/PRODUCT-ADR-124-audio-output-ownership.md)，可追加 `--audio-scope <绝对私有目录>`；系统声音输出必须传入，桌面对所有后台均传入自己的共同范围。独立静音软件用例可省略，不把软件采样称为物理 DMX 或音箱反馈。
 
 ```json

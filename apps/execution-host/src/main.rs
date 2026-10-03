@@ -5,6 +5,7 @@ mod bounded_io;
 mod commands;
 mod directory;
 mod group;
+#[cfg(feature = "audio")]
 mod media;
 mod preparation;
 mod projection;
@@ -27,6 +28,11 @@ fn run() -> Result<(), String> {
     {
         return Err("用法：stagemaster-execution-host 工程路径 scene|sequence|group 节目ID或来源清单路径 新运行目录 --software-output [--audio-scope 声音输出占用绝对目录]".into());
     }
+    #[cfg(not(feature = "audio"))]
+    if args.len() == 7 {
+        return Err("当前执行程序未包含音频功能，不能设置声音输出范围".into());
+    }
+    #[cfg(feature = "audio")]
     let audio_scope = args
         .get(6)
         .map(|path| stagemaster_audio::OutputScope::new(path.into()))
@@ -54,7 +60,9 @@ fn run() -> Result<(), String> {
         let prepared = group::prepare(
             std::path::Path::new(&args[0]),
             std::path::Path::new(&args[2]),
+            #[cfg(feature = "audio")]
             &directory,
+            #[cfg(feature = "audio")]
             audio_scope.as_ref(),
         )?;
         runtime.block_on(server::serve(prepared, directory))

@@ -58,6 +58,7 @@ pub(super) fn build(
             entries,
             output: output.ok_or("来源组缺少节目")?,
             project: document.encode()?,
+            #[cfg(feature = "audio")]
             media: None,
         },
         source,

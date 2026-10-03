@@ -36,3 +36,13 @@ cargo clippy --workspace --all-targets --features stagemaster-delivery/http --lo
 ```
 
 HTTP 仅在需要网络交付的产品组装启用；默认桌面／设备上传不因此增加 TLS 生产依赖。新依赖先单独获取，后续验证保持锁定、离线；本机 HTTPS 测试生成短期证书，不修改系统信任，也不访问真实云服务。
+
+涉及[执行应用组装](decisions/PRODUCT-ADR-126-optional-host-audio.md)时，默认构建保留音频，纯灯光必须单独验证：
+
+```sh
+cargo test -p stagemaster-execution-host --no-default-features --locked --offline
+cargo clippy -p stagemaster-execution-host --all-targets --no-default-features --locked --offline -- -D warnings
+cargo tree -p stagemaster-execution-host --no-default-features -e normal --locked --offline
+```
+
+纯灯光生产树不得携带音频／Rodio／CPAL／解码后端或 UI。Cargo 的特性合并意味着工作区构建不能代替此检查；默认构建仍执行完整音频用例，两种组合都须通过。与另一轮默认测试同时运行时，纯灯光使用独立的项目内 CARGO_TARGET_DIR，不覆盖正在被测试进程使用的后台可执行文件。

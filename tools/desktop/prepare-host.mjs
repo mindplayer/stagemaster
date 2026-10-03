@@ -16,15 +16,16 @@ export function prepareHost() {
   if (!triple) throw new Error("缺少 Rust 目标平台");
   const build = spawnSync(
     "cargo",
-    ["build", "-p", "stagemaster-execution-host", "--locked", "--offline"],
+    ["build", "-p", "stagemaster-execution-host", "--features", "audio", "--locked", "--offline"],
     { cwd: root, env, stdio: "inherit" },
   );
   if (build.status !== 0) throw new Error("后台程序构建失败");
   const directory = resolve(root, "tmp/desktop-bin");
   mkdirSync(directory, { recursive: true });
   const suffix = process.platform === "win32" ? ".exe" : "";
+  const targetDirectory = resolve(root, env.CARGO_TARGET_DIR ?? "target");
   copyFileSync(
-    resolve(root, `target/debug/stagemaster-execution-host${suffix}`),
+    resolve(targetDirectory, `debug/stagemaster-execution-host${suffix}`),
     resolve(directory, `stagemaster-execution-host-${triple}${suffix}`),
   );
 }

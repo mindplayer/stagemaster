@@ -1,3 +1,4 @@
+#![cfg(feature = "audio")]
 mod support;
 use serde_json::json;
 use support::{
