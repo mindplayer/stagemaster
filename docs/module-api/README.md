@@ -16,7 +16,9 @@ HOST-005 已提供[桌面后台执行](desktop-background-execution.md)：独立
 
 ## 直接从哪里看
 
-[设备操作范围](device-operation-permissions.md)：DEVICE-003 将安装、观察和运行控制分开，旧安装凭据不提升权限；正式运行网关、设备状态与物理输出仍待接通。
+[设备操作范围](device-operation-permissions.md)：DEVICE-003 将安装、观察和运行控制分开，旧安装凭据不提升权限；正式网络入口与物理输出仍待接通。
+
+[设备运行连接入口](device-runtime-application.md)：类型化请求复用原工作器、控制租约和独立运行；历史回执、分页、权限撤销与断线归还已验证，网络／固件／桌面仍待接线。
 
 [独立时钟与媒体跟随组](media-source-groups.md)：TIME-001 以真实 Player／统一合成／软件端口验证媒体定位与自主执行分离；独立准备器、播放代次、失联和有界时钟映射已有运行实现，原生音频和独立宿主入口仍需接入。
 

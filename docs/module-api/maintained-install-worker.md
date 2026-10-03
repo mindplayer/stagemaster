@@ -2,6 +2,8 @@
 
 DEVICE-002C；依据 [ADR-041](../development/decisions/PRODUCT-ADR-041-maintained-install-worker.md)。`stagemaster-install-worker::ManagedWorker<S, P>` 组合既有 Worker 与 [Runtime](device-runtime.md)，在同一个存储执行器内串行工作，不包含认证、UI、无线或物理输出驱动。
 
+DEVICE-003 的[运行连接入口](device-runtime-application.md) 借用本工作器，按当前认证事实处理类型化目录／运行请求；工作器自身仍不依赖具体无线或认证服务。
+
 ## 生命周期
 
 ```rust,ignore

@@ -18,6 +18,7 @@ stagemaster-runtime = { path = "../stagemaster-runtime" }
 stagemaster-package = { path = "../stagemaster-package" }
 
 [dev-dependencies]
+stagemaster-playback = { path = "../stagemaster-playback" }
 stagemaster-install-store = { path = "../stagemaster-install-store" }
 stagemaster-project = { path = "../stagemaster-project" }
 tempfile = "=3.27.0"

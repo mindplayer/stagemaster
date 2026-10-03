@@ -1,6 +1,6 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权前置增量完成，完整设备运行链路实施中。2026-10-03；基线 `4d741a4`，main，当前会话单写者。上一 goal 回合为已确认存活的完整基线作业等待；本工单接续框架审查揭示的 AUDIT-001 F01 缺口，完整 goal 保持 active。
+状态：分权前置与运行应用入口增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
@@ -24,8 +24,27 @@ Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、�
 
 全工作区全部目标严格 Clippy（启用 install-worker/application）和 ESP32 application-gatt 的 Xtensa 严格检查通过，日志 `logs/device-003-scopes-clippy-final.log`、`logs/device-003-scopes-xtensa.log`。没有刷入或运行板卡。首次主机检查发现文档代码引用缺少反引号，已修正并通过，不改变执行逻辑；初始日志保留。本次涉及的手写代码文件最大 156 行，无第三方／锁文件改动；未改 UI，也未重复桌面打包、原生窗口或物理验收。
 
-## 下一增量的接线约束
+## 第一增量时的接线约束
 
 当前 SMAP v1 必须先打开安装工作器，再公告就绪；不能将其直接复用为连接即进入维护的运行通道，否则观察／重连会干扰已播放内容。下一增量先定义独立运行就绪／版本协商，再让目录与运行命令进入原 ManagedWorker；安装仍遵守原维护窗口，读取、控制和安装各自检查范围。复用 device-channel 的记录承载与安全会话，不复制无线收发器。真实执行时间来自设备单调调度，不能靠收到控制消息时才 tick。精确字节协议与固件调度另行评审后实施。
 
 本增量审查结论：上述操作范围出口已满足，按 `feat(device): separate installation and runtime operation permissions` 集成；原配置没有提升权限，现有安装链兼容。格式、差异与 7 个文档的 472 个本地链接通过。完整任务第 2～5 项的运行接线／界面／实物出口仍开放；FRAMEWORK-001 的原完整基线作业单独继续，不把当前 123 项作为全量结果。
+
+## 第二增量：运行应用入口
+
+产品基线 `8d13434`；期间仅框架审查文档以 `f22a611` 集成。依 [ADR-128](../decisions/PRODUCT-ADR-128-device-runtime-application.md) 调整先后顺序：先证明原工作器能承担有界请求和实时撤销，再冻结相匹配的就绪／字节协议，避免无线保活任务执行慢载入。本次限定 install-worker 的 application 模块、实际会话／运行测试、必要测试依赖和文档；未修改无线、固件或桌面行为。
+
+新增 `operations/{mod,model,lifecycle,dispatch}.rs`，创建连接不进入维护或接管；观察目录、步骤与状态，控制租约及原 Action 复用 Runtime。请求期望修订、连续序号、单份历史回执、执行前后活性检查与旧连接释放保护均在同一串行所有者内。每个已准入会话只能保留一个 Connection；可信 live 回调不能缓存 Grant。类型化结果不等于网络字节格式，不承诺可直接装入单个安全记录。详见[调用契约](../../module-api/device-runtime-application.md)。
+
+验证与日志：
+
+- 真实会话／目录／执行／维护／故障等首批 11 项通过，`logs/device-003-runtime-tests-final.log`。
+- 工作器与 Runtime 相关回归 56 项通过，包含上述 11 项，不重复计数；`logs/device-003-runtime-regression.log`。
+- 随后补齐目录、步骤分页及释放目录后历史文本两项通过，`logs/device-003-runtime-catalog.log`。本增量合计 58 项，其中新增 13 项，0 失败、0 忽略。
+- 全工作区全部目标严格 Clippy（含 application）通过，`logs/device-003-runtime-clippy-reviewed.log`；Xtensa application-gatt 严格检查通过，`logs/device-003-runtime-xtensa.log`。最终文档整理后再检查格式与同一固件目标，不运行或刷入板卡。
+
+测试采用真实工程包、原安装器／ManagedWorker、Noise／Session，实际 512 通道软件输出与独立 Player 对照；授权失效不会被测试伪装为成功回滚。新增 dev-dependency 仅为已有 playback crate，Cargo.lock 只增加该本地测试依赖边；无第三方版本、生产依赖或已有工程／设备包／配置字节变化。首次编译的类型推断和直接测试依赖缺失已修复，首次严格检查的文档问题已修正，未削弱测试断言。新生产文件均低于 200 行，测试文件低于 300 行。
+
+第二增量审查结论：按 `feat(device): expose admitted runtime operations on the existing worker` 集成。本任务的完整出口仍开放：正式运行就绪／版本与有界编解码、承载队列／独立固件调度、桌面目录／操作／状态、实际端口和物理输出。完成本入口不关闭 F01，也不把旧框架轮重新打开。未操作用户工程、output/、窗口、蓝牙、声卡或物理灯具。
+
+最终整理检查：全工作区全部目标严格 Clippy 退出码 0；Xtensa application-gatt 复查退出码 0，`logs/device-003-runtime-xtensa-final.log`；fmt／差异检查通过。8 份文档的 490 个本地文件链接无缺失，`logs/device-003-runtime-doc-links.json`。本增量不重复已经结束的 FRAMEWORK-001 全量基线，也不将相关 58 项称为最新全部产品回归。

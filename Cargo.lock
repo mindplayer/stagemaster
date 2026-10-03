@@ -4736,6 +4736,7 @@ dependencies = [
  "stagemaster-install",
  "stagemaster-install-store",
  "stagemaster-package",
+ "stagemaster-playback",
  "stagemaster-project",
  "stagemaster-runtime",
  "stagemaster-transfer",
