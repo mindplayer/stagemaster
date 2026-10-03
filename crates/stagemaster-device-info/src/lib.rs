@@ -14,8 +14,15 @@ pub mod capability {
     pub const DMX_OUTPUT: u32 = 1 << 4;
     /// Catalogue/installation can parse execution semantics 2; does not imply live output.
     pub const PACKAGE_SEMANTICS_2: u32 = 1 << 5;
-    pub const KNOWN: u32 =
-        DIAGNOSTICS | CATALOG | INSTALLATION | PLAYBACK | DMX_OUTPUT | PACKAGE_SEMANTICS_2;
+    /// Explicit SMRT application endpoint, independent of installed playback and physical output.
+    pub const RUNTIME_APPLICATION: u32 = 1 << 6;
+    pub const KNOWN: u32 = DIAGNOSTICS
+        | CATALOG
+        | INSTALLATION
+        | PLAYBACK
+        | DMX_OUTPUT
+        | PACKAGE_SEMANTICS_2
+        | RUNTIME_APPLICATION;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -131,10 +138,12 @@ impl Description {
         let catalog = self.declares(CATALOG);
         let install = self.declares(INSTALLATION);
         let playback = self.declares(PLAYBACK);
+        let runtime = self.declares(capability::RUNTIME_APPLICATION);
         if !self.declares(DIAGNOSTICS)
             || ((install || playback || self.declares(capability::PACKAGE_SEMANTICS_2)) && !catalog)
             || (self.declares(DMX_OUTPUT) && !playback)
-            || (install && self.authentication == 0)
+            || ((install || runtime) && self.authentication == 0)
+            || (runtime && !playback)
         {
             return Err(Error::Capabilities);
         }
@@ -154,10 +163,13 @@ impl Description {
                 || l.slot_bytes < l.package_bytes
         } else {
             l.transfer_version != 0
-                || l.message_bytes != 0
+                || (!runtime && l.message_bytes != 0)
                 || l.chunk_bytes != 0
                 || l.slot_bytes != 0
         } {
+            return Err(Error::Limits);
+        }
+        if runtime && l.message_bytes <= 8 {
             return Err(Error::Limits);
         }
         if if playback {

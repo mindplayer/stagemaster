@@ -1,4 +1,6 @@
 #![allow(dead_code)] // Shared by separately compiled integration tests.
+pub mod faults;
+pub mod package;
 pub mod packets;
 pub mod peer;
 use stagemaster_device_auth::application::{Configuration, Role};

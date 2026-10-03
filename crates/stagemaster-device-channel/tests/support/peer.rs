@@ -1,5 +1,5 @@
 use super::{config, context, entropy, now};
-use stagemaster_device_auth::application::{Role, Session};
+use stagemaster_device_auth::application::{DevelopmentPermit, Permissions, Role, Session};
 use stagemaster_device_channel::{Error, RecordIo, receive};
 use stagemaster_device_info::Description;
 use stagemaster_device_link::management::ApplicationReceipt;
@@ -19,11 +19,18 @@ impl<R: RecordIo> Peer<R> {
         peer.ready(desc, stale_receipt).await?;
         Ok(peer)
     }
-    pub async fn authenticate(mut io: R, desc: Description) -> Result<Self, Error> {
-        let origin = Instant::now();
+    pub async fn authenticate(io: R, desc: Description) -> Result<Self, Error> {
+        Self::authenticate_with(io, desc, None, Instant::now()).await
+    }
+    pub async fn authenticate_with(
+        mut io: R,
+        desc: Description,
+        permissions: Option<Permissions>,
+        origin: Instant,
+    ) -> Result<Self, Error> {
         let config = config(Role::Device);
         let mut handshake =
-            Handshake::respond(context(desc), config.key(), entropy, 0).map_err(wire)?;
+            Handshake::respond(context(desc), config.key(), entropy, now(origin)).map_err(wire)?;
         handshake
             .read(&receive(&mut io).await?, now(origin))
             .map_err(wire)?;
@@ -39,13 +46,22 @@ impl<R: RecordIo> Peer<R> {
             .confirmation(&mut cipher, now(origin))
             .map_err(wire)?;
         io.send(&cipher[..n]).await?;
-        let secure = Session::admit(
-            channel,
-            config.permit().unwrap(),
-            context(desc),
-            now(origin),
-        )
-        .map_err(wire)?;
+        let permit = permissions
+            .map_or_else(
+                || config.permit(),
+                |scopes| {
+                    DevelopmentPermit::scoped(
+                        config.device(),
+                        config.trusted_key(),
+                        config.principal(),
+                        config.revision(),
+                        config.duration_ms(),
+                        scopes,
+                    )
+                },
+            )
+            .map_err(wire)?;
+        let secure = Session::admit(channel, permit, context(desc), now(origin)).map_err(wire)?;
         Ok(Self { io, secure, origin })
     }
     pub async fn ready(&mut self, desc: Description, stale_receipt: bool) -> Result<(), Error> {

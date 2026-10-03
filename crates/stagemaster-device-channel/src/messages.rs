@@ -7,6 +7,7 @@ impl<R: RecordIo> Channel<R> {
     /// Any failure or cancellation invalidates this session, with uncertain delivery.
     pub async fn write(&mut self, bytes: &[u8]) -> Result<(), Error> {
         self.begin()?;
+        self.application_started = true;
         let result = self.send(Kind::Message, bytes).await;
         self.finish(result)
     }
@@ -51,11 +52,14 @@ impl<R: RecordIo> Channel<R> {
         self.checked(result)
     }
     /// # Errors
-    /// Requires the encrypted heartbeat reply; at most one intervening message is retained.
+    /// Requires the encrypted heartbeat reply; at most one unique intervening message is retained.
+    /// Exact duplicate payloads consume no extra slot or time budget.
     /// Cancellation invalidates the session, including any outstanding reply.
     pub async fn heartbeat(&mut self) -> Result<(), Error> {
         self.begin()?;
-        let result = self.heartbeat_inner().await;
+        let result = tokio::time::timeout(crate::RECORD_TIMEOUT, self.heartbeat_inner())
+            .await
+            .unwrap_or(Err(Error::Timeout));
         self.finish(result)
     }
     async fn heartbeat_inner(&mut self) -> Result<(), Error> {
@@ -66,6 +70,7 @@ impl<R: RecordIo> Channel<R> {
             match kind {
                 Kind::HeartbeatReply => return Ok(()),
                 Kind::Message if self.pending.is_none() => self.pending = Some(bytes),
+                Kind::Message if self.pending.as_ref() == Some(&bytes) => (),
                 _ => return Err(Error::Denied),
             }
         }

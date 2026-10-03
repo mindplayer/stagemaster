@@ -62,6 +62,7 @@ impl DeviceDescription {
                 (cap::PACKAGE_SEMANTICS_2, "离散功能节目"),
                 (cap::INSTALLATION, "节目安装"),
                 (cap::PLAYBACK, "节目播放"),
+                (cap::RUNTIME_APPLICATION, "运行控制接口"),
                 (cap::DMX_OUTPUT, "DMX 输出"),
             ]
             .into_iter()

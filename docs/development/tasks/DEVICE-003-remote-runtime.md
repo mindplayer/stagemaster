@@ -1,10 +1,10 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权、运行应用入口与有界消息增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
+状态：分权、运行应用入口、有界消息和共享客户端增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
-Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，正式会话只支持安装。不得再造播放器，也不能把安装成功显示为运行或物理输出。本轮先实现设备运行入口的分权前置，再分增量接通正式操作与可见状态。
+Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。正式原生设备服务和当前固件仍只接安装。不得再造播放器，也不能把安装成功显示为运行或物理输出。本轮先实现设备运行入口的分权前置，再分增量接通正式操作与可见状态。
 
 第一增量依 [ADR-127](../decisions/PRODUCT-ADR-127-device-operation-permissions.md)：限定 `device-auth::application`、原 `install-worker::secure`、相关验收和契约。既有安装凭据不提升权限；不修改工程／设备包／配置字节或固件。源码按许可范围、准入、安装适配与测试分文件，目标新增文件低于 300 行。全量基线仍运行时使用项目 `tmp/framework-001-light-target` 隔离构建，不覆盖原测试产物。
 
@@ -65,3 +65,23 @@ Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、�
 审查结论：本增量按 `feat(device): encode bounded runtime negotiation and operations` 集成，源码／测试新增文件低于 300 行。正式 Channel 仍只有安装入口；接续运行握手和共享客户端，再承载队列、固件独立调度、桌面状态及真实端口。加密内存往返没有冒充 TCP／GATT 实际运行验收。未刷机，未操作真实设备、声卡、UE、用户工程或 output/；完整 DEVICE-003／goal 仍开放。
 
 最终格式／差异检查通过；7 份文档的 490 个本地文件目标无缺失，两个锁文件的外部包版本／校验值与基线逐项一致，`logs/device-003-wire-doc-check.json`。生产依赖树无认证／安全会话／安装工作器／Tokio／蓝牙／桌面框架，`logs/device-003-wire-dependencies.log`，依赖方向未反转。用户 output/ 不纳入提交。
+
+## 第四增量：共享运行握手与客户端
+
+基线 `0c832a5`，main；上一目标回合已提交有界消息，分类为 progress。依 [ADR-130](../decisions/PRODUCT-ADR-130-runtime-client-channel.md) 在原 device-channel 内增加运行协商及 RuntimeClient；范围为 Channel／设备描述／主机描述标签、相关测试和文档，未修改固件运行逻辑或桌面控制页面。
+
+运行端点以独立能力位声明；原 Noise 认证抽为共同实现，私有准入分别存储安装和运行事实，原安装 `peer()` 不返回运行权限。客户端拥有一个待确认请求和一份历史回复，禁止把已发送应用消息的 Channel 再包装而重置序号。取消／发送失败保留不确定意图且旧连接失效，业务失败不伪装为断线；显式重试复用原请求、不得续期，迟到重复回复不完成下一个请求。宿主仍负责串行轮询和心跳，客户端不偷偷创建调度器。
+
+验证结果：
+
+- `logs/device-003-client-regression.log`：155 项相关 Rust 回归通过，0 失败／忽略，含 16 项新增（两种承载 2、权限／入口 5、回执 3、生命周期 4、描述 2）；覆盖原安装／连接／工作器／运行与协议回归。该结果不是全工作区全部测试。
+- 实际本机 TCP 和 20 字节 GATT 软件分片，经过真实安全会话、真实包安装与原 ManagedWorker，完成目录／选择／载入／执行／暂停／继续／下一步／停止。断线后同一运行实例独立推进，完整 512 通道软件帧与独立 Player 对照；重连查询没有自动取得控制权。
+- 重试测试在回复加密发送前留置原结果；不声称能在任意丢失密文后复用原序号流。相同历史回执不重做控制租约；取消、失败、错误关联、观察权限、旧安装回执以及已使用 Channel 重包装均拒绝。
+- 虚拟时间专项证明每 2 秒保活和中途重试不延长 30 秒请求期限；相同应用回复仅占一个保活暂存槽，持续重复消息不能延长整个心跳的 5 秒期限。
+- `logs/device-003-client-clippy-reviewed-final.log`：全工作区全部目标严格 Clippy（application）退出码 0。`logs/device-003-client-xtensa.log`：Xtensa application-gatt 严格检查退出码 0，未刷机或运行板卡。
+
+初次检查发现测试帮助模块导出、异步测试栈和函数长度问题，已用共享夹具、测试 Future 装箱与按职责拆分修复；未放宽 lint 或删减断言。新增生产和测试文件均低于 300 行。主机 Cargo.lock 只新增 4 条本地依赖边，生产新增 runtime／runtime-protocol，worker／playback 为测试依赖；无第三方升级或固件锁文件变化。契约见[共享客户端](../../module-api/device-runtime-client.md)。
+
+本增量审查结论：软件客户端出口已满足，按 `feat(device): connect runtime clients through shared record channels` 集成。下一项为原生设备服务／生产队列与固件独立调度，再接桌面节目目录／运行操作／状态，实际输出另行验收。完整 DEVICE-003／AUDIT-001／goal 仍开放；已完成框架轮保持关闭。用户请求进度时核对：本轮框架验收已完成，当前设备运行链路粗估 60%～70%，这是剩余工作量判断，不是按测试数推导的商业交付比例。未操作真实蓝牙、声卡、UE、用户窗口／工程或 output/。
+
+最终 fmt／差异检查通过；9 份文档的 503 个本地文件目标无缺失，所涉 Rust 文件最大 276 行，`logs/device-003-client-doc-check.json`。外部锁文件包记录与基线一致、固件锁文件未变；生产依赖树不含安装工作器、蓝牙驱动、Tauri 或音频后端，`logs/device-003-client-dependencies.log`。本次没有重复框架全量基线、桌面打包或原生窗口验收。

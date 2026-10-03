@@ -5,24 +5,11 @@ use stagemaster_device_session::Kind;
 use stagemaster_install::Installer;
 use stagemaster_install_store::FileStore;
 use stagemaster_package::Archive;
-use stagemaster_project::{Document, PackageSelection};
 use stagemaster_transfer::{AuthorizedLink, Outcome, Service, Upload};
-use support::{Task, config, description, message, packets, peer::Peer, tcp, temporary};
+use support::{
+    Task, config, description, message, package::package, packets, peer::Peer, tcp, temporary,
+};
 
-fn package() -> Vec<u8> {
-    let mut json: serde_json::Value = serde_json::from_slice(include_bytes!(
-        "../../../docs/project-format/examples/lighting-basic.project.json"
-    ))
-    .unwrap();
-    json["entryPoints"] = serde_json::json!([]);
-    Document::decode(&serde_json::to_vec(&json).unwrap())
-        .unwrap()
-        .build_package(&[PackageSelection::Sequence {
-            id: "00000000-0000-4000-8000-000000000040".into(),
-        }])
-        .unwrap()
-        .bytes
-}
 async fn install<R: RecordIo>(client: R, server: R) {
     let directory = temporary();
     let path = directory.path().to_owned();

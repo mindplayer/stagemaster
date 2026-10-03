@@ -1,8 +1,12 @@
 //! Controller-side application session over bounded records, independent of discovery and BLE.
 #![forbid(unsafe_code)]
+mod admission;
+mod authentication;
 mod channel;
 mod handshake;
 mod messages;
+pub mod runtime;
+mod runtime_handshake;
 mod stream;
 pub use channel::Channel;
 use std::{future::Future, time::Duration};
@@ -28,7 +32,7 @@ impl std::fmt::Display for Error {
             Self::Closed => f.write_str("应用记录连接已失效，请重新连接"),
             Self::Timeout => f.write_str("应用记录传输超时，请重新连接"),
             Self::Bounds => f.write_str("应用记录超出容量"),
-            Self::Denied => f.write_str("当前设备连接未取得应用安装权限"),
+            Self::Denied => f.write_str("当前设备连接未取得所需应用权限"),
             Self::Transport(detail) | Self::Protocol(detail) => f.write_str(detail),
         }
     }

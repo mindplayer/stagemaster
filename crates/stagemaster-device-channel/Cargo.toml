@@ -6,6 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stagemaster-runtime = { path = "../stagemaster-runtime" }
+stagemaster-runtime-protocol = { path = "../stagemaster-runtime-protocol" }
 getrandom = "=0.3.4"
 zeroize = { version = "=1.9.0", default-features = false }
 stagemaster-device-auth = { path = "../stagemaster-device-auth", features = ["application"] }
@@ -15,6 +17,8 @@ stagemaster-device-info = { path = "../stagemaster-device-info" }
 tokio = { version = "=1.53.1", features = ["rt", "sync", "time", "io-util"] }
 
 [dev-dependencies]
+stagemaster-install-worker = { path = "../stagemaster-install-worker", features = ["application"] }
+stagemaster-playback = { path = "../stagemaster-playback" }
 serde_json = "=1.0.151"
 stagemaster-project = { path = "../stagemaster-project" }
 stagemaster-package = { path = "../stagemaster-package" }

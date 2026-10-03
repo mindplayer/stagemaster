@@ -18,7 +18,7 @@
 
 [DEVICE-003](tasks/DEVICE-003-remote-runtime.md) 接续正式设备运行链路；[ADR-127](decisions/PRODUCT-ADR-127-device-operation-permissions.md) 分权增量的 123 项回归通过，原安装配置不自动获得播放权。随后按 [ADR-128](decisions/PRODUCT-ADR-128-device-runtime-application.md) 实现借用原工作器的类型化目录／运行入口，58 项相关测试（含 13 项新增）、全工作区及 Xtensa 严格检查通过。先明确工作器与撤销语义，再冻结正式运行就绪／有界字节协议；接续承载队列、固件独立调度和桌面状态，物理输出另行验收，不把内部 API 当远程运行已接通。
 
-第三增量 [ADR-129](decisions/PRODUCT-ADR-129-runtime-wire-protocol.md) 的 [SMRT v1](../module-api/device-runtime-wire.md) 与工作器适配已完成：74 项相关测试通过，含 16 项新增；同上两类严格检查通过，最长步骤页 1,142 字节。正式 Channel 的运行握手／共享客户端是下一接线点；保留无线任务／调度／桌面和物理输出出口，完整 DEVICE-003 不关闭。
+第三增量 [ADR-129](decisions/PRODUCT-ADR-129-runtime-wire-protocol.md) 的 [SMRT v1](../module-api/device-runtime-wire.md) 与工作器适配已完成：74 项相关测试通过，含 16 项新增；同上两类严格检查通过，最长步骤页 1,142 字节。第四增量 [ADR-130](decisions/PRODUCT-ADR-130-runtime-client-channel.md) 已接共享 Channel 的运行握手／[客户端](../module-api/device-runtime-client.md)，155 项相关回归（含 16 项新增）、全工作区严格 Clippy 与 Xtensa application-gatt 检查通过。下一接线点为原生设备服务／生产队列与固件独立调度，随后桌面操作；保留物理输出出口，完整 DEVICE-003 不关闭。
 
 [PLAN-004](tasks/PLAN-004-composable-device-family.md)／[ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)进一步明确按能力组装的设备家族：当前桌面是共享基座的一种产品，纯输出、独立播放、控制面可组合但角色不混同。接续独立进程验证只代表电脑／ARM 类宿主的适配，不要求 ESP32 使用同一操作系统或网络栈；不扩大为立即开发所有硬件版本。
 

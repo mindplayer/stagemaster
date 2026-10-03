@@ -1,6 +1,6 @@
 mod support;
 use stagemaster_device_auth::application::Role;
-use stagemaster_device_channel::{Channel, Error, RecordIo, StreamRecords};
+use stagemaster_device_channel::{Channel, Error, StreamRecords};
 use std::{
     sync::{
         Arc,
@@ -8,35 +8,8 @@ use std::{
     },
     time::Duration,
 };
-use support::{Task, config, description, peer::Peer};
+use support::{Task, config, description, faults::FaultIo, peer::Peer};
 use tokio::{io::duplex, time::Instant};
-
-/// Deliberately preserves the carrier's health flag on injected faults: the nonce owner
-/// must enforce its own cancellation boundary, not delegate that decision to the carrier.
-struct FaultIo<R> {
-    inner: R,
-    mode: Arc<AtomicU8>,
-}
-impl<R: RecordIo> RecordIo for FaultIo<R> {
-    async fn send(&mut self, bytes: &[u8]) -> Result<(), Error> {
-        match self.mode.load(Ordering::Acquire) {
-            1 => std::future::pending::<()>().await,
-            2 => return Err(Error::Closed),
-            3 => tokio::time::sleep(Duration::from_secs(4)).await,
-            _ => (),
-        }
-        self.inner.send(bytes).await
-    }
-    fn try_receive(&mut self) -> Result<Option<Vec<u8>>, Error> {
-        self.inner.try_receive()
-    }
-    fn healthy(&self) -> bool {
-        self.inner.healthy()
-    }
-    fn close(&mut self) {
-        self.inner.close();
-    }
-}
 
 #[tokio::test]
 async fn cancelled_or_failed_application_write_never_reuses_the_secure_session() {
