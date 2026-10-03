@@ -212,6 +212,7 @@ export function PrevisPanel({
               onSelect: async () => true,
               onPrepareMove: async () => false,
               onTranslation: async () => false,
+              onTransform: async () => false,
             }
           : interactions)}
       />

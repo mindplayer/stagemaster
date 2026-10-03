@@ -136,6 +136,11 @@ pub enum StageEdit {
         fixture_ids: Vec<String>,
         delta_meters: SpatialVector3,
     },
+    TransformPlacements {
+        fixture_ids: Vec<String>,
+        yaw_degrees: String,
+        spacing_scale: String,
+    },
     RemovePlacement {
         fixture_id: String,
     },
@@ -289,23 +294,19 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             crate::rigging::remove_rig(root, &id, detach_fixtures)?;
             crate::editing::remove(list(root, "constructions")?, &id)?;
         }
-        StageEdit::PutPlacement { placement } => {
-            let values = list(root, "placements")?;
-            let index = values
-                .iter()
-                .position(|p| p["fixtureId"] == placement.fixture_id);
-            let value = json!(placement);
-            if let Some(index) = index {
-                values[index] = value;
-            } else {
-                values.push(value);
-            }
-        }
+        StageEdit::PutPlacement { placement } => put_placement(root, &placement)?,
         StageEdit::TranslatePlacements {
             fixture_ids,
             delta_meters,
         } => {
             crate::stage_translation::apply(root, &fixture_ids, &delta_meters)?;
+        }
+        StageEdit::TransformPlacements {
+            fixture_ids,
+            yaw_degrees,
+            spacing_scale,
+        } => {
+            crate::stage_transform::apply(root, &fixture_ids, &yaw_degrees, &spacing_scale)?;
         }
         StageEdit::RemovePlacement { fixture_id } => {
             crate::rigging::detach(root, std::slice::from_ref(&fixture_id))?;
@@ -419,6 +420,20 @@ fn initialize(root: &mut Value, command: &StageEdit) -> Result<(), String> {
             .any(|c| c["key"] == crate::seating::ARC_CAPABILITY)
     {
         capabilities.push(json!({"key":crate::seating::ARC_CAPABILITY,"version":1}));
+    }
+    Ok(())
+}
+
+fn put_placement(root: &mut Value, placement: &FixturePlacement) -> Result<(), String> {
+    let values = list(root, "placements")?;
+    let index = values
+        .iter()
+        .position(|p| p["fixtureId"] == placement.fixture_id);
+    let value = json!(placement);
+    if let Some(index) = index {
+        values[index] = value;
+    } else {
+        values.push(value);
     }
     Ok(())
 }

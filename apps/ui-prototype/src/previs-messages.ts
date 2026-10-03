@@ -1,4 +1,9 @@
-import type { PrevisPlacement, PrevisTranslation } from "./previs-types.ts";
+import type {
+  PrevisPlacement,
+  PrevisTranslation,
+  PrevisTransform,
+  PrevisTool,
+} from "./previs-types.ts";
 import type { SpatialVector3 } from "./stage-types.ts";
 
 type ViewMessage =
@@ -11,9 +16,11 @@ type ViewMessage =
       cutaway: boolean;
       interactionVersion: number;
       vertical: boolean;
+      tool: PrevisTool;
     }
   | { kind: "selection"; fixtureId: string }
   | { kind: "selectionGroup"; fixtureIds: string[] }
+  | ({ kind: "transform"; requestId: string } & PrevisTransform)
   | ({ kind: "translation"; requestId: string } & PrevisTranslation)
   | ({ kind: "placement"; requestId: string } & PrevisPlacement);
 const record = (v: unknown): v is Record<string, unknown> =>
@@ -48,6 +55,9 @@ export function readPrevisMessage(json: string): ViewMessage | null {
       text(v.workLight) &&
       typeof v.move === "boolean" &&
       (v.cutaway === undefined || typeof v.cutaway === "boolean") &&
+      (v.tool === undefined ||
+        (typeof v.tool === "string" &&
+          ["horizontal", "vertical", "rotate", "scale"].includes(v.tool))) &&
       (v.vertical === undefined || typeof v.vertical === "boolean") &&
       (v.interactionVersion === undefined ||
         Number.isSafeInteger(v.interactionVersion))
@@ -61,6 +71,8 @@ export function readPrevisMessage(json: string): ViewMessage | null {
         cutaway: v.cutaway === true,
         interactionVersion: Number(v.interactionVersion ?? 1),
         vertical: v.vertical === true,
+        tool: (v.tool ??
+          (v.vertical ? "vertical" : "horizontal")) as PrevisTool,
       };
     if (v.kind === "selection" && text(v.fixtureId))
       return { kind: "selection", fixtureId: v.fixtureId };
@@ -71,7 +83,7 @@ export function readPrevisMessage(json: string): ViewMessage | null {
     )
       return { kind: "selectionGroup", fixtureIds: v.fixtureIds };
     if (
-      !["placement", "translation"].includes(String(v.kind)) ||
+      !["placement", "translation", "transform"].includes(String(v.kind)) ||
       !text(v.requestId, 36) ||
       !/^[a-f0-9]{32}$/.test(v.requestId) ||
       !Number.isInteger(v.generation) ||
@@ -82,6 +94,30 @@ export function readPrevisMessage(json: string): ViewMessage | null {
       BigInt(v.version) > 18446744073709551615n
     )
       return null;
+    if (v.kind === "transform") {
+      const scalar = (n: unknown, min: number, max: number) =>
+        text(n, 32) &&
+        /^-?\d+(\.\d{1,6})?$/.test(n) &&
+        Number(n) >= min &&
+        Number(n) <= max;
+      if (
+        Object.keys(v).length !== 7 ||
+        !identities(v.fixtureIds, 256) ||
+        !v.fixtureIds.length ||
+        !scalar(v.yawDegrees, -360, 360) ||
+        !scalar(v.spacingScale, 0.01, 100)
+      )
+        return null;
+      return {
+        kind: "transform",
+        requestId: v.requestId,
+        generation: Number(v.generation),
+        version: v.version,
+        fixtureIds: v.fixtureIds,
+        yawDegrees: v.yawDegrees as string,
+        spacingScale: v.spacingScale as string,
+      };
+    }
     if (v.kind === "translation") {
       if (
         Object.keys(v).length !== 6 ||

@@ -35,7 +35,7 @@ env TMPDIR="$PWD/tmp" \
   -abslog="$PWD/logs/previs-unreal-tests.log"
 ```
 
-测试报告 `tmp/previs/protocol-tests/index.json` 的 5 项 `StageMaster.Previs` 必须全部为 `Success`；引擎进程正常退出本身不代表测试通过。无图形测试不能替代原生画面验收。
+测试报告 `tmp/previs/protocol-tests/index.json` 中全部 `StageMaster.Previs` 测试必须为 `Success`；引擎进程正常退出本身不代表测试通过。无图形测试不能替代原生画面验收。
 
 原生验收顺序：打开实际工程，开启三维预演，切换灯光来源，检查房间／舞台／灯位、光束、透视／俯视／全场、拾取／聚焦、工作照明、平面往返以及关闭／重新开启。选择“移动灯位”后可在当前高度水平拖动；一次松手形成一次撤销，拖出视窗取消，属性中的精确坐标与工程同步。修改仍由 Rust 校验和保存；无效属性草稿不会被三维选择或拖动覆盖。安装旋转和空间归属在属性中编辑。
 

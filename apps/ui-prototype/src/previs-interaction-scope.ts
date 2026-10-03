@@ -12,6 +12,10 @@ export class PrevisInteractionScope {
     }
   }
 
+  invalidate() {
+    this.revision++;
+  }
+
   capture() {
     const revision = this.revision;
     return () => this.allowed && revision === this.revision;

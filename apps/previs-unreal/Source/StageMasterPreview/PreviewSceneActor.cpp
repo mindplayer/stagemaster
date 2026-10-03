@@ -127,6 +127,7 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
     {
         Retained.Add(Fixture.Id);
         auto& Visual = Fixtures.FindOrAdd(Fixture.Id);
+        Visual.DraftYaw = 0;
         if (!Visual.Body)
         {
             Visual.Body = Attach<UStaticMeshComponent>(*this);
@@ -235,6 +236,7 @@ void APreviewSceneActor::ApplyFrame(StageMaster::FFrame&& Frame)
                 Visual->Body->SetWorldLocationAndRotation(BodyOrigin,HeadRotation);
                 Visual->Lens->SetWorldLocationAndRotation(BodyOrigin,HeadRotation);
                 Visual->Light->SetWorldRotation(P.Direction.Rotation());
+                RotateVisual(*Visual, Visual->DraftYaw);
             }
             Visual->Light->SetLightColor(Light.Color, false);
             Visual->LensMaterial->SetVectorParameterValue(TEXT("DMX Color"), Light.Color);
@@ -276,28 +278,6 @@ bool FPreviewFixtureVisual::ContainsHitComponent(const UPrimitiveComponent* Comp
 const StageMaster::FFixture* APreviewSceneActor::FindFixture(const FString& Id) const
 {
     return Current.Fixtures.FindByPredicate([&Id](const auto& Fixture) { return Fixture.Id == Id; });
-}
-bool APreviewSceneActor::PreviewPosition(const FString& Id, const FVector& Location)
-{
-    auto Visual = Fixtures.Find(Id);
-    if (!FrameValid || !Visual || Location.ContainsNaN() || Location.GetAbsMax() > 10000000) return false;
-    const auto Fixture = FindFixture(Id);
-    if (!Fixture) return false;
-    const FVector Delta=Location-Visual->Light->GetComponentLocation();
-    for (auto Part : {Visual->Body,Visual->Lens,Visual->Base,Visual->ArmLeft,Visual->ArmRight}) if(Part) Part->AddWorldOffset(Delta);
-    Visual->Light->SetWorldLocation(Location);
-    return true;
-}
-void APreviewSceneActor::RestorePosition(const FString& Id)
-{
-    const auto Fixture = FindFixture(Id);
-    const auto Visual = Fixtures.Find(Id);
-    if (Fixture && Visual)
-    {
-        const FVector Delta=Fixture->Origin-Visual->Light->GetComponentLocation();
-        for (auto Part : {Visual->Body,Visual->Lens,Visual->Base,Visual->ArmLeft,Visual->ArmRight}) if(Part) Part->AddWorldOffset(Delta);
-        Visual->Light->SetWorldLocation(Fixture->Origin);
-    }
 }
 bool APreviewSceneActor::CommitPosition(const FString& Id, const FVector& Location)
 {

@@ -122,3 +122,51 @@ test("普通重渲染保留当前操作，权限撤回立即生效", () => {
   scope.update("stage", false);
   assert.equal(active(), false);
 });
+
+test("整组旋转与缩放沿用队列上下文保护，失效不写工程", async () => {
+  const requests: unknown[] = [];
+  let queued: (() => Promise<void>) | undefined;
+  const actions = previsInteractions({
+    page: "stage",
+    stage: { current: null },
+    selectedIds: ["a", "b"],
+    project: () => null,
+    run: async (work) => {
+      queued = work;
+      return true;
+    },
+    request: async (command) => {
+      requests.push(command);
+    },
+    select: () => {},
+    notice: () => {},
+  });
+  const proposal = {
+    generation: 1,
+    version: "9",
+    fixtureIds: ["a", "b"],
+    yawDegrees: "90",
+    spacingScale: "2",
+  };
+  await actions.onTransform(proposal, () => false);
+  await assert.rejects(queued!, /上下文已变化/);
+  assert.deepEqual(requests, []);
+  await actions.onTransform(
+    { ...proposal, fixtureIds: ["b", "a"] },
+    () => true,
+  );
+  await assert.rejects(queued!, /上下文已变化/);
+  assert.deepEqual(requests, []);
+  await actions.onTransform(proposal, () => true);
+  await queued!();
+  assert.deepEqual(requests, [{ kind: "previsTransform", ...proposal }]);
+});
+
+test("取消手势作废已排队提案，后续操作仍可使用同一选择", () => {
+  const scope = new PrevisInteractionScope();
+  scope.update("stage:a,b", true);
+  const previous = scope.capture();
+  scope.invalidate();
+  assert.equal(previous(), false);
+  assert.equal(scope.capture()(), true);
+});

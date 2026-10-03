@@ -11,6 +11,7 @@ import type {
   PrevisStatus,
   PrevisPlacement,
   PrevisTranslation,
+  PrevisTransform,
 } from "./previs-types";
 import type { GroupView, PresetView, LibraryEdit } from "./library-types";
 import type {
@@ -133,6 +134,7 @@ export type ProjectRequest =
   | { kind: "applyEffectTemplate"; generation: number; token: string }
   | ({ kind: "previsPlacement" } & PrevisPlacement)
   | ({ kind: "previsTranslation" } & PrevisTranslation)
+  | ({ kind: "previsTransform" } & PrevisTransform)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
   riggingPreview?: import("./rigging-preview-types").RiggingPreviewPort;

@@ -27,7 +27,9 @@ public:
     void SelectFromHost(const TArray<FString>& Ids);
     void PlacementResult(const FString& Id, bool Accepted);
     bool IsMoveMode() const { return MoveMode; }
-    bool IsVerticalMove() const { return VerticalMove; }
+    bool IsVerticalMove() const { return Tool == TEXT("vertical"); }
+    FString GetTool() const { return Tool; }
+    void TransformExact(const TArray<FString>& Ids, double Yaw, double Scale);
     void DragTo(const FVector2D& Screen);
     void FinishDrag();
     void CancelDrag();
@@ -41,6 +43,8 @@ public:
 protected:
     virtual void BeginPlay() override;
 private:
+    bool PrepareTransform();
+    bool PreviewTransform(double Yaw, double Scale);
     void UpdateCamera();
     bool PointOnDragPlane(const FVector2D& Screen, FVector& Point) const;
     void ClearPendingPlacement();
@@ -67,7 +71,10 @@ private:
     float Pitch = -35;
     uint64 DragSerial = 0;
     bool MoveMode = false;
-    bool VerticalMove = false;
+    FString Tool = TEXT("horizontal");
+    FVector DragCenter = FVector::ZeroVector;
+    double DragYaw = 0;
+    double DragScale = 1;
     bool Dragging = false;
     bool DragMoved = false;
     FString PendingPlacement;

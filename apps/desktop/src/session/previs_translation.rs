@@ -4,6 +4,29 @@ use crate::previs::protocol::Revision;
 use stagemaster_project::{EditCommand, SpatialVector3, StageEdit};
 
 impl Session {
+    pub(crate) fn transform_from_viewport(
+        &mut self,
+        generation: u32,
+        version: &str,
+        fixture_ids: Vec<String>,
+        yaw_degrees: String,
+        spacing_scale: String,
+    ) -> Result<Revision, String> {
+        self.guard_viewport_edit(generation, version)?;
+        self.edit(
+            generation,
+            EditCommand::Stage {
+                command: StageEdit::TransformPlacements {
+                    fixture_ids,
+                    yaw_degrees,
+                    spacing_scale,
+                },
+            },
+        )?;
+        self.previs_edit_allowed = false;
+        Ok(self.previs_revision())
+    }
+
     pub(crate) fn translate_from_viewport(
         &mut self,
         generation: u32,
@@ -200,5 +223,66 @@ mod tests {
             )
             .unwrap();
         assert_eq!(session.undo.len(), 1);
+    }
+    #[test]
+    fn rotation_and_spacing_share_atomic_history_and_revision_gate() {
+        let (mut session, ids) = setup();
+        let before = session.previs_document().unwrap();
+        let rev = session.previs_revision();
+        session
+            .transform_from_viewport(
+                rev.generation,
+                &rev.content.to_string(),
+                ids.clone(),
+                "90".into(),
+                "2".into(),
+            )
+            .unwrap();
+        let after = session.previs_document().unwrap();
+        assert_eq!(after.view().stage.placements[0].position_meters.x, "0.5");
+        assert_eq!(after.view().stage.placements[0].position_meters.y, "1");
+        assert_eq!(
+            after.view().stage.placements[0].rotation_degrees_xyz.z,
+            "90"
+        );
+        assert_eq!(session.undo.len(), 1);
+        assert!(
+            session
+                .transform_from_viewport(
+                    rev.generation,
+                    &rev.content.to_string(),
+                    ids.clone(),
+                    "90".into(),
+                    "1".into()
+                )
+                .is_err()
+        );
+        session.history(session.generation, false).unwrap();
+        assert_eq!(session.previs_document().unwrap(), before);
+        session.history(session.generation, true).unwrap();
+        assert_eq!(session.previs_document().unwrap(), after);
+        let rev = session.previs_revision();
+        session
+            .transform_from_viewport(
+                rev.generation,
+                &rev.content.to_string(),
+                ids.clone(),
+                "360".into(),
+                "1".into(),
+            )
+            .unwrap();
+        assert_eq!(session.undo.len(), 1);
+        session.previs_source = Source::Playback;
+        assert!(
+            session
+                .transform_from_viewport(
+                    rev.generation,
+                    &rev.content.to_string(),
+                    ids,
+                    "10".into(),
+                    "1".into()
+                )
+                .is_err()
+        );
     }
 }

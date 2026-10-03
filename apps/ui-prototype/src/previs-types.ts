@@ -26,6 +26,10 @@ export interface PrevisInteractions {
   selectedIds: string[];
   onSelect(ids: string[], isActive: () => boolean): Promise<boolean>;
   onPrepareMove(): Promise<boolean>;
+  onTransform(
+    proposal: PrevisTransform,
+    isActive: () => boolean,
+  ): Promise<boolean>;
   onTranslation(
     proposal: PrevisTranslation,
     isActive: () => boolean,
@@ -37,3 +41,12 @@ export interface PrevisTranslation {
   fixtureIds: string[];
   deltaMeters: SpatialVector3;
 }
+
+export interface PrevisTransform {
+  generation: number;
+  version: string;
+  fixtureIds: string[];
+  yawDegrees: string;
+  spacingScale: string;
+}
+export type PrevisTool = "horizontal" | "vertical" | "rotate" | "scale";

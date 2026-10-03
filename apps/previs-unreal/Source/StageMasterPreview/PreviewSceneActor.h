@@ -19,6 +19,7 @@ USTRUCT()
 struct FPreviewFixtureVisual
 {
     GENERATED_BODY()
+    double DraftYaw = 0;
     bool ContainsHitComponent(const UPrimitiveComponent* Component) const;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Base;
@@ -45,6 +46,9 @@ public:
     FBox GetBounds() const;
     FString FixtureAt(const FHitResult& Hit) const;
     const StageMaster::FFixture* FindFixture(const FString& Id) const;
+    FVector PreviewLocation(const FString& Id) const;
+    FVector PreviewDirection(const FString& Id) const;
+    bool PreviewTransform(const FString& Id, const FVector& Location, double Yaw);
     bool PreviewPosition(const FString& Id, const FVector& Location);
     void RestorePosition(const FString& Id);
     bool CommitPosition(const FString& Id, const FVector& Location);
@@ -55,6 +59,7 @@ public:
 protected:
     virtual void BeginPlay() override;
 private:
+    static void RotateVisual(FPreviewFixtureVisual& Visual, double Yaw);
     void ApplyScene(StageMaster::FScene&& Scene);
     void ApplyFrame(StageMaster::FFrame&& Frame);
     void Invalidate(const FString& Reason);

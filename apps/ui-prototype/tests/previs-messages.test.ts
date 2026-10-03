@@ -63,10 +63,17 @@ test("剖视状态兼容旧渲染器，拒绝错误字段类型", () => {
     cutaway: false,
     interactionVersion: 1,
     vertical: false,
+    tool: "horizontal",
   });
   assert.deepEqual(
     readPrevisMessage(JSON.stringify({ ...state, cutaway: true })),
-    { ...state, cutaway: true, interactionVersion: 1, vertical: false },
+    {
+      ...state,
+      cutaway: true,
+      interactionVersion: 1,
+      vertical: false,
+      tool: "horizontal",
+    },
   );
   assert.equal(
     readPrevisMessage(JSON.stringify({ ...state, cutaway: "false" })),
@@ -169,15 +176,47 @@ test("渲染器显式提供移动交互版本和方向，错误类型不开放�
     cutaway: true,
     interactionVersion: 2,
     vertical: true,
+    tool: "vertical",
   };
   assert.deepEqual(readPrevisMessage(JSON.stringify(state)), state);
   for (const patch of [
     { interactionVersion: "2" },
     { interactionVersion: 2.5 },
     { vertical: "true" },
+    { tool: ["rotate"] },
+    { tool: "unknown" },
   ])
     assert.equal(
       readPrevisMessage(JSON.stringify({ ...state, ...patch })),
+      null,
+    );
+});
+
+test("整组变换严格校验版本、角度、比例和目标", () => {
+  const transform = {
+    kind: "transform",
+    requestId: "a".repeat(32),
+    generation: 1,
+    version: "9007199254740993",
+    fixtureIds: ["a", "b"],
+    yawDegrees: "-90.125",
+    spacingScale: "1.25",
+  };
+  assert.deepEqual(readPrevisMessage(JSON.stringify(transform)), transform);
+  for (const patch of [
+    { yawDegrees: "361" },
+    { yawDegrees: "NaN" },
+    { yawDegrees: "1e2" },
+    { spacingScale: "0" },
+    { spacingScale: "-1" },
+    { spacingScale: "100.000001" },
+    { spacingScale: "1.0000001" },
+    { fixtureIds: [] },
+    { fixtureIds: ["a", "a"] },
+    { extra: true },
+  ])
+    assert.equal(
+      readPrevisMessage(JSON.stringify({ ...transform, ...patch })),
       null,
     );
 });

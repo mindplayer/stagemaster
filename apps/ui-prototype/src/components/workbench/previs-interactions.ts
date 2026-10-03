@@ -41,6 +41,19 @@ export function previsInteractions({
       });
     },
     onPrepareMove: () => run(async () => {}),
+    onTransform: (proposal, isActive) =>
+      run(async () => {
+        if (
+          page !== "stage" ||
+          !isActive() ||
+          !sameFixtureSelection(selectedIds, proposal.fixtureIds)
+        )
+          throw new Error("三维选择或编辑上下文已变化，灯位未修改");
+        await request({ kind: "previsTransform", ...proposal });
+        notice(
+          `${proposal.fixtureIds.length} 台灯具已整组变换，可一次撤销恢复`,
+        );
+      }),
     onTranslation: (proposal, isActive) =>
       run(async () => {
         if (

@@ -107,6 +107,12 @@ export type StageEdit =
       fixtureIds: string[];
       deltaMeters: SpatialVector3;
     }
+  | {
+      op: "transformPlacements";
+      fixtureIds: string[];
+      yawDegrees: string;
+      spacingScale: string;
+    }
   | { op: "removePlacement"; fixtureId: string };
 export type StageObject =
   | { kind: "space"; value: StageSpace }

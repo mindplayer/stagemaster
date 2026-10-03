@@ -73,8 +73,9 @@ void APreviewCameraPawn::ViewAction(const FString& Action)
     else if (Action == TEXT("cancel")) CancelDrag();
     else if (Action == TEXT("move")) { CancelDrag(); MoveMode = true; }
     else if (Action == TEXT("inspect")) { CancelDrag(); ClearPendingPlacement(); MoveMode = false; }
-    else if (Action == TEXT("moveHorizontal")) { CancelDrag(); VerticalMove = false; }
-    else if (Action == TEXT("moveVertical")) { CancelDrag(); VerticalMove = true; }
+    else if (Action == TEXT("moveHorizontal")) { CancelDrag(); Tool = TEXT("horizontal"); }
+    else if (Action == TEXT("rotate") || Action == TEXT("scale")) { CancelDrag(); Tool = Action; }
+    else if (Action == TEXT("moveVertical")) { CancelDrag(); Tool = TEXT("vertical"); }
 }
 void APreviewCameraPawn::Navigate(const FVector2D& Delta, bool Pan)
 {

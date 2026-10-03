@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { PixelStreaming } from "@epicgames-ps/lib-pixelstreamingfrontend-ue5.8";
-import type { PrevisInteractions } from "../../previs-types";
+import type { PrevisInteractions, PrevisTool } from "../../previs-types";
 import { readPrevisMessage } from "../../previs-messages";
 import { PrevisInteractionScope } from "../../previs-interaction-scope";
 import { sameFixtureSelection } from "../../previs-selection";
 import { PrevisMoveTools } from "./PrevisMoveTools";
 import { resumeVisibleVideo } from "./resume-visible-video";
+import { observePrevisInputGeometry } from "./previs-input-geometry";
 
 /** Video transport adapter only. The document and playback clock stay in Rust. */
 export function PrevisViewport({
@@ -34,10 +35,11 @@ export function PrevisViewport({
     cutaway: false,
     interactionVersion: 0,
     vertical: false,
+    tool: "horizontal" as PrevisTool,
   });
   const callbacks = useRef(interactions);
   callbacks.current = interactions;
-  const incompatible = viewState.interactionVersion !== 2;
+  const incompatible = viewState.interactionVersion !== 3;
   const tooMany = interactions.selectedIds.length > 256;
   const canPlace =
     allowPlacement && !placementLocked && !tooMany && !incompatible;
@@ -59,6 +61,7 @@ export function PrevisViewport({
       cutaway: false,
       interactionVersion: 0,
       vertical: false,
+      tool: "horizontal" as PrevisTool,
     });
     setMessage(url ? "正在连接三维画面…" : "");
     if (!url || !parent.current) return;
@@ -141,13 +144,13 @@ export function PrevisViewport({
               });
             }
             if (
-              value.kind === "translation" &&
+              (value.kind === "translation" || value.kind === "transform") &&
               !proposals.has(value.requestId)
             ) {
               proposals.add(value.requestId);
               if (proposals.size > 32)
                 proposals.delete(proposals.values().next().value!);
-              const { generation, version, fixtureIds, deltaMeters } = value;
+              const { generation, version, fixtureIds } = value;
               const epoch = connectionEpoch,
                 receivedAt = performance.now();
               const permitted = scope.current.capture();
@@ -162,23 +165,34 @@ export function PrevisViewport({
                 });
                 return;
               }
-              void callbacks.current
-                .onTranslation(
-                  { generation, version, fixtureIds, deltaMeters },
-                  () =>
-                    active &&
-                    permitted() &&
-                    connectionEpoch === epoch &&
-                    performance.now() - receivedAt < 2500,
-                )
-                .then((accepted) => {
-                  if (active)
-                    player.emitUIInteraction({
-                      action: "placementResult",
-                      requestId: value.requestId,
-                      accepted,
-                    });
-                });
+              const valid = () =>
+                active &&
+                permitted() &&
+                connectionEpoch === epoch &&
+                performance.now() - receivedAt < 2500;
+              const proposal = { generation, version, fixtureIds };
+              const pending =
+                value.kind === "translation"
+                  ? callbacks.current.onTranslation(
+                      { ...proposal, deltaMeters: value.deltaMeters },
+                      valid,
+                    )
+                  : callbacks.current.onTransform(
+                      {
+                        ...proposal,
+                        yawDegrees: value.yawDegrees,
+                        spacingScale: value.spacingScale,
+                      },
+                      valid,
+                    );
+              void pending.then((accepted) => {
+                if (active)
+                  player.emitUIInteraction({
+                    action: "placementResult",
+                    requestId: value.requestId,
+                    accepted,
+                  });
+              });
             }
           });
           const status = (text: string) => {
@@ -211,14 +225,21 @@ export function PrevisViewport({
           // Official keyboard input listens to the document. Enable it only while the viewport owns focus.
           const focus = () => config.setFlagEnabled(Flags.KeyboardInput, true);
           const blur = () => {
+            scope.current.invalidate();
             config.setFlagEnabled(Flags.KeyboardInput, false);
             player.emitUIInteraction({ action: "cancel" });
           };
           container.addEventListener("focusin", focus);
           container.addEventListener("focusout", blur);
           const stopResume = resumeVisibleVideo(container, () => player.play());
+          const stopGeometry = observePrevisInputGeometry(container, () => {
+            scope.current.invalidate();
+            player.emitUIInteraction({ action: "cancel" });
+            player.webRtcController.setUpMouseAndFreezeFrame();
+          });
           player.connect();
           cleanup = () => {
+            stopGeometry();
             stopResume();
             container.removeEventListener("focusin", focus);
             container.removeEventListener("focusout", blur);
@@ -252,6 +273,17 @@ export function PrevisViewport({
       });
   }, [playing, selectionKey, contextKey, viewState.interactionVersion]);
   function view(action: string) {
+    if (
+      [
+        "cancel",
+        "inspect",
+        "moveHorizontal",
+        "moveVertical",
+        "rotate",
+        "scale",
+      ].includes(action)
+    )
+      scope.current.invalidate();
     stream.current?.emitUIInteraction({ action });
   }
   return (
@@ -301,13 +333,22 @@ export function PrevisViewport({
               ? "所选灯位有锁定"
               : tooMany
                 ? "所选超过 256 台"
-                : "移动所选灯位"}
+                : "布置所选灯具"}
           </button>
         )}
         {allowPlacement && (
           <PrevisMoveTools
             moving={viewState.move}
-            vertical={viewState.vertical}
+            tool={viewState.tool}
+            contextKey={`${contextKey}:${selectionKey}`}
+            onExact={(yawDegrees, spacingScale) =>
+              stream.current?.emitUIInteraction({
+                action: "transformExact",
+                fixtureIds: callbacks.current.selectedIds,
+                yawDegrees,
+                spacingScale,
+              })
+            }
             disabled={!playing || busy || !canPlace}
             onAction={view}
           />
@@ -363,7 +404,7 @@ export function PrevisViewport({
           {allowPlacement && playing && incompatible
             ? "三维组件版本不兼容，请更新后再移动灯位"
             : viewState.move
-              ? `${viewState.vertical ? "拖动升降" : "水平拖动"}所选灯具 · Esc 取消 · 松手整组应用`
+              ? `${viewState.tool === "rotate" ? "左右拖动整组旋转" : viewState.tool === "scale" ? "左右拖动调整灯间距" : viewState.vertical ? "拖动升降所选灯具" : "水平拖动所选灯具"} · Esc 取消 · 松手整组应用`
               : "Shift 点击增减选择 · 右键或 Option 旋转 · 加 Shift 平移 · 滚动缩放"}
         </span>
       </div>

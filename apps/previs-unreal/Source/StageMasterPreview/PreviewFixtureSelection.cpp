@@ -23,12 +23,10 @@ void APreviewCameraPawn::TickSelection()
     }
     for (const auto& Id : SelectedIds) if (const auto Fixture = Scene->FindFixture(Id))
     {
-        FVector Position = Fixture->Origin;
-        if (Dragging && DragMoved && DragIds.Contains(Id)) Position += DragPosition - DragOrigin;
-        else if (PendingFixtures.Contains(Id)) Position += PendingDelta;
+        const FVector Position = Scene->PreviewLocation(Id);
         const FColor Color = Id == SelectedIds.Last() ? FColor(255, 211, 124) : FColor(124, 168, 255);
         DrawDebugSphere(GetWorld(), Position, 17, 16, Color, false, 0, 1, 1.5f);
-        DrawDebugDirectionalArrow(GetWorld(), Position, Position + Fixture->Direction * 80, 10, Color, false, 0, 1, 1.5f);
+        DrawDebugDirectionalArrow(GetWorld(), Position, Position + Scene->PreviewDirection(Id) * 80, 10, Color, false, 0, 1, 1.5f);
     }
 }
 void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive)
@@ -80,11 +78,19 @@ void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive)
     }
     for (const auto& Selected : SelectedIds) if (!Scene->FindFixture(Selected)) return;
     DragOrigin = Fixture->Origin;
-    DragPlaneNormal = VerticalMove ? GetActorForwardVector().GetSafeNormal2D() : FVector::UpVector;
-    FVector Point;
-    if (!PointOnDragPlane(Screen, Point) || (VerticalMove && FMath::Abs(GetActorForwardVector().Z) > 0.999))
+    DragIds = SelectedIds;
+    DragSerial = Scene->GetSceneSerial();
+    DragScreenOrigin = Screen;
+    if (Tool == TEXT("rotate") || Tool == TEXT("scale"))
     {
-        InteractionMessage = VerticalMove ? TEXT("升降请切换到透视视图") : TEXT("当前镜头过于平直，请俯视后拖动");
+        if (PrepareTransform()) { Dragging = true; DragMoved = false; }
+        return;
+    }
+    DragPlaneNormal = IsVerticalMove() ? GetActorForwardVector().GetSafeNormal2D() : FVector::UpVector;
+    FVector Point;
+    if (!PointOnDragPlane(Screen, Point) || (IsVerticalMove() && FMath::Abs(GetActorForwardVector().Z) > 0.999))
+    {
+        InteractionMessage = IsVerticalMove() ? TEXT("升降请切换到透视视图") : TEXT("当前镜头过于平直，请俯视后拖动");
         return;
     }
     DragIds = SelectedIds;
@@ -106,9 +112,7 @@ FText APreviewCameraPawn::SelectionText() const
 {
     if (Scene && !SelectedIds.IsEmpty()) if (const auto Fixture = Scene->FindFixture(SelectedIds.Last()))
     {
-        FVector Location = Fixture->Origin;
-        if (Dragging && DragMoved) Location += DragPosition - DragOrigin;
-        else if (PendingFixtures.Contains(Fixture->Id)) Location += PendingDelta;
+        const FVector Location = Scene->PreviewLocation(Fixture->Id);
         const auto Position = StageMaster::ToMeters(Location);
         return FText::FromString(FString::Printf(TEXT("已选 %d 台 · %s   位置 %.3f / %.3f / %.3f 米"),
             SelectedIds.Num(), *Fixture->Name, Position.X, Position.Y, Position.Z));

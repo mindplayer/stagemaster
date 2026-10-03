@@ -6,6 +6,7 @@
 #include "PreviewCameraPawn.h"
 #include "PreviewInput.h"
 #include "PreviewSelection.h"
+#include "PreviewTransform.h"
 #include "GameFramework/PlayerController.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -29,8 +30,9 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
         State->SetStringField(TEXT("workLight"), Camera->WorkLightText().ToString());
         State->SetBoolField(TEXT("move"), Camera->IsMoveMode());
         State->SetBoolField(TEXT("cutaway"), Camera->IsCutaway());
-        State->SetNumberField(TEXT("interactionVersion"), 2);
+        State->SetNumberField(TEXT("interactionVersion"), 3);
         State->SetBoolField(TEXT("vertical"), Camera->IsVerticalMove());
+        State->SetStringField(TEXT("tool"), Camera->GetTool());
         FString Json;
         FJsonSerializer::Serialize(State, TJsonWriterFactory<>::Create(&Json));
         // Send periodically as viewers may reconnect while the scene stays unchanged.
@@ -96,6 +98,13 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
             {
                 TArray<FString> Ids;
                 if (StageMaster::ReadFixtureSelection(Object, Ids)) WeakCamera->SelectFromHost(Ids);
+            }
+            else if (Action == TEXT("transformExact") && Object->Values.Num() == 4)
+            {
+                TArray<FString> Ids;
+                double Yaw = 0, Scale = 1;
+                if (StageMaster::ReadFixtureSelection(Object, Ids) && StageMaster::ReadTransform(Object, Yaw, Scale))
+                    WeakCamera->TransformExact(Ids, Yaw, Scale);
             }
             else if (Action == TEXT("placementResult") && Object->Values.Num() == 3)
             {
