@@ -9,7 +9,7 @@ mod performance;
 pub use looping::{LoopRange, LoopRequest, MAX_LOOP_MS, PreparedLoop};
 pub use performance::{
     LoopExitIntent, MAX_PERFORMANCE_CACHE_BYTES, PerformanceAudio, PerformanceControl,
-    PerformanceSnapshot, PerformanceSource,
+    PerformanceSnapshot, PerformanceSource, PlaybackRequest, RenderObservation,
 };
 mod transport;
 mod waveform;

@@ -1,4 +1,7 @@
-use super::position::PublishedPosition;
+use super::{
+    intent::{Intent, PlaybackRequest},
+    position::PublishedPosition,
+};
 use stagemaster_playback::{LoopPlayback, LoopPosition};
 use std::sync::{
     Arc, Mutex, TryLockError,
@@ -10,11 +13,23 @@ pub struct PerformanceSnapshot {
     pub position: LoopPosition,
     /// None until the consumer finishes its first complete sample frame.
     pub consumption: Option<crate::Consumption>,
+    /// Actual complete output frames, including paused silence; never a reader-generated heartbeat.
+    pub render: Option<RenderObservation>,
     /// Accepted intent, not yet applied at an audio frame boundary.
     pub pending_exit: Option<LoopExitIntent>,
     pub control_problem: Option<&'static str>,
     pub problem: Option<&'static str>,
     pub stopped: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RenderObservation {
+    pub instance: u64,
+    pub sequence: u64,
+    pub sample_rate: u32,
+    pub at: std::time::Instant,
+    /// Request applied to this complete software output frame, not DAC presentation confirmation.
+    pub applied: PlaybackRequest,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -42,7 +57,7 @@ impl Failure {
             1 => Some("音乐预读不足，播放已停止"),
             2 => Some("音乐解码失败或样本不足，播放已停止"),
             3 => Some("音乐样本与编排位置不一致，播放已停止"),
-            4 => Some("音乐消费计数或时间超出范围，播放已停止"),
+            4 => Some("音乐帧计数或时间超出范围，播放已停止"),
             5 => Some("音乐播放已取消"),
             _ => Some("音乐运行控制异常，播放已停止"),
         }
@@ -56,6 +71,7 @@ pub(super) struct Shared {
     failure: AtomicU8,
     pub stopped: AtomicBool,
     pub cancelled: Arc<AtomicBool>,
+    pub intent: Intent,
 }
 
 impl Shared {
@@ -67,11 +83,14 @@ impl Shared {
             failure: AtomicU8::new(0),
             stopped: AtomicBool::new(false),
             cancelled: Arc::new(AtomicBool::new(false)),
+            intent: Intent::new(),
         }))
     }
 
-    pub fn consume(&self, position: LoopPosition) -> Result<(), Failure> {
-        self.position.consume(position).map_err(|_| Failure::Cursor)
+    pub fn render(&self, position: LoopPosition, request: PlaybackRequest) -> Result<(), Failure> {
+        self.position
+            .frame(position, request)
+            .map_err(|_| Failure::Cursor)
     }
 
     pub fn publish(&self, position: LoopPosition) {
@@ -114,6 +133,23 @@ pub struct PerformanceControl {
 }
 
 impl PerformanceControl {
+    /// The requested state may not have reached the audio consumer; inspect snapshot.render for acknowledgement.
+    #[must_use]
+    pub fn requested_playback(&self) -> PlaybackRequest {
+        self.shared.intent.requested()
+    }
+    /// Applied at the next whole audio-frame boundary. Repeated identical intent is idempotent.
+    /// # Errors
+    /// Reject cancelled/stopped/failed sources or exhausted request generations.
+    pub fn request_playback(&self, playing: bool) -> Result<PlaybackRequest, String> {
+        if self.shared.stopped.load(Ordering::Acquire)
+            || self.shared.cancelled.load(Ordering::Acquire)
+            || self.shared.failure.load(Ordering::Acquire) != 0
+        {
+            return Err("当前音源已结束或不可用，请重新准备播放".into());
+        }
+        self.shared.intent.request(playing).map_err(str::to_owned)
+    }
     #[must_use]
     pub fn instance(&self) -> u64 {
         self.shared.position.instance()
@@ -150,10 +186,11 @@ impl PerformanceControl {
     }
 
     fn observe(&self, pending_exit: Option<LoopExitIntent>) -> Result<PerformanceSnapshot, String> {
-        let (position, consumption) = self.shared.position.observe()?;
+        let observed = self.shared.position.observe()?;
         Ok(PerformanceSnapshot {
-            position,
-            consumption,
+            position: observed.position,
+            consumption: observed.consumption,
+            render: observed.render,
             pending_exit,
             control_problem: self
                 .shared

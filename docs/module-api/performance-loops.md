@@ -40,7 +40,7 @@
 - `cached_bytes()` 返回全部循环 PCM 载荷，`sample_rate()`／`duration_ms()` 提供时基和原时间线长度。
 - `.source(positionMs,cancel)` 在后台预热普通段落后返回 `(PerformanceSource,PerformanceControl)`，不消费播放帧。每次创建从所选原位置开始局部第 1 遍，不继承另一音源的退出意图；此准备应在工程锁外执行。
 - `PerformanceSource` 实现 rodio 的 `Source`；只有完整声道帧消费后才推进 LoopPlayback。重复段取固定缓存，普通段取有界非阻塞队列。准备读到哪里不影响运行游标。暂停必须保留同一个源；销毁重建会重置圈数。`check_ready()` 在宿主替换旧源前再次拒绝已知后台故障或取消，不代替工程版本检查，也不承诺后续 I/O 永不出错。
-- `PerformanceControl::snapshot()` 返回源帧位置、当前区段／遍数／已应用退出、待应用退出、控制拒绝、播放故障和音源释放状态。原子发布避免混合两次更新；短暂读冲突返回可重试错误。这里不判断声卡是否暂停，宿主须合并 Player 状态，不能将队列非空当作正在播放。
+- `PerformanceControl::snapshot()` 返回源帧位置、当前区段／遍数／已应用退出、待应用退出、控制拒绝、播放故障和音源释放状态。原子发布避免混合两次更新；短暂读冲突返回可重试错误。按 [ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md)，另提供完整消费与回调健康观测；主机请求、回调确认和声卡呈现分别表达，不能将队列非空当作正在播放。
 - `request_exit(index,pass,desired)` 校验并绑定当前源的区段和播放遍数，同值幂等，尚未应用时以最后意图为准；实际帧边界再次核验，迟到操作报告拒绝，既不影响下一段，也不暗中退出同段的下一圈。`pending_exit` 为 `LoopExitIntent {region,pass,requested}`。`cancel()` 通知源在完整帧边界结束，丢弃源则直接释放消费端和解码线程。宿主仍须校验播放实例身份。
 
 预算：最多 64 MiB 重复 PCM，播放次数为 1 的区段不缓存，持续重复也只存一份；预读 128 块，每块最多 1024 帧、最多两声道，样本载荷约 1 MiB，另有固定块和编解码器空间。全局最多两条流式解码线程；新旧缓存替换期可同时存在，64 MiB 不代表应用总内存。文件沿用 512 MiB 上限；准备最多两分钟，每 1024 帧检查取消。精确定位目前从源头数帧，长文件定位可能需要准备时间。
@@ -51,7 +51,7 @@
 
 `Transport::load_ticket()` 在文件选择／摘要验证之前捕获音频所有者和修订；`.request(file,inMs,outMs,scheduleMs)` 绑定媒体，`.prepare(cancel)` 在工程锁外建立 `PreparedAudioLoad`。`apply_load()` 再检查所有者／修订和已知源故障，成功才替换旧音源。桌面 `LoadIntent` 同时固定真实工程轨道，不能把已准备的音源绑定到另一个轨道。无启用区段继续使用原线性路径；有启用区段使用本契约的多段音源，取消了原中间版本的拒绝保护。
 
-`play_preparation()`／`seek_preparation(positionMs,playing)` 在需要新音源时返回不可变请求，`.prepare(cancel)` 复用 PCM 缓存并预热；`apply_seek()` 验证后原子替换。现存 Player 暂停／恢复保持同一源、遍数和退出意图；显式定位创建新实例并从第 1 遍开始。停止释放源并归零，保留 PCM；再次播放生成新实例。自然结束停在音乐终点，再播放从 0 开始。设备打开失败或准备失败保留原可用状态。
+`play_preparation()`／`seek_preparation(positionMs,playing)` 在需要新音源时返回不可变请求，`.prepare(cancel)` 复用 PCM 缓存并预热；`apply_seek()` 验证后原子替换。正式源在完整帧边界应用暂停／恢复，Player 保持拉取暂停零样本以报告真实回调健康，同一源、遍数和退出意图保持；显式定位创建新实例并从第 1 遍开始。停止释放源并归零，保留 PCM；再次播放生成新实例。自然结束停在音乐终点，再播放从 0 开始。设备打开失败或准备失败保留原可用状态。
 
 音频返回值新增可空 `performance`：`instance`、`region`、`pass`、`exitRequested`、`pendingExit`、`controlProblem`、`ended`、`snapshotPending`、`boundaryMs`、`cachedBytes`。实例和 u64 遍数作为十进制字符串传给界面；区段索引对应启用区段。读取游标冲突时保留上一份一致快照并标记 `snapshotPending`，不将临时冲突报告为音源故障。界面视觉插值最多到 `boundaryMs`，不能自行推算回环或圈数，读冲突时停止插值和退出操作。
 

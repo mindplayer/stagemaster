@@ -71,20 +71,30 @@ fn decoder_failure_after_warmup_never_advances_the_consumer_with_silence() {
     let _guard = serial();
     // One more block than the entire prefetch queue. The producer cannot discover
     // the short file until the prepared source actually consumes its first block.
-    let (_dir, path) = audio_file(8_000, 1, 129 * 1_024);
-    let audio = PerformanceAudio::prepare(path, 0, &schedule(20_000, &[]), &AtomicBool::new(false))
-        .unwrap();
-    let (mut source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
-    source.check_ready().unwrap();
-    let consumed = source.by_ref().take(1_024).count();
-    await_workers(0);
-    assert!(source.check_ready().is_err());
-    assert_eq!(source.next(), None);
-    let status = control.snapshot().unwrap();
-    assert!(status.problem.unwrap().contains("解码"));
-    assert_eq!(status.position.tick, consumed as u64);
-    assert!(!status.position.ended);
-    assert_eq!(source.next(), None);
+    for playing in [true, false] {
+        let (_dir, path) = audio_file(8_000, 1, 129 * 1_024);
+        let audio =
+            PerformanceAudio::prepare(path, 0, &schedule(20_000, &[]), &AtomicBool::new(false))
+                .unwrap();
+        let (mut source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
+        source.check_ready().unwrap();
+        // Receiving the first block opens one queue slot. Stop after its first frame
+        // so the consumer cannot race the worker's failure before issuing pause.
+        let consumed = source.by_ref().take(1).count();
+        assert_eq!(consumed, 1);
+        control.request_playback(playing).unwrap();
+        let before = control.snapshot().unwrap();
+        await_workers(0);
+        assert!(source.check_ready().is_err());
+        assert_eq!(source.next(), None);
+        let status = control.snapshot().unwrap();
+        assert!(status.problem.unwrap().contains("解码"));
+        assert_eq!(status.position.tick, consumed as u64);
+        assert!(!status.position.ended);
+        assert_eq!(status.consumption, before.consumption);
+        assert_eq!(status.render, before.render);
+        assert_eq!(source.next(), None);
+    }
 }
 
 #[test]

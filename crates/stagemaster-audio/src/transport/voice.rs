@@ -47,6 +47,7 @@ pub(super) struct Voice {
 
 impl Voice {
     pub fn new(source: PerformanceSource, control: PerformanceControl) -> Result<Self, String> {
+        control.request_playback(false)?;
         let snapshot = control.snapshot()?;
         let instance = control.instance().to_string();
         Ok(Self {
@@ -95,6 +96,7 @@ impl Performance {
                 PerformanceSnapshot {
                     position: self.initial,
                     consumption: None,
+                    render: None,
                     pending_exit: None,
                     control_problem: None,
                     problem: None,
@@ -149,6 +151,7 @@ mod tests {
         .unwrap();
         let (source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
         let mut voice = Voice::new(source, control).unwrap();
+        voice.control.request_playback(true).unwrap();
         assert_eq!(voice.instance, voice.control.instance().to_string());
         let source = voice.source.as_mut().unwrap();
         source.next().unwrap();
@@ -156,12 +159,14 @@ mod tests {
         let (first, pending) = voice.snapshot();
         assert!(!pending);
         assert!(first.consumption.is_some());
+        assert!(first.render.is_some());
         voice.control.block_snapshot_for_test();
         for _ in 0..10 {
             let (cached, pending) = voice.snapshot();
             assert!(pending);
             assert_eq!(cached.position, first.position);
             assert_eq!(cached.consumption, first.consumption);
+            assert_eq!(cached.render, first.render);
         }
     }
 }

@@ -8,6 +8,7 @@ use std::{
 
 mod consumption;
 mod lifecycle;
+mod pause;
 
 static TEST_LOCK: Mutex<()> = Mutex::new(());
 

@@ -30,7 +30,7 @@ impl Transport {
         let snapshot = voice.control.try_snapshot()?;
         Ok(Some(PerformanceObservation {
             instance: voice.control.instance(),
-            requested_playing: self.player.as_ref().is_some_and(|p| !p.is_paused()),
+            requested_playing: voice.control.requested_playback().playing,
             snapshot,
         }))
     }

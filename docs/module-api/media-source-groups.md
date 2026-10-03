@@ -1,6 +1,6 @@
 # 独立时钟与媒体跟随组
 
-状态：TIME-001 的软件运行增量；依据 [ADR-111](../development/decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../development/decisions/PRODUCT-ADR-112-media-following-source-groups.md)／[ADR-113](../development/decisions/PRODUCT-ADR-113-audio-consumption-observation.md)。正式音频已有原生消费观测，[后台媒体准备／观测入口](media-host-ingress.md)已接原宿主线程。独立进程应用层／桌面完整音频和真实设备同步尚未接通，不是已发布的远程协议。
+状态：TIME-001 的软件运行增量；依据 [ADR-111](../development/decisions/PRODUCT-ADR-111-independent-clock-mapping.md)／[ADR-112](../development/decisions/PRODUCT-ADR-112-media-following-source-groups.md)／[ADR-113](../development/decisions/PRODUCT-ADR-113-audio-consumption-observation.md)。正式音频已有原生消费与回调健康观测（[ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md)），[后台媒体准备／观测入口](media-host-ingress.md)已接原宿主线程。独立进程应用层／桌面完整音频和真实设备同步尚未接通，不是已发布的远程协议。
 
 ## 状态归属与调用
 
@@ -47,3 +47,13 @@ TIME-001 接续已将准备与观测接入原独立宿主的固定容量槽、�
 `requested_playing` 仅表示主机意图；不代表音频回调已经暂停，也不确认音箱实际发声。控制元数据、重复读取、结束／取消及缓存回退不会刷新消费时间；界面忙时保留原快照并标记待更新。适配器须分别处理播放意图、实际消费与错误状态，不能将暂停时不变的消费计数伪造成新样本。
 
 原生 Rodio Player／虚拟 Mixer 的测试验证真实消费、暂停／继续、停止／重建与忙读取；没有打开物理音频设备。消费发布不新增阻塞锁、分配或 I/O；回调开销和硬件呈现延迟尚未量化。异步准备期间的追赶和有界宿主入口已补；循环回跳、提供方重启重绑定及实际产品音频协调仍是接续工作。
+
+## 暂停确认与回调健康
+
+`PerformanceControl::request_playback(bool)` 返回 `PlaybackRequest { revision, playing }`，代次不回绕，重复相同意图保持代次。原生音源从下一个完整帧应用最新请求；左右声道之间的新请求不会改变已开始的这一帧。请求不产生观测，`requested_playback()` 也不代表已经执行。
+
+`PerformanceSnapshot::render` 首个完整帧前为 `None`，随后包含音源实例、递增序号、采样率、原回调时刻及该帧实际应用的请求。播放帧同时更新 `consumption`；暂停帧输出零样本，只更新 `render`，素材位置／循环遍数、消费计数和消费时间保持。没有拉取的已准备音源不能宣称健康；请求、读取、循环元数据、结束和缓存不会刷新时间。取消／解码故障在帧边界停止后不再产生健康观测，正在输出的半帧先完整结束。
+
+正式 Transport 的 Player 持续拉取，音源自身执行帧边界暂停；普通试听仍保持原路径。界面 `Position.playing` 与原生 `requested_playing` 表示主机意图；媒体适配须检查快照中的错误、停止和结束状态，再使用 `render.sequence`／`render.at`／`render.applied.playing` 与同一快照素材位置。不能拿暂停时的旧消费时间当健康，也不能为缓存重新盖章。结束须显式协调组结束，不把最后一个播放帧外推为仍在演出。
+
+回调确认只证明原软件音源已经被拉取，不证明声卡／蓝牙音箱的实际呈现或静音时刻；重采样、设备缓冲和传播延迟仍另测。真实后台测试已覆盖暂停超过组失联期限仍保持暂停、继续首个消费差值、停止拉取后缓存拒绝与失联、自主灯光保持运行。独立进程和桌面产品音频所有权尚待接通。

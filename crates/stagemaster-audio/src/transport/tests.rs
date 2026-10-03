@@ -59,7 +59,7 @@ fn real_player_pause_retains_pass_exit_and_source_then_stop_creates_a_new_run() 
     consume(&mut mixer, 2);
     assert!(transport.position().performance.unwrap().exit_requested);
     transport.pause();
-    consume(&mut mixer, 10); // Allow rodio's periodic pause flag to be consumed.
+    consume(&mut mixer, 10); // Drain any already buffered Mixer frame and confirm source pause.
     let frozen = transport.position();
     assert!(!frozen.playing);
     consume(&mut mixer, 100);

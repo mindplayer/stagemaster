@@ -1,6 +1,7 @@
 use super::{
     control::{Failure, PerformanceControl, Shared},
     decode,
+    intent::PlaybackRequest,
     prepare::Data,
     stream::Feed,
 };
@@ -23,6 +24,7 @@ pub struct PerformanceSource {
     frame: [f32; 2],
     channel: usize,
     failed: bool,
+    applied: PlaybackRequest,
 }
 
 impl PerformanceSource {
@@ -42,6 +44,7 @@ impl PerformanceSource {
         let control = PerformanceControl {
             shared: shared.clone(),
         };
+        let applied = shared.intent.requested();
         let source = Self {
             data,
             playback,
@@ -50,6 +53,7 @@ impl PerformanceSource {
             frame: [0.0; 2],
             channel: 0,
             failed: false,
+            applied,
         };
         source.check_ready()?;
         Ok((source, control))
@@ -72,7 +76,14 @@ impl PerformanceSource {
         if self.shared.cancelled.load(Ordering::Acquire) {
             return Err(Failure::Cancelled);
         }
+        if self.feed.has_failed() {
+            return Err(Failure::Decode);
+        }
         self.shared.apply(&mut self.playback)?;
+        self.applied = self.shared.intent.requested();
+        if !self.applied.playing {
+            return Ok([0.0; 2]);
+        }
         let position = self.playback.position();
         let channels = usize::from(self.data.format.channels.get());
         if let Some(index) = position.region
@@ -116,9 +127,14 @@ impl Iterator for PerformanceSource {
         self.channel += 1;
         if self.channel == usize::from(self.data.format.channels.get()) {
             self.channel = 0;
-            match self.playback.advance(1) {
+            let position = if self.applied.playing {
+                self.playback.advance(1)
+            } else {
+                Ok(self.playback.position())
+            };
+            match position {
                 Ok(position) => {
-                    if let Err(failure) = self.shared.consume(position) {
+                    if let Err(failure) = self.shared.render(position, self.applied) {
                         self.fail(failure);
                     }
                 }

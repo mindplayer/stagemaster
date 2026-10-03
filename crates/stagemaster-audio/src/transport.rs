@@ -82,8 +82,14 @@ impl Transport {
             problem = problem.take().or(source_problem);
             status
         });
+        let requested = self
+            .performance
+            .as_ref()
+            .and_then(|p| p.voice.as_ref())
+            .is_none_or(|v| v.control.requested_playback().playing);
         Position {
-            playing: problem.is_none()
+            playing: requested
+                && problem.is_none()
                 && self
                     .player
                     .as_ref()
@@ -112,8 +118,12 @@ impl Transport {
     pub fn pause(&mut self) {
         self.revision = self.revision.wrapping_add(1);
         if self.performance.is_some() {
-            if let Some(player) = &self.player {
-                player.pause();
+            if let Some(voice) = self.performance.as_ref().and_then(|p| p.voice.as_ref())
+                && voice.control.request_playback(false).is_err()
+            {
+                // If pause cannot be admitted, do not leave the source audibly running.
+                voice.control.cancel();
+                self.player = None;
             }
             return;
         }

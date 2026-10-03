@@ -137,6 +137,7 @@ impl Transport {
                 .as_ref()
                 .ok_or("演出音源未准备")?
                 .check_ready()?;
+            prepared.voice.control.request_playback(true)?;
             player.append(prepared.voice.source.take().ok_or("演出音源未准备")?);
             Some(player)
         } else {
@@ -180,6 +181,12 @@ impl Transport {
             return Err("演出播放须先完成音源准备".into());
         }
         if let Some(player) = &self.player {
+            self.performance
+                .as_ref()
+                .and_then(|p| p.voice.as_ref())
+                .ok_or("演出音源未准备")?
+                .control
+                .request_playback(true)?;
             player.play();
         } else {
             let player = self.new_player()?;
@@ -193,6 +200,7 @@ impl Transport {
                 .as_ref()
                 .ok_or("演出音源未准备")?
                 .check_ready()?;
+            voice.control.request_playback(true)?;
             player.append(voice.source.take().ok_or("演出音源未准备")?);
             self.player = Some(player);
             self.player.as_ref().ok_or("音频设备未就绪")?.play();
