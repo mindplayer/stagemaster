@@ -135,6 +135,7 @@ export type ProjectRequest =
   | ({ kind: "previsTranslation" } & PrevisTranslation)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
+  riggingPreview?: import("./rigging-preview-types").RiggingPreviewPort;
   deviceRuntime?: import("./device-runtime-types").DeviceRunPort;
   execution: import("./execution-types").ExecutionPort;
   kind: "desktop" | "browser";

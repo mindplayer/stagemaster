@@ -14,6 +14,8 @@
   "include": [
     "src",
     "tests/arrangement-session.test.ts",
+    "tests/rigging-draft.test.ts",
+    "tests/rigging-workspace-harness.tsx",
     "tests/arrangement-workspace-harness.tsx",
     "tests/device-runtime-harness.tsx",
     "tests/device-runtime.test.ts",

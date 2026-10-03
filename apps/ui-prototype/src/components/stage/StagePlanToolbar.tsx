@@ -57,6 +57,7 @@ export function StagePlanToolbar({
           <button
             key={key}
             aria-pressed={tool === key}
+            disabled={disabled && (key === "select" || key === "move")}
             onClick={() => onTool(key)}
           >
             {label}

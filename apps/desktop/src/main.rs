@@ -15,6 +15,7 @@ mod profile_file;
 mod recent;
 mod recovery;
 mod report_export;
+mod rigging_preview;
 mod sequence_report;
 mod session;
 mod startup;
@@ -207,6 +208,7 @@ fn main() {
         .manage(check::Service::default())
         .manage(package::Service::default())
         .manage(report_export::Service::default())
+        .manage(rigging_preview::Service::default())
         .manage(profile_file::Service::default())
         .manage(effect_template::Service::default())
         .manage(devices)
@@ -263,6 +265,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             project_request,
+            rigging_preview::rigging_preview,
             execution::execution_request,
             audio::audio_request,
             audio::prepare::audio_prepare,

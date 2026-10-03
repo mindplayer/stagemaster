@@ -1,0 +1,20 @@
+.rigging-fields {
+  min-width: 0;
+  padding: 0;
+}
+.rigging-fields label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  font-size: 12px;
+}
+.rigging-fields input,
+.rigging-fields select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.rigging-fields .rig-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

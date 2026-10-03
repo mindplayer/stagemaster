@@ -1,5 +1,7 @@
 # 当前执行计划
 
+[UX-049](tasks/UX-049-docked-rigging.md) 已完成侧栏挂接／换挂与 Rust 权威草稿预览，修复提交后旧工程来源竞态，验证多灯历史／保存重开／取消／异步与窄布局。完整 AUDIT-001 继续；场地混合对象、三维组变换等仍按审查表推进，不以本增量替代整个目标。
+
 [MEMORY-003](tasks/MEMORY-003-large-package-maintenance.md)顺序擦除／启动就绪与大包验收增量完成：原 2 秒期限下，1,237,927 字节包最长维护操作 1.382 秒；修复恢复前广播竞态与步内时钟验收假设。最终 600 秒、64 节目、断线约 40 Hz、停止后 327.175 秒及原 28 节目恢复通过。结合 MEMORY-002，ESP32-S3 受限文件解析／自主状态机定位已获得决策所需证据，无需降为纯网桥。全输入最坏组合、完整栈／长期与差分线路继续作为设备交付门槛，不据此反复重开已完成的框架审查；完整持续目标 active。
 
 更新：2026-10-04。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。

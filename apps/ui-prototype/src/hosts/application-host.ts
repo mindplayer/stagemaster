@@ -4,6 +4,8 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      riggingPreview: (generation, command) =>
+        invoke("rigging_preview", { request: { generation, command } }),
       deviceRuntime: (request) => invoke("device_runtime_request", { request }),
       execution: (request) => invoke("execution_request", { request }),
       importEffectTemplate: (generation, sceneId, fixtureIds) =>

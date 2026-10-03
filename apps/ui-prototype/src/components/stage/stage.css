@@ -751,15 +751,6 @@
   font-size: 12px;
   line-height: 2;
 }
-.wb-library-dialog:has(.placement-editor) {
-  width: min(980px, calc(100vw - 48px));
-  max-width: calc(100vw - 32px);
-}
-.placement-editor {
-  display: grid;
-  grid-template-columns: minmax(240px, 0.85fr) minmax(330px, 1.45fr);
-  gap: 22px;
-}
 .placement-picker,
 .placement-settings {
   display: flex;
@@ -875,9 +866,6 @@
   font-size: 12px;
 }
 @media (max-width: 900px) {
-  .placement-editor {
-    grid-template-columns: 1fr;
-  }
   .placement-picker {
     border-right: 0;
     padding-right: 0;

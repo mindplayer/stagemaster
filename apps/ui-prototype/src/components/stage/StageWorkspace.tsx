@@ -1,10 +1,12 @@
+import { useStageVisibility } from "./useStageVisibility";
+import { StageLayoutStatus } from "./StageLayoutStatus";
+import type { RiggingPreviewPort } from "../../rigging-preview-types";
 import {
   lockTargets,
   placementTargets,
   stageTarget,
   movementBlocker,
 } from "../../stage-locks";
-import { StageMultiInspector } from "./StageMultiInspector";
 import { DockPane } from "../layout/DockPane";
 import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
@@ -23,18 +25,18 @@ import type {
   EditOperation,
   ProjectView,
 } from "../../application-host";
-import type { StageEdit, StageObject, StageSelection } from "../../stage-types";
+import type {
+  FixturePlacement,
+  StageEdit,
+  StageObject,
+  StageSelection,
+} from "../../stage-types";
 import { selectedStage, stageCommand } from "../../stage-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
 import { StageLibraryPanel } from "./StageLibraryPanel";
-import {
-  ALL_VISIBLE,
-  visibleStage,
-  revealStageTarget,
-  type PlanVisibility,
-} from "./stage-display";
-import { StageInspector } from "./StageInspector";
+import { visibleStage, type PlanVisibility } from "./stage-display";
+import { StageSelectionInspector } from "./StageSelectionInspector";
 import { ArrangementInspector } from "./ArrangementInspector";
 import { useStageArrangement } from "./useStageArrangement";
 import { arrangementStage } from "./arrangement-session";
@@ -55,6 +57,8 @@ export const StageWorkspace = forwardRef<
     canvasVisible?: boolean;
     viewControls?: ReactNode;
     onArrangementOpen?(): void;
+    generation?: number;
+    previewRigging?: RiggingPreviewPort;
     busy: boolean;
     error: string;
     beforeChange(): Promise<boolean>;
@@ -69,6 +73,8 @@ export const StageWorkspace = forwardRef<
     canvasVisible = true,
     viewControls,
     onArrangementOpen,
+    generation = 0,
+    previewRigging,
     busy,
     error,
     beforeChange,
@@ -78,8 +84,8 @@ export const StageWorkspace = forwardRef<
   ref,
 ) {
   const [selection, setSelection] = useState<StageSelection | null>(null);
-  const [planVisibility, setPlanVisibility] =
-    useState<PlanVisibility>(ALL_VISIBLE);
+  const { planVisibility, setPlanVisibility, revealInPlan, revealPlacements } =
+    useStageVisibility(project);
   const projectRef = useRef(project);
   projectRef.current = project;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -108,15 +114,7 @@ export const StageWorkspace = forwardRef<
   const arrangement = useStageArrangement({
     project,
     onPending,
-    onAccepted(ids, placements) {
-      revealPlacements(ids, {
-        ...projectRef.current,
-        stage: arrangementStage(projectRef.current.stage, placements),
-      });
-      setSelectedIds(ids);
-      setSelection({ kind: "placement", id: ids.at(-1)! });
-      setQuery("");
-    },
+    onAccepted: acceptPlacements,
   });
   const object = draft ?? selectedStage(project.stage, selection);
   const selectedSpace =
@@ -159,6 +157,13 @@ export const StageWorkspace = forwardRef<
     edit,
     busy,
     error,
+    generation,
+    preview: previewRigging,
+    onPending,
+    onOpen() {
+      onArrangementOpen?.();
+    },
+    onAccepted: acceptPlacements,
     onResult(ids, next) {
       revealPlacements(ids, next);
       setSelectedIds(ids);
@@ -168,6 +173,19 @@ export const StageWorkspace = forwardRef<
       cancel();
     },
   });
+  const rigTarget = rigging.draft.session?.rig;
+  useEffect(() => {
+    if (rigTarget) revealInPlan({ kind: "construction", id: rigTarget });
+  }, [rigTarget]);
+  function acceptPlacements(ids: string[], placements: FixturePlacement[]) {
+    revealPlacements(ids, {
+      ...projectRef.current,
+      stage: arrangementStage(projectRef.current.stage, placements),
+    });
+    setSelectedIds(ids);
+    setSelection({ kind: "placement", id: ids.at(-1)! });
+    setQuery("");
+  }
   function cancel() {
     form.current
       ?.querySelectorAll<
@@ -175,6 +193,7 @@ export const StageWorkspace = forwardRef<
       >("input,select,textarea")
       .forEach((field) => field.setCustomValidity(""));
     arrangement.cancel();
+    rigging.draft.cancel();
     draftRef.current = null;
     setDraft(null);
     setLocalError("");
@@ -199,21 +218,10 @@ export const StageWorkspace = forwardRef<
     setPlanVisibility(next);
     cancel();
   }
-  function revealInPlan(target: StageSelection, source = projectRef.current) {
-    setPlanVisibility((old) => revealStageTarget(source.stage, old, target));
-  }
-  function revealPlacements(ids: string[], source = projectRef.current) {
-    setPlanVisibility((old) =>
-      ids.reduce(
-        (value, id) =>
-          revealStageTarget(source.stage, value, { kind: "placement", id }),
-        old,
-      ),
-    );
-  }
   function collect(): EditOperation[] {
     if (moving.current) throw new Error("请先完成拖动，或按 Esc 取消");
     if (arrangement.session) return arrangement.collect();
+    if (rigging.draft.session) return rigging.draft.collect();
     if (!draftRef.current) return [];
     try {
       validateEditorForm(form.current);
@@ -227,6 +235,7 @@ export const StageWorkspace = forwardRef<
     collect,
     accept() {
       arrangement.accept();
+      rigging.draft.accept();
       cancel();
     },
     async selectFixtures(ids, isActive) {
@@ -355,28 +364,45 @@ export const StageWorkspace = forwardRef<
         <div className="stage-center">
           {viewControls}
           {arrangement.session && (
-            <div
-              className="stage-arrangement-status"
-              role="status"
-              data-error={!!arrangement.problem}
-            >
-              {arrangement.problem
-                ? "排列输入有误，平面显示已应用位置"
-                : `排列草稿 · ${arrangement.session.ids.length} 台 · 尚未应用`}
-            </div>
+            <StageLayoutStatus
+              kind="排列"
+              count={arrangement.session.ids.length}
+              problem={arrangement.problem}
+            />
+          )}
+          {rigging.draft.session && (
+            <StageLayoutStatus
+              kind="挂接"
+              count={rigging.draft.session.ids.length}
+              problem={rigging.draft.problem}
+              computing={rigging.draft.computing}
+            />
           )}
           <div className="stage-plan-container">
             <StageCanvas
               project={project}
               visibility={planVisibility}
               selection={selection}
-              selectedIds={arrangement.session?.ids ?? liveIds}
-              placementPreview={arrangement.preview}
-              placementEditing={!!arrangement.session}
+              selectedIds={
+                rigging.draft.session?.ids ??
+                arrangement.session?.ids ??
+                liveIds
+              }
+              placementPreview={
+                rigging.draft.projection?.placements ?? arrangement.preview
+              }
+              draftConstructionId={rigging.draft.session?.rig}
+              placementEditing={
+                !!arrangement.session || !!rigging.draft.session
+              }
               preview={draft}
               focusRequest={focusRequest}
               busy={busy}
-              pending={draft !== null || !!arrangement.session}
+              pending={
+                draft !== null ||
+                !!arrangement.session ||
+                !!rigging.draft.session
+              }
               onSelect={(target, additive, preserve) =>
                 void choose(target, additive, preserve)
               }
@@ -397,7 +423,10 @@ export const StageWorkspace = forwardRef<
               onGesture={(value) => {
                 moving.current = value;
                 onPending(
-                  value || draftRef.current !== null || arrangement.pending(),
+                  value ||
+                    draftRef.current !== null ||
+                    arrangement.pending() ||
+                    rigging.draft.pending(),
                 );
               }}
             />
@@ -405,64 +434,55 @@ export const StageWorkspace = forwardRef<
         </div>
       </DockPane>
       <DockPane region="inspector" visible={visible}>
-        {arrangement.session ? (
-          <ArrangementInspector
-            project={project}
-            arrangement={arrangement}
-            busy={busy}
-            error={error}
-            onApply={() => {
-              arrangement.prepareApply();
-              void beforeChange();
-            }}
-          />
-        ) : selection?.kind === "placement" && liveIds.length > 1 ? (
-          <StageMultiInspector
-            project={project}
-            ids={liveIds}
-            busy={busy}
-            error={localError || error}
-            onArrange={() => void arrange(true)}
-            onHang={() => void rigging.hang()}
-            onDetach={() => void rigging.detach(liveIds)}
-            onClear={() => void choosePlacements([])}
-            onLock={(locked) => void setLocked(locked)}
-          />
-        ) : (
-          <StageInspector
-            object={object}
-            project={project}
-            pending={draft !== null}
-            busy={busy}
-            form={form}
-            error={localError || error}
-            onChange={(value) => {
-              draftRef.current = value;
-              setDraft(value);
-              onPending(true);
-              setLocalError("");
-            }}
-            onApply={() => {
-              void beforeChange();
-            }}
-            onLock={(locked) => void setLocked(locked)}
-            onCancel={cancel}
-            onDuplicate={() => void objects.duplicate()}
-            onDelete={() => void objects.requestDelete()}
-            onEnclose={() => void objects.enclose()}
-            onHang={() => void rigging.hang()}
-            onSelectMounted={(id) =>
-              void choosePlacements(
-                project.stage.attachments
-                  .filter((a) => a.constructionId === id)
-                  .map((a) => a.fixtureId),
-              )
-            }
-            onDetach={(ids) => void rigging.detach(ids)}
-          />
-        )}
+        {rigging.inspector ||
+          (arrangement.session ? (
+            <ArrangementInspector
+              project={project}
+              arrangement={arrangement}
+              busy={busy}
+              error={error}
+              onApply={() => {
+                arrangement.prepareApply();
+                void beforeChange();
+              }}
+            />
+          ) : (
+            <StageSelectionInspector
+              ids={liveIds}
+              onArrange={() => void arrange(true)}
+              onClear={() => void choosePlacements([])}
+              object={object}
+              project={project}
+              pending={draft !== null}
+              busy={busy}
+              form={form}
+              error={localError || error}
+              onChange={(value) => {
+                draftRef.current = value;
+                setDraft(value);
+                onPending(true);
+                setLocalError("");
+              }}
+              onApply={() => {
+                void beforeChange();
+              }}
+              onLock={(locked) => void setLocked(locked)}
+              onCancel={cancel}
+              onDuplicate={() => void objects.duplicate()}
+              onDelete={() => void objects.requestDelete()}
+              onEnclose={() => void objects.enclose()}
+              onHang={() => void rigging.hang()}
+              onSelectMounted={(id) =>
+                void choosePlacements(
+                  project.stage.attachments
+                    .filter((a) => a.constructionId === id)
+                    .map((a) => a.fixtureId),
+                )
+              }
+              onDetach={(ids) => void rigging.detach(ids)}
+            />
+          ))}
       </DockPane>
-      {rigging.dialog}
       <StageObjectDialogs
         project={project}
         busy={busy}

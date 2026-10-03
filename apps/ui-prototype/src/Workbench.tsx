@@ -946,6 +946,8 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               key={`stage:${project.id}`}
               ref={stage}
               canvasVisible={stageView === "plan"}
+              generation={snapshot.generation}
+              previewRigging={host.riggingPreview}
               onArrangementOpen={() => {
                 setStageView("plan");
                 setRevealEditing((value) => value + 1);

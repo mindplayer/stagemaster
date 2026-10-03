@@ -52,6 +52,7 @@ export function StageCanvas({
   selectedIds,
   preview,
   placementPreview = null,
+  draftConstructionId,
   placementEditing = false,
   focusRequest,
   busy,
@@ -69,6 +70,7 @@ export function StageCanvas({
   selectedIds: string[];
   preview: StageObject | null;
   placementPreview?: FixturePlacement[] | null;
+  draftConstructionId?: string;
   placementEditing?: boolean;
   focusRequest: number;
   busy: boolean;
@@ -305,7 +307,8 @@ export function StageCanvas({
   const isSelected = (kind: StageSelection["kind"], id: string) =>
     kind === "placement"
       ? visibleIds.includes(id)
-      : selection?.kind === kind && selection.id === id;
+      : (selection?.kind === kind && selection.id === id) ||
+        (kind === "construction" && draftConstructionId === id);
   const unit = camera.width / 100;
   const step =
     camera.width > 200 ? 10 : camera.width > 70 ? 5 : camera.width > 30 ? 2 : 1;
@@ -496,6 +499,7 @@ export function StageCanvas({
         tool={tool}
         measurement={measurement}
         step={step}
+        placementEditing={placementEditing}
       />
     </section>
   );

@@ -30,6 +30,8 @@ mod profile_file_tests;
 #[cfg(test)]
 mod report_tests;
 #[cfg(test)]
+mod rigging_preview_tests;
+#[cfg(test)]
 mod sequence_group_tests;
 #[cfg(test)]
 mod sequence_script_patch_tests;

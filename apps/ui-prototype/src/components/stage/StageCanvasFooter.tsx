@@ -10,6 +10,7 @@ export function StageCanvasFooter({
   tool,
   measurement,
   step,
+  placementEditing = false,
 }: {
   hiddenLabels: number;
   fixtures: FixtureView[];
@@ -18,6 +19,7 @@ export function StageCanvasFooter({
   tool: "select" | "move" | "pan" | "measure";
   measurement: { from: [number, number]; to: [number, number] } | null;
   step: number;
+  placementEditing?: boolean;
 }) {
   return (
     <>
@@ -26,14 +28,19 @@ export function StageCanvasFooter({
       <footer>
         <span role="status">
           {blocked ||
-            (tool === "select"
-              ? "拖框选择灯具 · ⇧ 点击增减选择"
-              : tool === "move"
-                ? "拖动所选对象移动 · ⇧ 锁定方向 · Esc 取消"
-                : tool === "measure"
-                  ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
-                  : "拖动平移视图")}
-          {!blocked && tool !== "measure" && " · 方向键微调"}
+            (placementEditing && (tool === "select" || tool === "move")
+              ? "灯位草稿编辑中 · 可平移视图或测距"
+              : tool === "select"
+                ? "拖框选择灯具 · ⇧ 点击增减选择"
+                : tool === "move"
+                  ? "拖动所选对象移动 · ⇧ 锁定方向 · Esc 取消"
+                  : tool === "measure"
+                    ? "拖动两点测量平面距离 · ⇧ 锁定方向 · Esc 清除"
+                    : "拖动平移视图")}
+          {!blocked &&
+            !placementEditing &&
+            tool !== "measure" &&
+            " · 方向键微调"}
         </span>
         <span>
           {measurement
