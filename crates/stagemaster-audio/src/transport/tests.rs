@@ -4,6 +4,7 @@ use rodio::mixer::MixerSource;
 use stagemaster_playback::{LoopPlays, LoopRegion, LoopSchedule};
 use std::sync::atomic::AtomicBool;
 mod observation;
+mod resident;
 
 fn schedule() -> LoopSchedule {
     LoopSchedule::new(

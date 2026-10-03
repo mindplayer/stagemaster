@@ -134,3 +134,21 @@
 接续直接在 `apps/execution-host` 组装常驻音频所有者和真实资源准备：持有原 Transport／音源、消费已授权请求、按原回调观察发布状态、处理暂停／定位完成与故障收尾，再连原应用会话／桌面入口。普通音乐也需要正式观测，不能仅在有循环计划时进入该路径；循环回跳、自然结束、提供方重启及准备资源预算继续验证。保持云端／U 盘共用交付为后续框架出口，用户 `output/`、窗口、工程与设备保持。
 
 审查结论：受控提供方增量通过，结果为本次 `feat(live): authorize asynchronous media provider controls` 提交。9 项新增测试；最终宿主／独立进程／客户端 49 项相关回归通过，全工作区严格 Clippy／fmt 通过，本次没有重跑全工作区测试或物理验收。正常依赖树确认通用宿主不依赖音频／界面，日志 `logs/time-001-media-control-regression.log`、`time-001-media-control-final-clippy-2.log`、`time-001-media-control-fmt.log`、`time-001-media-control-normal-deps.log`。全部 Cargo 验证串行执行。当前用户询问本轮进度，核对后估计框架大轮约完成 75%–80%；这是按已验证边界的粗略工程估计，不代表商业交付完成度，也不把待接线的测试提供方计作独立应用已完成。完整 TIME-001／goal 保持 active。
+
+
+## 原生静音准备与输出绑定增量
+
+基线 `a2a04cd`，main 主工作区，当前会话单写者；依据 [ADR-118](../decisions/PRODUCT-ADR-118-resident-native-audio.md)／[契约](../../module-api/resident-native-audio.md)。上一回合提交受控媒体提供方，分类为 progress。接续核对实际 Transport 时发现两个后台组装前置缺口：普通无循环音乐没有正式观测；暂停定位后的音源未挂到 Player，无法先验证健康、激活灯光再开始发声。本次补通真实音源路径，完整 TIME-001／goal 保持 active。
+
+- `load_performance_request` 让普通音乐以空循环计划复用原流式解码与完整帧观测；旧试听入口保持，后续调用者显式迁移。
+- `prime_performance` 先挂载暂停音源到原 Rodio Player，实际回调拉取零样本；素材／消费保持，健康真实递增。播放和暂停仍由原完整帧执行；新挂载使旧准备过期，重复挂载不重建实例，播放中／结束／故障不能假装重新就绪。
+- `OutputBinding` 显式绑定外部持有的 Mixer；清空、载入和停止保持绑定，故障跨绑定克隆共享，不能退回系统默认设备。审查补充尚未挂载／重新载入时也报告绑定失败，避免旧声卡失效后界面状态误报可用；停止音源和组故障处理仍由提供方负责。
+- `PerformanceObservation.request` 保留完整请求代次，宿主适配等实际回调 applied 匹配后才能报告完成，原布尔字段保持兼容。真实普通 WAV 验证静音预备、非零音频、暂停、定位、自然结束及重新准备。
+- 原 Transport＋Player／Mixer＋真实 Host 的集成验证操作者退出后继续执行已授权意图，静音就绪后才激活、播放，暂停／定位／停止有实际确认；100 ms 定位的编排红色输出确认为 117。没有把直接调用裸音源当本次 Transport 验证。
+
+音频生产代码沿用既有依赖；live-host 仅在测试中直接声明已有 Rodio 0.22.2，Cargo.lock 只增加该测试依赖关系，无第三方升级。首次严格检查提示用 any 替换 fold，但 any 会提前结束真实 PCM 消费；改为显式完整拉取循环，保留消费长度和非零样本断言，未放宽规则。无工程／设备包／HTTP／GATT／UI 序列化变化，未开启物理声卡或操作设备、窗口、工程及用户 `output/`。
+
+接续必须组装实际独立应用，不重复停留在音源测试适配：原 `apps/execution-host` 的媒体所有者持有 Transport、准备器、端口和固定工程／资源；原 Application 在控制权校验前只解析，实际音源操作消费 ADR-117 已授权意图。独立普通音源现在具备可用观测和先静音挂载路径；仍须落实自然结束的组终态、循环回跳的新代次、重启重绑定、工作线程关闭与资源回收，再接原桌面入口与云端／U 盘交付。当前集成测试不等于常驻进程和桌面音频已迁移。
+
+
+审查结论：原生静音准备与输出绑定增量通过，结果为本次 `feat(audio): prime prepared voices on explicit output bindings` 提交。6 项新增测试；最终音频／原宿主／桌面 165 项相关回归、全工作区严格 Clippy／fmt 通过，没有重跑全工作区或物理验收。审查补强绑定故障后已重新跑完整相关回归，最终日志 `logs/time-001-resident-final-regression.log`、`time-001-resident-final-clippy-2.log`、`time-001-resident-final-fmt.log`；正常宿主依赖树仍不含音频／UI，日志 `time-001-resident-normal-deps.log`。全部 Cargo 操作串行；新增生产文件 83 行、测试最大 246 行。当前为 progress，完整目标保持 active。

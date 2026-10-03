@@ -10,7 +10,42 @@ pub(super) struct Output {
     failed: Arc<AtomicBool>,
 }
 
+/// An explicit external Rodio output. Its owner drives the mixer and reports device failure.
+/// Clones share terminal failure; an unavailable binding never falls back to a physical device.
+#[derive(Clone)]
+pub struct OutputBinding {
+    mixer: Mixer,
+    failed: Arc<AtomicBool>,
+}
+impl OutputBinding {
+    #[must_use]
+    pub fn new(mixer: Mixer) -> Self {
+        Self {
+            mixer,
+            failed: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    pub fn report_failure(&self) {
+        self.failed.store(true, Ordering::Release);
+    }
+
+    pub(super) fn failed(&self) -> bool {
+        self.failed.load(Ordering::Acquire)
+    }
+}
+
 impl Output {
+    pub fn bound(binding: &OutputBinding) -> Result<Self, String> {
+        if binding.failed() {
+            return Err("绑定的音频输出已中断，请重新准备输出设备".into());
+        }
+        Ok(Self {
+            mixer: binding.mixer.clone(),
+            _device: None,
+            failed: binding.failed.clone(),
+        })
+    }
     pub fn open() -> Result<Self, String> {
         let failed = Arc::new(AtomicBool::new(false));
         let signal = failed.clone();

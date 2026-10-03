@@ -6,8 +6,10 @@ mod observation;
 mod output;
 mod performance;
 mod preparation;
+mod resident;
 mod voice;
 pub use observation::PerformanceObservation;
+pub use output::OutputBinding;
 pub use preparation::{
     AudioLoadRequest, AudioLoadTicket, AudioSeekRequest, PreparedAudioLoad, PreparedAudioSeek,
 };
@@ -23,11 +25,12 @@ pub struct Position {
     pub loop_range: Option<LoopRange>,
     pub performance: Option<PerformancePosition>,
 }
-/// Single local audition voice. Position is software consumption, not calibrated DAC time.
+/// One native voice with audition and prepared-performance routes; position is not calibrated DAC time.
 #[derive(Default)]
 pub struct Transport {
     player: Option<Player>,
     output: Option<output::Output>,
+    binding: Option<OutputBinding>,
     performance: Option<voice::Performance>,
     owner: Arc<()>,
     file: Option<PathBuf>,
@@ -74,7 +77,7 @@ impl Transport {
                     .min(self.duration_ms)
             }
         });
-        let failed = self.output.as_ref().is_some_and(output::Output::failed);
+        let failed = self.output_failed();
         let mut problem = failed.then(|| "音频输出中断，请检查系统输出设备后重新播放".into());
         let performance = self.performance.as_ref().map(|p| {
             let (time, status, source_problem) = p.observe();
@@ -236,9 +239,17 @@ impl Transport {
         Ok(())
     }
 
+    fn output_failed(&self) -> bool {
+        self.output.as_ref().is_some_and(output::Output::failed)
+            || self.binding.as_ref().is_some_and(OutputBinding::failed)
+    }
+
     fn new_player(&mut self) -> Result<Player, String> {
         if self.output.as_ref().is_none_or(output::Output::failed) {
-            self.output = Some(output::Output::open()?);
+            self.output = Some(match &self.binding {
+                Some(binding) => output::Output::bound(binding)?,
+                None => output::Output::open()?,
+            });
         }
         Ok(self
             .output

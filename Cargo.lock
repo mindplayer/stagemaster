@@ -4329,6 +4329,7 @@ dependencies = [
 name = "stagemaster-live-host"
 version = "0.1.0"
 dependencies = [
+ "rodio",
  "serde_json",
  "stagemaster-audio",
  "stagemaster-live",
