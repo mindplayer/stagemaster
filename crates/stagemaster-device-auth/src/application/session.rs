@@ -1,4 +1,4 @@
-use super::{DevelopmentPermit, Error, Grant};
+use super::{DevelopmentPermit, Error, Grant, Scope};
 use stagemaster_device_session::{
     CIPHERTEXT_BYTES, Channel, Context, Kind, PLAINTEXT_BYTES, Record,
 };
@@ -45,6 +45,19 @@ impl Session {
             }
             Ok(grant)
         })();
+        self.checked(result)
+    }
+    /// Check a specific operation against current, live session authority.
+    /// # Errors
+    /// Missing scopes close this session, just like other admission failures.
+    /// A cached Grant or a heartbeat cannot add rights or restore it.
+    pub fn require(&mut self, scope: Scope, now: u64) -> Result<Grant, Error> {
+        let grant = self.grant(now)?;
+        let result = if grant.permissions().contains(scope) {
+            Ok(grant)
+        } else {
+            Err(Error::Denied)
+        };
         self.checked(result)
     }
     /// # Errors

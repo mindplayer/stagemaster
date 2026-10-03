@@ -8,6 +8,8 @@ DEVICE-002；[ADR-050](../development/decisions/PRODUCT-ADR-050-application-inst
 
 `Session` 消费相互确认完成的 Noise Channel，拥有其密码状态。准入核对完整 Context 和已证明持有的公钥；错误、许可期限、安全租约或撤销关闭当前状态。`Grant` 只有只读查询，没有公开字段构造／反序列化；它仍是瞬时快照，不能替代每次检查。
 
+DEVICE-003 增加[独立操作范围](device-operation-permissions.md)：原 installation 构造、SMDV v1 配置与 SMAP v1 回执仍仅代表安装。Gateway 在打开和每次 poll 时明确要求 Installation；观察／运行控制的许可不能打开安装工作器。远程运行入口尚未接入，不能把新增范围视为固件已支持播放。
+
 `Gateway` 消费 Session，拥有 Endpoint、一个固定密文缓冲及一个待回复心跳位置，不持有无线 SDK、存储、运行时或云端客户端。可信工作器完成与无线记录由外部单一连接所有者按序投递。新代码没有新增堆队列；密码实现仍有既有有限堆分配，不能称整个流程零分配。
 
 ## 调用顺序

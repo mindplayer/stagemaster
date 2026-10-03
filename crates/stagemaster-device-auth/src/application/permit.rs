@@ -1,4 +1,4 @@
-use super::Error;
+use super::{Error, Permissions, Scope};
 use stagemaster_device_session::{Context, PeerProof};
 
 pub const MAX_PERMISSION_MS: u32 = 600_000;
@@ -12,6 +12,7 @@ pub struct DevelopmentPermit {
     principal: [u8; 16],
     revision: u64,
     duration_ms: u32,
+    permissions: Permissions,
 }
 impl DevelopmentPermit {
     /// # Errors
@@ -22,6 +23,27 @@ impl DevelopmentPermit {
         principal: [u8; 16],
         revision: u64,
         duration_ms: u32,
+    ) -> Result<Self, Error> {
+        Self::scoped(
+            device,
+            holder,
+            principal,
+            revision,
+            duration_ms,
+            Permissions::only(Scope::Installation),
+        )
+    }
+    /// Explicit trusted provisioning. This does not extend the v1 configuration
+    /// format or the installation-only readiness receipt.
+    /// # Errors
+    /// Empty identities, revision zero and unbounded durations are refused.
+    pub fn scoped(
+        device: [u8; 16],
+        holder: [u8; 32],
+        principal: [u8; 16],
+        revision: u64,
+        duration_ms: u32,
+        permissions: Permissions,
     ) -> Result<Self, Error> {
         if device == [0; 16]
             || holder == [0; 32]
@@ -37,6 +59,7 @@ impl DevelopmentPermit {
             principal,
             revision,
             duration_ms,
+            permissions,
         })
     }
     pub(super) fn admit(self, peer: PeerProof, context: Context, now: u64) -> Result<Grant, Error> {
@@ -52,6 +75,7 @@ impl DevelopmentPermit {
             principal: self.principal,
             session: peer.session(),
             revision: self.revision,
+            permissions: self.permissions,
             until: now
                 .checked_add(u64::from(self.duration_ms))
                 .ok_or(Error::Clock)?,
@@ -68,8 +92,14 @@ pub struct Grant {
     pub(super) session: [u8; 16],
     pub(super) revision: u64,
     pub(super) until: u64,
+    pub(super) permissions: Permissions,
 }
 impl Grant {
+    /// Snapshot metadata only; dispatch must call `Session::require` with fresh time.
+    #[must_use]
+    pub const fn permissions(self) -> Permissions {
+        self.permissions
+    }
     #[must_use]
     pub const fn context(self) -> Context {
         self.context

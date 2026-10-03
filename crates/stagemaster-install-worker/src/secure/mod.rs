@@ -1,7 +1,7 @@
 //! Authenticated records to the existing worker. No radio, files or cloud client.
 mod outgoing;
 use crate::{Command, Completion, Endpoint, Epoch, Phase};
-use stagemaster_device_auth::application::{Grant, Session};
+use stagemaster_device_auth::application::{Grant, Scope, Session};
 use stagemaster_device_session::{CIPHERTEXT_BYTES, Kind, MAX_PAYLOAD, PLAINTEXT_BYTES};
 use stagemaster_transfer::AuthorizedLink;
 
@@ -64,7 +64,7 @@ impl Gateway {
     /// # Errors
     /// Reject expired permissions or an invalid local worker epoch/link.
     pub fn open(mut access: Session, epoch: Epoch, now: u64) -> Result<(Self, Command), Error> {
-        let grant = access.grant(now)?;
+        let grant = access.require(Scope::Installation, now)?;
         let (endpoint, command) = Endpoint::open(
             epoch,
             AuthorizedLink {
@@ -105,7 +105,7 @@ impl Gateway {
     /// Permission/security and worker deadlines revoke the whole gateway.
     pub fn poll(&mut self, now: u64) -> Result<Grant, Error> {
         let result = (|| {
-            let grant = self.access.grant(now)?;
+            let grant = self.access.require(Scope::Installation, now)?;
             self.endpoint.poll(now)?;
             Ok(grant)
         })();

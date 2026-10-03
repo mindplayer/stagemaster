@@ -16,6 +16,8 @@
 
 [FRAMEWORK-001](tasks/FRAMEWORK-001-platform-exit-review.md) 正在进行六组职责的[整体审查](../architecture-framework-review-2026-10-03.md)。发现并按 ADR-126 修复实际执行应用固定音频依赖：纯灯光 26 项、默认音频 42 项及两种严格检查通过，桌面仍显式组装音频；修复构建目录与后台复制来源不一致，实际准备和摘要核对通过。UI／类型及可选 HTTPS 回归已通过，完整 Rust 基线仍运行；继续同一作业并核对结果，不重复已完成音频工作，不提前关闭全部框架或持续目标。
 
+[DEVICE-003](tasks/DEVICE-003-remote-runtime.md) 接续正式设备运行链路；在整体基线等待期间先按 [ADR-127](decisions/PRODUCT-ADR-127-device-operation-permissions.md) 完成安装／观察／控制分权增量，123 项相关回归、全工作区及 Xtensa 严格检查通过。原安装配置不自动获得播放权，安装网关逐次检查实际范围；运行就绪／目录／命令、固件调度、桌面状态及物理输出分阶段接原 Runtime，不把前置分权当完整入口。
+
 [PLAN-004](tasks/PLAN-004-composable-device-family.md)／[ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)进一步明确按能力组装的设备家族：当前桌面是共享基座的一种产品，纯输出、独立播放、控制面可组合但角色不混同。接续独立进程验证只代表电脑／ARM 类宿主的适配，不要求 ESP32 使用同一操作系统或网络栈；不扩大为立即开发所有硬件版本。
 
 云端与 U 盘作为并行交付入口，后续分发验收共用内容身份、完整性／能力／许可校验、安装和激活。本地准备后执行，交付途径不隐式改变商业权限；U 盘直连需目标能力验证，不作为当前 ESP32 的前置要求。
