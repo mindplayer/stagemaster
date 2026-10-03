@@ -1,6 +1,6 @@
 # 设备运行连接的应用入口
 
-DEVICE-003 第二增量；依据 [ADR-128](../development/decisions/PRODUCT-ADR-128-device-runtime-application.md)。`stagemaster-install-worker::operations` 由 `application` 特性提供，借用原 [ManagedWorker](maintained-install-worker.md) 和 [Runtime](device-runtime.md)，不另建播放器。现已增加 [SMRT v1 消息](device-runtime-wire.md)、[共享客户端](device-runtime-client.md)、[原生服务](native-device-runtime-service.md)及[设备运行队列](device-runtime-queue.md)；固件运行入口、持续调度和桌面操作仍待接通。
+DEVICE-003 第二增量；依据 [ADR-128](../development/decisions/PRODUCT-ADR-128-device-runtime-application.md)。`stagemaster-install-worker::operations` 由 `application` 特性提供，借用原 [ManagedWorker](maintained-install-worker.md) 和 [Runtime](device-runtime.md)，不另建播放器。现已增加 [SMRT v1 消息](device-runtime-wire.md)、[共享客户端](device-runtime-client.md)、[原生服务](native-device-runtime-service.md)、[设备运行队列](device-runtime-queue.md)及[固件运行入口](firmware-runtime-gatt.md)；实板、桌面操作和物理输出仍待验收。
 
 ## 所有者与调用顺序
 
@@ -53,4 +53,4 @@ Reply 是内部 Rust 值，包含固定容量文本和完整状态，不能直�
 
 载入等存储操作前后都重查授权。若工作开始后撤销或到期，存储操作可能已经完成；后置检查拒绝交付旧结果并归还输入权，不声称回滚、不自动重试。接纳、已载入、运行实例、软件采样和物理发送仍是不同事实。
 
-真实安装包、Noise／Session、ManagedWorker 与原 Runtime 已验证自主运行、控制接管、历史重试、失效隔离、维护及分页；完整灯值与独立 Player 对照。软件证据详见[工单](../development/tasks/DEVICE-003-remote-runtime.md#第二增量运行应用入口)。消息、Channel／原生服务和运行队列已经分别接入；固件独立调度、桌面入口和实际 DMX 输出仍是后续出口。
+真实安装包、Noise／Session、ManagedWorker 与原 Runtime 已验证自主运行、控制接管、历史重试、失效隔离、维护及分页；完整灯值与独立 Player 对照。软件证据详见[工单](../development/tasks/DEVICE-003-remote-runtime.md#第二增量运行应用入口)。消息、Channel／原生服务、运行队列及固件独立调度已接入；新固件实板运行、桌面入口和实际 DMX 输出仍是后续出口。

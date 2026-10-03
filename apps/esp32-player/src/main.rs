@@ -47,7 +47,12 @@ async fn main(_spawner: embassy_executor::Spawner) {
     esp_alloc::heap_allocator!(size: 128 * 1024);
     #[cfg(feature = "worker-readiness")]
     let cache = memory::initialize(peripherals.PSRAM);
-    #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
+    #[cfg(feature = "runtime-gatt")]
+    esp_println::println!("舞台大师 DEVICE-003：加密安装与软件节目运行；RS485发送关闭");
+    #[cfg(all(
+        not(feature = "runtime-gatt"),
+        any(feature = "installation-gatt", feature = "application-gatt")
+    ))]
     esp_println::println!("StageMaster DEVICE-002: authenticated installation, RS485 disabled");
     #[cfg(not(any(feature = "installation-gatt", feature = "application-gatt")))]
     esp_println::println!("StageMaster DEVICE-002: diagnostics, RS485 disabled");

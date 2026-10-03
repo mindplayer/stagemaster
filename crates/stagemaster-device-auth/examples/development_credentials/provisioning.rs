@@ -21,10 +21,15 @@ fn encode(
     principal: [u8; 16],
     secret: &[u8; 32],
     peer: [u8; 32],
+    runtime: bool,
 ) -> Result<Zeroizing<[u8; CONFIGURATION_BYTES]>> {
     let mut bytes = Zeroizing::new([0; CONFIGURATION_BYTES]);
     bytes[..8].copy_from_slice(b"SMDV\x01\0\xa0\0");
     bytes[5] = if role == Role::Device { 1 } else { 2 };
+    if runtime {
+        bytes[4] = 2;
+        bytes[52] = 7; // Explicit development install/observe/control; never a v1 upgrade.
+    }
     bytes[8..24].copy_from_slice(&device);
     bytes[24..40].copy_from_slice(&principal);
     bytes[40..48].copy_from_slice(&1_u64.to_le_bytes());
@@ -47,8 +52,13 @@ fn write(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 pub(super) fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    if args.len() != 2 || args[0].len() != 32 || !args[0].is_ascii() {
-        return Err("用法：development_credentials 32位设备编号 项目data内的新目录".into());
+    if !(args.len() == 2 || (args.len() == 3 && args[2] == "--runtime"))
+        || args[0].len() != 32
+        || !args[0].is_ascii()
+    {
+        return Err(
+            "用法：development_credentials 32位设备编号 项目data内的新目录 [--runtime]".into(),
+        );
     }
     let mut device = [0; 16];
     for (byte, text) in device.iter_mut().zip(args[0].as_bytes().chunks_exact(2)) {
@@ -72,6 +82,7 @@ pub(super) fn run() -> Result<()> {
         principal,
         &device_secret,
         SecretKey::import(*controller_secret)?.public(),
+        args.len() == 3,
     )?;
     let controller_bytes = encode(
         Role::Controller,
@@ -79,6 +90,7 @@ pub(super) fn run() -> Result<()> {
         principal,
         &controller_secret,
         SecretKey::import(*device_secret)?.public(),
+        args.len() == 3,
     )?;
     fs::DirBuilder::new().mode(0o700).create(&destination)?;
     write(&destination.join("device.smddev"), device_bytes.as_ref())?;

@@ -1,10 +1,14 @@
 //! Board-local owner of the install service; only the live authenticated epoch may dispatch.
+#[cfg(feature = "runtime-gatt")]
+mod dispatch;
 mod runtime;
+#[cfg(feature = "application-gatt")]
+pub mod runtime_io;
 use core::sync::atomic::{AtomicU8, AtomicU32, AtomicUsize, Ordering};
-#[cfg(not(feature = "binding-readiness"))]
+#[cfg(all(not(feature = "binding-readiness"), not(feature = "runtime-gatt")))]
 use embassy_futures::select::{Either, select};
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Channel};
-#[cfg(not(feature = "binding-readiness"))]
+#[cfg(all(not(feature = "binding-readiness"), not(feature = "runtime-gatt")))]
 use embassy_time::Timer;
 use esp_hal::{peripherals, system::Stack};
 use esp_rtos::embassy::Executor;
@@ -71,10 +75,23 @@ pub fn report() {
     crate::measured_nor::report();
     crate::memory::report();
 }
+fn record_operation(start: esp_hal::time::Instant) {
+    MAX_OPERATION_US.fetch_max(
+        start.elapsed().as_micros().min(u64::from(u32::MAX)) as u32,
+        Ordering::Relaxed,
+    );
+    let count = OPERATIONS.fetch_add(1, Ordering::Relaxed) + 1;
+    if count <= 4 || count.is_multiple_of(32) {
+        report();
+    }
+}
 
 #[embassy_executor::task]
 async fn run(peripheral: peripherals::FLASH<'static>, boot: [u8; 16], cache: &'static mut [u8]) {
     if !serve(peripheral, boot, cache).await {
+        #[cfg(feature = "application-gatt")]
+        runtime_io::publish(None);
+        LIVE_EPOCH.store(0, Ordering::Release);
         READY.store(2, Ordering::Release);
         esp_println::println!("INSTALL WORKER unavailable; wireless installation remains disabled");
     }
@@ -149,18 +166,18 @@ async fn serve(
             return false;
         }
     };
-    let mut worker = ManagedWorker::new(
-        installer,
-        runtime::now(),
-        64 * 1024,
-        runtime::DisabledPlayback,
-    )
-    .unwrap();
+    let mut worker =
+        ManagedWorker::new(installer, runtime::now(), 64 * 1024, runtime::Playback).unwrap();
     // main retains OutputDisabled for this entire boot. There is no physical output
     // task/queue in this firmware. Future output adapters must acknowledge real quiescence.
     worker
         .confirm_quiescent(worker.quiescence_request().unwrap(), runtime::now())
         .unwrap();
+    #[cfg(feature = "runtime-gatt")]
+    if worker.finish_maintenance(runtime::now()).is_err() {
+        // Keep installation recovery reachable if the durable package cannot bind.
+        esp_println::println!("运行目录绑定失败；设备保留维护状态，可重新安装");
+    }
     esp_println::println!(
         "INSTALL WORKER ready {:?}; worker={} command={} completion={} stack={} heap={}/{}; local-write-test={}",
         recovery,
@@ -173,8 +190,11 @@ async fn serve(
         cfg!(feature = "worker-write-test")
     );
     READY.store(1, Ordering::Release);
+    #[cfg(feature = "runtime-gatt")]
+    return dispatch::serve(&mut worker).await;
     #[cfg(feature = "worker-write-test")]
     let mut replayed = None;
+    #[cfg(not(feature = "runtime-gatt"))]
     loop {
         worker.observe(live_epoch());
         #[cfg(feature = "binding-readiness")]
@@ -189,16 +209,9 @@ async fn serve(
         sample_stack();
         let start = esp_hal::time::Instant::now();
         let completion = worker.process(command, runtime::now(), live_epoch);
-        MAX_OPERATION_US.fetch_max(
-            start.elapsed().as_micros().min(u64::from(u32::MAX)) as u32,
-            Ordering::Relaxed,
-        );
-        let count = OPERATIONS.fetch_add(1, Ordering::Relaxed) + 1;
         // esp-println formats and flushes under its critical-section lock.
         // Aggregate hot-path samples instead of blocking radio on every chunk.
-        if count <= 4 || count.is_multiple_of(32) {
-            report();
-        }
+        record_operation(start);
         #[cfg(feature = "worker-write-test")]
         crate::worker_probe::verify_reply(&mut worker, &completion, &mut replayed);
         // The consumer must also check its epoch before notifying its peer.

@@ -43,4 +43,4 @@ let completion = endpoint.process(&mut worker, command, &mut now, &mut read_live
 
 新层无分配器依赖；宿主布局检查约束 Gateway ≤4 KiB、Endpoint ≤2 KiB、Command ≤256 B、Completion ≤1.5 KiB。该上限是类型容量保护，不等于 ESP32 整体内存预算或真实栈峰值；固件需另外统计静态槽、已有安全会话堆、任务栈及包缓存。
 
-真实安全会话、原安装器／包／播放器、完整 512 通道软件帧、实际载入中撤销、独立心跳与精确超时均有验证，见 [DEVICE-003](../development/tasks/DEVICE-003-remote-runtime.md)。当前固件尚未接运行服务、同步槽及持续调度，桌面页面和物理输出仍未接通；本层编译通过不能代替这些出口。
+真实安全会话、原安装器／包／播放器、完整 512 通道软件帧、实际载入中撤销、独立心跳与精确超时均有验证，见 [DEVICE-003](../development/tasks/DEVICE-003-remote-runtime.md)。[固件运行入口](firmware-runtime-gatt.md)已接服务、同步槽及持续调度，经过协议主机测试和 Xtensa 构建；实际板卡调度／射频、桌面页面和物理输出仍未验收，本层验证不能代替这些出口。

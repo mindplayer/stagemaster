@@ -1,8 +1,8 @@
 //! GATT adapter for the diagnostic protocol. It owns no playback commands.
+#[cfg(feature = "application-gatt")]
+mod application;
 #[cfg(feature = "installation-gatt")]
 mod installation;
-#[cfg(feature = "application-gatt")]
-mod secure_installation;
 #[cfg(feature = "secure-gatt-test")]
 mod secure_probe;
 mod session;
@@ -49,11 +49,26 @@ struct SecureProbeService {
     response: [u8; 244],
 }
 
-#[cfg(feature = "application-gatt")]
+#[cfg(all(feature = "application-gatt", not(feature = "runtime-gatt")))]
 #[gatt_server]
 struct Server {
     link: LinkService,
     secure_installation: SecureInstallationService,
+}
+#[cfg(feature = "runtime-gatt")]
+#[gatt_server]
+struct Server {
+    link: LinkService,
+    secure_installation: SecureInstallationService,
+    secure_runtime: SecureRuntimeService,
+}
+#[cfg(feature = "runtime-gatt")]
+#[gatt_service(uuid = "f889edb0-0100-4e83-968e-799ab99558fa")]
+struct SecureRuntimeService {
+    #[characteristic(uuid = "f889edb2-0100-4e83-968e-799ab99558fa", write_without_response, value = [0; 244])]
+    request: [u8; 244],
+    #[characteristic(uuid = "f889edb3-0100-4e83-968e-799ab99558fa", notify, value = [0; 244])]
+    response: [u8; 244],
 }
 #[cfg(feature = "application-gatt")]
 #[gatt_service(uuid = "f889eda0-0100-4e83-968e-799ab99558fa")]
@@ -117,7 +132,11 @@ pub async fn run<C: Controller>(
     mut connected: impl FnMut(bool),
 ) -> ! {
     #[cfg(feature = "application-gatt")]
-    let credentials = secure_installation::configuration(&identity);
+    let credentials = application::configuration(&identity);
+    #[cfg(feature = "runtime-gatt")]
+    credentials
+        .runtime_permit()
+        .expect("运行镜像需要显式观察权限的 v2 开发配置");
     #[cfg(feature = "application-gatt")]
     let mut worker_epoch = 0_u32;
     #[cfg(feature = "secure-gatt-test")]
@@ -202,6 +221,13 @@ pub async fn run<C: Controller>(
                     // including while no peer is connected, so it cannot block recovery.
                     match select(advertiser.accept(), async {
                         loop {
+                            #[cfg(feature = "application-gatt")]
+                            select(
+                                crate::installation::COMPLETIONS.receive(),
+                                crate::installation::runtime_io::COMPLETIONS.receive(),
+                            )
+                            .await;
+                            #[cfg(not(feature = "application-gatt"))]
                             crate::installation::COMPLETIONS.receive().await;
                         }
                     })

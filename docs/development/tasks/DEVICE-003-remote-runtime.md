@@ -1,10 +1,10 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权、运行应用入口、有界消息、共享客户端、原生运行服务及运行队列增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
+状态：分权、运行应用入口、有界消息、共享客户端、原生运行服务及运行队列增量已验证；固件运行入口已完成软件测试／交叉构建，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，第七增量 `5688d6a`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
-Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。原生 Service／Ble 已有明确运行入口，当前固件与桌面设备页面仍只接诊断／安装。不得再造播放器，也不能把安装成功显示为运行或物理输出。本轮先实现设备运行入口的分权前置，再分增量接通正式操作与可见状态。
+Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。原生 Service／Ble 已有明确运行入口，新 runtime-gatt 固件已接软件运行但未刷入；当前实板与桌面设备页面仍只有原诊断／安装路径。不得再造播放器，也不能把安装成功显示为运行或物理输出。接续桌面正式操作与可见状态，再取得实板／物理输出证据。
 
 第一增量依 [ADR-127](../decisions/PRODUCT-ADR-127-device-operation-permissions.md)：限定 `device-auth::application`、原 `install-worker::secure`、相关验收和契约。既有安装凭据不提升权限；不修改工程／设备包／配置字节或固件。源码按许可范围、准入、安装适配与测试分文件，目标新增文件低于 300 行。全量基线仍运行时使用项目 `tmp/framework-001-light-target` 隔离构建，不覆盖原测试产物。
 
@@ -127,3 +127,23 @@ Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、�
 审查结论：共享运行队列出口满足，按 `feat(device): dispatch runtime work through bounded authenticated queues` 集成。生产与测试按职责拆分，新增文件低于 300 行；Gateway／Endpoint 固定容量只是类型预算，不能视作整机峰值。下一项是固件独立运行 GATT、原工作器非阻塞持续推进与 Live 同步槽，再接桌面操作和实际端口。没有刷机、连接蓝牙、操作声卡／UE／用户窗口或 output/；完整 DEVICE-003／AUDIT-001／goal 仍开放，已完成 FRAMEWORK-001 不重开。
 
 最终本地检查：6 份变更文档的 444 个本地文件链接均有效，本次涉及 Rust 文件最大 219 行；清单、锁文件及固件目录无变化，记录 `logs/device-003-queue-doc-check.json`。用户 output/ 未纳入提交。
+
+## 第七增量：固件运行服务与独立调度
+
+基线 `5688d6a`，main，当前会话单写者。上一进度查询仅核对状态，分类 no progress；本回合确认所有旧验证进程已结束，接续未提交实现，最终验证并集成。依 [ADR-133](../decisions/PRODUCT-ADR-133-firmware-runtime-gatt.md) 和[固件契约](../../module-api/firmware-runtime-gatt.md)，限定固件接线、显式开发权限配置、必要主机测试及工具文档；未改桌面或核心协议／工程／设备包字节。
+
+`ble/application/{gate,protocol,port,mod}` 共用安装和运行的安全会话／记录，首个入口冻结；`runtime_io` 独立同步整个 Live，工作前后重查。`installation/dispatch` 保留唯一 ManagedWorker，以 25 ms 节拍独立推进，回复队列背压不能等待阻塞完成发送。上电只绑定目录、失败保留维护恢复；普通观察不会抢权／触发维护，实际 OutputDisabled 仍由 main 全程持有。
+
+SMDV v2 仅在可信本地配置中显式表示安装／观察／控制范围，v1 不升级；生成工具可用 `--runtime` 新建随机密钥对，不能覆盖。项目 data/DEVICE-003/runtime-build-validation 使用虚构设备编号，仅构建验证；不修改实板和已有 DEVICE-002 凭据，不能用于刷机。
+
+验证与证据：
+
+- `logs/device-003-firmware-regression.log`：device-auth／device-session／install-worker／device-channel／device-host／runtime 的 214 项相关测试通过，0 失败／忽略。随后新增保活、畸形消息／时钟回退、观察权限三项；最终 `logs/device-003-firmware-protocol-final.log` 的 7 项固件协议测试全部通过。去重合计 217 项，其中新增 9 项（配置 2、固件 7），不是全工作区测试。
+- 7 项直接包含实际固件 gate／protocol 源码，使用真实 Noise、原包和工作器：v1／v2 安装完整传输、运行连接不维护／不抢权、断线后同实例推进、旧配置拒绝运行、发布后排队、队列失败／过期撤销、8 秒工作留置期间保活、错误消息／计时和观察权限拒绝控制。队列与独立主机线程的物理承载边界沿用第六增量，未将主机执行冒充 ESP32 射频或第二核实测。
+- `logs/device-003-firmware-clippy-final.log`：全工作区全部目标严格 Clippy（application）通过。`logs/device-003-firmware-install-check-final.log`、`logs/device-003-firmware-runtime-check-final.log`：旧安装和新运行 Xtensa 严格检查通过；`logs/device-003-firmware-runtime-build-final.log` 最终完整构建通过。
+- `logs/device-003-firmware-image.log`：espflash save-image 离线生成应用镜像，808,704 字节，占 3 MiB ota_0 的 25.71%。无端口连接或刷写。保留原工具链 LOAD RWX 告警，段记录 `logs/device-003-firmware-segments.log`，未放宽检查掩盖。
+- 最终链接段与符号记录 `logs/device-003-firmware-size.log`／`logs/device-003-firmware-symbol-sizes.log`：`.bss` 192,468、`.data` 13,256、`.data.wifi` 284 字节；bss 已含堆 131,072、第二核栈对象 32,784（栈体 32,768）、主任务槽 14,112、工作器任务槽 7,792。新增运行请求／完成队列和 Live 槽为 120／1,344／128。主核 `.stack` 链接预留 93,436。以上是静态包含关系，不相互重复加总、不表示峰值。PSRAM 缓存仍为既有 2 MiB，未宣称实板内存验收。
+
+初始检查的 base feature 未用分支、测试误读 Installed 字段与 Settings 参数 lint 已修复；最终追加“仅观察许可”真实固件测试，未删断言或放宽规则。新增手写文件最大 212 行；所涉 ble.rs 为 323 行，保留 GATT 声明／平台连接组装，应用协议已抽取。无文件超过 500 行，无新第三方依赖或锁文件变化。
+
+本增量软件出口按 `feat(esp32): integrate authenticated runtime scheduling and GATT` 集成。完整 DEVICE-003、AUDIT-001 与 goal 保持 active；下一项桌面设备目录／操作／状态和维护切换，再实板无线、自主运行、时序／内存与 UART DMX 验收。用户 output/、工程、窗口、设备均未操作；FRAMEWORK-001 保持已完成。

@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+runtime-gatt = ["application-gatt"]
 application-gatt = ["worker-readiness", "dep:stagemaster-device-session", "dep:stagemaster-device-auth", "stagemaster-device-auth/application", "stagemaster-install-worker/application", "dep:stagemaster-package"]
 secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 session-readiness = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]

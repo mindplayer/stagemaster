@@ -42,3 +42,17 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-devi
 `install_device` 另支持 `cancel`／`resume`／`corrupt`／`lost-commit`；后三种需要与当前有效节目不同的真实包，不能把同包快速对账算作传输故障验收。`corrupt` 在加密前改一块，检查实板拒绝并取消失败事务；`lost-commit` 在主机测试层扣留已收到的真实提交回执，再断线重新认证、查询同代结果。它模拟上层丢回执，不声称制造了真实无线丢包。
 
 当前仅 macOS＋本台 ESP32 经过实际无线验证。跨端重用协议和 Rust 模块，不代表其他平台已经验收；未来云端归属／凭证签发按 ADR-046，商业保护范围按 ADR-101，具体加密授权方案后议，均与上述开发连接许可分离。
+
+## 显式运行开发配置（v2）
+
+DEVICE-003／[ADR-133](../development/decisions/PRODUCT-ADR-133-firmware-runtime-gatt.md) 增加可选 v2，不升级或覆盖已有 v1 文件。总长度仍为 160 字节；版本字节 4 为 2，字节 52 为非零范围位：安装 1、观察 2、控制 4，禁止其他位；53～55 和 152～159 保持零。v1 的字节 52 必须为零，只有安装权限。角色、密钥配对、身份、修订和期限检查保持。
+
+`permissions()` 读取可信本地范围；设备侧 `runtime_permit()` 要求观察并保留已配置范围，旧 `permit()` 仍只构造安装许可。控制端文件不能通过任何一个方法授予服务端权限。此配置不得经 GATT 或前端导入成为授权，不是云端认领或生产节目许可。
+
+生成工具最后可追加 `--runtime`，在全新目录生成一对 v2 安装／观察／控制开发配置，使用新随机密钥，原配置不动。构建测试可用虚构设备编号；实际板卡必须使用其真实稳定编号。例如以下命令仅建立不能用于实板的构建夹具，且目标目录必须尚不存在：
+
+```sh
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-auth --example development_credentials --features application --locked --offline -- 01010101010101010101010101010101 "$PWD/data/DEVICE-003/runtime-build-validation" --runtime
+```
+
+不应对已经存在的目录重复运行，也不能仅改旧文件的版本／权限字节。新镜像命令与软件运行、维护切换约束见[固件运行入口](firmware-runtime-gatt.md)。运行版尚未实板验收，上文旧安装版的无线证据不自动适用于新镜像。

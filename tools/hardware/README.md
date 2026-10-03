@@ -4,6 +4,8 @@ PLAYER-002A 仅诊断：共享播放内核自检／负载、BLE GATT 直连及�
 
 上句描述默认诊断构建。DEVICE-002 已增加专用 `application-gatt` 构建，使用独立开发凭据、免系统配对的加密 GATT、实际双槽安装与桌面任务；[配置／调用／复现](../../docs/module-api/development-gatt-configuration.md)及[真实验收](../../docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)。对应 `application-build`／`application-check`，不会自动刷机，GPIO21 仍禁用。云端及文件许可尚未实现。
 
+DEVICE-003 新增 `runtime-gatt`，对应 `runtime-application-build`／`runtime-application-check`；要求显式 v2 设备开发配置，产物独立位于 `target/esp32-runtime-application/`。运行服务与安装服务共用安全通信，第二核独立推进软件节目；仍保持 GPIO21 禁用，不声明物理发送。协议主机测试与 Xtensa 完整构建已通过，尚未实板验收；[运行入口、权限、维护切换和构建夹具](../../docs/module-api/firmware-runtime-gatt.md)。这不是自动安装／刷写命令，虚构编号的构建夹具禁止刷入实板。
+
 HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断开／保活过期后熄灭；板级代码始终保持 GPIO21 低。串口会报告对应引脚驱动状态。此灯接在 TXD1，未来接入 UART／DMX 时必须把发送脚的独占权交给输出适配，不能再调用诊断灯控制。灯的实际颜色／亮度仍需肉眼核验；日志不证明已发送 DMX。见[硬件记录](../../docs/development/tasks/HW-003-link-indicator.md)。
 
 ## 项目内环境

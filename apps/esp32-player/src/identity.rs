@@ -68,6 +68,23 @@ impl Identity {
         } else {
             description
         };
+        #[cfg(feature = "runtime-gatt")]
+        let description = if _installation {
+            Description {
+                capabilities: description.capabilities
+                    | capability::PLAYBACK
+                    | capability::RUNTIME_APPLICATION,
+                limits: Limits {
+                    universes: 1,
+                    loader_bytes: 64 * 1024,
+                    frame_ms: 25,
+                    ..description.limits
+                },
+                ..description
+            }
+        } else {
+            description
+        };
         description.encode().unwrap()
     }
 }

@@ -21,7 +21,7 @@ pub(super) async fn serve<P: PacketPool>(
     let description = stagemaster_device_info::Description::decode(description).unwrap();
     let session_id = description.session;
     #[cfg(feature = "application-gatt")]
-    let mut application = super::secure_installation::Channel::new(description, worker_epoch);
+    let mut application = super::application::Channel::new(description, worker_epoch);
     #[cfg(feature = "secure-gatt-test")]
     let mut secure = super::secure_probe::Probe::new(description, conn.raw().att_mtu());
     #[cfg(feature = "installation-gatt")]
@@ -59,7 +59,7 @@ pub(super) async fn serve<P: PacketPool>(
             break;
         }
         #[cfg(feature = "application-gatt")]
-        if !application.tick(&server.secure_installation, conn).await {
+        if !application.tick(server, conn).await {
             conn.raw().disconnect();
             break;
         }
@@ -150,12 +150,20 @@ pub(super) async fn serve<P: PacketPool>(
                 let reply = match event {
                     #[cfg(feature = "application-gatt")]
                     GattEvent::Write(event)
-                        if event.handle() == server.secure_installation.request.handle =>
+                        if super::application::request_mode(server, event.handle()).is_some() =>
                     {
-                        let valid = server.secure_installation.response.should_notify(conn)
+                        let mode =
+                            super::application::request_mode(server, event.handle()).unwrap();
+                        let valid = super::application::response(server, mode)
+                            .is_some_and(|response| response.should_notify(conn))
                             && event.with_data(|offset, bytes| {
                                 offset == 0
-                                    && application.receive(bytes, credentials, conn.raw().att_mtu())
+                                    && application.receive(
+                                        mode,
+                                        bytes,
+                                        credentials,
+                                        conn.raw().att_mtu(),
+                                    )
                             });
                         if valid {
                             event.accept_unprocessed()

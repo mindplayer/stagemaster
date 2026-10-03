@@ -1,5 +1,5 @@
 #![cfg(feature = "application")]
-use stagemaster_device_auth::application::{Configuration, Role};
+use stagemaster_device_auth::application::{Configuration, Role, Scope};
 use stagemaster_device_session::SecretKey;
 fn bytes(role: u8) -> [u8; 160] {
     let mut bytes = [0; 160];
@@ -53,4 +53,56 @@ fn malformed_secrets_public_keys_fields_and_roles_fail_closed() {
     let mut large = data;
     large[48..52].copy_from_slice(&600_001_u32.to_le_bytes());
     assert!(Configuration::import(&large, Role::Device).is_err());
+}
+
+#[test]
+fn legacy_and_v2_files_keep_explicit_non_escalating_endpoint_permissions() {
+    let old = Configuration::import(&bytes(1), Role::Device).unwrap();
+    assert!(old.runtime_permit().is_err());
+    assert_eq!(
+        old.permissions(),
+        stagemaster_device_auth::application::Permissions::only(Scope::Installation)
+    );
+    for bits in 1..=7 {
+        let mut data = bytes(1);
+        data[4] = 2;
+        data[52] = bits;
+        let config = Configuration::import(&data, Role::Device).unwrap();
+        assert_eq!(config.permit().is_ok(), bits & 1 != 0);
+        assert_eq!(config.runtime_permit().is_ok(), bits & 2 != 0);
+        for scope in [Scope::Installation, Scope::Observe, Scope::Control] {
+            assert_eq!(
+                config.permissions().contains(scope),
+                bits & scope as u8 != 0
+            );
+        }
+        data[5] = 2;
+        let controller = Configuration::import(&data, Role::Controller).unwrap();
+        assert!(controller.permit().is_err());
+        assert!(controller.runtime_permit().is_err());
+    }
+}
+
+#[test]
+fn v2_reserved_or_unknown_scopes_and_v1_scope_injection_are_refused() {
+    for bits in 0..=255 {
+        let mut data = bytes(1);
+        data[52] = bits;
+        assert_eq!(
+            Configuration::import(&data, Role::Device).is_ok(),
+            bits == 0
+        );
+        data[4] = 2;
+        assert_eq!(
+            Configuration::import(&data, Role::Device).is_ok(),
+            (1..=7).contains(&bits)
+        );
+    }
+    for index in (53..56).chain(152..160) {
+        let mut data = bytes(1);
+        data[4] = 2;
+        data[52] = 7;
+        data[index] = 1;
+        assert!(Configuration::import(&data, Role::Device).is_err());
+    }
 }
