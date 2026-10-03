@@ -1,14 +1,23 @@
 //! The only module that assigns board pins. The probe cannot enable the transmitter.
+#[cfg(feature = "runtime-dmx-probe")]
+pub mod dmx;
+#[cfg(feature = "runtime-dmx-probe")]
+mod logic_dmx;
+#[cfg(feature = "runtime-dmx-probe")]
+pub mod output_probe;
+#[cfg(not(feature = "runtime-dmx-probe"))]
 use esp_hal::{
     gpio::{Level, Output, OutputConfig},
     peripherals::{GPIO17, GPIO21},
 };
 
+#[cfg(not(feature = "runtime-dmx-probe"))]
 pub struct OutputDisabled {
     direction: Output<'static>,
     diagnostic_tx: Output<'static>,
 }
 
+#[cfg(not(feature = "runtime-dmx-probe"))]
 impl OutputDisabled {
     pub fn new(direction: GPIO21<'static>, tx: GPIO17<'static>) -> Self {
         // Disable the physical transmitter BEFORE taking ownership of TXD1.

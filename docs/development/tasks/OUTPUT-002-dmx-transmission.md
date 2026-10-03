@@ -1,5 +1,23 @@
 # OUTPUT-002：DMX 完整帧发送适配
 
+当前结果：运行／输出协调与原服务逻辑侧固件组装增量完成，完整输出链仍进行中；基线 `df435e7`，main，结果为本次 `feat(device): coordinate runtime frames and output quiescence` 提交，当前会话单写者。上一轮有界队列已提交，分类 progress。依据 [ADR-137](../decisions/PRODUCT-ADR-137-runtime-output-coordination.md) 接原 ManagedWorker 维护门、当前快照与 Port，并在原运行服务的实验组装中验证真实 UART／诊断引脚独占；GPIO21 仍强制关闭，本轮未刷机／打开串口或蓝牙，用户窗口／工程／output/ 保持。硬件看门狗和物理时序出口继续保留。
+
+## 运行与输出协调结果
+
+可选 `install-worker/output` 中的 LocalOutput 只协调原 Runtime 和 Port。新播放实例请求本地来源，载入／读取不激活；开始后暂停、控制租约释放保留自主帧，停止仍使用原档案默认值。维护或显式关闭撤回输出，真实 Queue／UART 静默后才能确认当前维护请求；帧身份／修订／节目／实例／采样时间严格核对，错误锁存。见[调用契约](../../module-api/runtime-output-coordination.md)。
+
+128 项相关测试通过，含本轮新增 8 项，0 失败／忽略，日志 `logs/output-002-runtime-output-final-regression.log`。使用原真实工程编译、安装协议、ManagedWorker 与共享队列／事务核对 20 个完整动态包及暂停／停止默认值；实际存储计数验证未排空前不放行写入、清理前不释放旧读取者。取消维护、新实例等待旧排空、超时后旧实例不重启、错帧与失败排空均覆盖。
+
+复现并修复“停止初次播放时，尚未消费的 Quiet 会先授予输出权”：协调器现在先处理撤销意图，再轮询可能授予来源或发送待发帧的 Port。失败记录 `logs/output-002-runtime-output-stop-race-before.log` 保留，回归未放宽。新开始在等待旧来源过期清理时的意图也按单次许可丢失处理，不被重复清除。
+
+工作区全部目标严格 Clippy（application／output／queued-dmx／development-device-access）通过，日志 `logs/output-002-runtime-output-final-clippy.log`。实际 `runtime-dmx-probe` 组装沿原认证 GATT、存储和第二核运行器，第一核独立发送任务持有 UART，通过既有队列跨核交接；GPIO17 与连接指示所有者互斥，旧不输出的 runtime-gatt 保留原行为。Sampler 继续只计算一次真实帧并交给输出协调器；逻辑 UART 状态单独发布，未冒充物理发送。
+
+使用已有虚构身份 v2 构建夹具，实际 S3 最终严格检查／完整链接见 `logs/output-002-runtime-output-accepted-xtensa-check.log`、`logs/output-002-runtime-output-accepted-xtensa-build.log`，保留原裸机 RWX 链接告警。原正常运行固件及独立队列示例严格检查通过，见 `logs/output-002-runtime-output-original-check.log`、`logs/output-002-runtime-output-example-check.log`。实验 Line 迁入板级模块并被两种实验组装复用，GPIO21 从不使能；未刷入，不能以此报告新的实板时序、CPU 或内存峰值。
+
+两个锁文件只增加依赖边，无包版本新增、升级或移除；没有工程／设备包／网络协议字节变化。新生产文件最多 114 行，原安装入口仍低于 300 行；未堆入大入口、未增加另一播放器。格式、脚本语法、差异及本地文档链接检查通过（491 处）。下一项独立硬件看门狗与逻辑侧实板时序／资源观测，之后才启用经过电气确认的 RS485，并补正式产品输出状态。完整 DEVICE-003／PLAYER-002／AUDIT-001／goal 继续开放，不重开已完成框架轮。
+
+## 已提交的有界驱动增量
+
 当前结果：有界驱动交接增量完成，完整输出链仍进行中；基线 `08b550f`，main，结果为本次 `feat(output): connect DMX transactions through a bounded priority queue` 提交，当前会话单写者。上一轮已提交，分类 progress；本轮按 [ADR-136](../decisions/PRODUCT-ADR-136-queued-dmx-driver.md) 完成原 Port 与 Transmitter 的可选队列连接、停止优先、故障／取消／空闲期限及实际 S3 构建。未刷机、打开串口／蓝牙或启用物理线路，用户 output/、窗口及已安装节目保持。
 
 ## 有界驱动交接结果
@@ -34,6 +52,6 @@
 
 ## 接续边界
 
-原同步 Driver 与异步事务已按上文完成有界交接。下一增量联结正式固件的原 Runtime 输出快照、显式输出激活、静默维护和实际状态；引脚所有权从诊断灯交给 UART，独立发送与板卡看门狗必须一起确认，再进行获授权的逻辑侧／差分波形测试。不能把逻辑实验镜像的发送回执显示成正式 RS485 已发送。
+原同步 Driver、有界异步发送与 Runtime 快照／激活／维护协调已按上文接通，原服务的逻辑侧固件组装已链接；引脚所有权明确从诊断灯交给 UART。接续独立硬件看门狗与逻辑侧实板时序／资源观测，再进行经过电气确认且获授权的差分波形测试和正式产品输出状态接线。不能把逻辑实验镜像的发送回执显示成正式 RS485 已发送。
 
 HAL flush_async 最后移位字节使用短同步轮询，外设异常卡死时异步期限无法抢占它；整核／外设卡死的独立看门狗必须在正式物理输出前验证。完整标准正文、隔离公共地／连接器、真实 UART／RS485 时序、最大负载和 8 小时验收仍开放。此次未刷机、未打开串口／蓝牙、未发送灯具信号，用户窗口／output/ 和已安装节目保留。DEVICE-003／PLAYER-002／完整 AUDIT-001／goal 保持 active，已完成框架轮不重开。

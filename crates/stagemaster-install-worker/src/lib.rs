@@ -7,6 +7,8 @@ mod endpoint;
 mod managed;
 #[cfg(feature = "application")]
 pub mod operations;
+#[cfg(feature = "output")]
+pub mod output;
 #[cfg(feature = "application")]
 pub mod runtime_queue;
 #[cfg(feature = "application")]

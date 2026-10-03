@@ -7,7 +7,7 @@ use core::cell::Cell;
 use embassy_sync::blocking_mutex::{Mutex, raw::CriticalSectionRawMutex};
 use stagemaster_install::Storage;
 use stagemaster_install_worker::{ManagedWorker, runtime_queue::Endpoint};
-use stagemaster_runtime::PlaybackPolicy;
+use stagemaster_runtime::{Code, FrameInfo, PlaybackPolicy};
 
 static LATEST: Mutex<CriticalSectionRawMutex, Cell<Option<Report>>> = Mutex::new(Cell::new(None));
 
@@ -32,7 +32,7 @@ impl Sampler {
         worker: &mut ManagedWorker<S, P>,
         frame: &mut [u8; 512],
         backpressured: bool,
-    ) -> bool {
+    ) -> Result<Option<FrameInfo>, Code> {
         let start_us = esp_hal::time::Instant::now()
             .duration_since_epoch()
             .as_micros();
@@ -64,7 +64,7 @@ impl Sampler {
             self.published_us = finish_us;
             self.publish();
         }
-        result.is_ok()
+        result
     }
 
     fn publish(&self) {

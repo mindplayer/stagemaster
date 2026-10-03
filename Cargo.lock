@@ -4776,12 +4776,14 @@ dependencies = [
 name = "stagemaster-install-worker"
 version = "0.1.0"
 dependencies = [
+ "embassy-sync 0.8.0",
  "serde_json",
  "stagemaster-device-auth",
  "stagemaster-device-link",
  "stagemaster-device-session",
  "stagemaster-install",
  "stagemaster-install-store",
+ "stagemaster-output-port",
  "stagemaster-package",
  "stagemaster-playback",
  "stagemaster-project",

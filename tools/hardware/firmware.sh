@@ -18,7 +18,7 @@ case "$action" in
       cargo +esp clippy --release --example "$probe_name" --features "$probe_name" --locked --offline -- -D warnings
     fi
     ;;
-  application-build|application-check|runtime-application-build|runtime-application-check)
+  application-build|application-check|runtime-application-build|runtime-application-check|runtime-output-probe-build|runtime-output-probe-check)
     : "${STAGEMASTER_DEVICE_CONFIGURATION:?须指定项目data内的专用设备开发配置}"
     python3 - "$project_root" "$STAGEMASTER_DEVICE_CONFIGURATION" "$action" <<'PY'
 import os, pathlib, stat, sys
@@ -28,7 +28,7 @@ assert path.is_absolute() and not path.is_symlink() and path.resolve().is_relati
 info = path.stat()
 assert stat.S_ISREG(info.st_mode) and stat.S_IMODE(info.st_mode) == 0o600 and info.st_uid == os.getuid(), '开发配置须为本用户0600文件'
 assert info.st_size == 160, '开发配置长度无效'
-if sys.argv[3].startswith('runtime-application'):
+if sys.argv[3].startswith('runtime-'):
     content = path.read_bytes()
     assert content[:5] == b'SMDV\x02' and content[5] == 1 and content[52] & 2, '运行镜像需要具有显式观察权限的v2设备开发配置'
 PY
@@ -37,6 +37,10 @@ PY
     if [[ "$action" == runtime-application-* ]]; then
       export CARGO_TARGET_DIR="$project_root/target/esp32-runtime-application"
       application_feature=runtime-gatt
+    fi
+    if [[ "$action" == runtime-output-probe-* ]]; then
+      export CARGO_TARGET_DIR="$project_root/target/esp32-runtime-output-probe"
+      application_feature=runtime-dmx-probe
     fi
     # include_bytes embeds the development private key in ELF/object files.
     umask 077
@@ -154,5 +158,5 @@ PY
     : "${2:?明确指定开发板串口}"
     "$project_root/tmp/esp-tools/espflash" monitor --port "$2" --non-interactive --no-reset --skip-update-check --elf "$firmware"
     ;;
-  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|application-build|application-check|runtime-application-build|runtime-application-check|dmx-uart-build|dmx-uart-check|dmx-queue-build|dmx-queue-check|secure-gatt-build|secure-gatt-check|session-build|session-check|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|binding-build|binding-check|binding-test-build|binding-test-check|installation-build|installation-check|installation-pair-build|installation-pair-check|installation-repair-build|installation-repair-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
+  *) printf '用法：%s {build|check|size|storage-build|storage-check|storage-size|storage-report|runtime-build|runtime-check|runtime-size|runtime-report|application-build|application-check|runtime-application-build|runtime-application-check|runtime-output-probe-build|runtime-output-probe-check|dmx-uart-build|dmx-uart-check|dmx-queue-build|dmx-queue-check|secure-gatt-build|secure-gatt-check|session-build|session-check|security-build|security-check|worker-build|worker-check|worker-test-build|worker-test-check|binding-build|binding-check|binding-test-build|binding-test-check|installation-build|installation-check|installation-pair-build|installation-pair-check|installation-repair-build|installation-repair-check|flash 串口|monitor 串口}\n' "$0" >&2; exit 2 ;;
 esac

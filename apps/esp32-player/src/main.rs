@@ -13,6 +13,8 @@ use esp_hal::{clock::CpuClock, timer::timg::TimerGroup};
 mod bindings;
 mod ble;
 mod board;
+#[cfg(feature = "runtime-dmx-probe")]
+use board::dmx;
 mod diagnostics;
 mod identity;
 #[cfg(feature = "worker-readiness")]
@@ -43,7 +45,12 @@ esp_bootloader_esp_idf::esp_app_desc!();
 #[esp_rtos::main]
 async fn main(_spawner: embassy_executor::Spawner) {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
+    #[cfg(not(feature = "runtime-dmx-probe"))]
     let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
+    #[cfg(feature = "runtime-dmx-probe")]
+    let output_line =
+        board::dmx::DmxLine::new(peripherals.UART1, peripherals.GPIO17, peripherals.GPIO21)
+            .unwrap();
     esp_alloc::heap_allocator!(size: 128 * 1024);
     #[cfg(feature = "worker-readiness")]
     let cache = memory::initialize(peripherals.PSRAM);
@@ -79,6 +86,8 @@ async fn main(_spawner: embassy_executor::Spawner) {
     drop(player);
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
+    #[cfg(feature = "runtime-dmx-probe")]
+    let output_driver = board::output_probe::start(_spawner, output_line);
     let connector =
         esp_radio::ble::controller::BleConnector::new(peripherals.BT, Default::default()).unwrap();
     let controller = trouble_host::prelude::ExternalController::<_, 20>::new(connector);
@@ -93,14 +102,18 @@ async fn main(_spawner: embassy_executor::Spawner) {
             peripherals.FLASH,
             identity.boot(),
             cache,
+            #[cfg(not(feature = "runtime-dmx-probe"))]
             &output_disabled,
+            #[cfg(feature = "runtime-dmx-probe")]
+            output_driver,
         );
         #[cfg(not(any(feature = "binding-readiness", feature = "application-gatt")))]
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());
     }
     embassy_futures::join::join(
-        ble::run(controller, identity, diagnostics::snapshot, |connected| {
-            output_disabled.connected(connected);
+        ble::run(controller, identity, diagnostics::snapshot, |_connected| {
+            #[cfg(not(feature = "runtime-dmx-probe"))]
+            output_disabled.connected(_connected);
         }),
         diagnostics::run(),
     )

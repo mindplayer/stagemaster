@@ -1,4 +1,4 @@
-//! Independent logical playback; this image retains OutputDisabled for its entire boot.
+//! Independent playback. UART builds obtain maintenance from actual queue completion.
 use super::{COMPLETIONS, REQUESTS, live_epoch, runtime, runtime_io};
 use embassy_futures::select::{Either3, select3};
 use embassy_time::{Duration, Ticker};
@@ -6,7 +6,10 @@ use stagemaster_install::Storage;
 use stagemaster_install_worker::{ManagedWorker, runtime_queue::Endpoint};
 use stagemaster_runtime::PlaybackPolicy;
 
-pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWorker<S, P>) -> bool {
+pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(
+    worker: &mut ManagedWorker<S, P>,
+    #[cfg(feature = "runtime-dmx-probe")] mut output: super::output::Output,
+) -> bool {
     let mut endpoint = Endpoint::default();
     let mut ticker = Ticker::every(Duration::from_millis(25));
     let mut install_reply: Option<stagemaster_install_worker::Completion> = None;
@@ -22,7 +25,17 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
             sampler.failed();
             return false;
         }
-        // main holds the actual disabled transmitter; no output queue exists in this image.
+        #[cfg(feature = "runtime-dmx-probe")]
+        {
+            let result = output.service(worker, runtime::now());
+            super::output::publish(&output);
+            if result.is_err() {
+                sampler.failed();
+                return false;
+            }
+        }
+        // Non-UART builds continuously own the disabled transmitter.
+        #[cfg(not(feature = "runtime-dmx-probe"))]
         if let Some(request) = worker.quiescence_request()
             && worker.confirm_quiescent(request, runtime::now()).is_err()
         {
@@ -48,7 +61,15 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
         if install_reply.is_some() || runtime_reply.is_some() {
             // Backpressure is bounded; it never waits inside a blocking completion send.
             ticker.next().await;
-            if !sampler.sample(&mut endpoint, worker, &mut frame, true) {
+            if !sample(
+                &mut sampler,
+                &mut endpoint,
+                worker,
+                &mut frame,
+                true,
+                #[cfg(feature = "runtime-dmx-probe")]
+                &mut output,
+            ) {
                 return false;
             }
             continue;
@@ -61,7 +82,15 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
         .await
         {
             Either3::First(()) => {
-                if !sampler.sample(&mut endpoint, worker, &mut frame, false) {
+                if !sample(
+                    &mut sampler,
+                    &mut endpoint,
+                    worker,
+                    &mut frame,
+                    false,
+                    #[cfg(feature = "runtime-dmx-probe")]
+                    &mut output,
+                ) {
                     return false;
                 }
             }
@@ -82,4 +111,25 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(worker: &mut ManagedWor
             }
         }
     }
+}
+
+fn sample<S: Storage, P: PlaybackPolicy>(
+    sampler: &mut super::frame_probe::Sampler,
+    endpoint: &mut Endpoint,
+    worker: &mut ManagedWorker<S, P>,
+    frame: &mut [u8; 512],
+    backpressured: bool,
+    #[cfg(feature = "runtime-dmx-probe")] output: &mut super::output::Output,
+) -> bool {
+    let result = sampler.sample(endpoint, worker, frame, backpressured);
+    #[cfg(feature = "runtime-dmx-probe")]
+    if let Ok(Some(info)) = result {
+        let published = output.publish(worker, info, frame, runtime::now());
+        super::output::publish(output);
+        if published.is_err() {
+            sampler.failed();
+            return false;
+        }
+    }
+    result.is_ok()
 }

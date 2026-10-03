@@ -5,6 +5,8 @@ mod dispatch;
 mod frame_metrics;
 #[cfg(feature = "runtime-gatt")]
 mod frame_probe;
+#[cfg(feature = "runtime-dmx-probe")]
+mod output;
 mod runtime;
 #[cfg(feature = "application-gatt")]
 pub mod runtime_io;
@@ -42,7 +44,8 @@ pub fn start(
     flash: peripherals::FLASH<'static>,
     boot: [u8; 16],
     cache: &'static mut [u8],
-    _output_disabled: &crate::board::OutputDisabled,
+    #[cfg(not(feature = "runtime-dmx-probe"))] _output_disabled: &crate::board::OutputDisabled,
+    #[cfg(feature = "runtime-dmx-probe")] driver: crate::board::output_probe::Driver,
 ) {
     static STACK: ConstStaticCell<Stack<STACK_BYTES>> = ConstStaticCell::new(Stack::new());
     static EXECUTOR: StaticCell<Executor> = StaticCell::new();
@@ -50,7 +53,16 @@ pub fn start(
     STACK_TOP.store(stack.top() as usize, Ordering::Release);
     esp_rtos::start_second_core(cpu, interrupt, stack, move || {
         EXECUTOR.init(Executor::new()).run(|spawner| {
-            spawner.spawn(run(flash, boot, cache).unwrap());
+            spawner.spawn(
+                run(
+                    flash,
+                    boot,
+                    cache,
+                    #[cfg(feature = "runtime-dmx-probe")]
+                    driver,
+                )
+                .unwrap(),
+            );
         });
     });
 }
@@ -80,6 +92,8 @@ pub fn report() {
     crate::memory::report();
     #[cfg(feature = "runtime-gatt")]
     frame_probe::report();
+    #[cfg(feature = "runtime-dmx-probe")]
+    output::report();
 }
 fn record_operation(start: esp_hal::time::Instant) {
     MAX_OPERATION_US.fetch_max(
@@ -96,8 +110,21 @@ fn record_operation(start: esp_hal::time::Instant) {
 }
 
 #[embassy_executor::task]
-async fn run(peripheral: peripherals::FLASH<'static>, boot: [u8; 16], cache: &'static mut [u8]) {
-    if !serve(peripheral, boot, cache).await {
+async fn run(
+    peripheral: peripherals::FLASH<'static>,
+    boot: [u8; 16],
+    cache: &'static mut [u8],
+    #[cfg(feature = "runtime-dmx-probe")] driver: crate::board::output_probe::Driver,
+) {
+    if !serve(
+        peripheral,
+        boot,
+        cache,
+        #[cfg(feature = "runtime-dmx-probe")]
+        driver,
+    )
+    .await
+    {
         #[cfg(feature = "application-gatt")]
         runtime_io::publish(None);
         LIVE_EPOCH.store(0, Ordering::Release);
@@ -110,6 +137,7 @@ async fn serve(
     peripheral: peripherals::FLASH<'static>,
     boot: [u8; 16],
     cache: &'static mut [u8],
+    #[cfg(feature = "runtime-dmx-probe")] driver: crate::board::output_probe::Driver,
 ) -> bool {
     if esp_storage::flash_encryption() {
         esp_println::println!("INSTALL WORKER refuses encrypted development partition");
@@ -177,8 +205,12 @@ async fn serve(
     };
     let mut worker =
         ManagedWorker::new(installer, runtime::now(), 64 * 1024, runtime::Playback).unwrap();
-    // main retains OutputDisabled for this entire boot. There is no physical output
-    // task/queue in this firmware. Future output adapters must acknowledge real quiescence.
+    #[cfg(feature = "runtime-dmx-probe")]
+    let Some(output) = output::initialize(driver, boot, &mut worker).await else {
+        return false;
+    };
+    // Only the non-UART image can acknowledge from its continuously held disabled pins.
+    #[cfg(not(feature = "runtime-dmx-probe"))]
     worker
         .confirm_quiescent(worker.quiescence_request().unwrap(), runtime::now())
         .unwrap();
@@ -200,7 +232,12 @@ async fn serve(
     );
     READY.store(1, Ordering::Release);
     #[cfg(feature = "runtime-gatt")]
-    return dispatch::serve(&mut worker).await;
+    return dispatch::serve(
+        &mut worker,
+        #[cfg(feature = "runtime-dmx-probe")]
+        output,
+    )
+    .await;
     #[cfg(feature = "worker-write-test")]
     let mut replayed = None;
     #[cfg(not(feature = "runtime-gatt"))]

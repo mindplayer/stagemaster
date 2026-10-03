@@ -11,6 +11,7 @@ license = "LicenseRef-Proprietary"
 dmx-uart = ["dep:stagemaster-output-port"]
 dmx-queue = ["dmx-uart", "stagemaster-output-port/queued-dmx", "dep:embassy-sync"]
 runtime-gatt = ["application-gatt"]
+runtime-dmx-probe = ["runtime-gatt", "dmx-queue", "stagemaster-install-worker/output"]
 application-gatt = ["worker-readiness", "dep:stagemaster-device-session", "dep:stagemaster-device-auth", "stagemaster-device-auth/application", "stagemaster-install-worker/application", "dep:stagemaster-package"]
 secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
 session-readiness = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]

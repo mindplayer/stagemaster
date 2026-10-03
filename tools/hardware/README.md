@@ -12,7 +12,9 @@ HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断�
 
 ## 项目内环境
 
-有界驱动实验目标：`bash tools/hardware/firmware.sh dmx-queue-check`／`dmx-queue-build`。产物 `target/esp32-dmx-queue/xtensa-esp32s3-none-elf/release/examples/dmx-queue`，原 Port／队列／Transmitter 连接真实 UART，但实验适配层永不打开 GPIO21；只在逻辑侧运行 40 帧并停止排空，无蓝牙／安装，完成回执不代表 RS485。当前严格检查和链接通过、未刷入；同样不使用普通 flash 子命令。正式运行固件及看门狗接线另验收，见[队列契约](../../docs/module-api/queued-dmx.md)。
+完整运行服务的 UART 逻辑侧组装：使用项目内 v2 开发配置，通过 `STAGEMASTER_DEVICE_CONFIGURATION=配置绝对路径 bash tools/hardware/firmware.sh runtime-output-probe-check`／`runtime-output-probe-build` 构建。产物在 `target/esp32-runtime-output-probe/`，沿原 GATT／安装／第二核运行器调用真实发送队列，第一核独占 UART；GPIO21 仍强制低，GPIO17 不再用于蓝牙连接常亮指示。`UART LOGIC ONLY` 是逻辑串行进度，不是 RS485 输出能力。该镜像与普通诊断 flash 默认目标不同，不用普通 flash 子命令刷入。当前只完成软件验收、实际检查／链接，实板与看门狗另验收；详见[运行输出协调](../../docs/module-api/runtime-output-coordination.md)。
+
+有界驱动实验目标：`bash tools/hardware/firmware.sh dmx-queue-check`／`dmx-queue-build`。产物 `target/esp32-dmx-queue/xtensa-esp32s3-none-elf/release/examples/dmx-queue`，原 Port／队列／Transmitter 连接真实 UART，但实验适配层永不打开 GPIO21；只在逻辑侧运行 40 帧并停止排空，无蓝牙／安装，完成回执不代表 RS485。当前严格检查和链接通过、未刷入；同样不使用普通 flash 子命令。原运行服务的逻辑侧组装见下文；看门狗和正式物理输出另验收，见[队列契约](../../docs/module-api/queued-dmx.md)。
 
 OUTPUT-002 的独立 UART 逻辑侧实验目标：`bash tools/hardware/firmware.sh dmx-uart-check`／`dmx-uart-build`。产物 `target/esp32-dmx-uart/xtensa-esp32s3-none-elf/release/examples/dmx-uart`，只生成 GPIO17 逻辑波形，GPIO21 始终低，无 BLE／安装服务；不调用发送使能或冒称 RS485 已发送。当前仅交叉检查／构建通过，未刷写或测波形。该目标不替代正常 runtime-gatt，也不能交给普通 firmware.sh flash（其默认仍是旧诊断 ELF）。实际物理输出、独立看门狗和线路适配另验收，见[单帧事务](../../docs/module-api/dmx-transmission.md)。
 

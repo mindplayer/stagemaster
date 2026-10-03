@@ -2268,6 +2268,7 @@ dependencies = [
  "stagemaster-device-link",
  "stagemaster-device-session",
  "stagemaster-install",
+ "stagemaster-output-port",
  "stagemaster-package",
  "stagemaster-runtime",
  "stagemaster-runtime-protocol",

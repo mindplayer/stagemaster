@@ -14,7 +14,7 @@ use stagemaster_output_port::{
 use static_cell::StaticCell;
 #[path = "../src/board/dmx.rs"]
 mod dmx;
-#[path = "support/logic_line.rs"]
+#[path = "../src/board/logic_dmx.rs"]
 mod logic_line;
 use logic_line::LogicLine;
 esp_bootloader_esp_idf::esp_app_desc!();
