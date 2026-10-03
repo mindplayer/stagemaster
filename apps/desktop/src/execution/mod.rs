@@ -1,16 +1,33 @@
 mod files;
 mod manager;
+mod media;
+mod preparing;
 mod process;
-use crate::previs::SharedSession;
 use manager::{Manager, Status};
 use serde::Deserialize;
-use stagemaster_execution_client::{Action, Selection};
+use stagemaster_execution_client::{Action, AudioOutput, MediaAction, Selection};
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::Manager as _;
 use tokio::sync::Mutex;
 
 pub(crate) struct Service(Arc<Mutex<Manager>>);
+pub(crate) struct EditorAudioGuard {
+    _manager: tokio::sync::OwnedMutexGuard<Manager>,
+    _file: std::fs::File,
+}
 impl Service {
+    pub fn editor_audio(&self) -> Result<EditorAudioGuard, String> {
+        let mut manager = self
+            .0
+            .clone()
+            .try_lock_owned()
+            .map_err(|_| "后台正在准备或操作，请稍后试听")?;
+        let file = manager.reserve_editor_audio()?;
+        Ok(EditorAudioGuard {
+            _manager: manager,
+            _file: file,
+        })
+    }
     pub fn discovery_path(&self) -> Result<PathBuf, String> {
         self.0
             .try_lock()
@@ -48,6 +65,7 @@ pub(crate) enum Request {
     Prepare {
         generation: u32,
         selection: Vec<Selection>,
+        audio_output: Option<AudioOutput>,
     },
     Reconnect {},
     Acquire {
@@ -59,6 +77,13 @@ pub(crate) enum Request {
         revision: String,
         source: String,
         action: Action,
+    },
+    Media {
+        host_id: String,
+        revision: String,
+        group: String,
+        generation: String,
+        action: MediaAction,
     },
     Shutdown {
         host_id: String,
@@ -72,7 +97,8 @@ pub(crate) async fn execution_request(
     let service = app.state::<Service>();
     let mut manager = service
         .0
-        .try_lock()
+        .clone()
+        .try_lock_owned()
         .map_err(|_| "后台操作正在处理，请稍后重试")?;
     match request {
         Request::Snapshot {} => Ok(manager.poll().await),
@@ -80,14 +106,8 @@ pub(crate) async fn execution_request(
         Request::Prepare {
             generation,
             selection,
-        } => {
-            let document = app
-                .state::<SharedSession>()
-                .lock()
-                .map_err(|_| "工程会话不可用")?
-                .check_snapshot(generation)?;
-            manager.prepare(document, selection).await
-        }
+            audio_output,
+        } => preparing::run(app, manager, generation, selection, audio_output).await,
         Request::Acquire { takeover } => manager.acquire(takeover).await,
         Request::Release {} => manager.release().await,
         Request::Apply {
@@ -96,6 +116,17 @@ pub(crate) async fn execution_request(
             source,
             action,
         } => manager.apply(&host_id, &revision, &source, action).await,
+        Request::Media {
+            host_id,
+            revision,
+            group,
+            generation,
+            action,
+        } => {
+            manager
+                .apply_media(&host_id, &revision, &group, &generation, action)
+                .await
+        }
         Request::Shutdown { host_id } => manager.shutdown(&host_id).await,
     }
 }

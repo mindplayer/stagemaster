@@ -20,6 +20,14 @@ pub(crate) struct Service {
     waveform: Mutex<Option<(String, Waveform)>>,
 }
 impl Service {
+    pub(crate) fn stop_for_background(
+        &self,
+        session: &mut crate::session::Session,
+        generation: u32,
+    ) -> Result<(), String> {
+        self.apply_immediate(session, generation, Command::Stop)
+            .map(|_| ())
+    }
     pub fn new(root: std::path::PathBuf) -> Self {
         Self {
             resources: Resources::new(root),
@@ -65,9 +73,18 @@ pub(crate) async fn audio_request(
     command: Command,
 ) -> Result<Position, String> {
     use tauri::Manager;
+    let reservation = if matches!(
+        command,
+        Command::Play | Command::Seek { .. } | Command::SetLoop { .. } | Command::ExitLoop { .. }
+    ) {
+        Some(app.state::<crate::execution::Service>().editor_audio()?)
+    } else {
+        None
+    };
     let service = app.state::<Service>();
     let cancellation = service.cancellation_version();
     tauri::async_runtime::spawn_blocking(move || {
+        let _reservation = reservation;
         if let Command::SetLoop { range } = &command {
             return looping::configure(&app, generation, *range, cancellation);
         }

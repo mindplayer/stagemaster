@@ -1,3 +1,4 @@
+import type { ExecutionAudioOutput } from "../../execution-media-types";
 import { useState } from "react";
 import type { ProjectView } from "../../application-host";
 import type { ExecutionSelection } from "../../execution-types";
@@ -9,11 +10,25 @@ export function PrepareSources({
 }: {
   project: ProjectView;
   disabled: boolean;
-  onPrepare(selection: ExecutionSelection[]): void;
+  onPrepare(
+    selection: ExecutionSelection[],
+    output?: ExecutionAudioOutput,
+  ): void;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [output, setOutput] = useState<ExecutionAudioOutput>("systemDefault");
   const [query, setQuery] = useState("");
   const choices = [
+    ...(project.audio
+      ? [
+          {
+            id: "music",
+            name: project.audio.asset.fileName,
+            kind: "audioTimeline" as const,
+            label: "音乐编排",
+          },
+        ]
+      : []),
     ...project.sequences.map((s) => ({
       ...s,
       kind: "sequence" as const,
@@ -26,6 +41,8 @@ export function PrepareSources({
     })),
   ];
   const valid = choices.filter((s) => selected.includes(`${s.kind}:${s.id}`));
+  const music = valid.some((s) => s.kind === "audioTimeline");
+  const looped = !!project.audio?.loopRegions?.some((r) => r.enabled);
   const visible = choices.filter((s) =>
     s.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
   );
@@ -37,7 +54,7 @@ export function PrepareSources({
       </header>
       <input
         aria-label="搜索待载入节目"
-        placeholder="搜索场景或场景列表"
+        placeholder="搜索场景、场景列表或音乐"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -50,7 +67,11 @@ export function PrepareSources({
                 type="checkbox"
                 checked={selected.includes(key)}
                 disabled={
-                  disabled || (!selected.includes(key) && valid.length >= 63)
+                  disabled ||
+                  (s.kind === "audioTimeline" &&
+                    looped &&
+                    !selected.includes(key)) ||
+                  (!selected.includes(key) && valid.length >= 63)
                 }
                 onChange={(e) =>
                   setSelected((old) =>
@@ -67,6 +88,23 @@ export function PrepareSources({
         })}
         {!visible.length && <p>没有匹配的节目</p>}
       </div>
+      {looped && project.audio && (
+        <p role="status">音乐含已启用的循环区段，请先停用循环再载入后台。</p>
+      )}
+      {music && (
+        <label className="execution-audio-route">
+          声音输出
+          <select
+            aria-label="后台声音输出"
+            value={output}
+            disabled={disabled}
+            onChange={(e) => setOutput(e.target.value as ExecutionAudioOutput)}
+          >
+            <option value="systemDefault">本机声音输出</option>
+            <option value="software">静音预演</option>
+          </select>
+        </label>
+      )}
       <footer>
         <button
           disabled={disabled || !valid.length}
@@ -76,8 +114,15 @@ export function PrepareSources({
         </button>
         <button
           className="wb-primary"
-          disabled={disabled || !valid.length}
-          onClick={() => onPrepare(valid.map(({ kind, id }) => ({ kind, id })))}
+          disabled={disabled || !valid.length || (music && looped)}
+          onClick={() =>
+            onPrepare(
+              valid.map(({ kind, id }) =>
+                kind === "audioTimeline" ? { kind } : { kind, id },
+              ),
+              music ? output : undefined,
+            )
+          }
         >
           载入所选节目
         </button>

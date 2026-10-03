@@ -1,4 +1,12 @@
-export type ExecutionSelection = { kind: "scene" | "sequence"; id: string };
+import type {
+  ExecutionAudioOutput,
+  ExecutionMediaAction,
+  ExecutionAudioCatalog,
+  ExecutionMediaState,
+  ExecutionAudioState,
+} from "./execution-media-types";
+export type ExecutionSelection =
+  { kind: "scene" | "sequence"; id: string } | { kind: "audioTimeline" };
 export interface ExecutionSource {
   id: string;
   name: string;
@@ -17,6 +25,7 @@ export interface ExecutionView {
     layout: string;
     sources: ExecutionSource[];
     physicalOutput: false;
+    audio?: ExecutionAudioCatalog;
   };
   observation: {
     phase: string;
@@ -26,6 +35,8 @@ export interface ExecutionView {
       missedPeriods: string;
       state: {
         revision: string;
+        audio?: ExecutionAudioState;
+        media?: ExecutionMediaState[];
         sources: {
           id: string;
           level: number;
@@ -53,7 +64,12 @@ export interface ExecutionStatus {
 }
 export type ExecutionRequest =
   | { kind: "snapshot" | "reconnect" | "release" }
-  | { kind: "prepare"; generation: number; selection: ExecutionSelection[] }
+  | {
+      kind: "prepare";
+      generation: number;
+      selection: ExecutionSelection[];
+      audioOutput?: ExecutionAudioOutput;
+    }
   | { kind: "acquire"; takeover: boolean }
   | {
       kind: "apply";
@@ -61,6 +77,14 @@ export type ExecutionRequest =
       revision: string;
       source: string;
       action: ExecutionAction;
+    }
+  | {
+      kind: "media";
+      hostId: string;
+      revision: string;
+      group: string;
+      generation: string;
+      action: ExecutionMediaAction;
     }
   | { kind: "shutdown"; hostId: string };
 export type ExecutionPort = (

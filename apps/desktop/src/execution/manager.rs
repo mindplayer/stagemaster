@@ -12,13 +12,13 @@ pub(crate) struct Status {
     pub runtime: Option<View>,
 }
 pub(crate) struct Manager {
-    root: PathBuf,
+    pub(super) root: PathBuf,
     binary: PathBuf,
     run: Option<PathBuf>,
     child: Option<Child>,
-    client: Option<Client>,
+    pub(super) client: Option<Client>,
     problem: Option<String>,
-    closing: bool,
+    pub(super) closing: bool,
 }
 impl Manager {
     pub fn new(root: PathBuf, binary: PathBuf) -> Self {
@@ -101,6 +101,7 @@ impl Manager {
         &mut self,
         document: Document,
         selection: Vec<Selection>,
+        audio: Option<super::media::AudioInput>,
     ) -> Result<Status, String> {
         self.discover()?;
         let _lock = files::lock(&self.root)?;
@@ -120,7 +121,7 @@ impl Manager {
         self.child = None;
         self.run = None;
         self.closing = false;
-        let run = process::prepare(&self.root, &document, selection)?;
+        let run = process::prepare(&self.root, &document, selection, audio)?;
         self.run = Some(run.clone());
         match process::launch(&self.binary, &run) {
             Ok(child) => self.child = Some(child),
@@ -206,3 +207,7 @@ impl Manager {
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "media_tests.rs"]
+mod media_tests;

@@ -1,21 +1,21 @@
 use super::*;
 use stagemaster_execution_client::Action;
 use std::{fs, process::Child, time::Instant};
-struct Cleanup(Child);
+pub(super) struct Cleanup(pub(super) Child);
 impl Drop for Cleanup {
     fn drop(&mut self) {
         let _ = self.0.kill();
         let _ = self.0.wait();
     }
 }
-fn runtime() -> tokio::runtime::Runtime {
+pub(super) fn runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
         .enable_all()
         .build()
         .unwrap()
 }
-fn binary() -> PathBuf {
+pub(super) fn binary() -> PathBuf {
     std::env::current_exe()
         .unwrap()
         .parent()
@@ -24,7 +24,7 @@ fn binary() -> PathBuf {
         .unwrap()
         .join("stagemaster-execution-host")
 }
-fn document() -> Document {
+pub(super) fn document() -> Document {
     let mut value: serde_json::Value = serde_json::from_slice(include_bytes!(
         "../../../../docs/project-format/examples/lighting-basic.project.json"
     ))
@@ -34,7 +34,7 @@ fn document() -> Document {
     Document::decode(&serde_json::to_vec(&value).unwrap()).unwrap()
 }
 
-async fn connected(manager: &mut Manager) -> Status {
+pub(super) async fn connected(manager: &mut Manager) -> Status {
     let end = Instant::now() + Duration::from_secs(8);
     loop {
         let status = manager.poll().await;
@@ -57,7 +57,7 @@ fn desktop_manager_keeps_fixed_project_and_reopens_existing_background() {
         };
         let mut manager = Manager::new(data.clone(), binary());
         manager
-            .prepare(document.clone(), vec![selection.clone()])
+            .prepare(document.clone(), vec![selection.clone()], None)
             .await
             .unwrap();
         let _cleanup = Cleanup(manager.child.take().unwrap());
@@ -100,7 +100,12 @@ fn desktop_manager_keeps_fixed_project_and_reopens_existing_background() {
                 .as_deref(),
             Some("Running")
         );
-        assert!(restored.prepare(document, vec![selection]).await.is_err());
+        assert!(
+            restored
+                .prepare(document, vec![selection], None)
+                .await
+                .is_err()
+        );
         restored.shutdown(&host).await.unwrap();
         let end = Instant::now() + Duration::from_secs(5);
         while restored.poll().await.phase != "empty" {
@@ -118,13 +123,13 @@ fn failed_spawn_and_bad_selection_do_not_leave_a_live_record() {
         let temp = tempfile::tempdir_in(root).unwrap();
         let data = temp.path().join("execution");
         let mut manager = Manager::new(data.clone(), temp.path().join("missing"));
-        assert!(manager.prepare(document(), vec![]).await.is_err());
+        assert!(manager.prepare(document(), vec![], None).await.is_err());
         assert!(!data.join("current").exists());
         let doc = document();
         let selected = Selection::Sequence {
             id: doc.view().sequences[0].id.clone(),
         };
-        assert!(manager.prepare(doc, vec![selected]).await.is_err());
+        assert!(manager.prepare(doc, vec![selected], None).await.is_err());
         assert!(!data.join("current").exists());
     });
 }

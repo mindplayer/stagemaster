@@ -3,6 +3,7 @@ import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { ExecutionAction } from "../../execution-types";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
+import { MediaControls } from "./MediaControls";
 import { SourceControls } from "./SourceControls";
 import "./execution.css";
 
@@ -72,7 +73,7 @@ export function BackgroundExecution({
         </span>
       </header>
       <p className="wb-dim">
-        载入后使用固定版本；关闭编辑窗口后仍继续运行。当前未连接物理灯具或音视频输出。
+        载入后使用固定版本，关闭编辑窗口后仍继续运行。灯光当前为软件输出；音乐按所选声音输出播放。
       </p>
       <div className="execution-buttons">
         <button
@@ -204,15 +205,40 @@ export function BackgroundExecution({
                   .toLocaleLowerCase()
                   .includes(query.trim().toLocaleLowerCase()),
               )
-              .map((source) => (
-                <SourceControls
-                  key={`${runtime.hostId}:${source.id}`}
-                  source={source}
-                  runtime={runtime}
-                  disabled={disabled}
-                  onAction={(a) => action(source.id, a)}
-                />
-              ))}
+              .map((source) =>
+                source.selection.kind === "audioTimeline" ? (
+                  <MediaControls
+                    key={`${runtime.hostId}:${source.id}`}
+                    runtime={runtime}
+                    disabled={disabled}
+                    onAction={async (action) => {
+                      const group = state?.media?.find(
+                        (m) => m.id === runtime.catalog.audio?.group,
+                      );
+                      if (!state || !group || disabled) return false;
+                      const value = await request({
+                        kind: "media",
+                        hostId: runtime.hostId,
+                        revision: state.revision,
+                        group: group.id,
+                        generation: group.generation,
+                        action,
+                      });
+                      return (
+                        value?.runtime?.record?.outcome?.kind === "accepted"
+                      );
+                    }}
+                  />
+                ) : (
+                  <SourceControls
+                    key={`${runtime.hostId}:${source.id}`}
+                    source={source}
+                    runtime={runtime}
+                    disabled={disabled}
+                    onAction={(a) => action(source.id, a)}
+                  />
+                ),
+              )}
           </div>
         </>
       ) : (
@@ -220,10 +246,15 @@ export function BackgroundExecution({
           key={project.id}
           project={project}
           disabled={working || busy || !status || status.phase === "closing"}
-          onPrepare={(selection) => {
+          onPrepare={(selection, audioOutput) => {
             void (async () => {
               if (await beforeAction())
-                await request({ kind: "prepare", generation, selection });
+                await request({
+                  kind: "prepare",
+                  generation,
+                  selection,
+                  audioOutput,
+                });
             })();
           }}
         />

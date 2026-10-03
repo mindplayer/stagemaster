@@ -1,4 +1,4 @@
-use super::files;
+use super::{files, media};
 use stagemaster_execution_client::Selection;
 use stagemaster_project::Document;
 use std::{
@@ -13,19 +13,19 @@ pub(super) fn prepare(
     root: &Path,
     document: &Document,
     selections: Vec<Selection>,
+    audio: Option<media::AudioInput>,
 ) -> Result<PathBuf, String> {
     if selections.is_empty() || selections.len() > 63 {
-        return Err("请选择 1 至 63 个场景或场景列表".into());
+        return Err("请选择 1 至 63 个场景、场景列表或音乐编排".into());
     }
+    media::validate(document, &selections, audio.as_ref().map(|a| a.output))?;
     let mut keys = std::collections::HashSet::new();
     for selection in &selections {
         let (kind, id) = match selection {
-            Selection::Scene { id } => ("scene", id),
-            Selection::Sequence { id } => ("sequence", id),
+            Selection::Scene { id } => ("scene", id.as_str()),
+            Selection::Sequence { id } => ("sequence", id.as_str()),
             Selection::Manual {} => return Err("手动层由后台自动准备".into()),
-            Selection::AudioTimeline {} => {
-                return Err("音乐后台载入入口尚未接入，请保留当前后台".into());
-            }
+            Selection::AudioTimeline {} => ("audioTimeline", ""),
         };
         if !keys.insert((kind, id)) {
             return Err("同一节目不能重复载入".into());
@@ -38,7 +38,8 @@ pub(super) fn prepare(
             Selection::Sequence { id } => {
                 document.compile_sequence(id)?;
             }
-            Selection::Manual {} | Selection::AudioTimeline {} => unreachable!(),
+            Selection::AudioTimeline {} => {}
+            Selection::Manual {} => unreachable!(),
         }
     }
     let id = Uuid::new_v4().to_string();
@@ -53,11 +54,18 @@ pub(super) fn prepare(
         })
         .collect();
     sources.push(serde_json::json!({"id":Uuid::new_v4().to_string(),"priority":100,"selection":{"kind":"manual"}}));
+    if let Some(audio) = &audio {
+        media::copy(document, &run, audio)?;
+    }
     files::create(&run.join("project.json"), &document.encode()?)?;
+    let mut manifest = serde_json::json!({"version":1,"sources":sources});
+    if let Some(audio) = audio {
+        manifest["version"] = 2.into();
+        manifest["audio"] = serde_json::json!({"output":audio.output});
+    }
     files::create(
         &run.join("sources.json"),
-        &serde_json::to_vec(&serde_json::json!({"version":1,"sources":sources}))
-            .map_err(|e| e.to_string())?,
+        &serde_json::to_vec(&manifest).map_err(|e| e.to_string())?,
     )?;
     files::record(root, &id)?;
     Ok(run)

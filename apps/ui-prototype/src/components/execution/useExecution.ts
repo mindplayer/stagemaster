@@ -28,9 +28,11 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
         // One explicit action waits for the read already in flight; polling cannot swallow clicks.
         await inflight.current;
       }
+      let result: ExecutionStatus | undefined;
       const operation = (async () => {
         try {
           const value = await port(command);
+          result = value;
           if (mounted.current) {
             setStatus(value);
             setError("");
@@ -50,6 +52,7 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
           if (mounted.current) setWorking(false);
         }
       }
+      return result;
     },
     [port],
   );

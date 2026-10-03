@@ -144,3 +144,39 @@
 .background-execution .execution-source form label {
   white-space: nowrap;
 }
+.execution-audio-route {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: 16px;
+}
+.execution-audio-route select {
+  padding: 7px;
+  border-radius: 6px;
+  background: #0c151f;
+  color: #e1e9ee;
+  border: 1px solid #405362;
+}
+.execution-music-time {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-block: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.execution-music-time output {
+  font-size: 24px;
+  color: #e1e9ee;
+}
+.execution-music-time span {
+  color: #9eafba;
+}
+.execution-music > input[type="range"] {
+  width: 100%;
+  padding: 0;
+  accent-color: #6dcab5;
+}
+.execution-music form input {
+  width: 100px;
+  font-variant-numeric: tabular-nums;
+}

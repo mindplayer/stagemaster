@@ -34,7 +34,10 @@ const host: ApplicationHost = {
             physicalOutput: false,
             sources: request.selection.map((s, i) => ({
               id: String(i),
-              name: project.scenes.find((x) => x.id === s.id)!.name,
+              name:
+                "id" in s
+                  ? project.scenes.find((x) => x.id === s.id)!.name
+                  : "音乐编排",
               priority: 0,
               selection: s,
               steps: [{ id: `step-${i}`, name: "保持", number: "1" }],
