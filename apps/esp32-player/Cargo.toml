@@ -9,6 +9,7 @@ license = "LicenseRef-Proprietary"
 
 [features]
 dmx-uart = ["dep:stagemaster-output-port"]
+dmx-queue = ["dmx-uart", "stagemaster-output-port/queued-dmx", "dep:embassy-sync"]
 runtime-gatt = ["application-gatt"]
 application-gatt = ["worker-readiness", "dep:stagemaster-device-session", "dep:stagemaster-device-auth", "stagemaster-device-auth/application", "stagemaster-install-worker/application", "dep:stagemaster-package"]
 secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
@@ -67,3 +68,8 @@ opt-level = "s"
 name = "dmx-uart"
 path = "examples/dmx_uart.rs"
 required-features = ["dmx-uart"]
+
+[[example]]
+name = "dmx-queue"
+path = "examples/dmx_queue.rs"
+required-features = ["dmx-queue"]

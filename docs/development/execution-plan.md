@@ -1,5 +1,7 @@
 # 当前执行计划
 
+OUTPUT-002 有界驱动交接已完成：原 Port／固定队列／Transmitter 的完整软件链及实际 S3 构建通过，45 项相关测试覆盖真实工程和独立线程唤醒。详见[当前工单](tasks/OUTPUT-002-dmx-transmission.md)。下一项正式固件 Runtime 快照、显式输出激活、维护门、诊断灯与 UART 引脚交接及独立看门狗；仍禁用物理输出，不把逻辑实验回执当作 RS485 发送。完整持续目标 active，框架轮不重开。
+
 更新：2026-10-03。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
 
 ## 当前任务

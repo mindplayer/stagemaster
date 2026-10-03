@@ -1,5 +1,7 @@
 //! Single DMX transaction. The caller owns scheduling, queueing and port authority.
 mod deadline;
+#[cfg(feature = "queued-dmx")]
+pub mod queued;
 mod transfer;
 use core::future::Future;
 

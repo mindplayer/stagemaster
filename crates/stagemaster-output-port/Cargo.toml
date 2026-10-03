@@ -5,7 +5,14 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+queued-dmx = ["dep:embassy-sync"]
+
+[dependencies]
+embassy-sync = { version = "=0.8.0", optional = true }
+
 [dev-dependencies]
+critical-section = { version = "=1.2.0", features = ["std"] }
 stagemaster-runtime = { path = "../stagemaster-runtime" }
 stagemaster-project = { path = "../stagemaster-project" }
 stagemaster-package = { path = "../stagemaster-package" }
