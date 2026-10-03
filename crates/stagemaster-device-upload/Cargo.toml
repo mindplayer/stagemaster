@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stagemaster-delivery = { path = "../stagemaster-delivery" }
 futures-util = "=0.3.34"
 serde = { version = "=1.0.229", features = ["derive"] }
 stagemaster-device-host = { path = "../stagemaster-device-host" }

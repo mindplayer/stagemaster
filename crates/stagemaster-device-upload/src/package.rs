@@ -1,18 +1,8 @@
 use serde::Serialize;
-use stagemaster_package::{Archive, Error, ReadAt};
+use stagemaster_delivery::Package;
 use stagemaster_transfer::Upload;
 use std::sync::Arc;
 
-#[derive(Clone)]
-pub(crate) struct Bytes(Arc<[u8]>);
-impl ReadAt for Bytes {
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-    fn read_exact(&self, offset: usize, target: &mut [u8]) -> Result<(), Error> {
-        self.0.as_ref().read_exact(offset, target)
-    }
-}
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
@@ -28,13 +18,19 @@ pub struct PackageInfo {
 /// Fully checked, immutable source; prepare on the application's blocking work queue.
 pub struct Prepared {
     pub(crate) info: PackageInfo,
-    pub(crate) upload: Upload<Bytes>,
+    pub(crate) upload: Upload<Package>,
 }
 impl Prepared {
     /// # Errors
     /// Reject corrupt, unsupported or excessive packages before any device mutation.
     pub fn new(bytes: Arc<[u8]>) -> Result<Self, String> {
-        let archive = Archive::open(bytes.as_ref()).map_err(|e| e.to_string())?;
+        Self::from_package(Package::from_bytes(bytes, None).map_err(|e| e.to_string())?)
+    }
+    /// Reuse a checked local/HTTPS import without granting installation or playback rights.
+    /// # Errors
+    /// Report upload preparation failure; target capabilities are still checked at start.
+    pub fn from_package(package: Package) -> Result<Self, String> {
+        let archive = package.archive();
         let source = archive.source();
         let info = PackageInfo {
             execution_semantics: archive.semantics(),
@@ -51,7 +47,7 @@ impl Prepared {
                 .max()
                 .unwrap_or(0),
         };
-        let upload = Upload::new(Bytes(bytes)).map_err(|e| e.to_string())?;
+        let upload = Upload::new(package).map_err(|e| e.to_string())?;
         Ok(Self { info, upload })
     }
     #[must_use]

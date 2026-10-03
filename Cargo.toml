@@ -30,6 +30,7 @@ members = [
   "crates/stagemaster-device-info",
   "crates/stagemaster-device-host",
   "crates/stagemaster-device-upload",
+  "crates/stagemaster-delivery",
   "crates/stagemaster-project-store",
   "crates/stagemaster-spatial",
   "crates/stagemaster-previs",

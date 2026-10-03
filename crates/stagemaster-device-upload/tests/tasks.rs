@@ -289,3 +289,33 @@ async fn discrete_package_is_rejected_before_any_send_until_the_target_declares_
     assert_eq!(finished(&host).await.task.unwrap().phase, Phase::Installed);
     host.shutdown().await.unwrap();
 }
+
+#[tokio::test(start_paused = true)]
+async fn imported_content_reuses_target_checks_and_existing_installation_task() {
+    let input = package();
+    let checked = stagemaster_delivery::Package::from_bytes(input.clone(), None).unwrap();
+    let from_import = Prepared::from_package(checked.clone()).unwrap();
+    assert_eq!(
+        from_import.info().digest,
+        Prepared::new(input).unwrap().info().digest
+    );
+    let (host, state) = setup();
+    state.lock().unwrap().allowed = false;
+    assert!(host.start(from_import, 1, DEVICE).is_err());
+    assert!(state.lock().unwrap().commands.is_empty());
+    {
+        let mut target = state.lock().unwrap();
+        target.allowed = true;
+        target.target.limits.loader_bytes = 1;
+    }
+    assert!(
+        host.start(Prepared::from_package(checked.clone()).unwrap(), 1, DEVICE)
+            .is_err()
+    );
+    assert!(state.lock().unwrap().commands.is_empty());
+    state.lock().unwrap().target.limits.loader_bytes = 0;
+    host.start(Prepared::from_package(checked).unwrap(), 1, DEVICE)
+        .unwrap();
+    assert_eq!(finished(&host).await.task.unwrap().phase, Phase::Installed);
+    host.shutdown().await.unwrap();
+}

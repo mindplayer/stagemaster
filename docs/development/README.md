@@ -1,6 +1,6 @@
 # 开发方法
 
-更新：2026-09-18。依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)，由当前 Astra 会话直接负责规划到交付的完整开发过程。Qwen 与 Sol 委派流程结束。
+更新：2026-10-03。依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)，由当前 Astra 会话直接负责规划到交付的完整开发过程。Qwen 与 Sol 委派流程结束。
 入口：[AGENTS.md](../../AGENTS.md)、[STATE.md](STATE.md)、[当前执行计划](execution-plan.md)及当前工单。项目文件遵循[目录规则](project-files.md)。
 
 ## 工作循环
@@ -23,5 +23,16 @@
 
 ## 当前衔接
 
-G0 的 Git 基础和 CORE-001／002 产品修复保留。下一步由本会话细化 G1 的领域契约及首批工单，再直接实现，不再等待 Sol。
+G0 的 Git 基础和 CORE-001／002 产品修复保留。当前已进入平台框架的可运行边界验证；具体接续只读 STATE 和当前执行计划，不依据历史阶段说明重新启动 G1 或旧委派流程。
 旧工作器、资格试验、两版旧执行计划和 Sol 提示词已从当前文件树清理。原受版本管理的内容可在清理前提交 `121efa311855d977364f7ad8707ea729b5c0e367` 查阅；未纳入 Git 的旧试验原始文件已删除，没有另做副本。
+
+## 可选能力验证
+
+默认构建不能代替可选模块验证。涉及[共同节目包交付](../module-api/package-delivery.md)时，在项目内 CARGO_HOME／TMPDIR 环境下追加：
+
+```sh
+cargo test -p stagemaster-delivery --features http --locked --offline
+cargo clippy --workspace --all-targets --features stagemaster-delivery/http --locked --offline -- -D warnings
+```
+
+HTTP 仅在需要网络交付的产品组装启用；默认桌面／设备上传不因此增加 TLS 生产依赖。新依赖先单独获取，后续验证保持锁定、离线；本机 HTTPS 测试生成短期证书，不修改系统信任，也不访问真实云服务。
