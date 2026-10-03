@@ -36,6 +36,17 @@ export function objectOutline(object: StageObject): [string, string][] | null {
       ? object.value.shape.outlineMeters
       : null;
 }
+/** Resolve an object's editing space without substituting an unrelated room. */
+export function objectSpace(stage: StageView, object: StageObject | null) {
+  if (object?.kind === "space") return object.value;
+  const id =
+    object?.kind === "placement"
+      ? object.value.spaceId
+      : object?.kind === "construction"
+        ? object.value.shape.spaceId
+        : null;
+  return stage.spaces.find((space) => space.id === id);
+}
 export function stageCommand(object: StageObject): StageEdit {
   const copy = structuredClone(object);
   const outline = objectOutline(copy);

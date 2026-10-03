@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCommittedStageAction } from "./useCommittedStageAction";
 import type { FixturePlacement } from "../../stage-types";
 import type { RiggingPreviewPort } from "../../rigging-preview-types";
 import { useRiggingDraft } from "./useRiggingDraft";
@@ -13,6 +13,8 @@ export function useStageRigging({
   edit,
   onResult,
   busy,
+  visible,
+  onError,
   error,
   generation,
   preview,
@@ -27,6 +29,8 @@ export function useStageRigging({
   edit(command: StageEdit): Promise<ProjectView | null>;
   onResult(ids: string[], next: ProjectView): void;
   busy: boolean;
+  visible: boolean;
+  onError(message: string): void;
   error: string;
   generation: number;
   preview?: RiggingPreviewPort;
@@ -34,9 +38,6 @@ export function useStageRigging({
   onAccepted(ids: string[], placements: FixturePlacement[]): void;
   onOpen(): void;
 }) {
-  const [opening, setOpening] = useState<{ ids: string[]; rig: string } | null>(
-    null,
-  );
   const draft = useRiggingDraft({
     project,
     generation,
@@ -44,10 +45,30 @@ export function useStageRigging({
     onPending,
     onAccepted,
   });
-  async function hang() {
-    if (!(await beforeChange())) return;
-    // Opening after the transaction's render binds the draft to the applied document.
-    setOpening({
+  const open = useCommittedStageAction<{ ids: string[]; rig: string }>({
+    scopeId: project.id,
+    active: visible,
+    busy,
+    beforeChange,
+    onError,
+    execute(opening) {
+      const rig =
+        opening.rig ||
+        project.stage.attachments.find((a) => opening.ids.includes(a.fixtureId))
+          ?.constructionId ||
+        project.stage.constructions.find((c) => c.shape.kind === "rig")?.id ||
+        "";
+      const ids = opening.ids.length
+        ? opening.ids
+        : project.stage.attachments
+            .filter((a) => a.constructionId === rig)
+            .map((a) => a.fixtureId);
+      draft.open(ids, rig);
+      onOpen();
+    },
+  });
+  function hang() {
+    return open({
       ids: [...liveIds],
       rig:
         object?.kind === "construction" && object.value.shape.kind === "rig"
@@ -55,23 +76,6 @@ export function useStageRigging({
           : "",
     });
   }
-  useEffect(() => {
-    if (!opening || busy) return;
-    const rig =
-      opening.rig ||
-      (project.stage.attachments.find((a) => opening.ids.includes(a.fixtureId))
-        ?.constructionId ??
-        project.stage.constructions.find((c) => c.shape.kind === "rig")?.id ??
-        "");
-    const ids = opening.ids.length
-      ? opening.ids
-      : project.stage.attachments
-          .filter((a) => a.constructionId === rig)
-          .map((a) => a.fixtureId);
-    draft.open(ids, rig);
-    setOpening(null);
-    onOpen();
-  }, [opening, busy, project, draft, onOpen]);
   async function detach(ids: string[]) {
     if (!(await beforeChange())) return;
     const next = await edit({

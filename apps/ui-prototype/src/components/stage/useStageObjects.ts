@@ -9,10 +9,14 @@ import type {
   StageSpace,
 } from "../../stage-types";
 import type { Creation } from "./StageCreateDialog";
-import { bounds, decimal } from "../../stage-tools";
+import { bounds, decimal, selectedStage } from "../../stage-tools";
+import { useCommittedStageAction } from "./useCommittedStageAction";
 import { uniqueName } from "../../editor-tools";
 export function useStageObjects({
   project,
+  busy,
+  visible,
+  onError,
   object,
   selectedSpace,
   fixtureId,
@@ -21,6 +25,9 @@ export function useStageObjects({
   onResult,
 }: {
   project: ProjectView;
+  busy: boolean;
+  visible: boolean;
+  onError(message: string): void;
   object: StageObject | null;
   selectedSpace: StageSpace | undefined;
   fixtureId: string | undefined;
@@ -40,8 +47,7 @@ export function useStageObjects({
     shape: SeatingShape;
     name: string;
   } | null>(null);
-  async function createSeating() {
-    if (!(await beforeChange())) return;
+  function createSeating(selectedSpace: StageSpace | undefined) {
     const b = selectedSpace
       ? bounds(
           selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
@@ -73,8 +79,7 @@ export function useStageObjects({
   }
   const [creation, setCreation] = useState<Creation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StageObject | null>(null);
-  async function createRig() {
-    if (!(await beforeChange())) return;
+  function createRig(selectedSpace: StageSpace | undefined) {
     const b = selectedSpace
       ? bounds(
           selectedSpace.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]),
@@ -105,8 +110,10 @@ export function useStageObjects({
       },
     });
   }
-  async function create(kind: "space" | "platform") {
-    if (!(await beforeChange())) return;
+  function create(
+    kind: "space" | "platform",
+    selectedSpace: StageSpace | undefined,
+  ) {
     const max = project.stage.spaces.flatMap((s) =>
       s.outlineMeters.map((p) => Number(p[0])),
     );
@@ -147,9 +154,11 @@ export function useStageObjects({
     onResult(target, next, true);
     return true;
   }
-  async function placeFixture() {
-    if (!fixtureId || !(await beforeChange())) return;
-    const room = selectedSpace;
+  async function placeFixture(fixtureId: string, room: StageSpace | undefined) {
+    if (!project.fixtures.some((f) => f.id === fixtureId))
+      throw new Error("所选灯具已不存在，请重新选择");
+    if (project.stage.placements.some((p) => p.fixtureId === fixtureId))
+      throw new Error("该灯具已经完成布置，请选择其他待布置灯具");
     const b = room
       ? bounds(room.outlineMeters.map((p) => [Number(p[0]), Number(p[1])]))
       : null;
@@ -174,8 +183,8 @@ export function useStageObjects({
       onResult({ kind: "placement", id: fixtureId }, next);
     }
   }
-  async function enclose() {
-    if (object?.kind !== "space" || !(await beforeChange())) return;
+  async function enclose(object: StageObject) {
+    if (object.kind !== "space") return;
     const next = await edit({
       op: "putConstruction",
       id: null,
@@ -196,9 +205,8 @@ export function useStageObjects({
       onResult(target, next);
     }
   }
-  async function duplicate() {
-    if (!object || object.kind === "placement" || !(await beforeChange()))
-      return;
+  async function duplicate(object: StageObject) {
+    if (object.kind === "placement") return;
     const next = await edit({
       op: object.kind === "space" ? "duplicateSpace" : "duplicateConstruction",
       id: object.value.id,
@@ -239,26 +247,68 @@ export function useStageObjects({
       onResult(null, next);
     }
   }
-  async function requestDelete() {
-    if (await beforeChange()) setDeleteTarget(object);
+  type Intent =
+    | { kind: "space" | "platform" | "rig" | "seating"; spaceId?: string }
+    | { kind: "place"; spaceId?: string; fixtureId: string }
+    | { kind: "duplicate" | "enclose" | "delete"; target: StageSelection };
+  const run = useCommittedStageAction<Intent>({
+    scopeId: project.id,
+    active: visible,
+    busy,
+    beforeChange,
+    onError,
+    async execute(intent) {
+      if ("target" in intent) {
+        const target = selectedStage(project.stage, intent.target);
+        if (!target) throw new Error("对象已不存在，请重新选择");
+        if (intent.kind === "duplicate") await duplicate(target);
+        else if (intent.kind === "enclose") await enclose(target);
+        else setDeleteTarget(target);
+        return;
+      }
+      const space = project.stage.spaces.find((s) => s.id === intent.spaceId);
+      if (intent.spaceId && !space)
+        throw new Error("所属空间已不存在，请重新选择");
+      if (intent.kind === "place") await placeFixture(intent.fixtureId, space);
+      else if (intent.kind === "rig") createRig(space);
+      else if (intent.kind === "seating") createSeating(space);
+      else create(intent.kind, space);
+    },
+  });
+  function targetAction(kind: "duplicate" | "enclose" | "delete") {
+    if (!object) return;
+    return run({
+      kind,
+      target: {
+        kind: object.kind,
+        id:
+          object.kind === "placement"
+            ? object.value.fixtureId
+            : object.value.id,
+      },
+    });
   }
   return {
     rigCreation,
     setRigCreation,
     seatingCreation,
     setSeatingCreation,
-    createSeating,
+    createSeating: () => run({ kind: "seating", spaceId: selectedSpace?.id }),
     creation,
     setCreation,
     deleteTarget,
     setDeleteTarget,
-    createRig,
-    create,
+    createRig: () => run({ kind: "rig", spaceId: selectedSpace?.id }),
+    create: (kind: "space" | "platform") =>
+      run({ kind, spaceId: selectedSpace?.id }),
     createObject,
-    placeFixture,
-    enclose,
-    duplicate,
+    placeFixture: () =>
+      fixtureId
+        ? run({ kind: "place", fixtureId, spaceId: selectedSpace?.id })
+        : undefined,
+    enclose: () => targetAction("enclose"),
+    duplicate: () => targetAction("duplicate"),
     remove,
-    requestDelete,
+    requestDelete: () => targetAction("delete"),
   };
 }

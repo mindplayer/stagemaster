@@ -1,12 +1,8 @@
 import { useStageVisibility } from "./useStageVisibility";
+import { useArrangementEntry } from "./useArrangementEntry";
 import { StageLayoutStatus } from "./StageLayoutStatus";
 import type { RiggingPreviewPort } from "../../rigging-preview-types";
-import {
-  lockTargets,
-  placementTargets,
-  stageTarget,
-  movementBlocker,
-} from "../../stage-locks";
+import { lockTargets, placementTargets, stageTarget } from "../../stage-locks";
 import { DockPane } from "../layout/DockPane";
 import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
@@ -31,7 +27,7 @@ import type {
   StageObject,
   StageSelection,
 } from "../../stage-types";
-import { selectedStage, stageCommand } from "../../stage-tools";
+import { selectedStage, stageCommand, objectSpace } from "../../stage-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
 import { StageLibraryPanel } from "./StageLibraryPanel";
@@ -117,24 +113,16 @@ export const StageWorkspace = forwardRef<
     onAccepted: acceptPlacements,
   });
   const object = draft ?? selectedStage(project.stage, selection);
-  const selectedSpace =
-    object?.kind === "space"
-      ? object.value
-      : project.stage.spaces.find(
-          (s) =>
-            s.id ===
-            (object?.kind === "placement"
-              ? object.value.spaceId
-              : object?.kind === "construction"
-                ? object.value.shape.spaceId
-                : null),
-        );
+  const selectedSpace = objectSpace(project.stage, object);
   const unplaced = project.fixtures.filter(
     (f) => !project.stage.placements.some((p) => p.fixtureId === f.id),
   );
   const chosenFixture = unplaced.find((f) => f.id === fixtureId) ?? unplaced[0];
   const objects = useStageObjects({
     project,
+    busy,
+    visible,
+    onError: setLocalError,
     object,
     selectedSpace,
     fixtureId: chosenFixture?.id,
@@ -151,6 +139,8 @@ export const StageWorkspace = forwardRef<
   });
   const rigging = useStageRigging({
     project,
+    visible,
+    onError: setLocalError,
     object,
     liveIds,
     beforeChange,
@@ -174,6 +164,17 @@ export const StageWorkspace = forwardRef<
     },
   });
   const rigTarget = rigging.draft.session?.rig;
+  const enterArrangement = useArrangementEntry({
+    project,
+    visible,
+    busy,
+    beforeChange,
+    cancel,
+    open: arrangement.open,
+    reveal: revealPlacements,
+    onOpen: onArrangementOpen,
+    onError: setLocalError,
+  });
   useEffect(() => {
     if (rigTarget) revealInPlan({ kind: "construction", id: rigTarget });
   }, [rigTarget]);
@@ -319,17 +320,11 @@ export const StageWorkspace = forwardRef<
     });
     if (next) cancel();
   }
-  async function arrange(selected = false) {
-    if (selected && movementBlocker(project.stage, placementTargets(liveIds))) {
-      setLocalError("所选灯位包含锁定对象，请先解锁再移动或排列");
-      return;
-    }
-    if (!(await beforeChange())) return;
-    const ids = selected ? liveIds : unplaced.map((f) => f.id);
-    cancel();
-    arrangement.open(ids, selectedSpace, selected);
-    revealPlacements(ids);
-    onArrangementOpen?.();
+  function arrange(selected = false) {
+    return enterArrangement({
+      ids: selected ? [...liveIds] : null,
+      spaceId: selectedSpace?.id,
+    });
   }
   function edit(command: StageEdit) {
     return onEdit({ op: "stage", command });
@@ -486,7 +481,7 @@ export const StageWorkspace = forwardRef<
       <StageObjectDialogs
         project={project}
         busy={busy}
-        error={error}
+        error={localError || error}
         actions={objects}
       />
     </WorkspaceSurface>
