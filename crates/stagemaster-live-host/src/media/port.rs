@@ -98,7 +98,8 @@ impl MediaPort {
         if !self.alive.load(Ordering::Acquire) {
             return Err(Code::State);
         }
-        if !key.same_group(self.group.key) || sample.at.clock != self.group.provider {
+        // Identity is fixed; the authoritative Session checks the currently bound epoch.
+        if !key.same_group(self.group.key) || sample.at.clock.id() != self.group.provider.id() {
             return Err(Code::Selection);
         }
         let mut inbox = self.inbox.try_lock().map_err(|_| Code::Busy)?;

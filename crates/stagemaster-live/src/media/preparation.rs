@@ -76,6 +76,7 @@ impl Preparer {
             position_ms,
             playing,
             players,
+            restarted_provider: None,
             looping: self
                 .members
                 .iter()

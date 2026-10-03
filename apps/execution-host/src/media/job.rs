@@ -95,11 +95,12 @@ impl Runner {
         })?;
         Ok((sample, mapping))
     }
-    fn prepare_at(
+    pub(super) fn prepare_at(
         &mut self,
         request: ControlRequest,
         key: GroupKey,
         position: u64,
+        restarted: Option<stagemaster_time::Clock>,
     ) -> Result<(), Failure> {
         self.transport.pause();
         let source = self
@@ -114,13 +115,16 @@ impl Runner {
         }
         self.transport.prime_performance()?;
         let (actual, _) = self.confirmed_sample(request, 0)?;
-        let prepared = self.prepare.prepare(
+        let mut prepared = self.prepare.prepare(
             key,
             &self.doc,
             actual.position_ms,
             false,
             request.deadline_ms,
         )?;
+        if let Some(provider) = restarted {
+            prepared = prepared.with_restarted_provider(provider)?;
+        }
         let (sample, mapping) = self.confirmed_sample(request, actual.sequence)?;
         self.guard(request)?;
         let activation = self
@@ -154,8 +158,12 @@ impl Runner {
         key: GroupKey,
     ) -> Result<(), Failure> {
         self.guard(request)?;
+        if self.failed && !matches!(request.command, MediaCommand::Recover { .. }) {
+            return Err(Failure::Problem("音源需要重新准备后才能操作".into()));
+        }
         match request.command {
             MediaCommand::ExitLoop { .. } => self.exit_loop(request)?,
+            MediaCommand::Recover { position_ms } => self.recover(request, key, position_ms)?,
             command if self.is_end_seek(command) => self.seek_end(request)?,
             MediaCommand::Stop => {
                 self.transport.stop();
@@ -170,7 +178,7 @@ impl Runner {
                 let playing = match command {
                     MediaCommand::Play => {
                         if !resume {
-                            self.prepare_at(request, key, 0)?;
+                            self.prepare_at(request, key, 0, None)?;
                         }
                         true
                     }
@@ -184,10 +192,12 @@ impl Runner {
                         position_ms,
                         playing,
                     } => {
-                        self.prepare_at(request, key, position_ms)?;
+                        self.prepare_at(request, key, position_ms, None)?;
                         playing
                     }
-                    MediaCommand::Stop | MediaCommand::ExitLoop { .. } => unreachable!(),
+                    MediaCommand::Stop
+                    | MediaCommand::ExitLoop { .. }
+                    | MediaCommand::Recover { .. } => unreachable!(),
                 };
                 self.guard(request)?;
                 if playing {

@@ -63,6 +63,9 @@ impl Runner {
         )))
     }
     pub(super) fn pull(&mut self) -> Result<(), String> {
+        if self.failed {
+            return Ok(());
+        }
         if let Some(output) = &mut self.software {
             output.pull()?;
         }
@@ -173,6 +176,7 @@ impl Runner {
         Ok(())
     }
     pub(super) fn fail(&mut self, problem: String) {
+        self.failed = true;
         self.cancel_job();
         self.transport.stop();
         if let Some(output) = &mut self.software {

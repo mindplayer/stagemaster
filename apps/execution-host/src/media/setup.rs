@@ -12,6 +12,7 @@ pub(crate) struct Setup {
     pub duration_ms: u64,
     pub output: OutputKind,
     pub loops: bool,
+    pub(super) reload: super::recovery::Reload,
     pub(super) transport: Transport,
     pub(super) software: Option<SoftwareOutput>,
 }
@@ -36,6 +37,10 @@ impl Setup {
             &cancel,
         )?;
         let (mut transport, software) = SoftwareOutput::prepare(output);
+        let reload = super::recovery::Reload {
+            path: path.clone(),
+            output,
+        };
         let prepared = transport
             .load_performance_request(
                 path,
@@ -61,6 +66,7 @@ impl Setup {
             duration_ms: track.duration_ms(),
             output,
             loops,
+            reload,
             transport,
             software,
         })

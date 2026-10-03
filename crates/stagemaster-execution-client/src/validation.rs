@@ -25,6 +25,13 @@ pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
     if loops != catalog.audio.as_ref().is_some_and(|c| c.performance_loops) {
         return Err("后台循环能力与配置不一致".into());
     }
+    let recovery = catalog
+        .capabilities
+        .iter()
+        .any(|c| c == "backgroundAudioRecovery");
+    if recovery != catalog.audio.as_ref().is_some_and(|c| c.provider_recovery) {
+        return Err("后台音频恢复能力与配置不一致".into());
+    }
     match &catalog.audio {
         None if audio.is_empty() && !declared => Ok(()),
         Some(config)

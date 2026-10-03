@@ -56,7 +56,7 @@ pub(crate) fn prepare(
             }],
         )
         .map_err(|e| e.to_string())?;
-        source["audio"] = json!({"output":setup.output,"durationMs":setup.duration_ms,"group":Uuid::from_bytes(setup.group.id).to_string(),"seekIncludesEnd":true,"performanceLoops":setup.loops});
+        source["audio"] = json!({"output":setup.output,"durationMs":setup.duration_ms,"group":Uuid::from_bytes(setup.group.id).to_string(),"seekIncludesEnd":true,"performanceLoops":setup.loops,"providerRecovery":true});
         if setup.loops {
             source["capabilities"]
                 .as_array_mut()
@@ -66,7 +66,10 @@ pub(crate) fn prepare(
         source["capabilities"]
             .as_array_mut()
             .ok_or("能力目录无效")?
-            .push(json!("backgroundLinearAudio"));
+            .extend([
+                json!("backgroundLinearAudio"),
+                json!("backgroundAudioRecovery"),
+            ]);
         (backend, Some((setup, prepare, ports.remove(0), target)))
     } else {
         (LiveBackend::new(session).map_err(|e| e.to_string())?, None)

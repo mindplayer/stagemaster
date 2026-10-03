@@ -33,8 +33,22 @@ impl Session {
             .generation
             .checked_add(1)
             .ok_or("同步组播放代次已耗尽")?;
-        let observed =
-            self.media[index].validate(sample, mapping, self.host_clock(), now_ms, true)?;
+        let current_provider = self.media[index].spec.clock;
+        let provider = prepared.restarted_provider.unwrap_or(current_provider);
+        if prepared.restarted_provider.is_some()
+            && (sample.playing
+                || provider.id() != current_provider.id()
+                || provider.epoch() <= current_provider.epoch())
+        {
+            return Err("媒体提供方恢复身份或重启代次无效".into());
+        }
+        let observed = self.media[index].validate(
+            sample,
+            mapping,
+            self.host_clock(),
+            now_ms,
+            Some(provider),
+        )?;
         self.tick(now_ms)?;
         for (source, player) in &mut prepared.players {
             let entry = &mut self.sources[*source];
@@ -46,6 +60,7 @@ impl Session {
             entry.reassert_at_ms = Some(now_ms);
         }
         self.media[index].generation = generation;
+        self.media[index].spec.clock = provider;
         self.media[index].looping = prepared.looping;
         self.media[index].accept(sample, observed);
         let result = self.compose(now_ms);
@@ -65,7 +80,7 @@ impl Session {
         self.ready(now_ms)?;
         let index = self.media_index(key)?;
         let observed =
-            self.media[index].validate(sample, mapping, self.host_clock(), now_ms, false)?;
+            self.media[index].validate(sample, mapping, self.host_clock(), now_ms, None)?;
         if self.media[index].members.iter().any(|&source| {
             self.sources[source]
                 .player

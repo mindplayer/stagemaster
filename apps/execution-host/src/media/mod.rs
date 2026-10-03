@@ -5,6 +5,7 @@ mod looping;
 mod observation;
 mod output;
 mod owner;
+mod recovery;
 mod setup;
 pub(crate) mod wire;
 pub(crate) use output::OutputKind;
@@ -29,6 +30,8 @@ struct Runner {
     observer: Observer<Live>,
     clock: Clock,
     mapping: LocalClock,
+    reload: recovery::Reload,
+    failed: bool,
     cancel: Arc<AtomicBool>,
     view: Arc<Mutex<owner::View>>,
     active: Option<GroupKey>,

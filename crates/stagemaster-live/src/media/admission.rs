@@ -20,12 +20,10 @@ impl Group {
         mapping: &Mapping,
         host: Clock,
         now_ms: u64,
-        starting: bool,
+        starting: Option<Clock>,
     ) -> Result<u64, String> {
-        if sample.at.clock != self.spec.clock
-            || mapping.source() != self.spec.clock
-            || mapping.target() != host
-        {
+        let provider = starting.unwrap_or(self.spec.clock);
+        if sample.at.clock != provider || mapping.source() != provider || mapping.target() != host {
             return Err("媒体观测与时钟映射身份不一致".into());
         }
         if sample.sequence == 0 || sample.position_ms > MAX_TIME_MS {
@@ -46,7 +44,7 @@ impl Group {
         {
             return Err("媒体观测过期、位于未来或误差超限".into());
         }
-        if !starting {
+        if starting.is_none() {
             if !matches!(self.status, Status::Following | Status::Paused) || self.expired(now_ms)? {
                 return Err("同步组未运行或已失联，须重新准备播放代次".into());
             }

@@ -1,6 +1,7 @@
 export type ExecutionAudioOutput = "systemDefault" | "software";
 export type ExecutionMediaAction =
   | { kind: "play" | "pause" | "stop" }
+  | { kind: "recover"; positionMs: number }
   | { kind: "seek"; positionMs: number; playing: boolean }
   | { kind: "exitLoop"; instance: string; region: number; pass: string; requested: boolean };
 export interface ExecutionAudioCatalog {
@@ -9,6 +10,7 @@ export interface ExecutionAudioCatalog {
   group: string;
   seekIncludesEnd: boolean;
   performanceLoops?: boolean;
+  providerRecovery?: boolean;
 }
 export interface ExecutionMediaState {
   id: string;

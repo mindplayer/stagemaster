@@ -3,6 +3,8 @@ mod end_tests;
 #[cfg(test)]
 mod loop_tests;
 mod provider;
+#[cfg(test)]
+mod recovery_tests;
 mod registration;
 #[cfg(test)]
 mod tests;
@@ -49,6 +51,11 @@ impl Lane {
         }
         if let MediaCommand::Seek { position_ms, .. } = command
             && position_ms > self.spec.duration_ms
+        {
+            return Err(Code::State);
+        }
+        if let MediaCommand::Recover { position_ms } = command
+            && position_ms >= self.spec.duration_ms
         {
             return Err(Code::State);
         }

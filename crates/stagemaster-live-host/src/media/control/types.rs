@@ -13,6 +13,9 @@ pub enum MediaCommand {
     Play,
     Pause,
     Stop,
+    Recover {
+        position_ms: u64,
+    },
     Seek {
         position_ms: u64,
         playing: bool,

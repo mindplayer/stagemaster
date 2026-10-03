@@ -54,7 +54,9 @@ impl Runner {
             match self.execute(control.request, media.group.key) {
                 Ok(()) => {}
                 Err(Failure::Superseded) => {
-                    if !matches!(control.request.command, MediaCommand::ExitLoop { .. }) {
+                    if matches!(control.request.command, MediaCommand::Recover { .. }) {
+                        self.fail("音乐重新准备已取消，请重试".into());
+                    } else if !matches!(control.request.command, MediaCommand::ExitLoop { .. }) {
                         self.cancel_job();
                     }
                 }

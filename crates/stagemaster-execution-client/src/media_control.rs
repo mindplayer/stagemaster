@@ -30,6 +30,11 @@ impl Client {
         {
             return Err("当前后台不支持循环控制或循环目标无效".into());
         }
+        if let MediaAction::Recover { position_ms } = &action
+            && (!catalog.provider_recovery || *position_ms >= catalog.duration_ms)
+        {
+            return Err("当前后台不支持音乐恢复或准备位置超出范围".into());
+        }
         if let MediaAction::Seek { position_ms, .. } = &action
             && (*position_ms > catalog.duration_ms
                 || (*position_ms == catalog.duration_ms && !catalog.seek_includes_end))

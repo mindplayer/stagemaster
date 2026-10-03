@@ -97,6 +97,12 @@ fn complete(
         MediaCommand::Stop => return session.stop_media(group.key, now).map_err(|_| Code::State),
         MediaCommand::Play => true,
         MediaCommand::Pause => false,
+        MediaCommand::Recover { .. } => {
+            if !activated {
+                return Err(Code::State);
+            }
+            false
+        }
         MediaCommand::Seek {
             position_ms,
             playing,

@@ -20,6 +20,9 @@ pub(crate) enum Operation {
     Play {},
     Pause {},
     Stop {},
+    Recover {
+        position_ms: u64,
+    },
     Seek {
         position_ms: u64,
         playing: bool,
@@ -57,6 +60,9 @@ pub(crate) fn action(
         Operation::Play {} => MediaCommand::Play,
         Operation::Pause {} => MediaCommand::Pause,
         Operation::Stop {} => MediaCommand::Stop,
+        Operation::Recover { position_ms } => MediaCommand::Recover {
+            position_ms: *position_ms,
+        },
         Operation::ExitLoop {
             instance,
             region,

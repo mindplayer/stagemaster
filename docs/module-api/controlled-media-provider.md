@@ -6,7 +6,7 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 
 `LiveBackend::with_controlled_media(session, &[ControlSpec])` 在原 Host 启动前注册固定组，返回相同的后台与 MediaPort。组必须已存在且不重复，素材位置上限在 1–86400000 ms，作业期限为 1–60000 ms；具体预算由适配层按目标能力确定，不代表物理同步精度。未注册的组保持原 `with_media` 行为。
 
-操作者提交 `Action::RequestMedia { group, command }`，其中 `MediaCommand` 为 Play／Pause／Stop／Seek（位置及期望播放状态）／ExitLoop（原生实例、区段、遍数与退出意图）。必须使用权威观察中的当前组键，经原租约、请求序号、修订和回执检查。错误控制者或旧修订不会向提供方投递意图；重复命令重取原回执，不再创建提供方请求。
+操作者提交 `Action::RequestMedia { group, command }`，其中 `MediaCommand` 为 Play／Pause／Stop／Seek（位置及期望播放状态）／ExitLoop（原生实例、区段、遍数与退出意图）／Recover（重新准备位置）。必须使用权威观察中的当前组键，经原租约、请求序号、修订和回执检查。错误控制者或旧修订不会向提供方投递意图；重复命令重取原回执，不再创建提供方请求。
 
 成功回执表示意图已接纳。实际结果从 `State.media[].control` 读取：`ControlState.request` 包含不可伪造票据、命令和宿主绝对期限；result 为 None 时仍在等待提供方，成功／提供方失败／超时分别表达。历史请求回执中的状态不会随异步结果修改，应读取新的权威观察。退出操作者会话不取消已接纳意图，新操作者的明确命令可以替代它。
 
@@ -15,7 +15,7 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 | 调用 | 职责 |
 | --- | --- |
 | `MediaPort::control_state()` | 读取最新已授权意图和完成状态；不刷新期限；未注册、已关闭或暂时忙明确返回错误 |
-| `stage_requested(ticket, prepared, sample, mapping)` | 将当前播放／定位请求的准备结果放入原单个准备槽；定位首个样本须匹配指定位置或其原生采样帧量化；暂停／停止／循环退出不能用此途径重建计划 |
+| `stage_requested(ticket, prepared, sample, mapping)` | 将当前播放／定位／恢复请求的准备结果放入原单个准备槽；定位／恢复首个样本须匹配指定位置或其原生采样帧量化；暂停／停止／循环退出不能用此途径重建计划 |
 | `reclaim(activation, withdraw)` | 原准备侧回收成功交换出的旧计划或失败计划；超时观察不等于自动取消 |
 | `publish(group, sample, mapping)` | 沿用实际提供方消费／回调观测，原时间和序号不得重新盖章 |
 | `complete_control(ticket, result)` | 实际源操作和相关观测被接纳后报告完成；完成投递不等于宿主已应用，继续读取权威观察 |
@@ -32,6 +32,12 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 
 后台销毁后拒绝新的控制查询、准备与完成，原已占用计划仍可回收。控制槽、观察槽和准备槽都固定容量；未注册提供方、错误位置和旧输入控制权在适用边界拒绝。
 
-实际 WAV／原 Host 验证已授权请求、操作者退出、帧边界暂停、定位新代次、完整灯光帧和停止。软件时钟测试覆盖锁忙、超时、替代、计数耗尽、失败和回收。没有开启物理声卡或灯具。独立应用的常驻音频所有者、自然结束和桌面命令已按 ADR-119／120 接入；循环回跳和退出按 ADR-122 扩展，提供方重启重绑定仍未完成。此进程内接口不新增 HTTP、GATT、工程或设备包格式。
+实际 WAV／原 Host 验证已授权请求、操作者退出、帧边界暂停、定位新代次、完整灯光帧和停止。软件时钟测试覆盖锁忙、超时、替代、计数耗尽、失败和回收。没有开启物理声卡或灯具。独立应用的常驻音频所有者、自然结束和桌面命令已按 ADR-119／120 接入；循环回跳和退出按 ADR-122 扩展，提供方恢复按下述 ADR-123 扩展。此进程内接口不新增 HTTP、GATT、工程或设备包格式。
+
+## 显式恢复（ADR-123）
+
+`Recover { position_ms }` 要求位置严格小于素材时长。它是唯一允许 `Prepared::with_restarted_provider` 的受控请求，且必须携带暂停样本及新时间映射；Play／Seek 拒绝夹带重绑定，Recover 也拒绝普通准备对象。权威核心要求提供方身份不变、时钟代次严格递增，所有检查通过后原子切换时钟与播放代次。完成必须由本请求成功激活并处于 Paused，不能只报告音频操作成功。
+
+替代、超时、旧控制权及重复请求仍沿原规则处理。失败准备不能更改当前时钟；已成功激活后发生的输出故障由提供方停止并上报，不能假装回滚。具体适配与软件验收见 [ADR-123](../development/decisions/PRODUCT-ADR-123-media-provider-recovery.md)／TIME-001。
 
 原 Transport 的静音挂载、普通正式音乐和实际请求代次见[后台原生音频驻留](resident-native-audio.md)。该适配已与本宿主及独立应用的常驻所有者组合验证。

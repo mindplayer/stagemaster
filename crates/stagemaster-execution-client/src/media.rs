@@ -16,6 +16,8 @@ pub struct AudioCatalog {
     pub seek_includes_end: bool,
     #[serde(default)]
     pub performance_loops: bool,
+    #[serde(default)]
+    pub provider_recovery: bool,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -104,6 +106,9 @@ pub enum MediaAction {
     Play {},
     Pause {},
     Stop {},
+    Recover {
+        position_ms: u64,
+    },
     Seek {
         position_ms: u64,
         playing: bool,

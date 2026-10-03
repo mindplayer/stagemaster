@@ -73,6 +73,8 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
             ("/audio/seekIncludesEnd", json!("true")),
             ("/audio/performanceLoops", json!(true)),
             ("/audio/performanceLoops", json!("false")),
+            ("/audio/providerRecovery", json!(false)),
+            ("/audio/providerRecovery", json!("true")),
             ("/capabilities", json!([])),
             ("/sources/1/selection/kind", json!("manual")),
         ] {
@@ -134,11 +136,33 @@ async fn verify_legacy(path: &std::path::Path, proxy: &Proxy, valid: &Value) {
         .as_object_mut()
         .unwrap()
         .remove("performanceLoops");
+    legacy["audio"]
+        .as_object_mut()
+        .unwrap()
+        .remove("providerRecovery");
+    legacy["capabilities"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|c| c != "backgroundAudioRecovery");
     *proxy.replacement.lock().unwrap() = Some(("/source", legacy));
     let mut legacy_client = Client::open(path).await.unwrap();
     Reader::open(path).await.unwrap();
     let view = legacy_client.view();
     let state = &view.observation.snapshot.as_ref().unwrap().state;
+    assert!(!view.catalog.audio.as_ref().unwrap().provider_recovery);
+    assert!(
+        legacy_client
+            .apply_media(
+                &view.host_id,
+                &state.revision,
+                &state.media[0].id,
+                &state.media[0].generation,
+                stagemaster_execution_client::MediaAction::Recover { position_ms: 0 }
+            )
+            .await
+            .unwrap_err()
+            .contains("不支持")
+    );
     assert!(
         legacy_client
             .apply_media(

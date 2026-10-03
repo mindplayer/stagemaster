@@ -65,6 +65,8 @@ impl Owner {
             clock: host.clock(),
             mapping: LocalClock::new(host.clock(), setup.group.clock, target, 5_000_000_000)
                 .map_err(|e| e.to_string())?,
+            reload: setup.reload,
+            failed: false,
             cancel: cancel.clone(),
             view: view.clone(),
             active: None,

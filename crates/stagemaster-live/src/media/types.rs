@@ -68,10 +68,28 @@ pub struct Prepared {
     pub(super) playing: bool,
     pub(super) players: Vec<(usize, Player)>,
     pub(super) looping: bool,
+    pub(super) restarted_provider: Option<Clock>,
 }
 impl Prepared {
     #[must_use]
     pub const fn key(&self) -> GroupKey {
         self.key
+    }
+
+    /// Bind a rebuilt provider only through an explicitly paused preparation.
+    /// Activation validates fixed identity, increasing epoch and the actual new clock mapping.
+    /// # Errors
+    /// Reject an audible preparation; restarting never implicitly resumes playback.
+    pub fn with_restarted_provider(mut self, provider: Clock) -> Result<Self, String> {
+        if self.playing {
+            return Err("媒体提供方恢复须先准备为暂停状态".into());
+        }
+        self.restarted_provider = Some(provider);
+        Ok(self)
+    }
+
+    #[must_use]
+    pub const fn restarted_provider(&self) -> Option<Clock> {
+        self.restarted_provider
     }
 }

@@ -39,9 +39,16 @@ impl MediaPort {
             .try_lock()
             .map_err(|_| Code::Busy)?;
         let intent = control.pending(request)?;
+        if prepared.restarted_provider().is_some()
+            != matches!(intent.command, MediaCommand::Recover { .. })
+        {
+            return Err(Code::State);
+        }
         match intent.command {
             MediaCommand::Play => {}
             MediaCommand::Seek { position_ms, .. } if sample.matches_seek(position_ms) => {}
+            MediaCommand::Recover { position_ms }
+                if !sample.playing && sample.matches_seek(position_ms) => {}
             _ => return Err(Code::State),
         }
         if control.activated || prepared.key() != request.group {

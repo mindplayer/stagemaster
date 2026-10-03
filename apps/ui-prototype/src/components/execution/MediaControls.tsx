@@ -46,6 +46,8 @@ export function MediaControls({
   }, [submitted, runtime, config]);
   if (!config || !media || !audio)
     return <p role="status">正在读取后台音乐状态</p>;
+  const failed = audio.status === "failed";
+  const unavailable = disabled || failed;
   const position = audio.positionMs;
   const playing = media.status === "Following";
   const max = Math.max(0, config.durationMs - (config.seekIncludesEnd ? 0 : 1));
@@ -53,7 +55,7 @@ export function MediaControls({
     draft !== null && /^\d+(\.\d{1,3})?$/.test(draft.text.trim());
   const desired = validDraft ? Math.round(Number(draft.text) * 1000) : position;
   async function seek(ms: number) {
-    if (disabled) return;
+    if (unavailable) return;
     if (!Number.isSafeInteger(ms) || ms < 0 || ms > max) {
       setError(
         config?.seekIncludesEnd
@@ -65,6 +67,13 @@ export function MediaControls({
     setError("");
     const original = draft;
     const request = await onAction({ kind: "seek", positionMs: ms, playing });
+    if (request && original) setSubmitted({ draft: original, request });
+  }
+  async function recover() {
+    if (disabled) return;
+    setError("");
+    const original = draft;
+    const request = await onAction({ kind: "recover", positionMs: 0 });
     if (request && original) setSubmitted({ draft: original, request });
   }
   return (
@@ -88,7 +97,7 @@ export function MediaControls({
         max={max}
         step={1}
         value={Math.min(max, Math.max(0, desired))}
-        disabled={disabled}
+        disabled={unavailable}
         onPointerDown={() => {
           cancelled.current = false;
         }}
@@ -134,7 +143,7 @@ export function MediaControls({
       <div className="execution-buttons">
         <button
           className="wb-primary"
-          disabled={disabled || (playing && audio.status !== "preparing")}
+          disabled={unavailable || (playing && audio.status !== "preparing")}
           onClick={() => void onAction({ kind: "play" })}
         >
           {audio.status === "ended"
@@ -144,20 +153,20 @@ export function MediaControls({
               : "播放音乐"}
         </button>
         <button
-          disabled={disabled || (!playing && audio.status !== "preparing")}
+          disabled={unavailable || (!playing && audio.status !== "preparing")}
           onClick={() => void onAction({ kind: "pause" })}
         >
           暂停音乐
         </button>
         <button
-          disabled={disabled}
+          disabled={unavailable}
           onClick={() => void onAction({ kind: "stop" })}
         >
           停止音乐
         </button>
       </div>
       {config.performanceLoops && (
-        <MediaLoopControls audio={audio} disabled={disabled} onAction={onAction} />
+        <MediaLoopControls audio={audio} disabled={unavailable} onAction={onAction} />
       )}
       <form
         onSubmit={(e) => {
@@ -172,7 +181,7 @@ export function MediaControls({
             aria-label="后台音乐定位秒数"
             inputMode="decimal"
             value={draft?.text ?? (position / 1000).toFixed(3)}
-            disabled={disabled}
+            disabled={unavailable}
             onChange={(e) => {
               setDraft({ text: e.target.value });
               setError("");
@@ -187,7 +196,7 @@ export function MediaControls({
           />{" "}
           秒
         </label>
-        <button disabled={disabled || draft === null}>定位</button>
+        <button disabled={unavailable || draft === null}>定位</button>
         {draft !== null && (
           <button
             type="button"
@@ -200,6 +209,14 @@ export function MediaControls({
           </button>
         )}
       </form>
+      {failed && config.providerRecovery && (
+        <section aria-label="音乐故障恢复">
+          <button disabled={disabled} onClick={() => void recover()}>
+            重新准备音乐
+          </button>
+          <p>从头重新准备并保持暂停，准备完成后再继续播放。</p>
+        </section>
+      )}
       {error && <p role="alert">{error}</p>}
       {audio.problem && <p role="alert">{audio.problem}</p>}
       {!runtime.pending && media.control?.status === "pending" && (

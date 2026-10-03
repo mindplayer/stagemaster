@@ -16,6 +16,7 @@ TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host
 | --- | --- |
 | `Preparer::prepare` | 在调度外编译指定位置的播放器，保留原工程身份和当前组代次 |
 | `Prepared::advance_to` | 在调度外沿同一 Player 向前追赶实际媒体位置；回退重新准备。失败对象在调用端释放 |
+| `Prepared::with_restarted_provider` | 给暂停的准备对象附加同一提供方的新时钟代次；激活时与实际样本、映射及旧绑定一并验证 |
 | `MediaPort::stage` | 将准备结果、配对的实际采样和映射放入唯一准备槽，返回不含资源的 `Activation`；占用、忙或宿主已销毁时拒绝 |
 | `Client::submit(Action::ActivateMedia)` | 原租约、序号、修订及截止时间校验后，短暂借用准备槽并原子切换媒体组；回执返回新组键 |
 | `MediaPort::reclaim(ticket, false)` | 仅取回已经业务处理的准备结果。成功时包含被替换的旧播放器，失败时保留未激活的计划；由调用端销毁 |
@@ -41,4 +42,6 @@ TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host
 
 真实工程、同一后台线程、原解码音源已跨边界验证：音频实际消费驱动灯光列表，输入控制权释放且客户端退出后继续；观测中断时媒体失联，自主效果仍推进。另覆盖准备追赶的实际通道值、暂停、重复回执、旧组键、撤回、唯一槽容量、忙锁、耗尽拒绝、队列满／过期及宿主结束后的回收。全部为软件验证，未打开物理声卡或输出设备。
 
-独立进程与桌面正式音乐已接入，详见[后台音频应用契约](background-audio-application.md)；正式音源暂停健康已按 [ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md) 用实际回调验证：以回调序号、原时刻与已应用状态跟随，暂停消费保持，回调停止后旧缓存被拒绝且按原期限失联。循环按 ADR-122 扩展，提供方重启重绑定及普通试听／临时循环的统一仍待完成。可信应用必须限制准备作业与音源资源总量，槽容量不等于整个应用的资源预算。物理端口与声卡呈现时间单独实测。
+独立进程与桌面正式音乐已接入，详见[后台音频应用契约](background-audio-application.md)；正式音源暂停健康已按 [ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md) 用实际回调验证：以回调序号、原时刻与已应用状态跟随，暂停消费保持，回调停止后旧缓存被拒绝且按原期限失联。循环按 ADR-122 扩展，提供方重绑定按 [ADR-123](../development/decisions/PRODUCT-ADR-123-media-provider-recovery.md) 扩展；普通试听／临时循环的统一仍待完成。可信应用必须限制准备作业与音源资源总量，槽容量不等于整个应用的资源预算。物理端口与声卡呈现时间单独实测。
+
+重绑定不更换端口和组身份。`publish` 入槽只核对固定提供方身份，当前时钟代次由权威 Session 检查；入槽成功不能当作旧观测已获接纳。新代次只从显式准备激活产生，连续观测没有重新绑定权限。旧播放键、旧时钟和旧映射均不能影响新组。
