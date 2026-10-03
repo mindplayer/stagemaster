@@ -22,6 +22,7 @@ impl Worker {
         entry.activate(session, now)
     }
     pub(crate) fn poll(&mut self, session: &mut Session, now: u64) -> Result<(), Code> {
+        self.poll_termination(session, now)?;
         self.poll_requested_activation(session, now)?;
         let update = match self.inbox.try_lock() {
             Ok(mut inbox) => inbox.latest.take(),
@@ -74,6 +75,7 @@ impl LiveBackend {
                     .get(index)
                     .and_then(|w| w.control.as_ref())
                     .and_then(|c| c.state),
+                termination: self.media.get(index).and_then(|w| w.termination),
             });
         }
         states

@@ -50,12 +50,14 @@ pub(super) struct Update {
 pub(super) struct Inbox {
     pub serial: u64,
     pub latest: Option<Update>,
+    pub termination: Option<super::termination::Request>,
 }
 pub(crate) struct Worker {
     pub(super) key: GroupKey,
     pub(super) staging: Arc<Mutex<Staging>>,
     pub(super) inbox: Arc<Mutex<Inbox>>,
     pub receipt: Option<ObservationReceipt>,
+    pub termination: Option<super::TerminationReceipt>,
     pub(super) alive: Arc<AtomicBool>,
     pub(super) control: Option<super::control::Lane>,
 }
@@ -74,6 +76,7 @@ pub(super) fn pair(group: GroupInfo) -> (Worker, MediaPort) {
             staging: staging.clone(),
             inbox: inbox.clone(),
             receipt: None,
+            termination: None,
             alive: alive.clone(),
             control: None,
         },

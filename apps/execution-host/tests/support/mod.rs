@@ -1,5 +1,7 @@
 #![allow(dead_code)] // Shared by independently compiled integration-test executables.
+pub mod audio;
 pub mod group;
+pub mod rejection;
 use reqwest::{Client, RequestBuilder};
 use serde_json::{Value, json};
 use std::{
@@ -64,7 +66,7 @@ impl Harness {
     pub fn start_group() -> Self {
         Self::prepared(|path| Some(group::write(path)))
     }
-    fn prepared(setup: impl FnOnce(&Path) -> Option<PathBuf>) -> Self {
+    pub fn prepared(setup: impl FnOnce(&Path) -> Option<PathBuf>) -> Self {
         let directory = temporary();
         let project_path = directory.path().join("show.json");
         let manifest = setup(&project_path);

@@ -3,10 +3,12 @@ mod control;
 mod local_clock;
 mod port;
 mod slots;
+mod termination;
 mod worker;
 pub use control::{
     ControlFailure, ControlRequest, ControlSpec, ControlState, ControlTicket, MediaCommand,
 };
+pub use termination::{Termination, TerminationReceipt};
 
 pub use local_clock::LocalClock;
 pub use port::MediaPort;
@@ -20,6 +22,7 @@ pub struct MediaState {
     pub group: GroupInfo,
     pub observation: Option<ObservationReceipt>,
     pub control: Option<ControlState>,
+    pub termination: Option<TerminationReceipt>,
 }
 
 pub(crate) fn prepare(session: &Session) -> Result<(Vec<Worker>, Vec<MediaPort>), Code> {

@@ -1,10 +1,11 @@
-//! Local software execution process. No physical output driver is linked.
+//! Independent execution process; DMX is software-only, audio output is explicitly configured.
 #![forbid(unsafe_code)]
 mod application;
 mod bounded_io;
 mod commands;
 mod directory;
 mod group;
+mod media;
 mod preparation;
 mod projection;
 mod server;
@@ -46,6 +47,7 @@ fn run() -> Result<(), String> {
         let prepared = group::prepare(
             std::path::Path::new(&args[0]),
             std::path::Path::new(&args[2]),
+            &directory,
         )?;
         runtime.block_on(server::serve(prepared, directory))
     }

@@ -1,9 +1,6 @@
 mod support;
 use serde_json::{Value, json};
-use std::{
-    fs,
-    process::{Command, Stdio},
-};
+use std::{fs, process::Command};
 use support::{group::*, *};
 
 #[test]
@@ -13,7 +10,7 @@ fn invalid_manifests_never_publish_a_ready_process() {
     let manifest = write(&project);
     let valid: Value = serde_json::from_slice(&fs::read(&manifest).unwrap()).unwrap();
     let mut variants = vec![
-        json!({"version":2,"sources":valid["sources"]}),
+        json!({"version":3,"sources":valid["sources"]}),
         json!({"version":1,"sources":[]}),
         json!({"version":1,"sources":[valid["sources"][2]]}),
         json!({"version":1,"sources":[valid["sources"][0],valid["sources"][0]]}),
@@ -36,17 +33,15 @@ fn invalid_manifests_never_publish_a_ready_process() {
     for (i, bytes) in bytes.iter().enumerate() {
         fs::write(&manifest, bytes).unwrap();
         let run = dir.path().join(format!("run-{i}"));
-        let output = Command::new(env!("CARGO_BIN_EXE_stagemaster-execution-host"))
-            .arg(&project)
-            .arg("group")
-            .arg(&manifest)
-            .arg(&run)
-            .arg("--software-output")
-            .stdout(Stdio::null())
-            .output()
-            .unwrap();
-        assert!(!output.status.success(), "错误来源清单 {i} 被接纳");
-        assert!(!run.join("discovery.json").exists());
+        rejection::rejected(
+            Command::new(env!("CARGO_BIN_EXE_stagemaster-execution-host"))
+                .arg(&project)
+                .arg("group")
+                .arg(&manifest)
+                .arg(&run)
+                .arg("--software-output"),
+            &run,
+        );
     }
 }
 #[test]

@@ -17,9 +17,14 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
             "status":source.status.map(|s|format!("{s:?}")),"step":step.map(|s|&s.id)})
         })
         .collect();
-    json!({"boot":Uuid::from_bytes(s.boot).to_string(),"layout":identity(s.layout),
+    let mut value = json!({"boot":Uuid::from_bytes(s.boot).to_string(),"layout":identity(s.layout),
         "revision":s.revision.to_string(),"observedMs":s.observed_ms.to_string(),"sources":sources,"fault":s.fault,
-        "owner":s.owner.map(|o|json!({"sessionId":Uuid::from_bytes(o.principal).to_string(),"expiresMs":o.expires_ms.to_string()}))})
+        "owner":s.owner.map(|o|json!({"sessionId":Uuid::from_bytes(o.principal).to_string(),"expiresMs":o.expires_ms.to_string()}))});
+    if let Some(owner) = &catalog.media {
+        value["media"] = crate::media::wire::state(s);
+        value["audio"] = owner.view();
+    }
+    value
 }
 pub(super) fn frame(f: &Frame<Live>) -> Value {
     json!({"kind":"softwareSample","boot":Uuid::from_bytes(f.info.boot).to_string(),"layout":identity(f.info.layout),

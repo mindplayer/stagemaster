@@ -1,3 +1,5 @@
+mod catalog;
+mod manifest;
 mod prepare;
 mod projection;
 pub(crate) mod wire;
@@ -23,11 +25,20 @@ pub(crate) struct Catalog {
     pub entries: Vec<Entry>,
     pub output: CompiledOutput,
     pub project: Vec<u8>,
+    pub media: Option<crate::media::Owner>,
 }
 impl Application for Live {
     const PROTOCOL: u8 = 2;
     type Context = Catalog;
     fn action(operation: &Operation, catalog: &Catalog) -> Result<Action, Failure> {
+        if let Operation::Media {
+            group,
+            generation,
+            action,
+        } = operation
+        {
+            return crate::media::wire::action(catalog, group, generation.0, action);
+        }
         let Operation::Source { source, action } = operation else {
             return Err(Failure::invalid());
         };
@@ -89,10 +100,22 @@ impl Application for Live {
         projection::state(state, catalog)
     }
     fn receipt(receipt: Self::Receipt, catalog: &Catalog) -> Value {
-        outcome(receipt.result, projection::state(&receipt.state, catalog))
+        let accepted =
+            receipt.result.is_ok() && matches!(receipt.request.action, Action::RequestMedia { .. });
+        let mut value = outcome(receipt.result, projection::state(&receipt.state, catalog));
+        if accepted {
+            value["kind"] = "accepted".into();
+        }
+        value
     }
     fn frame(frame: &Frame<Self>) -> Value {
         projection::frame(frame)
+    }
+    fn close(catalog: &Catalog) -> Result<(), String> {
+        catalog
+            .media
+            .as_ref()
+            .map_or(Ok(()), crate::media::Owner::close)
     }
     fn project(catalog: &Catalog) -> Option<&[u8]> {
         Some(&catalog.project)

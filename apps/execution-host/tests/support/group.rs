@@ -87,7 +87,7 @@ pub async fn until(h: &Harness, predicate: impl Fn(&Value) -> bool) -> Value {
         if predicate(&snapshot) {
             return snapshot;
         }
-        assert!(Instant::now() < end, "多来源后台未达到预期状态");
+        assert!(Instant::now() < end, "多来源后台未达到预期状态：{snapshot}");
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
 }

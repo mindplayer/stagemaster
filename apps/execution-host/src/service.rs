@@ -93,13 +93,14 @@ impl<M: Application> Service<M> {
     pub async fn join(self: &Arc<Self>) -> Result<(), String> {
         let service = self.clone();
         tokio::task::spawn_blocking(move || {
+            let media_result = M::close(&service.adapter);
             let mut host = service
                 .host
                 .lock()
                 .map_err(|_| "执行宿主锁不可用".to_string())?;
             loop {
                 match host.shutdown(Duration::from_secs(1)) {
-                    Ok(_) => return Ok(()),
+                    Ok(_) => return media_result,
                     Err(WaitError::Timeout) => {} // Same handle, never reconstruct the host.
                     Err(e) => return Err(e.to_string()),
                 }

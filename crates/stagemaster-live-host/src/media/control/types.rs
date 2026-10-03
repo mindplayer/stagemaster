@@ -22,6 +22,12 @@ pub struct ControlTicket {
     pub(super) group: GroupKey,
     pub(super) serial: u64,
 }
+impl ControlTicket {
+    #[must_use]
+    pub const fn serial(self) -> u64 {
+        self.serial
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ControlRequest {

@@ -24,6 +24,10 @@ pub struct GroupKey {
     pub(super) generation: u64,
 }
 impl GroupKey {
+    #[must_use]
+    pub const fn generation(self) -> u64 {
+        self.generation
+    }
     /// Compare fixed membership, deliberately ignoring the current playback generation.
     #[must_use]
     pub fn same_group(self, other: Self) -> bool {

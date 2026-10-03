@@ -4256,8 +4256,10 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "reqwest",
+ "rodio",
  "serde",
  "serde_json",
+ "stagemaster-audio",
  "stagemaster-execution-client",
  "stagemaster-install",
  "stagemaster-install-store",
@@ -4268,6 +4270,7 @@ dependencies = [
  "stagemaster-project-store",
  "stagemaster-runtime",
  "stagemaster-runtime-host",
+ "stagemaster-time",
  "tempfile",
  "tokio",
  "uuid",

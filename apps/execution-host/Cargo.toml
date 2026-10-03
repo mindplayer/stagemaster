@@ -6,6 +6,9 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stagemaster-audio = { path = "../../crates/stagemaster-audio" }
+stagemaster-time = { path = "../../crates/stagemaster-time" }
+rodio = { version = "=0.22.2", default-features = false }
 stagemaster-live = { path = "../../crates/stagemaster-live" }
 stagemaster-live-host = { path = "../../crates/stagemaster-live-host" }
 stagemaster-runtime-host = { path = "../../crates/stagemaster-runtime-host" }

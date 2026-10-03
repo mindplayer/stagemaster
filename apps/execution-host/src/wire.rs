@@ -60,6 +60,11 @@ pub(crate) enum Command {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) enum Operation {
+    Media {
+        group: String,
+        generation: Decimal,
+        action: crate::media::wire::Operation,
+    },
     Source {
         source: String,
         action: crate::group::wire::Operation,
@@ -75,7 +80,7 @@ pub(crate) enum Operation {
 impl Operation {
     pub fn action(&self) -> Result<Action, Failure> {
         Ok(match self {
-            Self::Source { .. } => return Err(Failure::invalid()),
+            Self::Source { .. } | Self::Media { .. } => return Err(Failure::invalid()),
             Self::Start { step } => Action::Start {
                 step: *Uuid::parse_str(step)
                     .map_err(|_| Failure::invalid())?
@@ -106,6 +111,10 @@ impl Input {
                 crate::group::wire::identity(source)?;
                 action.validate()
             }
+            Command::Submit {
+                action: Operation::Media { group, .. },
+                ..
+            } => crate::group::wire::identity(group).map(|_| ()),
             Command::Submit { action, .. } => action.action().map(|_| ()),
             _ => Ok(()),
         }
