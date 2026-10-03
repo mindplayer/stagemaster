@@ -4,6 +4,10 @@ mod control;
 mod discovery;
 mod freshness;
 mod http;
+mod media;
+mod media_control;
+mod validation;
+pub use media::*;
 mod reader;
 mod types;
 use http::Transport;
@@ -26,14 +30,7 @@ impl Client {
     pub async fn open(discovery: &Path) -> Result<Self, String> {
         let transport = Transport::new(discovery::Discovery::read(discovery)?)?;
         let catalog: Catalog = transport.request(Method::GET, "/source", None).await?;
-        if catalog.protocol != 2
-            || catalog.execution != "sourceGroup"
-            || catalog.mode != "softwareOutput"
-            || catalog.physical_output
-            || !(1..=64).contains(&catalog.sources.len())
-        {
-            return Err("后台能力与当前客户端不兼容".into());
-        }
+        validation::catalog(&catalog)?;
         let observation = transport.request(Method::GET, "/state", None).await?;
         let client = Self {
             transport,
@@ -68,7 +65,7 @@ impl Client {
         {
             return Err("后台身份、来源或运行版本不一致，请重新连接".into());
         }
-        Ok(())
+        validation::media_state(&self.catalog, state)
     }
     fn accept_observation(&mut self, mut observation: Observation) -> Result<(), String> {
         self.validate(&observation)?;

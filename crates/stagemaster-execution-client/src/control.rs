@@ -42,6 +42,15 @@ impl Client {
         {
             return Err("操作对应的后台或节目已更换，请重新选择".into());
         }
+        if self
+            .catalog
+            .sources
+            .iter()
+            .any(|s| s.id == source && matches!(s.selection, crate::Selection::AudioTimeline {}))
+            && !matches!(action, Action::Level { .. })
+        {
+            return Err("音乐请使用播放、暂停、停止或定位操作".into());
+        }
         self.send(json!({"kind":"submit","expectedRevision":revision,"action":{"kind":"source","source":source,"action":action}})).await
     }
     pub(super) async fn send(&mut self, command: Value) -> Result<View, String> {

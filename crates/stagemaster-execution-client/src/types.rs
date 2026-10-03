@@ -6,6 +6,7 @@ pub enum Selection {
     Scene { id: String },
     Sequence { id: String },
     Manual {},
+    AudioTimeline {},
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Step {
@@ -31,6 +32,10 @@ pub struct Catalog {
     pub project_id: String,
     pub layout: String,
     pub sources: Vec<Source>,
+    #[serde(default)]
+    pub capabilities: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio: Option<crate::AudioCatalog>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,6 +60,10 @@ pub struct State {
     pub sources: Vec<SourceState>,
     pub fault: bool,
     pub owner: Option<Owner>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub media: Vec<crate::MediaState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio: Option<crate::AudioState>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

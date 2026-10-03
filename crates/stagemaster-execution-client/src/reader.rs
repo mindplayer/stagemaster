@@ -41,14 +41,7 @@ impl Reader {
         discovery.control_token.clear();
         let transport = Transport::new(discovery)?;
         let catalog: Catalog = transport.request(Method::GET, "/source", None).await?;
-        if catalog.protocol != 2
-            || catalog.execution != "sourceGroup"
-            || catalog.mode != "softwareOutput"
-            || catalog.physical_output
-            || !(1..=64).contains(&catalog.sources.len())
-        {
-            return Err("后台不支持此只读观察方式".into());
-        }
+        crate::validation::catalog(&catalog)?;
         Ok(Self {
             transport,
             catalog,
@@ -84,6 +77,7 @@ impl Reader {
         let snapshot = observation.snapshot.ok_or("后台尚无有效采样")?;
         let frame = snapshot.frame.ok_or("后台尚无有效输出")?;
         let state = snapshot.state;
+        crate::validation::media_state(&self.catalog, &state)?;
         let sampled = decimal(&frame.sampled_ms)?;
         let observed = decimal(&state.observed_ms)?;
         if state.fault

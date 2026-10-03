@@ -29,15 +29,19 @@ async fn launch(document: &Document, root: &std::path::Path) -> (Process, PathBu
     let project = root.join("project.json");
     let sources = root.join("sources.json");
     fs::write(&project, document.encode().unwrap()).unwrap();
-    fs::write(
-        &sources,
-        serde_json::to_vec(&json!({"version":1,"sources":[{
-            "id":uuid::Uuid::new_v4().to_string(), "priority":0,
-            "selection":{"kind":"scene","id":document.view().scenes[0].id}
-        }]}))
-        .unwrap(),
-    )
-    .unwrap();
+    let music = document.audio_timeline().is_some();
+    let selection = if music {
+        json!({"kind":"audioTimeline"})
+    } else {
+        json!({"kind":"scene","id":document.view().scenes[0].id})
+    };
+    let mut manifest = json!({"version":if music {2} else {1},"sources":[{
+        "id":uuid::Uuid::new_v4().to_string(),"priority":0,"selection":selection
+    }]});
+    if music {
+        manifest["audio"] = json!({"output":"software"});
+    }
+    fs::write(&sources, serde_json::to_vec(&manifest).unwrap()).unwrap();
     let binary = std::env::current_exe()
         .unwrap()
         .parent()
@@ -168,3 +172,6 @@ async fn real_background_scene_is_frozen_readonly_and_survives_renderer_bridge_r
     assert_eq!(editing["scene"]["fixtures"][0]["originMeters"][0], 99.0);
     controller.shutdown().await.unwrap();
 }
+
+#[path = "background_audio_tests.rs"]
+mod audio;

@@ -23,6 +23,9 @@ pub(super) fn prepare(
             Selection::Scene { id } => ("scene", id),
             Selection::Sequence { id } => ("sequence", id),
             Selection::Manual {} => return Err("手动层由后台自动准备".into()),
+            Selection::AudioTimeline {} => {
+                return Err("音乐后台载入入口尚未接入，请保留当前后台".into());
+            }
         };
         if !keys.insert((kind, id)) {
             return Err("同一节目不能重复载入".into());
@@ -35,7 +38,7 @@ pub(super) fn prepare(
             Selection::Sequence { id } => {
                 document.compile_sequence(id)?;
             }
-            Selection::Manual {} => unreachable!(),
+            Selection::Manual {} | Selection::AudioTimeline {} => unreachable!(),
         }
     }
     let id = Uuid::new_v4().to_string();

@@ -65,14 +65,17 @@ impl Background {
         if document.view().id != reader.catalog().project_id {
             return Err("后台工程身份不一致".into());
         }
-        let selection = reader
+        let output = reader
             .catalog()
             .sources
             .iter()
             .find_map(|source| match &source.selection {
-                Selection::Scene { id } => Some(document.compile_scene(id)),
-                Selection::Sequence { id } => Some(document.compile_sequence(id)),
+                Selection::Scene { id } => Some(document.compile_scene(id).map(|s| s.output)),
+                Selection::Sequence { id } => Some(document.compile_sequence(id).map(|s| s.output)),
                 Selection::Manual {} => None,
+                Selection::AudioTimeline {} => {
+                    Some(document.compile_audio_segment(None).map(|s| s.output))
+                }
             })
             .ok_or("后台没有可观察的节目")??;
         Ok(Self {
@@ -83,7 +86,7 @@ impl Background {
             },
             scene: stagemaster_previs::scene(&document)?,
             rig: LightRig::new(&document),
-            output: selection.output.observer()?,
+            output: output.observer()?,
             reader: tokio::sync::Mutex::new(reader),
         })
     }
