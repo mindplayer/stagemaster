@@ -24,6 +24,15 @@ pub fn admitted_pair(
     permissions: Permissions,
     now: u64,
 ) -> (stagemaster_device_session::Channel, Session) {
+    admitted_pair_with_duration(boot, principal, permissions, now, 10_000)
+}
+pub fn admitted_pair_with_duration(
+    boot: [u8; 16],
+    principal: u8,
+    permissions: Permissions,
+    now: u64,
+    duration_ms: u32,
+) -> (stagemaster_device_session::Channel, Session) {
     static NEXT: AtomicU64 = AtomicU64::new(1);
     let context = Context {
         device: [1; 16],
@@ -58,7 +67,7 @@ pub fn admitted_pair(
             noise::key(3).public(),
             [principal; 16],
             1,
-            10_000,
+            duration_ms,
             permissions,
         )
         .unwrap(),

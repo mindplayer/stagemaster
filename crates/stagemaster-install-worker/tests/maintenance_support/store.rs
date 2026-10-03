@@ -1,7 +1,11 @@
 use stagemaster_install::{Commit, Record, Slot, Storage};
 use stagemaster_install_store::{FileSnapshot, FileStore};
 use stagemaster_package::{Error, ReadAt};
-use std::{cell::Cell, io, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    io,
+    rc::Rc,
+};
 
 #[derive(Default)]
 pub struct Metrics {
@@ -10,6 +14,7 @@ pub struct Metrics {
     pub fail_prepare: Cell<bool>,
     pub fail_read: Cell<bool>,
     pub lose_commit: Cell<bool>,
+    pub during_read: RefCell<Option<Box<dyn FnMut()>>>,
 }
 pub struct Reader {
     source: FileSnapshot,
@@ -20,6 +25,9 @@ impl ReadAt for Reader {
         self.source.len()
     }
     fn read_exact(&self, offset: usize, target: &mut [u8]) -> Result<(), Error> {
+        if let Some(callback) = self.metrics.during_read.borrow_mut().as_mut() {
+            callback();
+        }
         if self.metrics.fail_read.get() {
             return Err(Error::Read);
         }

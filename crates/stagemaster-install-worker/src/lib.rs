@@ -8,6 +8,8 @@ mod managed;
 #[cfg(feature = "application")]
 pub mod operations;
 #[cfg(feature = "application")]
+pub mod runtime_queue;
+#[cfg(feature = "application")]
 pub mod secure;
 pub use endpoint::{ChannelError, Endpoint, Phase};
 pub use managed::ManagedWorker;

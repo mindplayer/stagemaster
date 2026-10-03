@@ -1,6 +1,6 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权、运行应用入口、有界消息、共享客户端及原生运行服务增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
+状态：分权、运行应用入口、有界消息、共享客户端、原生运行服务及运行队列增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，第四增量 `0c832a5`，第五增量 `8d0d093`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
@@ -106,3 +106,24 @@ Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、�
 本增量审查结论：原生运行服务的软件出口满足，按 `feat(device): integrate native runtime connection services` 集成。新增生产依赖只有已有 runtime-protocol，worker／runtime／playback 和 Tokio net 为测试依赖；Cargo.lock 只增 4 条本地边，无第三方升级或固件锁文件变化。下一步生产设备队列／运行 GATT 端点与固件独立调度，再接桌面操作和真实输出；完整 DEVICE-003／AUDIT-001／goal 保持 active，框架轮保持已完成。用户 output/、工程、窗口及物理设备未操作。
 
 最终 fmt／差异检查通过，10 份文档的 518 个本地文件链接无缺失；所涉手写 Rust 文件最大 266 行。生产依赖树不含安装工作器，外部包锁定记录不变、整个固件目录未修改，路径误写产生的空目录已核对不存在。日志 `logs/device-003-host-doc-check.json`、`logs/device-003-host-dependencies.log`。
+
+## 第六增量：运行队列与独立有效性
+
+基线 `9f63a80`，main，当前会话单写者。上一回合按用户要求核对进度，无产品变更，分类 no progress；本回合重新核对现状后接续实际实现，无等待中的进程或外部阻塞。依 [ADR-132](../decisions/PRODUCT-ADR-132-runtime-worker-queue.md) 与[队列契约](../../module-api/device-runtime-queue.md)，范围为 device-session／auth 的最小截止读取、install-worker 的运行队列／网关、真实会话与工作器验证，追加 device-channel 的实际承载集成测试。未更改工程／包／协议字节、固件行为或桌面页面。
+
+通信侧 Gateway 持有真实 Session，生成一个带 epoch／本地票号／固定期限的类型化命令；工作侧 Endpoint 跨连接保留原 Connection、调用唯一 ManagedWorker。Live 从真实权限、接收期限和当前网关截止点取交集，由平台独立同步发布并在清理时撤销；工作前后重读，不把入队快照当永久许可。5 秒协商／回复／保活与 30 秒普通工作期限固定；相同未完成请求不重复入队，后续重试由原运行历史返回。发送密文在承载确认前不可变，旧完成不能完成下一请求。
+
+实际验证：
+
+- `logs/device-003-queue-regression-accepted.log`：221 项相关 Rust 回归通过，0 失败／忽略；20 项新增为 2 项权限截止、16 项队列／撤销／错误／容量和 2 项实际承载。覆盖 device-session、auth、install-worker、runtime-protocol、runtime、device-channel、device-host；不是全工作区全部测试。
+- 真实安装包经过队列进入原播放器，目录／选择／载入／执行／暂停／继续／下一步／停止、完整 512 通道软件帧与参考 Player 一致。断线后同一实例继续推进，重连只读取、不自动抢权。
+- 工作留置 8 秒仍正常保活，相同待处理请求不增加工作；30 秒精确截止不因心跳或重试刷新。实际原包 Reader 内触发撤销，加载可以完成，但旧输入释放、完成拒绝，未假称回滚。旧 epoch／旧票号、观察权限、固定期限及在途心跳与回复先后均覆盖。
+- 共享 RuntimeClient 通过实际本机 TCP 和 20 字节 GATT 软件分片，进入新 Gateway、真实单格同步队列及独立阻塞工作线程，调用原 ManagedWorker；每次操作也经过心跳往返。该软件线程适配验证队列边界，不替代 ESP32 的核心调度／射频实测。
+- 复查发现工作器先采样时间、通信侧随后发布新心跳时，以发布时间作 Live 下界会误撤销有效连接；改用固定准入时刻，Gateway／Connection 各自保持计时回退检查。专门竞态测试同时确认更新后精确接收截止仍生效。
+- `logs/device-003-queue-clippy-verified.log`：全工作区全部目标严格 Clippy（application）通过；`logs/device-003-queue-xtensa-integrated.log`：Xtensa application-gatt 严格检查通过。fmt 与差异检查通过，无第三方／清单／锁文件变更。
+
+初次严格检查发现命令值传递、条件写法、长测试函数和测试分号问题，已通过可复制的小命令、条件整理和共用验证帮助函数修复，未放宽 lint；追加承载帮助模块首次导入路径错误已修正。首次补丁中的错误更新路径被工具原子拒绝，未写出项目。既有测试断言保留，没有隐藏失败用例；初始日志保留。
+
+审查结论：共享运行队列出口满足，按 `feat(device): dispatch runtime work through bounded authenticated queues` 集成。生产与测试按职责拆分，新增文件低于 300 行；Gateway／Endpoint 固定容量只是类型预算，不能视作整机峰值。下一项是固件独立运行 GATT、原工作器非阻塞持续推进与 Live 同步槽，再接桌面操作和实际端口。没有刷机、连接蓝牙、操作声卡／UE／用户窗口或 output/；完整 DEVICE-003／AUDIT-001／goal 仍开放，已完成 FRAMEWORK-001 不重开。
+
+最终本地检查：6 份变更文档的 444 个本地文件链接均有效，本次涉及 Rust 文件最大 219 行；清单、锁文件及固件目录无变化，记录 `logs/device-003-queue-doc-check.json`。用户 output/ 未纳入提交。

@@ -130,6 +130,13 @@ impl Channel {
         self.poll(now)?;
         Ok((self.phase == Phase::Established).then_some(self.proof))
     }
+    /// Current receive lease cutoff, without renewal. Only established channels qualify.
+    /// # Errors
+    /// Closed, unconfirmed, expired or backwards-clock channels have no live deadline.
+    pub fn valid_until(&mut self, now: u64) -> Result<u64, Error> {
+        self.established(now)?;
+        Ok(self.clock.deadline())
+    }
     fn established(&mut self, now: u64) -> Result<(), Error> {
         self.poll(now)?;
         if self.phase != Phase::Established {

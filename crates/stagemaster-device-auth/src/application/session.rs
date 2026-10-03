@@ -60,6 +60,16 @@ impl Session {
         };
         self.checked(result)
     }
+    /// Exact current cutoff for a trusted independent revocation publisher.
+    /// Querying never renews security or application authority.
+    /// # Errors
+    /// Invalid access revokes this session; a previously published value is not authority.
+    pub fn valid_until(&mut self, now: u64) -> Result<u64, Error> {
+        let grant = self.grant(now)?;
+        let result = self.channel.valid_until(now).map_err(Error::from);
+        self.checked(result)
+            .map(|until| until.min(grant.expires_at()))
+    }
     /// # Errors
     /// A record cannot refresh an expired permission or resurrect a closed session.
     /// Every failure clears the caller's plaintext buffer.

@@ -27,6 +27,9 @@ pub(crate) struct Clock {
     deadline: u64,
 }
 impl Clock {
+    pub const fn deadline(&self) -> u64 {
+        self.deadline
+    }
     pub fn new(now: u64) -> Result<Self, Error> {
         Ok(Self {
             last: now,
