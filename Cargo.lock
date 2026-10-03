@@ -4330,10 +4330,14 @@ name = "stagemaster-live-host"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "stagemaster-audio",
  "stagemaster-live",
+ "stagemaster-playback",
  "stagemaster-project",
  "stagemaster-runtime",
  "stagemaster-runtime-host",
+ "stagemaster-time",
+ "tempfile",
 ]
 
 [[package]]

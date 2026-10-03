@@ -1,5 +1,6 @@
 //! Media clocks feed authored positions; host scheduling/leases always keep their own time.
 mod admission;
+mod catch_up;
 mod commands;
 mod preparation;
 mod prepare;

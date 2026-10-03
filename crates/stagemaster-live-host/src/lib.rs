@@ -1,5 +1,6 @@
 //! Multi-source execution adapter for the existing independent host, with shared input authority.
 mod commands;
+pub mod media;
 mod types;
 use stagemaster_live::Session;
 use stagemaster_runtime::{Code, Grant, Lease, Receipt, Request, authority::Authority};
@@ -10,12 +11,26 @@ pub struct LiveBackend {
     session: Session,
     control: Authority<Action, State>,
     revision: u64,
+    media: Vec<media::Worker>,
 }
 impl LiveBackend {
     /// Transfer a pristine prepared group; no other object retains mutable execution access.
     /// # Errors
     /// Reject already-used or faulted groups. This is not proof of authentication or a commercial grant.
     pub fn new(session: Session) -> Result<Self, Code> {
+        if session.media_groups().next().is_some() {
+            return Err(Code::State);
+        }
+        Self::build(session, Vec::new())
+    }
+    /// Prepare bounded media endpoints before transferring this same backend to the normal Host.
+    /// # Errors
+    /// Reject a used/faulted session. Endpoints must remain in the trusted application/provider layer.
+    pub fn with_media(session: Session) -> Result<(Self, Vec<media::MediaPort>), Code> {
+        let (workers, ports) = media::prepare(&session)?;
+        Ok((Self::build(session, workers)?, ports))
+    }
+    fn build(session: Session, media: Vec<media::Worker>) -> Result<Self, Code> {
         if !session.is_pristine() {
             return Err(Code::State);
         }
@@ -24,10 +39,21 @@ impl LiveBackend {
             session,
             control,
             revision: 0,
+            media,
         })
     }
     fn apply(&mut self, action: &Action, now: u64) -> Result<(), Code> {
         let (source, result) = match action {
+            Action::ActivateMedia { ticket } => return self.activate_media(*ticket, now),
+            Action::StopMedia { group } => {
+                return self.session.stop_media(*group, now).map_err(|_| {
+                    if self.session.fault().is_some() {
+                        Code::Playback
+                    } else {
+                        Code::State
+                    }
+                });
+            }
             Action::Control { source, command } => {
                 (*source, self.session.control(*source, *command, now))
             }
@@ -69,6 +95,7 @@ impl Backend for LiveBackend {
             layout: self.session.layout_id(),
             owner: self.control.owner(),
             sources,
+            media: self.media_state(),
             fault: self.session.fault().is_some(),
         }
     }
@@ -77,6 +104,9 @@ impl Backend for LiveBackend {
             return Err(Code::Clock);
         }
         self.session.tick(now).map_err(|_| Code::Playback)?;
+        for worker in &mut self.media {
+            worker.poll(&mut self.session, now)?;
+        }
         self.control.tick(now)
     }
     fn render(&self, slots: &mut [u8; 512]) -> Result<Option<FrameInfo>, Code> {

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 #[path = "../../../stagemaster-live/tests/support/mod.rs"]
-mod fixtures;
+pub(super) mod fixtures;
 use fixtures::{decode, fixture, id, playback, specs};
 use stagemaster_live::{Command, Key, Session};
 use stagemaster_live_host::{Action, Live, LiveBackend, State};

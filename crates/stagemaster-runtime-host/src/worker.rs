@@ -1,5 +1,5 @@
 use crate::{
-    Backend, COMMANDS_PER_CYCLE, Configuration, Error, Frame, Snapshot,
+    Backend, COMMANDS_PER_CYCLE, Clock, Configuration, Error, Frame, Snapshot,
     client::{Acquisition, Command, Envelope, Reply},
     observation::Shared,
 };
@@ -73,14 +73,10 @@ pub(crate) fn run<B: Backend>(
     configuration: Configuration,
     receiver: Receiver<Envelope<B::Profile>>,
     shared: &Shared<B::Profile>,
+    clock: Clock,
 ) -> Result<(), Code> {
-    let base = runtime.observed_ms();
-    let clock = Instant::now();
-    let now = || -> Result<u64, Code> {
-        base.checked_add(u64::try_from(clock.elapsed().as_millis()).map_err(|_| Code::Exhausted)?)
-            .ok_or(Code::Exhausted)
-    };
-    let mut due = clock;
+    let now = || clock.at_ms(Instant::now());
+    let mut due = Instant::now();
     let mut cycles = 0_u64;
     let mut skipped = 0_u64;
     let mut max_lateness_ms = 0;

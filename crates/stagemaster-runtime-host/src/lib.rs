@@ -33,6 +33,7 @@
 #![forbid(unsafe_code)]
 mod backend;
 mod client;
+mod clock;
 mod deadline;
 mod host;
 mod observation;
@@ -40,6 +41,7 @@ mod worker;
 
 pub use backend::{Backend, Device, Profile};
 pub use client::{Client, Connection, Ticket, WaitError};
+pub use clock::Clock;
 pub use deadline::Deadline;
 pub use host::Host;
 pub use observation::{Fault, Frame, Observation, Observer, Phase, Snapshot};

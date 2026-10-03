@@ -28,9 +28,24 @@ impl Patch {
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
-    Control { source: Key, command: Command },
-    Patch { source: Key, patch: Patch },
-    Level { source: Key, level: u16 },
+    Control {
+        source: Key,
+        command: Command,
+    },
+    Patch {
+        source: Key,
+        patch: Patch,
+    },
+    Level {
+        source: Key,
+        level: u16,
+    },
+    ActivateMedia {
+        ticket: crate::media::Activation,
+    },
+    StopMedia {
+        group: stagemaster_live::media::GroupKey,
+    },
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct State {
@@ -40,6 +55,7 @@ pub struct State {
     pub layout: [u8; 32],
     pub owner: Option<Owner>,
     pub sources: [Option<SourceInfo>; 64],
+    pub media: [Option<crate::media::MediaState>; 64],
     pub fault: bool,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -1,6 +1,6 @@
 # 多来源共享后台宿主
 
-HOST-004 已进一步接入[多来源独立进程应用入口](multi-source-process.md)，下面的库边界保持；桌面和物理输出仍未迁移。
+HOST-004／005 已进一步接入[多来源独立进程应用入口](multi-source-process.md)与桌面后台控制，下面的库边界保持；物理输出仍未迁移。TIME-001 新增[后台媒体准备／观测入口](media-host-ingress.md)，媒体应用入口仍待接入独立进程／桌面。
 
 HOST-003／[ADR-107](../development/decisions/PRODUCT-ADR-107-shared-host-backends.md)。`stagemaster-runtime-host` 保留一个调度实现，`stagemaster-live-host` 将[固定来源组](prepared-source-compositor.md)接入其中。当前为灯光软件后台，不是统一音视频渲染回调；音视频独立时钟与设备回调仍走各自模块。
 

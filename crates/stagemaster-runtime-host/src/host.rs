@@ -1,6 +1,6 @@
 use crate::{
-    Backend, Configuration, Connection, Deadline, Device, Error, Fault, Observer, Phase, Profile,
-    QUEUE_CAPACITY, WaitError,
+    Backend, Clock, Configuration, Connection, Deadline, Device, Error, Fault, Observer, Phase,
+    Profile, QUEUE_CAPACITY, WaitError,
     client::{Command, Ingress},
     observation::Shared,
     worker,
@@ -19,6 +19,7 @@ pub struct Host<M: Profile = Device> {
     ingress: Ingress<M>,
     thread: Option<thread::JoinHandle<()>>,
     done: mpsc::Receiver<()>,
+    clock: Clock,
 }
 impl Host {
     /// Transfer a fully prepared, idle runtime to its only scheduling owner.
@@ -48,6 +49,7 @@ impl<M: Profile> Host<M> {
             return Err(Error::NotPrepared);
         }
         let state = runtime.state();
+        let clock = Clock::new(runtime.observed_ms());
         let shared = Arc::new(Shared::<M>::new(state));
         let (sender, receiver) = mpsc::sync_channel(QUEUE_CAPACITY);
         let (completed, done) = mpsc::sync_channel(1);
@@ -56,7 +58,7 @@ impl<M: Profile> Host<M> {
             .name("stagemaster-runtime".into())
             .spawn(move || {
                 let result = catch_unwind(AssertUnwindSafe(|| {
-                    worker::run(runtime, configuration, receiver, &owner)
+                    worker::run(runtime, configuration, receiver, &owner, clock)
                 }));
                 owner.finish(match result {
                     Ok(Ok(())) => None,
@@ -70,7 +72,13 @@ impl<M: Profile> Host<M> {
             ingress: Ingress { sender, shared },
             thread: Some(thread),
             done,
+            clock,
         })
+    }
+    /// Same process-local origin used by the scheduling worker; not a remotely transferable clock.
+    #[must_use]
+    pub const fn clock(&self) -> Clock {
+        self.clock
     }
     #[must_use]
     pub fn observer(&self) -> Observer<M> {

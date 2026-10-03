@@ -23,6 +23,13 @@ pub struct GroupKey {
     pub(super) index: usize,
     pub(super) generation: u64,
 }
+impl GroupKey {
+    /// Compare fixed membership, deliberately ignoring the current playback generation.
+    #[must_use]
+    pub fn same_group(self, other: Self) -> bool {
+        self.boot == other.boot && self.index == other.index
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
     Ready,
@@ -55,4 +62,10 @@ pub struct Prepared {
     pub(super) position_ms: u64,
     pub(super) playing: bool,
     pub(super) players: Vec<(usize, LiveSequencePlayer)>,
+}
+impl Prepared {
+    #[must_use]
+    pub const fn key(&self) -> GroupKey {
+        self.key
+    }
 }
