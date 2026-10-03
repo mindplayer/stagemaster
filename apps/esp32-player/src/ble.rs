@@ -3,6 +3,8 @@
 mod application;
 #[cfg(feature = "installation-gatt")]
 mod installation;
+#[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
+mod readiness;
 #[cfg(feature = "secure-gatt-test")]
 mod secure_probe;
 mod session;
@@ -194,6 +196,8 @@ pub async fn run<C: Controller>(
             runner.run().await.unwrap();
         },
         async {
+            #[cfg(any(feature = "installation-gatt", feature = "application-gatt"))]
+            readiness::wait().await;
             #[cfg(feature = "binding-readiness")]
             binding.open_local_test_window();
             loop {

@@ -1,20 +1,9 @@
-use crate::{Buffer, Code, Error, IO_BYTES, MAX_WORD_BYTES, METADATA_BYTES, Shared, io, metadata};
+use crate::{Buffer, Code, Error, METADATA_BYTES, Shared, io, metadata, payload::Stage};
 use alloc::rc::Rc;
 use embedded_storage::nor_flash::NorFlash;
 use stagemaster_install::{Commit, Record, Slot, Storage};
 use stagemaster_package::ReadAt;
 
-struct Stage {
-    slot: Slot,
-    bytes: usize,
-    received: usize,
-    programmed: usize,
-    tail: [u8; MAX_WORD_BYTES],
-    tail_len: usize,
-    poisoned: bool,
-    sealed: bool,
-    commit_attempted: bool,
-}
 pub struct NorStore<F> {
     shared: Rc<Shared<F>>,
     writable: bool,
@@ -109,25 +98,9 @@ impl<F: NorFlash> Storage for NorStore<F> {
             return Err(Code::Bounds.into());
         }
         self.shared.active.set(Some(slot));
-        self.stage = Some(Stage {
-            slot,
-            bytes,
-            received: 0,
-            programmed: 0,
-            tail: [0xff; MAX_WORD_BYTES],
-            tail_len: 0,
-            poisoned: true,
-            sealed: false,
-            commit_attempted: false,
-        });
+        self.stage = Some(Stage::new(slot, bytes));
         let meta = self.shared.layout.metadata_offset(slot);
         io::erase(&self.shared, meta, meta + METADATA_BYTES)?;
-        let payload = self.shared.layout.payload_offset(slot);
-        io::erase(
-            &self.shared,
-            payload,
-            payload + bytes.div_ceil(F::ERASE_SIZE) * F::ERASE_SIZE,
-        )?;
         self.stage.as_mut().ok_or(Code::State)?.poisoned = false;
         Ok(())
     }
@@ -138,40 +111,7 @@ impl<F: NorFlash> Storage for NorStore<F> {
             .as_mut()
             .filter(|s| s.slot == slot && !s.poisoned && !s.sealed)
             .ok_or(Code::State)?;
-        if bytes.is_empty()
-            || bytes.len() > IO_BYTES
-            || offset != stage.received
-            || offset
-                .checked_add(bytes.len())
-                .is_none_or(|n| n > stage.bytes)
-        {
-            return Err(Code::Bounds.into());
-        }
-        stage.poisoned = true;
-        let mut buffer = Buffer::erased();
-        let mut input = bytes;
-        while !input.is_empty() {
-            let carry = stage.tail_len;
-            let count = input.len().min(IO_BYTES - carry);
-            buffer.0[..carry].copy_from_slice(&stage.tail[..carry]);
-            buffer.0[carry..carry + count].copy_from_slice(&input[..count]);
-            let length = carry + count;
-            let complete = length / F::WRITE_SIZE * F::WRITE_SIZE;
-            if complete != 0 {
-                io::write(
-                    &self.shared,
-                    self.shared.layout.payload_offset(slot) + stage.programmed,
-                    &buffer.0[..complete],
-                )?;
-                stage.programmed += complete;
-            }
-            stage.tail_len = length - complete;
-            stage.tail[..stage.tail_len].copy_from_slice(&buffer.0[complete..length]);
-            input = &input[count..];
-        }
-        stage.received += bytes.len();
-        stage.poisoned = false;
-        Ok(())
+        stage.write(&self.shared, offset, bytes)
     }
     fn sync_payload(&mut self, slot: Slot) -> Result<(), Self::Error> {
         self.writable()?;
@@ -180,24 +120,7 @@ impl<F: NorFlash> Storage for NorStore<F> {
             .as_mut()
             .filter(|s| s.slot == slot && !s.poisoned && s.received == s.bytes)
             .ok_or(Code::State)?;
-        if stage.sealed {
-            return Ok(());
-        }
-        stage.poisoned = true;
-        if stage.tail_len != 0 {
-            let mut buffer = Buffer::erased();
-            buffer.0[..stage.tail_len].copy_from_slice(&stage.tail[..stage.tail_len]);
-            io::write(
-                &self.shared,
-                self.shared.layout.payload_offset(slot) + stage.programmed,
-                &buffer.0[..F::WRITE_SIZE],
-            )?;
-            stage.programmed += F::WRITE_SIZE;
-            stage.tail_len = 0;
-        }
-        stage.sealed = true;
-        stage.poisoned = false;
-        Ok(())
+        stage.sync(&self.shared)
     }
     fn commit_record(&mut self, commit: Commit) -> Result<(), Self::Error> {
         self.writable()?;

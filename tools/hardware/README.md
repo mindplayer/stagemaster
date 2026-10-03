@@ -241,3 +241,11 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo test -p stagemaster-run
 5. 停止测试采集，进入维护、安装原包、退出维护，再 `observe` 确认原摘要／目录、空闲且无控制者；安装代次正常增加，不把恢复原内容称作没有写入。
 
 原生例程沿用 `stagemaster-device-host` 的应用开发配置入口；配置使用项目已有真实配置，不输出其秘密，不额外启用系统配对实验。详细边界、失败与复测记录见 [MEMORY-002](../../docs/development/tasks/MEMORY-002-device-capacity-acceptance.md)。
+
+## 大文件维护对照（MEMORY-003）
+
+`cargo run -p stagemaster-package --example maintenance_capacity --locked --offline`（沿用上面的项目内 CARGO_HOME／TMPDIR）在 11 种属性数量下搜索合法步骤边界，写入 `data/MEMORY-003/large.smpkg` 并独立校验、逐项加载。它是更大的有效代表，不宣称穷尽全部语义形状。`capacity_device` 与 `capacity_report.py` 接受该任务目录；物理禁用、固定测试身份、4／64 目录及帧率／停止后观察要求保持。
+
+短步骤可能在断线时切换或循环，`elapsedMs` 只是步内时间。容量工具按同一实际包与设备 `observedMs` 差独立核对精确步骤／步内位置，不用累计时间假设；串口报告查连续帧与进度变化，仍须同时提供成功的原生控制日志。启动日志须确认工作器就绪先于首次可连接广播；开发自检期间的短扫描可能无结果，不据此放宽权限或改写本次连接的设备描述。
+
+安装例程的整次传输等待按文件大小给出至少 4 分钟、保守 2 KiB/s 加 60 秒的有界时间；不改变设备单请求、工作器或 UART 期限。开始前读原摘要／目录并确认无控制者，进入维护后才安装。维护时的擦写采样不能与正常运行 50 ms 帧间隔混算，分别采集安装／退出维护与完整重新启动后的播放日志。最大原始存储长度的软件模型通过，不等于最大畸形输入、所有合法程序或实板完整栈已经验收；详见 [MEMORY-003](../../docs/development/tasks/MEMORY-003-large-package-maintenance.md)。结束恢复原包并核对，不以重启代替失败的退出维护。

@@ -67,7 +67,9 @@ def main():
     if not 0 <= args.post_stop_seconds <= 540:
         parser.error('停止后观察门槛必须在 0～540 秒之间')
     root = Path(__file__).resolve().parents[2]
-    if any(not path.resolve().is_relative_to(root / 'logs') for path in (args.board, args.controls)) or not args.output.resolve().is_relative_to(root / 'data/MEMORY-002'):
+    output_allowed = any(args.output.resolve().is_relative_to(root / directory)
+                         for directory in ('data/MEMORY-002', 'data/MEMORY-003'))
+    if any(not path.resolve().is_relative_to(root / 'logs') for path in (args.board, args.controls)) or not output_allowed:
         parser.error('日志／报告必须位于本项目规定目录')
     report = analyze(args.board.read_text(), args.controls.read_text(), args.programs, args.post_stop_seconds)
     args.output.parent.mkdir(parents=True, exist_ok=True)

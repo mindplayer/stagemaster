@@ -1,10 +1,10 @@
 use crate::client::{Probe, Result, elapsed, state};
 use serde_json::json;
-use stagemaster_package::Archive;
+use stagemaster_package::{Archive, Program};
 use std::{fmt::Write, time::Duration};
 use tokio::time::sleep;
 
-pub async fn run(probe: &Probe, archive: &Archive) -> Result<()> {
+pub async fn run(probe: &Probe, archive: &Archive, last: &Program) -> Result<()> {
     let locator = probe.discover(None).await?;
     probe.connect(&locator).await?;
     let initial = probe.read().await?;
@@ -46,7 +46,7 @@ pub async fn run(probe: &Probe, archive: &Archive) -> Result<()> {
             sleep(Duration::from_millis(300)).await;
         }
         if index + 1 == keys.len() {
-            offline(probe, &locator, &boot).await?;
+            offline(probe, &locator, &boot, last).await?;
         }
         let stopped = probe.apply(json!({"kind":"stop"})).await?;
         assert_eq!(stopped["reply"]["boot"], boot);
@@ -86,7 +86,12 @@ fn hex(bytes: &[u8]) -> String {
     })
 }
 
-async fn offline(probe: &Probe, locator: &str, boot: &serde_json::Value) -> Result<()> {
+async fn offline(
+    probe: &Probe,
+    locator: &str,
+    boot: &serde_json::Value,
+    program: &Program,
+) -> Result<()> {
     let paused = probe.apply(json!({"kind":"pause"})).await?;
     sleep(Duration::from_secs(10)).await;
     assert_eq!(elapsed(&probe.read().await?), elapsed(&paused));
@@ -99,7 +104,29 @@ async fn offline(probe: &Probe, locator: &str, boot: &serde_json::Value) -> Resu
     assert_eq!(after["reply"]["boot"], *boot);
     assert_eq!(state(&after)["instance"], state(&before)["instance"]);
     assert_eq!(state(&after)["status"], "running");
-    assert!(elapsed(&after) >= elapsed(&before) + 44_500);
+    let position = |view: &serde_json::Value| -> Result<(usize, u64)> {
+        let index = program
+            .labels
+            .iter()
+            .position(|l| state(view)["step"] == hex(&l.id))
+            .ok_or("运行步骤不在实际节目中")?;
+        Ok((index, elapsed(view)))
+    };
+    let observed = |view: &serde_json::Value| -> Result<u64> {
+        Ok(view["reply"]["observedMs"]
+            .as_str()
+            .ok_or("缺少设备采样时刻")?
+            .parse()?)
+    };
+    let delta = observed(&after)?
+        .checked_sub(observed(&before)?)
+        .ok_or("设备时间倒退")?;
+    assert!(crate::progress::advances(
+        program,
+        position(&before)?,
+        position(&after)?,
+        delta
+    ));
     assert!(state(&after)["owner"].is_null());
     probe
         .apply(json!({"kind":"acquire","takeover":false}))

@@ -50,7 +50,11 @@ async fn connect(link: &Link<Ble>, epoch: u32, locator: &str) -> Result<Snapshot
 }
 
 async fn finished(upload: &Service<Link<Ble>>) -> Result<Task> {
-    let deadline = Instant::now() + Duration::from_mins(4);
+    let bytes = upload.snapshot()?.task.ok_or("缺少任务")?.package.bytes;
+    // This is the CLI's whole-transfer wait, not a device or per-request deadline.
+    // Allow the declared 2 MiB maximum at a conservative 2 KiB/s, plus setup time.
+    let seconds = 60 + u64::try_from(bytes.div_ceil(2048))?;
+    let deadline = Instant::now() + Duration::from_secs(seconds.max(240));
     let mut previous = 0;
     loop {
         let snapshot = upload.snapshot()?;

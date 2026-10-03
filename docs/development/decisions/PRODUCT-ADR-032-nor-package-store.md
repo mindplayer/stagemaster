@@ -1,5 +1,7 @@
 # ADR-032：NOR Flash 播放包双槽存储
 
+2026-10-04 增量：载荷擦除时机由 [ADR-142](PRODUCT-ADR-142-incremental-payload-erasure.md) 改为顺序编程前分段进行；下文保留原始设计依据，布局、双槽和完整校验不变。
+
 2026-09-28；接受并实施。PLAYER-003D，基线 `9ae315a`。
 
 ## 参考与实际约束

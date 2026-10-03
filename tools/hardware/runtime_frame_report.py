@@ -78,7 +78,9 @@ def analyze(text):
             failures.append('断线帧与实际成功帧计数不一致')
         if last['commands'] != first['commands']:
             failures.append('断线区间仍有运行命令')
-        if last['elapsed_ms'] <= first['elapsed_ms']:
+        # elapsed_ms is local to the active step: follow/loop may legitimately reset it.
+        # Exact step/cycle advancement is checked by the native control probe.
+        if not any(a['elapsed_ms'] != b['elapsed_ms'] for a, b in zip(offline, offline[1:])):
             failures.append('断线区间节目进度没有推进')
     paused = segments(samples, lambda s: s['running'] == 0 and s['instance'] > 0)
     pause_ok = any(elapsed(g) >= 4 and g[-1]['frames'] > g[0]['frames']

@@ -34,6 +34,14 @@ class Reports(unittest.TestCase):
     def test_diagnostic_ticks_alone_are_not_frame_evidence(self):
         self.assertFalse(analyze('ESP-ROM:x\nLIVE ticks=999999 elapsed_ms=90000')['passed'])
 
+    def test_step_clock_may_wrap_but_frozen_progress_fails(self):
+        samples = valid()
+        samples[0]['elapsed_ms'] = 1500
+        samples[1]['elapsed_ms'] = 500
+        self.assertTrue(analyze(log(samples))['passed'])
+        samples[1]['elapsed_ms'] = 1500
+        self.assertFalse(analyze(log(samples))['passed'])
+
     def test_other_instances_errors_late_gaps_and_new_commands_fail(self):
         for field, value in [('instance', 2), ('errors', 1), ('clock_errors', 1),
                              ('max_gap_us', 50001), ('commands', 1), ('online', 1)]:

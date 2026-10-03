@@ -3,6 +3,8 @@
 mod client;
 #[path = "capacity_device/flow.rs"]
 mod flow;
+#[path = "capacity_device/progress.rs"]
+mod progress;
 use client::{Probe, Result};
 use stagemaster_device_host::{Ble, Service, runtime_ui::ExpectedAccess};
 use stagemaster_package::Archive;
@@ -20,7 +22,9 @@ async fn main() -> Result<()> {
     let configuration = Path::new(&args[0]).canonicalize()?;
     let package = Path::new(&args[1]).canonicalize()?;
     if !configuration.starts_with(root.join("data"))
-        || !package.starts_with(root.join("data/MEMORY-002"))
+        || !["data/MEMORY-002", "data/MEMORY-003"]
+            .iter()
+            .any(|directory| package.starts_with(root.join(directory)))
     {
         return Err("配置与测试包必须位于规定的项目 data 目录".into());
     }
@@ -38,7 +42,8 @@ async fn main() -> Result<()> {
         link: Service::new(Ble::with_development_configuration(config)),
         access,
     };
-    let result = flow::run(&probe, &archive).await;
+    let last = archive.load(bytes.as_slice(), archive.entries().len() - 1)?;
+    let result = flow::run(&probe, &archive, &last).await;
     probe.link.shutdown().await?;
     result
 }

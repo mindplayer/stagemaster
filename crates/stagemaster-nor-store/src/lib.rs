@@ -6,6 +6,7 @@ extern crate alloc;
 mod cache;
 mod io;
 mod metadata;
+mod payload;
 mod store;
 
 use alloc::rc::Rc;
