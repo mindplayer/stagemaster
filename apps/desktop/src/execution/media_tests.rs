@@ -4,7 +4,7 @@ use crate::execution::media::AudioInput;
 use stagemaster_execution_client::{AudioOutput, MediaAction, MediaCompletion};
 use std::{fs, path::Path, sync::atomic::AtomicBool, time::Instant};
 
-fn music(root: &Path) -> (Document, AudioInput) {
+pub(super) fn music(root: &Path) -> (Document, AudioInput) {
     let source = root.join("music.wav");
     let size = 8000_u32 * 2 * 5;
     let mut bytes = Vec::new();
@@ -44,7 +44,7 @@ fn music(root: &Path) -> (Document, AudioInput) {
         },
     )
 }
-async fn operation(manager: &mut Manager, action: MediaAction) -> View {
+pub(super) async fn operation(manager: &mut Manager, action: MediaAction) -> View {
     let view = connected(manager).await.runtime.unwrap();
     let state = view.observation.snapshot.unwrap().state;
     manager

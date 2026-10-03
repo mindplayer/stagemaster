@@ -15,6 +15,7 @@ pub(crate) struct Setup {
     pub(super) reload: super::recovery::Reload,
     pub(super) transport: Transport,
     pub(super) software: Option<SoftwareOutput>,
+    pub(super) output_lease: Option<stagemaster_audio::OutputLease>,
 }
 impl Setup {
     pub fn prepare(
@@ -23,7 +24,14 @@ impl Setup {
         directory: &Directory,
         source: [u8; 16],
         output: OutputKind,
+        scope: Option<&stagemaster_audio::OutputScope>,
     ) -> Result<Self, String> {
+        if matches!(output, OutputKind::SystemDefault) && scope.is_none() {
+            return Err("系统声音输出必须指定共同的声音输出占用目录".into());
+        }
+        let output_lease = scope
+            .map(stagemaster_audio::OutputScope::reserve)
+            .transpose()?;
         let track = doc.audio_timeline().ok_or("工程没有音乐轨道")?;
         let loops = track.loop_regions.iter().any(|r| r.enabled);
         let resources = Resources::new(directory.store().join("media"));
@@ -69,6 +77,7 @@ impl Setup {
             reload,
             transport,
             software,
+            output_lease,
         })
     }
 }

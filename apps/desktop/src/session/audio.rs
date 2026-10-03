@@ -4,6 +4,13 @@ use stagemaster_audio::Position;
 #[cfg(test)]
 use stagemaster_project::AudioTimeline;
 impl Session {
+    pub(crate) fn configure_audio_output(
+        &mut self,
+        scope: stagemaster_audio::OutputScope,
+    ) -> Result<(), String> {
+        self.audio.transport.set_output_scope(scope)
+    }
+
     pub(crate) fn audio_load_intent(
         &self,
         generation: u32,

@@ -77,6 +77,7 @@ impl Owner {
             last_sample: 0,
             terminal: None,
             pending_end: None,
+            _output_lease: setup.output_lease,
         };
         let thread = thread::Builder::new()
             .name("stage-media".into())

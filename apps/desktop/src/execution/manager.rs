@@ -117,13 +117,18 @@ impl Manager {
             }
             files::clear(&self.root)?;
         }
+        // The manager lock prevents cooperating editor starts while the child takes ownership.
+        // A prior editor keeps its voice reservation after the command guard has been dropped.
+        if audio.is_some() {
+            drop(stagemaster_audio::OutputScope::new(self.root.clone())?.reserve()?);
+        }
         self.client = None;
         self.child = None;
         self.run = None;
         self.closing = false;
         let run = process::prepare(&self.root, &document, selection, audio)?;
         self.run = Some(run.clone());
-        match process::launch(&self.binary, &run) {
+        match process::launch(&self.binary, &run, &self.root) {
             Ok(child) => self.child = Some(child),
             Err(error) => {
                 files::clear(&self.root)?;
@@ -211,3 +216,7 @@ mod tests;
 #[cfg(test)]
 #[path = "media_tests.rs"]
 mod media_tests;
+
+#[cfg(test)]
+#[path = "audio_ownership_tests.rs"]
+mod audio_ownership_tests;

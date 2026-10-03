@@ -18,7 +18,9 @@ fn failed_provider_rebuilds_on_same_host_keeps_other_lights_and_waits_for_explic
     runtime().block_on(recover());
 }
 async fn recover() {
-    let mut h = Harness::prepared(|p| Some(loops::write(p, &json!({"kind":"untilExit"}))));
+    let mut h = Harness::prepared_scoped(|p| Some(loops::write(p, &json!({"kind":"untilExit"}))));
+    let scope = stagemaster_audio::OutputScope::new(h.directory.path().join("output")).unwrap();
+    assert!(scope.reserve().is_err());
     assert_eq!(
         ok(h.get("/source")).await["audio"]["providerRecovery"],
         true
@@ -52,6 +54,7 @@ async fn recover() {
     .await["state"]
         .clone();
     assert_eq!(failed["sources"][0]["status"], "Running");
+    assert!(scope.reserve().is_err());
     let recovery = json!({"kind":"recover","positionMs":2500});
     // A decodable WAV with changed PCM is still the wrong immutable resource.
     let mut substituted = healthy.clone();
@@ -81,11 +84,13 @@ async fn recover() {
     // Recovery uses the fixed private snapshot even after the editable project disappears.
     fs::remove_file(&h.project).unwrap();
     let prepared = operate(&h, &who, 6, &still_failed, recovery.clone()).await;
+    assert!(scope.reserve().is_err());
     verify_recovery(&h, &who, &still_failed, &prepared, recovery).await;
     assert!(!h.project.exists());
     // Restore only after recovery/replay checks; the common shutdown assertion verifies the file.
     fs::write(&h.project, &h.original).unwrap();
     h.close().await;
+    assert!(scope.reserve().is_ok());
 }
 async fn verify_recovery(
     h: &Harness,

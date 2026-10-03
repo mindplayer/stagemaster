@@ -16,6 +16,7 @@ pub(crate) fn prepare(
     project: &Path,
     manifest: &Path,
     directory: &Directory,
+    audio_scope: Option<&stagemaster_audio::OutputScope>,
 ) -> Result<Prepared<Live>, String> {
     let manifest = Manifest::load(manifest)?;
     let specs = manifest.specs()?;
@@ -27,7 +28,14 @@ pub(crate) fn prepare(
                 .iter()
                 .find(|s| matches!(s.playback, Some(PlaybackSelection::AudioTimeline)))
                 .ok_or("音乐来源不存在")?;
-            Setup::prepare(&document, project, directory, source.id, config.output)
+            Setup::prepare(
+                &document,
+                project,
+                directory,
+                source.id,
+                config.output,
+                audio_scope,
+            )
         })
         .transpose()?;
     let boot = Uuid::new_v4();

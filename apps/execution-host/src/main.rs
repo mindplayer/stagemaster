@@ -21,9 +21,16 @@ fn main() {
 }
 fn run() -> Result<(), String> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.len() != 5 || args[4] != "--software-output" {
-        return Err("用法：stagemaster-execution-host 工程路径 scene|sequence|group 节目ID或来源清单路径 新运行目录 --software-output".into());
+    if !matches!(args.len(), 5 | 7)
+        || args[4] != "--software-output"
+        || (args.len() == 7 && args[5] != "--audio-scope")
+    {
+        return Err("用法：stagemaster-execution-host 工程路径 scene|sequence|group 节目ID或来源清单路径 新运行目录 --software-output [--audio-scope 声音输出占用绝对目录]".into());
     }
+    let audio_scope = args
+        .get(6)
+        .map(|path| stagemaster_audio::OutputScope::new(path.into()))
+        .transpose()?;
     let id = args[2].to_str().ok_or("节目标识无效")?.to_owned();
     let selection = match args[1].to_str() {
         Some("scene") => Some(stagemaster_project::PackageSelection::Scene { id }),
@@ -48,6 +55,7 @@ fn run() -> Result<(), String> {
             std::path::Path::new(&args[0]),
             std::path::Path::new(&args[2]),
             &directory,
+            audio_scope.as_ref(),
         )?;
         runtime.block_on(server::serve(prepared, directory))
     }

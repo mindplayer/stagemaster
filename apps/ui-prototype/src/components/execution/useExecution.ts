@@ -7,7 +7,8 @@ import type {
 
 export function useExecution(port: ExecutionPort, visible: boolean) {
   const [status, setStatus] = useState<ExecutionStatus | null>(null);
-  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [observationError, setObservationError] = useState("");
   const [working, setWorking] = useState(false);
   const inflight = useRef<Promise<void> | null>(null);
   const changing = useRef(false);
@@ -19,10 +20,10 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
     };
   }, []);
   const request = useCallback(
-    async (command: ExecutionRequest) => {
-      const mutation = command.kind !== "snapshot";
-      if (changing.current || (!mutation && inflight.current)) return;
-      if (mutation) {
+    async (command: ExecutionRequest, background = false) => {
+      const polling = background && command.kind === "snapshot";
+      if (changing.current || (polling && inflight.current)) return;
+      if (!polling) {
         changing.current = true;
         setWorking(true);
         // One explicit action waits for the read already in flight; polling cannot swallow clicks.
@@ -35,11 +36,15 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
           result = value;
           if (mounted.current) {
             setStatus(value);
-            setError("");
+            setObservationError("");
+            if (!polling) setActionError("");
           }
         } catch (e) {
-          if (mounted.current)
-            setError(e instanceof Error ? e.message : String(e));
+          if (mounted.current) {
+            const message = e instanceof Error ? e.message : String(e);
+            if (polling) setObservationError(message);
+            else setActionError(message);
+          }
         }
       })();
       inflight.current = operation;
@@ -47,7 +52,7 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
         await operation;
       } finally {
         inflight.current = null;
-        if (mutation) {
+        if (!polling) {
           changing.current = false;
           if (mounted.current) setWorking(false);
         }
@@ -58,12 +63,12 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
   );
   useEffect(() => {
     if (!visible) return;
-    void request({ kind: "snapshot" });
+    void request({ kind: "snapshot" }, true);
     const timer = window.setInterval(
-      () => void request({ kind: "snapshot" }),
+      () => void request({ kind: "snapshot" }, true),
       750,
     );
     return () => window.clearInterval(timer);
   }, [visible, request]);
-  return { status, error, working, request };
+  return { status, error: actionError || observationError, working, request };
 }

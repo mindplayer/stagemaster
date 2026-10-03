@@ -69,6 +69,12 @@ impl Harness {
         Self::prepared(|path| Some(group::write(path)))
     }
     pub fn prepared(setup: impl FnOnce(&Path) -> Option<PathBuf>) -> Self {
+        Self::prepared_output(setup, false)
+    }
+    pub fn prepared_scoped(setup: impl FnOnce(&Path) -> Option<PathBuf>) -> Self {
+        Self::prepared_output(setup, true)
+    }
+    fn prepared_output(setup: impl FnOnce(&Path) -> Option<PathBuf>, scoped: bool) -> Self {
         let directory = temporary();
         let project_path = directory.path().join("show.json");
         let manifest = setup(&project_path);
@@ -82,10 +88,14 @@ impl Harness {
         } else {
             command.args(["sequence", SEQUENCE]);
         }
+        command.arg(&run).arg("--software-output");
+        if scoped {
+            command
+                .arg("--audio-scope")
+                .arg(directory.path().join("output"));
+        }
         let mut process = Process(
             command
-                .arg(&run)
-                .arg("--software-output")
                 .stdout(Stdio::null())
                 .stderr(fs::File::create(&stderr).unwrap())
                 .spawn()

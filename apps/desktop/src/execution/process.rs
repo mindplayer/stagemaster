@@ -70,7 +70,7 @@ pub(super) fn prepare(
     files::record(root, &id)?;
     Ok(run)
 }
-pub(super) fn launch(binary: &Path, run: &Path) -> Result<Child, String> {
+pub(super) fn launch(binary: &Path, run: &Path, audio_scope: &Path) -> Result<Child, String> {
     files::create(&run.join("process.log"), &[])?;
     let log = fs::OpenOptions::new()
         .append(true)
@@ -84,6 +84,8 @@ pub(super) fn launch(binary: &Path, run: &Path) -> Result<Child, String> {
         .arg(run.join("sources.json"))
         .arg(run.join("host"))
         .arg("--software-output")
+        .arg("--audio-scope")
+        .arg(audio_scope)
         .stdin(Stdio::null())
         .stdout(log)
         .stderr(error);

@@ -42,4 +42,6 @@ struct Runner {
     last_sample: u64,
     terminal: Option<u64>,
     pending_end: Option<(GroupKey, stagemaster_live_host::media::Termination)>,
+    // Survives transport recovery and drops only after the voice/output have been torn down.
+    _output_lease: Option<stagemaster_audio::OutputLease>,
 }

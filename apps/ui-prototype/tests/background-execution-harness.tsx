@@ -16,12 +16,19 @@ project.scenes = [
 project.sequences = [];
 let status: ExecutionStatus = { phase: "empty", problem: null, runtime: null };
 const history: ExecutionRequest[] = [];
+let failPreparation = false;
+let failObservation = false;
+let observations = 0;
 const host: ApplicationHost = {
   ...applicationHost,
   execution: async (request) => {
-    if (request.kind === "snapshot")
+    if (request.kind === "snapshot") {
       await new Promise((resolve) => setTimeout(resolve, 250));
-    else history.push(request);
+      document.querySelector("#observations")!.textContent = String(++observations);
+      if (failObservation) throw new Error("测试读取暂时失败");
+    } else history.push(request);
+    if (request.kind === "prepare" && failPreparation)
+      throw new Error("测试声音输出被另一窗口占用");
     if (request.kind === "prepare")
       status = {
         phase: "connected",
@@ -119,6 +126,15 @@ function Harness() {
       }}
     >
       <button onClick={() => setVisible((v) => !v)}>切换面板显示</button>
+      <label>
+        <input type="checkbox" onChange={(e) => { failPreparation = e.target.checked; }} />
+        拒绝载入（测试）
+      </label>
+      <label>
+        <input type="checkbox" onChange={(e) => { failObservation = e.target.checked; }} />
+        读取失败（测试）
+      </label>
+      <output id="observations" aria-label="测试读取次数">0</output>
       <div hidden={!visible}>
         <BackgroundExecution
           host={host}

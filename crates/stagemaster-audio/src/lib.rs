@@ -1,6 +1,10 @@
 //! Bounded host media resources and audio output; independent of project/UI/device protocols.
 mod consumption;
 pub use consumption::Consumption;
+mod output_scope;
+pub use output_scope::{OutputLease, OutputScope};
+#[cfg(all(test, unix))]
+mod output_scope_tests;
 mod resource_health;
 mod resources;
 pub use resource_health::{ResourceFileHealth, ResourceHealth, ResourceSource};

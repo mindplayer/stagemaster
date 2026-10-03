@@ -5,6 +5,7 @@ use stagemaster_playback::{LoopPlays, LoopRegion, LoopSchedule};
 use std::sync::atomic::AtomicBool;
 mod observation;
 mod resident;
+mod scope;
 
 fn schedule() -> LoopSchedule {
     LoopSchedule::new(

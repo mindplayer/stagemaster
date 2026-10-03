@@ -7,6 +7,7 @@ mod output;
 mod performance;
 mod preparation;
 mod resident;
+mod routing;
 mod voice;
 pub use observation::PerformanceObservation;
 pub use output::OutputBinding;
@@ -40,6 +41,9 @@ pub struct Transport {
     volume_percent: Option<u8>,
     loop_buffer: Option<LoopBuffer>,
     revision: u64,
+    output_scope: Option<crate::OutputScope>,
+    // Declared last so the voice and output are dropped before the reservation.
+    output_lease: Option<crate::OutputLease>,
 }
 impl Transport {
     /// # Errors
@@ -58,8 +62,7 @@ impl Transport {
         self.revision = self.revision.wrapping_add(1);
         self.loop_buffer = None;
         self.performance = None;
-        self.player = None;
-        self.output = None;
+        self.release_output();
         self.file = None;
         self.base_ms = 0;
         self.duration_ms = 0;
@@ -139,6 +142,9 @@ impl Transport {
             performance.voice = None;
         }
         self.player = None;
+        if self.output_scope.is_some() {
+            self.release_output();
+        }
         self.base_ms = self.loop_buffer.as_ref().map_or(0, |b| b.range().start_ms);
     }
     /// # Errors
@@ -237,25 +243,6 @@ impl Transport {
         self.loop_buffer = prepared.buffer;
         self.revision = self.revision.wrapping_add(1);
         Ok(())
-    }
-
-    fn output_failed(&self) -> bool {
-        self.output.as_ref().is_some_and(output::Output::failed)
-            || self.binding.as_ref().is_some_and(OutputBinding::failed)
-    }
-
-    fn new_player(&mut self) -> Result<Player, String> {
-        if self.output.as_ref().is_none_or(output::Output::failed) {
-            self.output = Some(match &self.binding {
-                Some(binding) => output::Output::bound(binding)?,
-                None => output::Output::open()?,
-            });
-        }
-        Ok(self
-            .output
-            .as_ref()
-            .ok_or("音频设备未就绪")?
-            .player(self.volume_percent.unwrap_or(100)))
     }
 }
 
