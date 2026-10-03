@@ -23,13 +23,8 @@ import type {
   EditOperation,
   ProjectView,
 } from "../../application-host";
-import type {
-  FixturePlacement,
-  StageEdit,
-  StageObject,
-  StageSelection,
-} from "../../stage-types";
-import { bounds, selectedStage, stageCommand } from "../../stage-tools";
+import type { StageEdit, StageObject, StageSelection } from "../../stage-types";
+import { selectedStage, stageCommand } from "../../stage-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
 import { StageLibraryPanel } from "./StageLibraryPanel";
@@ -40,13 +35,10 @@ import {
   type PlanVisibility,
 } from "./stage-display";
 import { StageInspector } from "./StageInspector";
-import { ArrangementDialog } from "./ArrangementDialog";
-import {
-  arrangementDraft,
-  placementBatch,
-  togglePlacement,
-  type ArrangementDraft,
-} from "../../placement-tools";
+import { ArrangementInspector } from "./ArrangementInspector";
+import { useStageArrangement } from "./useStageArrangement";
+import { arrangementStage } from "./arrangement-session";
+import { placementBatch, togglePlacement } from "../../placement-tools";
 import "./stage.css";
 export interface StageHandle {
   collect(): EditOperation[];
@@ -62,6 +54,7 @@ export const StageWorkspace = forwardRef<
     visible: boolean;
     canvasVisible?: boolean;
     viewControls?: ReactNode;
+    onArrangementOpen?(): void;
     busy: boolean;
     error: string;
     beforeChange(): Promise<boolean>;
@@ -75,6 +68,7 @@ export const StageWorkspace = forwardRef<
     visible,
     canvasVisible = true,
     viewControls,
+    onArrangementOpen,
     busy,
     error,
     beforeChange,
@@ -103,10 +97,6 @@ export const StageWorkspace = forwardRef<
     () => onSelectedFixtures(JSON.parse(selectionKey) as string[]),
     [selectionKey, onSelectedFixtures],
   );
-  const [arrangement, setArrangement] = useState<{
-    ids: string[];
-    draft: ArrangementDraft;
-  } | null>(null);
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
   const moving = useRef(false);
@@ -115,6 +105,19 @@ export const StageWorkspace = forwardRef<
   const [fixtureId, setFixtureId] = useState("");
   const [localError, setLocalError] = useState("");
   const form = useRef<HTMLFormElement>(null);
+  const arrangement = useStageArrangement({
+    project,
+    onPending,
+    onAccepted(ids, placements) {
+      revealPlacements(ids, {
+        ...projectRef.current,
+        stage: arrangementStage(projectRef.current.stage, placements),
+      });
+      setSelectedIds(ids);
+      setSelection({ kind: "placement", id: ids.at(-1)! });
+      setQuery("");
+    },
+  });
   const object = draft ?? selectedStage(project.stage, selection);
   const selectedSpace =
     object?.kind === "space"
@@ -171,6 +174,7 @@ export const StageWorkspace = forwardRef<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >("input,select,textarea")
       .forEach((field) => field.setCustomValidity(""));
+    arrangement.cancel();
     draftRef.current = null;
     setDraft(null);
     setLocalError("");
@@ -209,6 +213,7 @@ export const StageWorkspace = forwardRef<
   }
   function collect(): EditOperation[] {
     if (moving.current) throw new Error("请先完成拖动，或按 Esc 取消");
+    if (arrangement.session) return arrangement.collect();
     if (!draftRef.current) return [];
     try {
       validateEditorForm(form.current);
@@ -220,7 +225,10 @@ export const StageWorkspace = forwardRef<
   }
   useImperativeHandle(ref, () => ({
     collect,
-    accept: cancel,
+    accept() {
+      arrangement.accept();
+      cancel();
+    },
     async selectFixtures(ids, isActive) {
       if (!isActive() || !(await beforeChange()) || !isActive()) return false;
       if (
@@ -309,43 +317,10 @@ export const StageWorkspace = forwardRef<
     }
     if (!(await beforeChange())) return;
     const ids = selected ? liveIds : unplaced.map((f) => f.id);
-    const items = project.stage.placements.filter((p) =>
-      ids.includes(p.fixtureId),
-    );
-    const points: [number, number][] = items.length
-      ? items.map((p) => [
-          Number(p.positionMeters.x),
-          Number(p.positionMeters.y),
-        ])
-      : (selectedSpace?.outlineMeters.map((p) => [
-          Number(p[0]),
-          Number(p[1]),
-        ]) ?? []);
-    const b = points.length ? bounds(points) : null;
-    const initial = arrangementDraft(
-      b ? (b.minX + b.maxX) / 2 : 0,
-      b ? (b.minY + b.maxY) / 2 : 0,
-      items.length
-        ? Number(items[0].positionMeters.z)
-        : Number(selectedSpace?.floorElevationMeters ?? 0) +
-            Number(selectedSpace?.clearHeightMeters ?? 4) -
-            0.5,
-      selectedSpace?.id ?? null,
-    );
-    if (selected) initial.mode = "move";
-    setArrangement({ ids, draft: initial });
-  }
-  async function applyPlacements(placements: FixturePlacement[]) {
-    const next = await onEdit(placementBatch(placements));
-    if (!next) return false;
-    const ids = placements.map((p) => p.fixtureId);
-    revealPlacements(ids, next);
-    setSelectedIds(ids);
-    setSelection({ kind: "placement", id: ids.at(-1)! });
-    setQuery("");
     cancel();
-    setFocusRequest((v) => v + 1);
-    return true;
+    arrangement.open(ids, selectedSpace, selected);
+    revealPlacements(ids);
+    onArrangementOpen?.();
   }
   function edit(command: StageEdit) {
     return onEdit({ op: "stage", command });
@@ -379,16 +354,29 @@ export const StageWorkspace = forwardRef<
       <DockPane region="viewport" visible={visible && canvasVisible}>
         <div className="stage-center">
           {viewControls}
+          {arrangement.session && (
+            <div
+              className="stage-arrangement-status"
+              role="status"
+              data-error={!!arrangement.problem}
+            >
+              {arrangement.problem
+                ? "排列输入有误，平面显示已应用位置"
+                : `排列草稿 · ${arrangement.session.ids.length} 台 · 尚未应用`}
+            </div>
+          )}
           <div className="stage-plan-container">
             <StageCanvas
               project={project}
               visibility={planVisibility}
               selection={selection}
-              selectedIds={liveIds}
+              selectedIds={arrangement.session?.ids ?? liveIds}
+              placementPreview={arrangement.preview}
+              placementEditing={!!arrangement.session}
               preview={draft}
               focusRequest={focusRequest}
               busy={busy}
-              pending={draft !== null}
+              pending={draft !== null || !!arrangement.session}
               onSelect={(target, additive, preserve) =>
                 void choose(target, additive, preserve)
               }
@@ -408,14 +396,27 @@ export const StageWorkspace = forwardRef<
               }}
               onGesture={(value) => {
                 moving.current = value;
-                onPending(value || draftRef.current !== null);
+                onPending(
+                  value || draftRef.current !== null || arrangement.pending(),
+                );
               }}
             />
           </div>
         </div>
       </DockPane>
       <DockPane region="inspector" visible={visible}>
-        {selection?.kind === "placement" && liveIds.length > 1 ? (
+        {arrangement.session ? (
+          <ArrangementInspector
+            project={project}
+            arrangement={arrangement}
+            busy={busy}
+            error={error}
+            onApply={() => {
+              arrangement.prepareApply();
+              void beforeChange();
+            }}
+          />
+        ) : selection?.kind === "placement" && liveIds.length > 1 ? (
           <StageMultiInspector
             project={project}
             ids={liveIds}
@@ -462,17 +463,6 @@ export const StageWorkspace = forwardRef<
         )}
       </DockPane>
       {rigging.dialog}
-      {arrangement && (
-        <ArrangementDialog
-          project={project}
-          initialIds={arrangement.ids}
-          initial={arrangement.draft}
-          busy={busy}
-          error={error}
-          onCancel={() => setArrangement(null)}
-          onApply={applyPlacements}
-        />
-      )}
       <StageObjectDialogs
         project={project}
         busy={busy}

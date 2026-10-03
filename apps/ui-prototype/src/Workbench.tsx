@@ -946,6 +946,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               key={`stage:${project.id}`}
               ref={stage}
               canvasVisible={stageView === "plan"}
+              onArrangementOpen={() => {
+                setStageView("plan");
+                setRevealEditing((value) => value + 1);
+              }}
               viewControls={
                 <StageViewTabs
                   value={stageView}

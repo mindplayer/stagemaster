@@ -1,0 +1,79 @@
+.arrangement-inspector {
+  min-width: 0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.arrangement-inspector header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.arrangement-inspector h2 {
+  font-size: 14px;
+  margin: 0;
+}
+.arrangement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  background: #121c25;
+  padding-block: 6px;
+  z-index: 2;
+}
+.arrangement-actions span {
+  font-size: 11px;
+  color: #9bb3c3;
+}
+.arrangement-inspector fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+}
+.arrangement-inspector .placement-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.arrangement-inspector .placement-picker {
+  border: 0;
+  padding: 12px 0 0;
+}
+.arrangement-inspector .placement-picker > header {
+  display: none;
+}
+.arrangement-inspector .placement-picker input,
+.arrangement-inspector .placement-picker select {
+  min-width: 0;
+  width: 100%;
+}
+.arrangement-inspector .placement-picker input[type="checkbox"] {
+  width: auto;
+}
+.arrangement-inspector .placement-fixtures {
+  max-height: 260px;
+}
+.arrangement-members {
+  border-top: 1px solid #2b3946;
+  padding-top: 12px;
+  font-size: 12px;
+}
+.arrangement-members summary {
+  cursor: pointer;
+}
+.stage-arrangement-status {
+  padding: 7px 12px;
+  font-size: 12px;
+  color: #a5dacd;
+  background: #162d2b;
+}
+.stage-arrangement-status[data-error="true"] {
+  color: #ffbba8;
+  background: #35221e;
+}

@@ -1,3 +1,4 @@
+import { arrangementStage } from "./arrangement-session";
 import { StageCanvasFooter } from "./StageCanvasFooter";
 import type { PlanLabelMode } from "../../fixture-plan-display";
 import { nudgedPlacements } from "./plan-nudge";
@@ -50,6 +51,8 @@ export function StageCanvas({
   selection,
   selectedIds,
   preview,
+  placementPreview = null,
+  placementEditing = false,
   focusRequest,
   busy,
   pending,
@@ -65,6 +68,8 @@ export function StageCanvas({
   selection: StageSelection | null;
   selectedIds: string[];
   preview: StageObject | null;
+  placementPreview?: FixturePlacement[] | null;
+  placementEditing?: boolean;
   focusRequest: number;
   busy: boolean;
   pending: boolean;
@@ -95,7 +100,10 @@ export function StageCanvas({
   const [labels, setLabels] = useState<PlanLabelMode>(
     project.fixtures.length <= 30 ? "name" : "none",
   );
-  const shown = visibleStage(project.stage, visibility);
+  const shown = arrangementStage(
+    visibleStage(project.stage, visibility),
+    placementPreview,
+  );
   useEffect(() => end(false), [visibility]);
   const allPoints = planPoints(shown);
   const visibleIds = selectedIds.filter((id) =>
@@ -132,7 +140,12 @@ export function StageCanvas({
     ];
   }
   function start(e: ReactPointerEvent<SVGSVGElement>) {
-    if (busy || pending || active.current || e.button !== 0) return;
+    if (busy || active.current || e.button !== 0) return;
+    if (
+      pending &&
+      !(placementEditing && (tool === "pan" || tool === "measure"))
+    )
+      return;
     setBlocked("");
     svg.current!.focus({ preventScroll: true });
     const hit = (e.target as Element).closest<SVGElement>(

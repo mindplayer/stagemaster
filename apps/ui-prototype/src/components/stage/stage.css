@@ -771,16 +771,14 @@
   border-right: 1px solid #2b3946;
   padding-right: 20px;
 }
-.placement-picker header,
-.placement-preview header {
+.placement-picker header {
   display: flex;
   gap: 8px;
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
 }
-.placement-picker header span,
-.placement-preview header span {
+.placement-picker header span {
   color: #8c9eac;
   font-size: 11px;
 }
@@ -875,28 +873,6 @@
 }
 .placement-settings details {
   font-size: 12px;
-}
-.placement-preview {
-  border: 1px solid #2b3946;
-  border-radius: 9px;
-  background: #0a1118;
-  padding: 12px;
-}
-.placement-preview svg {
-  display: block;
-  height: 165px;
-  width: 100%;
-  margin-top: 8px;
-}
-.placement-preview circle {
-  fill: #8acec0;
-}
-.placement-preview text {
-  fill: #071512;
-  font-weight: 700;
-}
-.placement-preview p {
-  margin-bottom: 0;
 }
 @media (max-width: 900px) {
   .placement-editor {
