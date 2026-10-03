@@ -25,8 +25,7 @@ pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
                 && audio.len() == 1
                 && audio[0].id == config.group
                 && audio[0].steps.is_empty()
-                && config.duration_ms > 0
-                && !config.seek_includes_end =>
+                && config.duration_ms > 0 =>
         {
             identity(&config.group)
         }

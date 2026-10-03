@@ -19,7 +19,50 @@ impl From<String> for Failure {
     }
 }
 impl Runner {
-    fn guard(&mut self, request: ControlRequest) -> Result<(), Failure> {
+    pub(super) fn observe_control(
+        &mut self,
+        media: stagemaster_live_host::media::MediaState,
+    ) -> Result<bool, String> {
+        if let Some(control) = media.control
+            && self
+                .request
+                .is_some_and(|r| r.ticket == control.request.ticket)
+            && let Some(result) = control.result
+        {
+            if result.is_err() {
+                return Err("后台未确认当前音乐操作，音源已停止".into());
+            }
+            if self.is_end_seek(control.request.command) {
+                self.active = None;
+                self.pending_sample = None;
+            }
+            self.request = None;
+        }
+        if let Some(control) = media.control.filter(|c| c.result.is_none())
+            && self.seen != Some(control.request.ticket)
+        {
+            self.seen = Some(control.request.ticket);
+            self.request = Some(control.request);
+            if let Ok(mut view) = self.view.lock() {
+                view.problem = None;
+                view.status = "preparing";
+            }
+            match self.execute(control.request, media.group.key) {
+                Ok(()) => {}
+                Err(Failure::Superseded) => self.cancel_job(),
+                Err(Failure::Problem(problem)) => return Err(problem),
+            }
+            return Ok(true);
+        }
+        // Explicit EOF is completed through its control receipt, not a second termination request.
+        Ok(media.control.is_some_and(|control| {
+            control.result.is_none()
+                && self.request == Some(control.request)
+                && self.is_end_seek(control.request.command)
+        }))
+    }
+
+    pub(super) fn guard(&mut self, request: ControlRequest) -> Result<(), Failure> {
         loop {
             if self.cancel.load(Ordering::Acquire) {
                 return Err(Failure::Superseded);
@@ -44,7 +87,7 @@ impl Runner {
             }
         }
     }
-    fn wait<T>(
+    pub(super) fn wait<T>(
         &mut self,
         request: ControlRequest,
         mut read: impl FnMut(&mut Self) -> Result<Option<T>, String>,
@@ -142,6 +185,7 @@ impl Runner {
     ) -> Result<(), Failure> {
         self.guard(request)?;
         match request.command {
+            command if self.is_end_seek(command) => self.seek_end(request)?,
             MediaCommand::Stop => {
                 self.transport.stop();
                 self.active = None;
@@ -211,6 +255,9 @@ impl Runner {
             view.status = if matches!(request.command, MediaCommand::Stop) {
                 view.position_ms = 0;
                 "stopped"
+            } else if self.is_end_seek(request.command) {
+                view.position_ms = view.duration_ms;
+                "ended"
             } else if self.transport.position().playing {
                 "playing"
             } else {

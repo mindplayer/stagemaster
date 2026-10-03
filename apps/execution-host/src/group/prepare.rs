@@ -56,7 +56,7 @@ pub(crate) fn prepare(
             }],
         )
         .map_err(|e| e.to_string())?;
-        source["audio"] = json!({"output":setup.output,"durationMs":setup.duration_ms,"group":Uuid::from_bytes(setup.group.id).to_string(),"seekIncludesEnd":false});
+        source["audio"] = json!({"output":setup.output,"durationMs":setup.duration_ms,"group":Uuid::from_bytes(setup.group.id).to_string(),"seekIncludesEnd":true});
         source["capabilities"]
             .as_array_mut()
             .ok_or("能力目录无效")?

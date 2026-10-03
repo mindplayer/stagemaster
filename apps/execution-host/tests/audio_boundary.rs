@@ -88,7 +88,7 @@ async fn authority() {
         (
             5,
             playing.clone(),
-            json!({"kind":"seek","positionMs":5000,"playing":false}),
+            json!({"kind":"seek","positionMs":5001,"playing":false}),
         ),
         (
             6,
@@ -123,9 +123,13 @@ async fn authority() {
 
 #[test]
 fn failed_seek_preparation_stops_its_media_group_without_stopping_independent_lighting() {
-    runtime().block_on(failed_seek());
+    runtime().block_on(failed_seek(3000));
 }
-async fn failed_seek() {
+#[test]
+fn end_seek_needs_no_more_samples_but_replay_reports_a_damaged_private_resource() {
+    runtime().block_on(failed_seek(5000));
+}
+async fn failed_seek(position_ms: u64) {
     let mut h = Harness::prepared(|path| Some(audio::write(path)));
     let session = h.session().await;
     let acquired = h.acquire(&session, false).await;
@@ -151,10 +155,29 @@ async fn failed_seek() {
         &session,
         4,
         &state,
-        json!({"kind":"seek","positionMs":3000,"playing":true}),
+        json!({"kind":"seek","positionMs":position_ms,"playing":true}),
     )
     .await;
     assert_eq!(failure["kind"], "accepted");
+    if position_ms == 5000 {
+        let ended = applied(&h, &failure).await;
+        assert_eq!(ended["media"][0]["status"], "Stopped");
+        assert_eq!(ended["audio"]["positionMs"], 5000);
+        until(&h, |s| s["state"]["audio"]["status"] == "ended").await;
+        let replay = control(&h, &session, 5, &ended, json!({"kind":"play"})).await;
+        assert_eq!(replay["kind"], "accepted");
+        let failed = until(&h, |s| {
+            s["state"]["audio"]["status"] == "failed"
+                && s["state"]["media"][0]["control"]["status"] == "failed"
+        })
+        .await;
+        assert_eq!(failed["state"]["media"][0]["status"], "Stopped");
+        assert_eq!(failed["state"]["sources"][0]["status"], "Running");
+        assert_eq!(failed["state"]["fault"], false);
+        until(&h, |s| s["frame"]["slots"][1] == 20).await;
+        h.close().await;
+        return;
+    }
     let failed = until(&h, |s| {
         s["state"]["audio"]["status"] == "failed"
             && s["state"]["media"][0]["termination"]["applied"] == true

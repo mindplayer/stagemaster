@@ -1,4 +1,4 @@
-use super::{ControlFailure, Lane, MediaCommand};
+use super::{ControlFailure, ControlRequest, ControlSpec, Lane, MediaCommand};
 use crate::media::slots::Worker;
 use stagemaster_live::{Session, media::Status};
 use stagemaster_runtime::Code;
@@ -26,7 +26,15 @@ impl Worker {
         };
         match slot.pending(ticket) {
             Ok(request) if now < request.deadline_ms && !slot.activated => {
-                let result = entry.activate(session, now);
+                let result = if matches!(request.command, MediaCommand::Seek { position_ms, .. }
+                    if position_ms == lane.spec.duration_ms)
+                {
+                    // End confirmation must not transiently activate a synthetic EOF plan.
+                    entry.result = Some(Err(Code::State));
+                    Err(Code::State)
+                } else {
+                    entry.activate(session, now)
+                };
                 if result.is_ok() {
                     slot.activated = true;
                 } else if let Some(state) = &mut slot.state {
@@ -59,13 +67,7 @@ impl Lane {
                 && ticket == state.request.ticket
             {
                 let result = result.and_then(|()| {
-                    complete(
-                        session,
-                        self.spec.group,
-                        state.request.command,
-                        slot.activated,
-                        now,
-                    )
+                    complete(session, self.spec, state.request, slot.activated, now)
                 });
                 state.result = Some(result.map_err(ControlFailure::Provider));
             }
@@ -82,16 +84,16 @@ impl Lane {
 
 fn complete(
     session: &mut Session,
-    id: [u8; 16],
-    command: MediaCommand,
+    spec: ControlSpec,
+    request: ControlRequest,
     activated: bool,
     now: u64,
 ) -> Result<(), Code> {
     let group = session
         .media_groups()
-        .find(|g| g.id == id)
+        .find(|g| g.id == spec.group)
         .ok_or(Code::Selection)?;
-    let playing = match command {
+    let playing = match request.command {
         MediaCommand::Stop => return session.stop_media(group.key, now).map_err(|_| Code::State),
         MediaCommand::Play => true,
         MediaCommand::Pause => false,
@@ -99,6 +101,13 @@ fn complete(
             position_ms,
             playing,
         } => {
+            if position_ms == spec.duration_ms {
+                // EOF has no render sample or replacement plan. Confirm only the original group.
+                if activated || group.key != request.ticket.group {
+                    return Err(Code::State);
+                }
+                return session.stop_media(group.key, now).map_err(|_| Code::State);
+            }
             if !activated || group.position_ms < position_ms {
                 return Err(Code::State);
             }

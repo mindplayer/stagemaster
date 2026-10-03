@@ -1,7 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { audioTime } from "../../audio-tools";
 import type { ExecutionView } from "../../execution-types";
 import type { ExecutionMediaAction } from "../../execution-media-types";
+import {
+  mediaSeekReceipt,
+  type MediaRequestIdentity,
+} from "../../media-seek-receipt";
 const names = {
   ready: "待播放",
   preparing: "准备中",
@@ -18,33 +22,49 @@ export function MediaControls({
 }: {
   runtime: ExecutionView;
   disabled: boolean;
-  onAction(action: ExecutionMediaAction): Promise<boolean>;
+  onAction(action: ExecutionMediaAction): Promise<MediaRequestIdentity | null>;
 }) {
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraft] = useState<{ text: string } | null>(null);
+  const [submitted, setSubmitted] = useState<{
+    draft: { text: string };
+    request: MediaRequestIdentity;
+  } | null>(null);
   const [error, setError] = useState("");
   const cancelled = useRef(false);
   const config = runtime.catalog.audio;
   const state = runtime.observation.snapshot?.state;
   const media = state?.media?.find((m) => m.id === config?.group);
   const audio = state?.audio;
+  useEffect(() => {
+    if (!submitted || !config) return;
+    const receipt = mediaSeekReceipt(submitted.request, runtime, config.group);
+    if (receipt === "waiting") return;
+    if (receipt === "applied")
+      setDraft((current) => (current === submitted.draft ? null : current));
+    setSubmitted(null);
+  }, [submitted, runtime, config]);
   if (!config || !media || !audio)
     return <p role="status">正在读取后台音乐状态</p>;
   const position = audio.positionMs;
   const playing = media.status === "Following";
   const max = Math.max(0, config.durationMs - (config.seekIncludesEnd ? 0 : 1));
-  const validDraft = draft !== null && /^\d+(\.\d{1,3})?$/.test(draft.trim());
-  const desired = validDraft ? Math.round(Number(draft) * 1000) : position;
+  const validDraft =
+    draft !== null && /^\d+(\.\d{1,3})?$/.test(draft.text.trim());
+  const desired = validDraft ? Math.round(Number(draft.text) * 1000) : position;
   async function seek(ms: number) {
     if (disabled) return;
     if (!Number.isSafeInteger(ms) || ms < 0 || ms > max) {
       setError(
-        "请输入音乐范围内的秒数，最多三位小数；当前不支持直接定位到末尾。",
+        config?.seekIncludesEnd
+          ? "请输入音乐范围内的秒数，最多三位小数。"
+          : "请输入音乐范围内的秒数，最多三位小数；当前不支持直接定位到末尾。",
       );
       return;
     }
     setError("");
-    if (await onAction({ kind: "seek", positionMs: ms, playing }))
-      setDraft(null);
+    const original = draft;
+    const request = await onAction({ kind: "seek", positionMs: ms, playing });
+    if (request && original) setSubmitted({ draft: original, request });
   }
   return (
     <article
@@ -73,7 +93,7 @@ export function MediaControls({
         }}
         onChange={(e) => {
           if (!cancelled.current) {
-            setDraft((Number(e.target.value) / 1000).toFixed(3));
+            setDraft({ text: (Number(e.target.value) / 1000).toFixed(3) });
             setError("");
           }
         }}
@@ -116,7 +136,11 @@ export function MediaControls({
           disabled={disabled || (playing && audio.status !== "preparing")}
           onClick={() => void onAction({ kind: "play" })}
         >
-          {media.status === "Paused" ? "继续播放" : "播放音乐"}
+          {audio.status === "ended"
+            ? "重新播放"
+            : media.status === "Paused"
+              ? "继续播放"
+              : "播放音乐"}
         </button>
         <button
           disabled={disabled || (!playing && audio.status !== "preparing")}
@@ -143,10 +167,10 @@ export function MediaControls({
           <input
             aria-label="后台音乐定位秒数"
             inputMode="decimal"
-            value={draft ?? (position / 1000).toFixed(3)}
+            value={draft?.text ?? (position / 1000).toFixed(3)}
             disabled={disabled}
             onChange={(e) => {
-              setDraft(e.target.value);
+              setDraft({ text: e.target.value });
               setError("");
             }}
             onKeyDown={(e) => {

@@ -4,7 +4,7 @@ use stagemaster_live::media::Status;
 use stagemaster_runtime::{Grant, Lease, Origin, Request};
 use stagemaster_runtime_host::Backend;
 
-fn lease(backend: &mut LiveBackend) -> Lease {
+pub(super) fn lease(backend: &mut LiveBackend) -> Lease {
     backend
         .acquire(
             Grant {
@@ -17,7 +17,7 @@ fn lease(backend: &mut LiveBackend) -> Lease {
         )
         .unwrap()
 }
-fn submit(
+pub(super) fn submit(
     backend: &mut LiveBackend,
     lease: Lease,
     serial: u64,

@@ -54,7 +54,7 @@ pub(crate) fn action(
         } => {
             if owner.view()["durationMs"]
                 .as_u64()
-                .is_none_or(|duration| *position_ms >= duration)
+                .is_none_or(|duration| *position_ms > duration)
             {
                 return Err(Failure::invalid());
             }

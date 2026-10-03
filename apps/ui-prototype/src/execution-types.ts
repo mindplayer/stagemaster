@@ -54,7 +54,11 @@ export interface ExecutionView {
   record: null | {
     serial: string;
     status: string;
-    outcome: null | { kind: string; message: string | null };
+    outcome: null | {
+      kind: string;
+      message: string | null;
+      state?: { media?: ExecutionMediaState[] } | null;
+    };
   };
 }
 export interface ExecutionStatus {

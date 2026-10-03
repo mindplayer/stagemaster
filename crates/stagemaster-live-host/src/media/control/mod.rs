@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod end_tests;
 mod provider;
 mod registration;
 #[cfg(test)]

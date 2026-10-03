@@ -96,31 +96,7 @@ impl Runner {
                 return Ok(());
             }
         }
-        if let Some(control) = media.control
-            && self
-                .request
-                .is_some_and(|r| r.ticket == control.request.ticket)
-            && let Some(result) = control.result
-        {
-            if result.is_err() {
-                return Err("后台未确认当前音乐操作，音源已停止".into());
-            }
-            self.request = None;
-        }
-        if let Some(control) = media.control.filter(|c| c.result.is_none())
-            && self.seen != Some(control.request.ticket)
-        {
-            self.seen = Some(control.request.ticket);
-            self.request = Some(control.request);
-            if let Ok(mut view) = self.view.lock() {
-                view.problem = None;
-                view.status = "preparing";
-            }
-            match self.execute(control.request, media.group.key) {
-                Ok(()) => {}
-                Err(super::job::Failure::Superseded) => self.cancel_job(),
-                Err(super::job::Failure::Problem(problem)) => return Err(problem),
-            }
+        if self.observe_control(media)? {
             return Ok(());
         }
         let Some(key) = self.active else {

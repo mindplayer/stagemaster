@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { ExecutionAction } from "../../execution-types";
+import { mediaRequestIdentity } from "../../media-seek-receipt";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
 import { MediaControls } from "./MediaControls";
@@ -215,7 +216,7 @@ export function BackgroundExecution({
                       const group = state?.media?.find(
                         (m) => m.id === runtime.catalog.audio?.group,
                       );
-                      if (!state || !group || disabled) return false;
+                      if (!state || !group || disabled) return null;
                       const value = await request({
                         kind: "media",
                         hostId: runtime.hostId,
@@ -224,9 +225,7 @@ export function BackgroundExecution({
                         generation: group.generation,
                         action,
                       });
-                      return (
-                        value?.runtime?.record?.outcome?.kind === "accepted"
-                      );
+                      return mediaRequestIdentity(value?.runtime);
                     }}
                   />
                 ) : (

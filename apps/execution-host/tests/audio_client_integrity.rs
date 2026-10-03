@@ -70,7 +70,7 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
             ("/audio/group", json!(group::id(99))),
             ("/audio/durationMs", json!(0)),
             ("/audio/output", json!("unknown")),
-            ("/audio/seekIncludesEnd", json!(true)),
+            ("/audio/seekIncludesEnd", json!("true")),
             ("/capabilities", json!([])),
             ("/sources/1/selection/kind", json!("manual")),
         ] {
@@ -86,6 +86,7 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
                 "reader accepted {pointer}"
             );
         }
+        verify_legacy(&path, &proxy, &valid).await;
         *proxy.replacement.lock().unwrap() = None;
         let mut reader = Reader::open(&path).await.unwrap();
         let valid = ok(h.get("/state")).await;
@@ -120,4 +121,31 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
         task.abort();
         h.close().await;
     });
+}
+
+async fn verify_legacy(path: &std::path::Path, proxy: &Proxy, valid: &Value) {
+    // Old hosts remain usable but their advertised exclusive end must still be honored.
+    let mut legacy = valid.clone();
+    legacy["audio"]["seekIncludesEnd"] = json!(false);
+    *proxy.replacement.lock().unwrap() = Some(("/source", legacy));
+    let mut legacy_client = Client::open(path).await.unwrap();
+    Reader::open(path).await.unwrap();
+    let view = legacy_client.view();
+    let state = &view.observation.snapshot.as_ref().unwrap().state;
+    assert!(
+        legacy_client
+            .apply_media(
+                &view.host_id,
+                &state.revision,
+                &state.media[0].id,
+                &state.media[0].generation,
+                stagemaster_execution_client::MediaAction::Seek {
+                    position_ms: 5000,
+                    playing: false
+                }
+            )
+            .await
+            .unwrap_err()
+            .contains("末尾")
+    );
 }

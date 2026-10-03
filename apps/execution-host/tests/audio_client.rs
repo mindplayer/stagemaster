@@ -63,7 +63,7 @@ async fn run() {
         AudioOutput::Software
     );
     reader.project().await.unwrap();
-    reader.sample().await.unwrap();
+    let idle = reader.sample().await.unwrap().slots;
     assert!(h.state().await["owner"].is_null());
     assert!(!client.view().controlling);
     client.acquire(false).await.unwrap();
@@ -100,7 +100,7 @@ async fn run() {
     assert!(state.owner.is_none());
     assert_eq!(state.media[0].status, MediaStatus::Following);
     other.acquire(false).await.unwrap();
-    let stopped = verify_operations(&mut other, &mut reader, &old_generation).await;
+    let stopped = verify_operations(&mut other, &mut reader, &old_generation, &idle).await;
     assert_eq!(
         h.state().await["owner"]["sessionId"].as_str(),
         stopped.session_id.as_deref()
@@ -108,7 +108,12 @@ async fn run() {
     h.close().await;
 }
 
-async fn verify_operations(other: &mut Client, reader: &mut Reader, old_generation: &str) -> View {
+async fn verify_operations(
+    other: &mut Client,
+    reader: &mut Reader,
+    old_generation: &str,
+    idle: &[u8],
+) -> View {
     let paused = apply(other, MediaAction::Pause {}).await;
     let state = &paused.observation.snapshot.as_ref().unwrap().state;
     assert_eq!(state.media[0].status, MediaStatus::Paused);
@@ -172,7 +177,7 @@ async fn verify_operations(other: &mut Client, reader: &mut Reader, old_generati
                 &state.media[0].id,
                 &state.media[0].generation,
                 MediaAction::Seek {
-                    position_ms: 5000,
+                    position_ms: 5001,
                     playing: false
                 }
             )
@@ -180,6 +185,23 @@ async fn verify_operations(other: &mut Client, reader: &mut Reader, old_generati
             .is_err()
     );
     assert_eq!(other.view().record.unwrap().serial, serial);
+    let ended = apply(
+        other,
+        MediaAction::Seek {
+            position_ms: 5000,
+            playing: true,
+        },
+    )
+    .await;
+    let state = &ended.observation.snapshot.as_ref().unwrap().state;
+    assert_eq!(state.media[0].status, MediaStatus::Stopped);
+    let native = state.audio.as_ref().unwrap();
+    assert_eq!(
+        native.status,
+        stagemaster_execution_client::AudioStatus::Ended
+    );
+    assert_eq!(native.position_ms, 5000);
+    assert_eq!(reader.sample().await.unwrap().slots.as_slice(), idle);
     let stopped = apply(other, MediaAction::Stop {}).await;
     assert_eq!(
         stopped.observation.snapshot.as_ref().unwrap().state.media[0].status,

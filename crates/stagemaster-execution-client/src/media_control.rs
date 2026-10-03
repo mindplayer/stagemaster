@@ -18,9 +18,15 @@ impl Client {
         validation::decimal(revision)?;
         validation::decimal(generation)?;
         if let MediaAction::Seek { position_ms, .. } = &action
-            && *position_ms >= catalog.duration_ms
+            && (*position_ms > catalog.duration_ms
+                || (*position_ms == catalog.duration_ms && !catalog.seek_includes_end))
         {
-            return Err("定位须在音乐范围内；当前后台尚不支持直接定位到末尾".into());
+            return Err(if catalog.seek_includes_end {
+                "定位超出音乐范围"
+            } else {
+                "定位须在音乐范围内；当前后台尚不支持直接定位到末尾"
+            }
+            .into());
         }
         self.send(
             json!({"kind":"submit","expectedRevision":revision,"action":{
