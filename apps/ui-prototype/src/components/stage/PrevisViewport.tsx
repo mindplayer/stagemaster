@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { PixelStreaming } from "@epicgames-ps/lib-pixelstreamingfrontend-ue5.8";
-import type { PrevisInteractions, PrevisTool } from "../../previs-types";
+import type {
+  PrevisInteractions,
+  PrevisTool,
+  MarqueeMode,
+} from "../../previs-types";
 import { readPrevisMessage } from "../../previs-messages";
 import { PrevisInteractionScope } from "../../previs-interaction-scope";
 import { sameFixtureSelection } from "../../previs-selection";
+import { PrevisSelectionTools } from "./PrevisSelectionTools";
 import { PrevisMoveTools } from "./PrevisMoveTools";
 import { resumeVisibleVideo } from "./resume-visible-video";
 import { observePrevisInputGeometry } from "./previs-input-geometry";
@@ -34,6 +39,9 @@ export function PrevisViewport({
     move: false,
     cutaway: false,
     interactionVersion: 0,
+    marqueeSupported: false,
+    marqueeMode: "replace" as MarqueeMode,
+    selectionThrough: false,
     vertical: false,
     tool: "horizontal" as PrevisTool,
   });
@@ -60,6 +68,9 @@ export function PrevisViewport({
       move: false,
       cutaway: false,
       interactionVersion: 0,
+      marqueeSupported: false,
+      marqueeMode: "replace" as MarqueeMode,
+      selectionThrough: false,
       vertical: false,
       tool: "horizontal" as PrevisTool,
     });
@@ -277,6 +288,10 @@ export function PrevisViewport({
       [
         "cancel",
         "inspect",
+        "selectionThrough",
+        "marqueeReplace",
+        "marqueeAdd",
+        "marqueeRemove",
         "moveHorizontal",
         "moveVertical",
         "rotate",
@@ -353,6 +368,13 @@ export function PrevisViewport({
             onAction={view}
           />
         )}
+        <PrevisSelectionTools
+          supported={viewState.marqueeSupported}
+          disabled={!playing || viewState.move}
+          through={viewState.selectionThrough}
+          mode={viewState.marqueeMode}
+          onAction={view}
+        />
         <button
           disabled={!playing}
           aria-pressed={viewState.cutaway}
@@ -405,7 +427,9 @@ export function PrevisViewport({
             ? "三维组件版本不兼容，请更新后再移动灯位"
             : viewState.move
               ? `${viewState.tool === "rotate" ? "左右拖动整组旋转" : viewState.tool === "scale" ? "左右拖动调整灯间距" : viewState.vertical ? "拖动升降所选灯具" : "水平拖动所选灯具"} · Esc 取消 · 松手整组应用`
-              : "Shift 点击增减选择 · 右键或 Option 旋转 · 加 Shift 平移 · 滚动缩放"}
+              : viewState.marqueeSupported
+                ? "拖框选灯 · Shift 加选 · ⌘/Ctrl 减选 · 右键或 Option 旋转 · 滚动缩放"
+                : "Shift 点击增减选择 · 右键或 Option 旋转 · 加 Shift 平移 · 滚动缩放"}
         </span>
       </div>
     </div>

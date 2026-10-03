@@ -36,7 +36,15 @@
 
 周期状态显式提供 `interactionVersion:3`、`move` 和 `vertical`；不兼容版本可查看但不移动。`selectGroup` 携带有序 `fixtureIds`（0–1024 个唯一身份），对应事件为 `{kind:"selectionGroup",fixtureIds}`。末项为活动对象，空数组清空，迟到选灯同样检查上下文与连接轮次。旧单灯选择事件仍可读；主流程使用共享集合。视窗消息最多 65536 字符，UE 输入最多 49152 字符；身份长度至多 256 字符。选择／镜头命令不具备直接工程写入权限。
 
-UE 5.8 默认 MouseUp 忽略最终坐标，适配器保留既有终点修正后释放捕获；`(65535,65535)` 越界标记、MouseLeave 与 Esc 取消拖动。场地／帧协议仍为版本 2，未增加第二份工程或时钟。旋转／缩放与混合构件组另行实施。
+UE 5.8 默认 MouseUp 忽略最终坐标，适配器保留既有终点修正后释放捕获；`(65535,65535)` 越界标记、MouseLeave 与 Esc 取消拖动。场地／帧协议仍为版本 2，未增加第二份工程或时钟。旋转／缩放已由 STAGE-006 接通，混合构件组仍后续。
+
+### 三维灯位框选（STAGE-008／ADR-147）
+
+查看模式拖动矩形按安装点的屏幕投影选灯，3 像素阈值，释放后一次发布原 `selectionGroup`。默认只选镜头前、视窗内且未被其他对象遮挡的安装点；遮挡射线只到安装点，不能把其后方场景算作遮挡。显式穿透允许选择被挡灯位。新灯序沿场地顺序；加选保持原有顺序，减选只去掉命中成员；无命中替换清空，加／减保持。点击保留原命中深度与修饰键切换语义。
+
+周期 state 附可选 `marqueeSupported:boolean`、`selectionThrough:boolean` 与 `marqueeMode:"replace"|"add"|"remove"`，缺省分别 false／false／replace，类型错误拒绝。`interactionVersion:3` 保持；旧组件不显示新操作。单字段动作 `selectionThrough` 切换穿透，`marqueeReplace`／`marqueeAdd`／`marqueeRemove` 设置默认方式；Shift 加选、Command／Ctrl 减选优先于默认方式。移动模式不框选，锁灯可选但沿原移动权限拒绝编辑。
+
+手势绑定场地代次，复用原取消／失焦／越界／尺寸／镜头／工具／源变化保护，最终释放坐标仍经原适配器更新。选择上限 1024，移动上限 256；超限原子拒绝。查看设置和框选不写工程、不建灯组、不增加历史；主机选择的异步上下文／连接门继续有效。完整验收与边界见 [STAGE-008](../development/tasks/STAGE-008-3d-fixture-marquee.md)。
 
 所有成功响应包含：
 

@@ -50,3 +50,5 @@ export interface PrevisTransform {
   spacingScale: string;
 }
 export type PrevisTool = "horizontal" | "vertical" | "rotate" | "scale";
+
+export type MarqueeMode = "replace" | "add" | "remove";

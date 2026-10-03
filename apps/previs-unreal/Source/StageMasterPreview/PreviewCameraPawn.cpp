@@ -70,6 +70,13 @@ void APreviewCameraPawn::ViewAction(const FString& Action)
     else if (Action == TEXT("selected")) FocusSelected();
     else if (Action == TEXT("cutaway")) { CancelDrag(); if (Scene) Scene->ToggleCutaway(); }
     else if (Action == TEXT("workLight")) ToggleWorkLight();
+    else if (Action == TEXT("marqueeReplace") || Action == TEXT("marqueeAdd") || Action == TEXT("marqueeRemove"))
+    {
+        CancelDrag();
+        MarqueeMode = Action == TEXT("marqueeAdd") ? StageMaster::EMarqueeMode::Add :
+            Action == TEXT("marqueeRemove") ? StageMaster::EMarqueeMode::Remove : StageMaster::EMarqueeMode::Replace;
+    }
+    else if (Action == TEXT("selectionThrough")) ToggleSelectionThrough();
     else if (Action == TEXT("cancel")) CancelDrag();
     else if (Action == TEXT("move")) { CancelDrag(); MoveMode = true; }
     else if (Action == TEXT("inspect")) { CancelDrag(); ClearPendingPlacement(); MoveMode = false; }

@@ -31,6 +31,9 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
         State->SetBoolField(TEXT("move"), Camera->IsMoveMode());
         State->SetBoolField(TEXT("cutaway"), Camera->IsCutaway());
         State->SetNumberField(TEXT("interactionVersion"), 3);
+        State->SetBoolField(TEXT("marqueeSupported"), true);
+        State->SetStringField(TEXT("marqueeMode"), Camera->GetMarqueeMode());
+        State->SetBoolField(TEXT("selectionThrough"), Camera->IsSelectionThrough());
         State->SetBoolField(TEXT("vertical"), Camera->IsVerticalMove());
         State->SetStringField(TEXT("tool"), Camera->GetTool());
         FString Json;

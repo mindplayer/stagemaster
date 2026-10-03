@@ -64,6 +64,9 @@ test("剖视状态兼容旧渲染器，拒绝错误字段类型", () => {
     interactionVersion: 1,
     vertical: false,
     tool: "horizontal",
+    marqueeSupported: false,
+    marqueeMode: "replace",
+    selectionThrough: false,
   });
   assert.deepEqual(
     readPrevisMessage(JSON.stringify({ ...state, cutaway: true })),
@@ -73,6 +76,9 @@ test("剖视状态兼容旧渲染器，拒绝错误字段类型", () => {
       interactionVersion: 1,
       vertical: false,
       tool: "horizontal",
+      marqueeSupported: false,
+      marqueeMode: "replace",
+      selectionThrough: false,
     },
   );
   assert.equal(
@@ -178,7 +184,12 @@ test("渲染器显式提供移动交互版本和方向，错误类型不开放�
     vertical: true,
     tool: "vertical",
   };
-  assert.deepEqual(readPrevisMessage(JSON.stringify(state)), state);
+  assert.deepEqual(readPrevisMessage(JSON.stringify(state)), {
+    ...state,
+    marqueeSupported: false,
+    marqueeMode: "replace",
+    selectionThrough: false,
+  });
   for (const patch of [
     { interactionVersion: "2" },
     { interactionVersion: 2.5 },
@@ -217,6 +228,55 @@ test("整组变换严格校验版本、角度、比例和目标", () => {
   ])
     assert.equal(
       readPrevisMessage(JSON.stringify({ ...transform, ...patch })),
+      null,
+    );
+});
+
+test("框选能力和穿透状态明确兼容旧版本并拒绝伪布尔", () => {
+  const state = {
+    kind: "state",
+    status: "就绪",
+    selection: "",
+    workLight: "开",
+    move: false,
+    interactionVersion: 3,
+  };
+  for (const selectionThrough of [true, false]) {
+    const value = readPrevisMessage(
+      JSON.stringify({ ...state, marqueeSupported: true, selectionThrough }),
+    );
+    assert.equal(value?.kind, "state");
+    if (value?.kind === "state") {
+      assert.equal(value.marqueeSupported, true);
+      assert.equal(value.selectionThrough, selectionThrough);
+      assert.equal(value.interactionVersion, 3);
+    }
+  }
+  for (const field of ["marqueeSupported", "selectionThrough"])
+    for (const value of ["false", 1, null, [], {}])
+      assert.equal(
+        readPrevisMessage(JSON.stringify({ ...state, [field]: value })),
+        null,
+      );
+});
+
+test("框选方式只接受明确枚举，兼容旧状态的替换选择", () => {
+  const state = {
+    kind: "state",
+    status: "",
+    selection: "",
+    workLight: "",
+    move: false,
+    marqueeSupported: true,
+  };
+  for (const marqueeMode of ["replace", "add", "remove"]) {
+    const result = readPrevisMessage(JSON.stringify({ ...state, marqueeMode }));
+    assert.equal(result?.kind, "state");
+    if (result?.kind === "state") assert.equal(result.marqueeMode, marqueeMode);
+  }
+  for (const marqueeMode of ["toggle", ["add"], null, 1])
+    assert.equal(
+      readPrevisMessage(JSON.stringify({ ...state, marqueeMode })),
       null,
     );
 });

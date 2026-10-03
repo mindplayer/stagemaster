@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "PreviewStreaming.h"
+#include "PreviewMarquee.h"
 #include "PreviewCameraPawn.generated.h"
 
 class UCameraComponent;
@@ -23,7 +24,11 @@ public:
     void FocusAll();
     void FocusSelected();
     void TopView();
-    void SelectAt(const FVector2D& Screen, bool Additive);
+    void SelectAt(const FVector2D& Screen, bool Additive, bool Remove = false);
+    void ToggleSelectionThrough();
+    FString GetMarqueeMode() const;
+    bool IsSelectionThrough() const { return SelectionThrough; }
+    bool GetMarquee(FVector2D& Start, FVector2D& End, bool& Removing) const;
     void SelectFromHost(const TArray<FString>& Ids);
     void PlacementResult(const FString& Id, bool Accepted);
     bool IsMoveMode() const { return MoveMode; }
@@ -43,6 +48,11 @@ public:
 protected:
     virtual void BeginPlay() override;
 private:
+    void PublishSelection(const TArray<FString>& Ids);
+    void FinishMarquee();
+    StageMaster::FMarqueeGesture Marquee;
+    bool SelectionThrough = false;
+    StageMaster::EMarqueeMode MarqueeMode = StageMaster::EMarqueeMode::Replace;
     bool PrepareTransform();
     bool PreviewTransform(double Yaw, double Scale);
     void UpdateCamera();

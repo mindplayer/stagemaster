@@ -4,6 +4,7 @@
 #include "Input/Reply.h"
 #include "InputCoreTypes.h"
 #include "Styling/CoreStyle.h"
+#include "Rendering/DrawElements.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/SBoxPanel.h"
@@ -24,7 +25,35 @@ public:
         Camera = Args._Camera;
         ChildSlot[SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("NoBorder"))];
     }
+    virtual void Tick(const FGeometry& Geometry, const double Time, const float Delta) override
+    {
+        SCompoundWidget::Tick(Geometry, Time, Delta);
+        FVector2D Start, End;
+        bool Removing = false;
+        const bool DrawMarquee = Camera.IsValid() && Camera->GetMarquee(Start, End, Removing);
+        if (DrawMarquee || HadMarquee) Invalidate(EInvalidateWidgetReason::Paint);
+        HadMarquee = DrawMarquee;
+    }
     virtual bool SupportsKeyboardFocus() const override { return true; }
+    virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect& Culling,
+        FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle& Style, bool Enabled) const override
+    {
+        const int32 LastLayer = SCompoundWidget::OnPaint(Args, Geometry, Culling, Elements, Layer, Style, Enabled);
+        FVector2D Start, End;
+        bool Removing = false;
+        if (!Camera.IsValid() || !Camera->GetMarquee(Start, End, Removing)) return LastLayer;
+        int32 Width = 0, Height = 0;
+        if (auto Player = Cast<APlayerController>(Camera->GetController())) Player->GetViewportSize(Width, Height);
+        if (Width <= 0 || Height <= 0) return LastLayer;
+        const FVector2D Size = Geometry.GetLocalSize();
+        Start *= Size / FVector2D(Width, Height);
+        End *= Size / FVector2D(Width, Height);
+        const FLinearColor Color = Removing ? FLinearColor(1, 0.55f, 0.35f) : FLinearColor(0.35f, 0.85f, 0.75f);
+        TArray<FVector2D> Points{Start, FVector2D(End.X, Start.Y), End, FVector2D(Start.X, End.Y), Start};
+        FSlateDrawElement::MakeLines(Elements, LastLayer + 1, Geometry.ToPaintGeometry(), Points,
+            ESlateDrawEffect::None, Color, true, 1.5f);
+        return LastLayer + 1;
+    }
     virtual FReply OnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Event) override
     {
         if (!Camera.IsValid()) return FReply::Unhandled();
@@ -34,7 +63,7 @@ public:
         Navigating = Button == EKeys::RightMouseButton || Event.IsAltDown();
         CapturedButton = Button;
         if (Navigating) Camera->CancelDrag();
-        else Camera->SelectAt(ScreenPosition(Geometry, Event), Event.IsShiftDown() || Event.IsControlDown() || Event.IsCommandDown());
+        else Camera->SelectAt(ScreenPosition(Geometry, Event), Event.IsShiftDown(), Event.IsControlDown() || Event.IsCommandDown());
         return FReply::Handled().CaptureMouse(AsShared()).SetUserFocus(AsShared());
     }
     virtual FReply OnMouseMove(const FGeometry& Geometry, const FPointerEvent& Event) override
@@ -86,6 +115,7 @@ private:
     TWeakObjectPtr<APreviewCameraPawn> Camera;
     FKey CapturedButton;
     bool Navigating = false;
+    bool HadMarquee = false;
 };
 
 TSharedRef<SWidget> Button(TWeakObjectPtr<APreviewCameraPawn> Camera, const TCHAR* Label, void (APreviewCameraPawn::*Action)())
@@ -121,6 +151,10 @@ TSharedRef<SWidget> MakePreviewViewport(APreviewCameraPawn* Pawn)
                     .OnClicked_Lambda([Camera]() { if (Camera.IsValid()) Camera->ToggleMove(); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().AutoWidth().Padding(2, 0)
                 [SNew(SButton).ContentPadding(FMargin(12, 8)).IsFocusable(false)
+                    .Text_Lambda([Camera]() { return FText::FromString(Camera.IsValid() && Camera->IsSelectionThrough() ? TEXT("穿透框选：开") : TEXT("穿透框选：关")); })
+                    .OnClicked_Lambda([Camera]() { if (Camera.IsValid()) Camera->ToggleSelectionThrough(); return FReply::Handled(); })]
+                + SHorizontalBox::Slot().AutoWidth().Padding(2, 0)
+                [SNew(SButton).ContentPadding(FMargin(12, 8)).IsFocusable(false)
                     .Text_Lambda([Camera]() { return Camera.IsValid() ? Camera->WorkLightText() : FText(); })
                     .OnClicked_Lambda([Camera]() { if (Camera.IsValid()) Camera->ToggleWorkLight(); return FReply::Handled(); })]
                 + SHorizontalBox::Slot().FillWidth(1).HAlign(HAlign_Right).VAlign(VAlign_Center)
@@ -137,7 +171,7 @@ TSharedRef<SWidget> MakePreviewViewport(APreviewCameraPawn* Pawn)
                 + SVerticalBox::Slot().AutoHeight().Padding(0, 4)
                 [SNew(STextBlock).Text_Lambda([Camera]() { return Camera.IsValid() ? Camera->SelectionText() : FText(); })]
                 + SVerticalBox::Slot().AutoHeight()
-                [SNew(STextBlock).Text(FText::FromString(TEXT("右键 / Option 拖动旋转  ·  加 Shift 平移  ·  滚动缩放  ·  Esc 取消灯位拖动")))
+                [SNew(STextBlock).Text(FText::FromString(TEXT("拖框选灯 · Shift 加选 · Ctrl / Command 减选 · Option 旋转 · 滚动缩放 · Esc 取消")))
                     .ColorAndOpacity(FLinearColor(0.55, 0.6, 0.7))]
             ]
         ];

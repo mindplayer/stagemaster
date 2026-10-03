@@ -3,6 +3,7 @@ import type {
   PrevisTranslation,
   PrevisTransform,
   PrevisTool,
+  MarqueeMode,
 } from "./previs-types.ts";
 import type { SpatialVector3 } from "./stage-types.ts";
 
@@ -15,6 +16,9 @@ type ViewMessage =
       move: boolean;
       cutaway: boolean;
       interactionVersion: number;
+      marqueeSupported: boolean;
+      marqueeMode: MarqueeMode;
+      selectionThrough: boolean;
       vertical: boolean;
       tool: PrevisTool;
     }
@@ -58,6 +62,13 @@ export function readPrevisMessage(json: string): ViewMessage | null {
       (v.tool === undefined ||
         (typeof v.tool === "string" &&
           ["horizontal", "vertical", "rotate", "scale"].includes(v.tool))) &&
+      (v.marqueeMode === undefined ||
+        (typeof v.marqueeMode === "string" &&
+          ["replace", "add", "remove"].includes(v.marqueeMode))) &&
+      (v.marqueeSupported === undefined ||
+        typeof v.marqueeSupported === "boolean") &&
+      (v.selectionThrough === undefined ||
+        typeof v.selectionThrough === "boolean") &&
       (v.vertical === undefined || typeof v.vertical === "boolean") &&
       (v.interactionVersion === undefined ||
         Number.isSafeInteger(v.interactionVersion))
@@ -70,6 +81,9 @@ export function readPrevisMessage(json: string): ViewMessage | null {
         move: v.move,
         cutaway: v.cutaway === true,
         interactionVersion: Number(v.interactionVersion ?? 1),
+        marqueeSupported: v.marqueeSupported === true,
+        marqueeMode: (v.marqueeMode ?? "replace") as MarqueeMode,
+        selectionThrough: v.selectionThrough === true,
         vertical: v.vertical === true,
         tool: (v.tool ??
           (v.vertical ? "vertical" : "horizontal")) as PrevisTool,

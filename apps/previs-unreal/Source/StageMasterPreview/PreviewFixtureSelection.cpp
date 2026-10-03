@@ -21,6 +21,7 @@ void APreviewCameraPawn::TickSelection()
         CancelDrag();
         InteractionMessage = TEXT("灯位拖动已取消：连接或工程状态变化");
     }
+    if (Marquee.Active && (!Scene->CanMoveFixtures() || Marquee.Serial != Scene->GetSceneSerial())) CancelDrag();
     for (const auto& Id : SelectedIds) if (const auto Fixture = Scene->FindFixture(Id))
     {
         const FVector Position = Scene->PreviewLocation(Id);
@@ -29,12 +30,18 @@ void APreviewCameraPawn::TickSelection()
         DrawDebugDirectionalArrow(GetWorld(), Position, Position + Scene->PreviewDirection(Id) * 80, 10, Color, false, 0, 1, 1.5f);
     }
 }
-void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive)
+void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive, bool Remove)
 {
     CancelDrag();
     InteractionMessage.Empty();
     auto Player = Cast<APlayerController>(GetController());
     if (!Player || !Scene || !PendingPlacement.IsEmpty()) return;
+    if (!MoveMode)
+    {
+        if (Scene->CanMoveFixtures()) Marquee.Begin(Screen, Scene->GetSceneSerial(), Additive, Remove, MarqueeMode);
+        return;
+    }
+    Additive |= Remove;
     FHitResult Hit;
     Player->GetHitResultAtScreenPosition(Screen, ECC_Visibility, true, Hit);
     FString Id = Scene->FixtureAt(Hit);
@@ -54,16 +61,7 @@ void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive)
         }
     }
     const auto After = StageMaster::SelectFixture(SelectedIds, Id, Additive, MoveMode);
-    if (After != SelectedIds)
-    {
-        SelectedIds = After;
-        const auto Selection = MakeShared<FJsonObject>();
-        Selection->SetStringField(TEXT("kind"), TEXT("selectionGroup"));
-        TArray<TSharedPtr<FJsonValue>> Values;
-        for (const auto& Selected : SelectedIds) Values.Add(MakeShared<FJsonValueString>(Selected));
-        Selection->SetArrayField(TEXT("fixtureIds"), Values);
-        Streaming.Send(Selection);
-    }
+    PublishSelection(After);
     const auto Fixture = Scene->FindFixture(Id);
     if (!MoveMode || Additive || !Fixture) return;
     if (SelectedIds.Num() > 256)

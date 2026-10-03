@@ -34,6 +34,7 @@ void APreviewCameraPawn::PlacementResult(const FString& Id, bool Accepted)
 }
 void APreviewCameraPawn::DragTo(const FVector2D& Screen)
 {
+    if (Marquee.Active) { Marquee.Update(Screen); return; }
     if (!Dragging || !Scene) return;
     if (!Scene->CanMoveFixtures() || DragSerial != Scene->GetSceneSerial()) { CancelDrag(); return; }
     if (!DragMoved && (Screen - DragScreenOrigin).SizeSquared() < 9) return;
@@ -68,6 +69,7 @@ void APreviewCameraPawn::DragTo(const FVector2D& Screen)
 }
 void APreviewCameraPawn::FinishDrag()
 {
+    if (Marquee.Active) { FinishMarquee(); return; }
     if (!Dragging || !Scene) return;
     const bool Transforming = Tool == TEXT("rotate") || Tool == TEXT("scale");
     const bool Unchanged = Transforming ? (FMath::Fmod(DragYaw, 360.0) == 0 && DragScale == 1) : DragPosition.Equals(DragOrigin, 0.00001);
@@ -97,6 +99,7 @@ void APreviewCameraPawn::FinishDrag()
 }
 void APreviewCameraPawn::CancelDrag()
 {
+    Marquee.Cancel();
     InteractionMessage.Empty();
     if (Dragging) RestoreFixtures(DragIds);
     Dragging = DragMoved = false;
