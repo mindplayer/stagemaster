@@ -118,3 +118,19 @@
 接续代码核对：`Application::action` 在实际控制权校验前解析请求，音频开始／定位不能在此产生副作用；应由原 LiveBackend 的受控命令与回执接入有界音频所有者。原 Transport 的无正式循环路径仍没有完整消费／健康观测，不能用界面游标代替真实观测。正式音频所有权、提供方重启重绑定、素材循环回跳、普通试听统一及桌面入口继续属于本工单。正式循环还须检查整轨重准备成本与预编译内容复用，不将每次回跳都能在下一帧前完成编译作为前提，也不把编译移入音频回调；随后推进云端／U 盘共用交付。
 
 审查结论：预备来源增量通过，结果为本次 `feat(live): prepare authored audio lighting sources` 提交。11 项新增专项；最终 912 项全工作区测试通过（原有忽略 1 项），2 个文档示例通过；全工作区严格 Clippy／fmt 和 Xtensa runtime-check 通过。日志为 `logs/time-001-audio-source-workspace-tests.log`、`time-001-audio-source-final-clippy.log`、`time-001-audio-source-xtensa.log`、`time-001-audio-source-fmt.log`。此前专项测试用错误命令构造片段停用状态，改为已有 `editLightingClips` 启停命令后通过，未放宽产品校验；跳段遗漏已先复现再修正。全部 Cargo 验证串行执行，未重复无关界面／UE 或物理验收。本回合为 progress，完整 TIME-001 与 goal 仍 active。
+
+## 受控媒体提供方增量
+
+基线 `f4aeb04`，main 主工作区，当前会话单写者；依据 [ADR-117](../decisions/PRODUCT-ADR-117-controlled-media-provider.md)／[契约](../../module-api/controlled-media-provider.md)。上一回合提交真实音乐来源，为 progress；本回合继续补正式后台音频所缺的授权到实际执行边界，不回到局部界面细化。
+
+- 原 LiveBackend 在启动前注册受控媒体组、素材位置上限和准备作业期限。播放／暂停／停止／定位仍经过原 Client、Authority、修订及重复请求回执；提供方只读取已接纳的票据，不取得操作者租约。
+- 每组固定一个最新意图和完成槽，复用原准备与观测槽。受控组不允许旧的灯光单独激活／停止绕过音源；原纯观察组入口保持。新意图、旧组代次、超时和计数耗尽有明确拒绝／结果，所有主调度入口只 try_lock。
+- 调度核对当前票据后自动激活提供方准备结果；成功／失败的计划仍由提供方回收。请求成功和实际完成分开，定位还必须激活本次准备，旧 Following 状态不能冒充新定位成功。停止由提供方确认实际操作后释放该组灯光。
+- 真实 WAV 解码源与原 Host 验证开始、帧边界暂停、定位新实例和停止。操作者退出后已授权意图继续；音频消费／回调及原媒体状态提供完成依据，完整灯光帧正确，自主灯光继续。没有打开物理声卡或输出设备。
+- 直接时钟用例验证暂时锁忙不阻塞调度、过期优先于迟到完成、旧准备保留回收、错误样本不更换计划、准备／音源失败可见及后端关闭后的拒绝。首次专项编译仅因测试把宿主 Error::Runtime(Code::Lease) 写成内层 Code，修正断言类型后通过，未放宽实现或业务断言。
+
+新增生产文件最大 118 行，新增测试文件最大 253 行；仅将已使用的本地 playback 模块列为直接生产依赖以复用位置上限，Cargo.lock 和第三方版本不变。工程、设备包、HTTP／GATT 和 UI 格式保持。此增量是生产宿主的受控提供方通道；测试中的提供方调用不等于独立应用已经有完整常驻音频所有者，TIME-001／goal 仍未完成。
+
+接续直接在 `apps/execution-host` 组装常驻音频所有者和真实资源准备：持有原 Transport／音源、消费已授权请求、按原回调观察发布状态、处理暂停／定位完成与故障收尾，再连原应用会话／桌面入口。普通音乐也需要正式观测，不能仅在有循环计划时进入该路径；循环回跳、自然结束、提供方重启及准备资源预算继续验证。保持云端／U 盘共用交付为后续框架出口，用户 `output/`、窗口、工程与设备保持。
+
+审查结论：受控提供方增量通过，结果为本次 `feat(live): authorize asynchronous media provider controls` 提交。9 项新增测试；最终宿主／独立进程／客户端 49 项相关回归通过，全工作区严格 Clippy／fmt 通过，本次没有重跑全工作区测试或物理验收。正常依赖树确认通用宿主不依赖音频／界面，日志 `logs/time-001-media-control-regression.log`、`time-001-media-control-final-clippy-2.log`、`time-001-media-control-fmt.log`、`time-001-media-control-normal-deps.log`。全部 Cargo 验证串行执行。当前用户询问本轮进度，核对后估计框架大轮约完成 75%–80%；这是按已验证边界的粗略工程估计，不代表商业交付完成度，也不把待接线的测试提供方计作独立应用已完成。完整 TIME-001／goal 保持 active。

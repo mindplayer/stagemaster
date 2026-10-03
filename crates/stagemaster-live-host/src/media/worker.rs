@@ -1,6 +1,6 @@
 use super::{
     MediaState,
-    slots::{Activation, ObservationReceipt, Worker},
+    slots::{Activation, Entry, ObservationReceipt, Worker},
 };
 use crate::LiveBackend;
 use stagemaster_live::Session;
@@ -19,19 +19,10 @@ impl Worker {
             .as_mut()
             .filter(|e| e.ticket == ticket && e.result.is_none())
             .ok_or(Code::State)?;
-        let result = session
-            .activate_media(&mut entry.prepared, entry.sample, &entry.mapping, now)
-            .map_err(|_| {
-                if session.fault().is_some() {
-                    Code::Playback
-                } else {
-                    Code::State
-                }
-            });
-        entry.result = Some(result);
-        result
+        entry.activate(session, now)
     }
     pub(crate) fn poll(&mut self, session: &mut Session, now: u64) -> Result<(), Code> {
+        self.poll_requested_activation(session, now)?;
         let update = match self.inbox.try_lock() {
             Ok(mut inbox) => inbox.latest.take(),
             Err(_) => None,
@@ -56,11 +47,15 @@ impl Worker {
                 return Err(Code::Playback);
             }
         }
+        if let Some(control) = &mut self.control {
+            control.poll_completion(session, now)?;
+        }
         Ok(())
     }
 }
 impl LiveBackend {
     pub(crate) fn activate_media(&mut self, ticket: Activation, now: u64) -> Result<(), Code> {
+        self.direct_media_allowed(ticket.group)?;
         let worker = self
             .media
             .iter()
@@ -74,8 +69,29 @@ impl LiveBackend {
             states[index] = Some(MediaState {
                 group,
                 observation: self.media.get(index).and_then(|w| w.receipt),
+                control: self
+                    .media
+                    .get(index)
+                    .and_then(|w| w.control.as_ref())
+                    .and_then(|c| c.state),
             });
         }
         states
+    }
+}
+
+impl Entry {
+    pub(super) fn activate(&mut self, session: &mut Session, now: u64) -> Result<(), Code> {
+        let result = session
+            .activate_media(&mut self.prepared, self.sample, &self.mapping, now)
+            .map_err(|_| {
+                if session.fault().is_some() {
+                    Code::Playback
+                } else {
+                    Code::State
+                }
+            });
+        self.result = Some(result);
+        result
     }
 }

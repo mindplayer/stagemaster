@@ -32,6 +32,7 @@ pub(super) struct Entry {
     pub sample: Sample,
     pub mapping: Mapping,
     pub result: Option<Result<(), Code>>,
+    pub request: Option<super::ControlTicket>,
 }
 #[derive(Default)]
 pub(super) struct Staging {
@@ -56,6 +57,7 @@ pub(crate) struct Worker {
     pub(super) inbox: Arc<Mutex<Inbox>>,
     pub receipt: Option<ObservationReceipt>,
     pub(super) alive: Arc<AtomicBool>,
+    pub(super) control: Option<super::control::Lane>,
 }
 impl Drop for Worker {
     fn drop(&mut self) {
@@ -73,12 +75,14 @@ pub(super) fn pair(group: GroupInfo) -> (Worker, MediaPort) {
             inbox: inbox.clone(),
             receipt: None,
             alive: alive.clone(),
+            control: None,
         },
         MediaPort {
             group,
             staging,
             inbox,
             alive,
+            control: None,
         },
     )
 }

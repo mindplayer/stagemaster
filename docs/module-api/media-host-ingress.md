@@ -8,6 +8,8 @@ TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host
 
 每组一个准备槽、一个最新观测槽，最多 64 组；内存在启动前分配。准备和连续观测不共享操作者租约。端口不能自行开始或停止节目，不能直接写输出；不将此本机对象当作远程授权凭据。
 
+需要控制真实媒体提供方时，以 `with_controlled_media` 注册[受控媒体命令](controlled-media-provider.md)，原 Client 接纳意图后，提供方凭请求票据准备并报告实际完成。受控组拒绝下面的旧直接激活／停止入口，沿用同一准备／观测槽与回收方式；`State.media[].control` 区分请求已接纳、已完成、失败及超时。
+
 ## 调用顺序
 
 | 调用 | 行为 |

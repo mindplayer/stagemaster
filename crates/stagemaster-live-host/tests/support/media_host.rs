@@ -37,14 +37,18 @@ impl Rig {
             "periodMs":1000,"spreadDegrees":0,"phaseDegrees":0,"reverse":false,"waveform":"triangle","dutyPercent":50,
             "channels":[{"attribute":"blue","low":10_000,"high":50_000}]
         }}})).unwrap()).unwrap();
-        Self::from_prepared_document(doc, &specs(), make)
+        Self::from_prepared_document(doc, &specs(), None, make)
     }
     pub fn with_document(doc: Document, sources: &[SourceSpec]) -> Self {
-        Self::from_prepared_document(doc, sources, |backend| (backend, ())).0
+        Self::from_prepared_document(doc, sources, None, |backend| (backend, ())).0
+    }
+    pub fn with_controls(doc: Document, sources: &[SourceSpec], timeout_ms: u64) -> Self {
+        Self::from_prepared_document(doc, sources, Some(timeout_ms), |backend| (backend, ())).0
     }
     fn from_prepared_document<B: Backend<Profile = Live>, T>(
         doc: Document,
         sources: &[SourceSpec],
+        control_timeout: Option<u64>,
         make: impl FnOnce(LiveBackend) -> (B, T),
     ) -> (Self, T) {
         let provider = Clock::new([60; 16], 1).unwrap();
@@ -65,7 +69,19 @@ impl Rig {
         let key = session.media_key([50; 16]).unwrap();
         let prepare = session.media_preparer(key).unwrap();
         let autonomous = session.key([2; 16]).unwrap();
-        let (backend, mut ports) = LiveBackend::with_media(session).unwrap();
+        let (backend, mut ports) = if let Some(timeout_ms) = control_timeout {
+            LiveBackend::with_controlled_media(
+                session,
+                &[stagemaster_live_host::media::ControlSpec {
+                    group: [50; 16],
+                    duration_ms: 1000,
+                    timeout_ms,
+                }],
+            )
+        } else {
+            LiveBackend::with_media(session)
+        }
+        .unwrap();
         let (backend, extra) = make(backend);
         let host = Host::start_backend(
             backend,

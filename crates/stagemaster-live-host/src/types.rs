@@ -46,6 +46,10 @@ pub enum Action {
     StopMedia {
         group: stagemaster_live::media::GroupKey,
     },
+    RequestMedia {
+        group: stagemaster_live::media::GroupKey,
+        command: crate::media::MediaCommand,
+    },
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct State {

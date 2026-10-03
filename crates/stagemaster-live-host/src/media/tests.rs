@@ -12,6 +12,12 @@ use stagemaster_runtime_host::Backend;
 use stagemaster_time::{Clock, Exchange, Mapping};
 
 fn setup() -> (LiveBackend, MediaPort, Preparer, Document, Sample, Mapping) {
+    setup_controlled(false)
+}
+
+pub(super) fn setup_controlled(
+    controlled: bool,
+) -> (LiveBackend, MediaPort, Preparer, Document, Sample, Mapping) {
     let doc = fixtures::decode(&fixtures::fixture(0));
     let clock = Clock::new([60; 16], 0).unwrap();
     let group = GroupSpec {
@@ -53,7 +59,19 @@ fn setup() -> (LiveBackend, MediaPort, Preparer, Document, Sample, Mapping) {
         },
     )
     .unwrap();
-    let (backend, mut ports) = LiveBackend::with_media(session).unwrap();
+    let (backend, mut ports) = if controlled {
+        LiveBackend::with_controlled_media(
+            session,
+            &[ControlSpec {
+                group: [50; 16],
+                duration_ms: 1000,
+                timeout_ms: 50,
+            }],
+        )
+    } else {
+        LiveBackend::with_media(session)
+    }
+    .unwrap();
     (backend, ports.remove(0), preparer, doc, sample, map)
 }
 

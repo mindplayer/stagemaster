@@ -8,12 +8,13 @@ use std::sync::{
 };
 
 /// Trusted provider/preparation endpoint for exactly one fixed local group.
-/// This is not an operator lease and cannot activate or stop playback by itself.
+/// This is not an operator lease. Controlled activation/completion requires a current authorized ticket.
 pub struct MediaPort {
     pub(super) group: GroupInfo,
     pub(super) staging: Arc<Mutex<Staging>>,
     pub(super) inbox: Arc<Mutex<Inbox>>,
     pub(super) alive: Arc<AtomicBool>,
+    pub(super) control: Option<Arc<Mutex<super::control::Mailbox>>>,
 }
 impl MediaPort {
     /// Initial group identity. Obtain current playback keys from authoritative host state/receipts.
@@ -29,6 +30,18 @@ impl MediaPort {
         prepared: Prepared,
         sample: Sample,
         mapping: Mapping,
+    ) -> Result<Activation, Code> {
+        if self.control.is_some() {
+            return Err(Code::State);
+        }
+        self.stage_inner(prepared, sample, mapping, None)
+    }
+    pub(super) fn stage_inner(
+        &self,
+        prepared: Prepared,
+        sample: Sample,
+        mapping: Mapping,
+        request: Option<super::ControlTicket>,
     ) -> Result<Activation, Code> {
         if !self.alive.load(Ordering::Acquire) {
             return Err(Code::State);
@@ -51,6 +64,7 @@ impl MediaPort {
             sample,
             mapping,
             result: None,
+            request,
         });
         slot.serial = serial;
         Ok(ticket)

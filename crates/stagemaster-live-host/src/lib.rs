@@ -44,8 +44,12 @@ impl LiveBackend {
     }
     fn apply(&mut self, action: &Action, now: u64) -> Result<(), Code> {
         let (source, result) = match action {
+            Action::RequestMedia { group, command } => {
+                return self.request_media(*group, *command, now);
+            }
             Action::ActivateMedia { ticket } => return self.activate_media(*ticket, now),
             Action::StopMedia { group } => {
+                self.direct_media_allowed(*group)?;
                 return self.session.stop_media(*group, now).map_err(|_| {
                     if self.session.fault().is_some() {
                         Code::Playback

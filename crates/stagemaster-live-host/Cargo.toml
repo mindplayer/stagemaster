@@ -10,10 +10,10 @@ stagemaster-live = { path = "../stagemaster-live" }
 stagemaster-runtime = { path = "../stagemaster-runtime" }
 stagemaster-runtime-host = { path = "../stagemaster-runtime-host" }
 stagemaster-time = { path = "../stagemaster-time" }
+stagemaster-playback = { path = "../stagemaster-playback" }
 
 [dev-dependencies]
 stagemaster-audio = { path = "../stagemaster-audio" }
-stagemaster-playback = { path = "../stagemaster-playback" }
 tempfile = "=3.27.0"
 stagemaster-project = { path = "../stagemaster-project" }
 serde_json = "=1.0.151"

@@ -3,6 +3,11 @@ use stagemaster_playback::LoopSchedule;
 use std::sync::atomic::AtomicBool;
 
 pub fn audio() -> (tempfile::TempDir, PerformanceSource, PerformanceControl) {
+    let (dir, audio) = prepared_audio();
+    let (source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
+    (dir, source, control)
+}
+pub fn prepared_audio() -> (tempfile::TempDir, PerformanceAudio) {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("consumed.wav");
     let mut wav = Vec::new();
@@ -29,8 +34,7 @@ pub fn audio() -> (tempfile::TempDir, PerformanceSource, PerformanceControl) {
         &AtomicBool::new(false),
     )
     .unwrap();
-    let (source, control) = audio.source(0, &AtomicBool::new(false)).unwrap();
-    (dir, source, control)
+    (dir, audio)
 }
 pub fn consume(source: &mut PerformanceSource, millis: usize) {
     for _ in 0..millis * 8 * 2 {
