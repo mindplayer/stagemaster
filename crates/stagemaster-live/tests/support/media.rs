@@ -67,6 +67,7 @@ pub fn mapping(host: Clock, drift: u32) -> Mapping {
 /// Independent forward oscillator model: media clock is 100 ppm faster than host.
 pub fn sample(sequence: u64, position: u64, playing: bool, host_ms: u64) -> Sample {
     Sample {
+        progress: None,
         at: provider().at(10_000_000_000 + (host_ms - 1000) * 1_000_100),
         sequence,
         position_ms: position,

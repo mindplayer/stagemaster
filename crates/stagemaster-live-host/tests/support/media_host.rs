@@ -113,6 +113,7 @@ impl Rig {
         let (at, map) = self.clock.map(original).unwrap();
         (
             Sample {
+                progress: None,
                 at,
                 sequence: seq,
                 position_ms: pos,

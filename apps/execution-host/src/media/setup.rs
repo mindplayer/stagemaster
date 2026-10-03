@@ -11,6 +11,7 @@ pub(crate) struct Setup {
     pub group: GroupSpec,
     pub duration_ms: u64,
     pub output: OutputKind,
+    pub loops: bool,
     pub(super) transport: Transport,
     pub(super) software: Option<SoftwareOutput>,
 }
@@ -23,9 +24,7 @@ impl Setup {
         output: OutputKind,
     ) -> Result<Self, String> {
         let track = doc.audio_timeline().ok_or("工程没有音乐轨道")?;
-        if track.loop_regions.iter().any(|r| r.enabled) {
-            return Err("独立后台暂未接入演出循环，请保留在编辑预演中执行".into());
-        }
+        let loops = track.loop_regions.iter().any(|r| r.enabled);
         let resources = Resources::new(directory.store().join("media"));
         let original =
             resources.resolve(&track.asset.digest, &track.asset.extension, Some(project))?;
@@ -38,7 +37,12 @@ impl Setup {
         )?;
         let (mut transport, software) = SoftwareOutput::prepare(output);
         let prepared = transport
-            .load_performance_request(path, track.in_ms, track.out_ms, None)?
+            .load_performance_request(
+                path,
+                track.in_ms,
+                track.out_ms,
+                Some(track.compile_loops(1000)?.schedule),
+            )?
             .prepare(&cancel)?;
         transport.apply_load(prepared)?;
         Ok(Self {
@@ -56,6 +60,7 @@ impl Setup {
             },
             duration_ms: track.duration_ms(),
             output,
+            loops,
             transport,
             software,
         })

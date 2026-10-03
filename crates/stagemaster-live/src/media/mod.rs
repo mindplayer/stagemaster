@@ -4,10 +4,12 @@ mod catch_up;
 mod commands;
 mod preparation;
 mod prepare;
+mod progress;
 mod types;
 
 use crate::Session;
 pub use preparation::Preparer;
+pub use progress::MediaProgress;
 use stagemaster_time::Clock;
 pub use types::{GroupInfo, GroupKey, GroupSpec, Limits, Prepared, Sample, Status};
 
@@ -18,6 +20,7 @@ pub(crate) struct Group {
     status: Status,
     last: Option<Sample>,
     observed_host_ns: u64,
+    looping: bool,
 }
 impl Group {
     pub(crate) fn player_status(

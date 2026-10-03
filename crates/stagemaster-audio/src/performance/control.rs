@@ -242,6 +242,7 @@ mod tests {
         let shared = Shared::new(
             LoopPosition {
                 tick: 0,
+                repeated_ticks: 0,
                 region: None,
                 pass: None,
                 exit_requested: false,

@@ -18,6 +18,13 @@ pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
         .capabilities
         .iter()
         .any(|c| c == "backgroundLinearAudio");
+    let loops = catalog
+        .capabilities
+        .iter()
+        .any(|c| c == "backgroundAudioLoops");
+    if loops != catalog.audio.as_ref().is_some_and(|c| c.performance_loops) {
+        return Err("后台循环能力与配置不一致".into());
+    }
     match &catalog.audio {
         None if audio.is_empty() && !declared => Ok(()),
         Some(config)
@@ -53,6 +60,16 @@ pub(crate) fn media_state(catalog: &Catalog, state: &State) -> Result<(), String
     }
     decimal(&group.generation)?;
     decimal(&native.frames)?;
+    if let Some(current) = &native.loop_state {
+        if !config.performance_loops
+            || current.region >= 128
+            || current.name.trim().is_empty()
+            || native.instance.is_none()
+        {
+            return Err("后台循环状态与能力不一致".into());
+        }
+        nonzero(&current.pass)?;
+    }
     if let Some(instance) = &native.instance {
         nonzero(instance)?;
     }

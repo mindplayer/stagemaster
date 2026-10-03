@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod end_tests;
+#[cfg(test)]
+mod loop_tests;
 mod provider;
 mod registration;
 #[cfg(test)]
@@ -35,6 +37,16 @@ impl Mailbox {
 }
 impl Lane {
     pub fn admit(&mut self, group: GroupKey, command: MediaCommand, now: u64) -> Result<(), Code> {
+        if let MediaCommand::ExitLoop {
+            instance,
+            region,
+            pass,
+            ..
+        } = command
+            && (instance == 0 || pass == 0 || region >= stagemaster_playback::MAX_LOOP_REGIONS)
+        {
+            return Err(Code::Selection);
+        }
         if let MediaCommand::Seek { position_ms, .. } = command
             && position_ms > self.spec.duration_ms
         {

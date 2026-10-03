@@ -31,6 +31,9 @@ impl Group {
         if sample.sequence == 0 || sample.position_ms > MAX_TIME_MS {
             return Err("媒体观测序号或位置超出范围".into());
         }
+        if let Some(progress) = sample.progress {
+            progress.validate(sample.position_ms)?;
+        }
         let window = mapping.convert(sample.at).map_err(|e| e.to_string())?;
         let now = nanos(now_ms)?;
         let age = now
@@ -48,20 +51,22 @@ impl Group {
                 return Err("同步组未运行或已失联，须重新准备播放代次".into());
             }
             let previous = self.last.ok_or("同步组缺少上次观测")?;
+            if sample.repeated_since(previous) && !self.looping {
+                return Err("当前媒体计划未声明循环回跳".into());
+            }
             if sample.sequence <= previous.sequence || sample.at.nanos <= previous.at.nanos {
                 return Err("媒体观测重复或倒序".into());
             }
-            let progress = sample
-                .position_ms
-                .checked_sub(previous.position_ms)
-                .ok_or("媒体定位须重新准备播放代次")?;
+            let progress = sample.progress_ns(previous)?;
             let elapsed = sample.at.nanos - previous.at.nanos;
-            let bound = (u128::from(elapsed) * u128::from(self.spec.limits.max_rate_percent))
-                .div_ceil(100_000_000)
-                + u128::from(self.spec.limits.position_tolerance_ms);
-            if u128::from(progress) > bound
-                || (!previous.playing && !sample.playing && progress != 0)
-            {
+            let scaled = u128::from(elapsed) * u128::from(self.spec.limits.max_rate_percent);
+            let bound = if sample.progress.is_some() {
+                scaled.div_ceil(100)
+            } else {
+                // Preserve the original millisecond cursor's quantization allowance.
+                scaled.div_ceil(100_000_000) * 1_000_000
+            } + u128::from(self.spec.limits.position_tolerance_ms) * 1_000_000;
+            if progress > bound || (!previous.playing && !sample.playing && progress != 0) {
                 return Err("媒体位置不连续，须重新准备播放代次".into());
             }
         }

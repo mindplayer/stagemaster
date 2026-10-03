@@ -34,6 +34,18 @@ fn validates_the_whole_schedule_before_starting() {
 }
 
 #[test]
+fn repeated_distance_overflow_is_atomic_and_explicit_seek_resets_the_counter() {
+    let mut p = player(4, vec![region(0, 2, LoopPlays::UntilExit)], 0);
+    p.advance(u64::MAX - 1).unwrap();
+    let before = p.position();
+    assert_eq!(before.repeated_ticks, u64::MAX - 1);
+    assert!(p.advance(2).is_err());
+    assert_eq!(p.position(), before);
+    assert_eq!(p.seek(1).unwrap().repeated_ticks, 0);
+    assert_eq!(p.advance(2).unwrap().repeated_ticks, 2);
+}
+
+#[test]
 fn exact_endpoints_include_adjacent_regions_but_not_gaps() {
     let mut p = player(
         10,
@@ -56,6 +68,7 @@ fn exact_endpoints_include_adjacent_regions_but_not_gaps() {
         p.advance(8).unwrap(),
         LoopPosition {
             tick: 10,
+            repeated_ticks: 6,
             region: None,
             pass: None,
             exit_requested: false,
@@ -161,6 +174,7 @@ fn reference_tick(state: &mut LoopPosition, duration: u64, regions: &[LoopRegion
                 }
             {
                 state.tick = r.start;
+                state.repeated_ticks += r.end - r.start;
                 state.pass = Some(pass + 1);
                 return;
             }
@@ -201,6 +215,7 @@ fn sparse_advances_match_tick_by_tick_oracle_across_mixed_schedules() {
                         .position(|r| (r.start..r.end).contains(&start));
                     let mut expected = LoopPosition {
                         tick: start,
+                        repeated_ticks: 0,
                         region: active,
                         pass: active.map(|_| 1),
                         exit_requested: false,

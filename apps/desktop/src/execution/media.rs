@@ -26,10 +26,10 @@ pub(super) fn validate(
         return Err("音乐编排须选择一个明确的声音输出，且不能重复载入".into());
     }
     if count == 1 {
-        let track = document.audio_timeline().ok_or("工程还没有音乐")?;
-        if track.loop_regions.iter().any(|r| r.enabled) {
-            return Err("后台暂未支持演出循环，请先在音乐编排中停用循环区段".into());
-        }
+        document
+            .audio_timeline()
+            .ok_or("工程还没有音乐")?
+            .compile_loops(1000)?;
         document.compile_audio_segment(None)?;
     }
     Ok(())

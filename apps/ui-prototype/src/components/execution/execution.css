@@ -95,8 +95,9 @@
   border-block: 1px solid #324452;
   margin-top: 12px;
 }
-.execution-choices label {
+.background-execution .execution-choices label {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   padding: 9px 4px;
@@ -144,8 +145,10 @@
 .background-execution .execution-source form label {
   white-space: nowrap;
 }
-.execution-audio-route {
+.background-execution .execution-audio-route {
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-block: 16px;

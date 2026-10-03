@@ -1,12 +1,14 @@
 export type ExecutionAudioOutput = "systemDefault" | "software";
 export type ExecutionMediaAction =
   | { kind: "play" | "pause" | "stop" }
-  | { kind: "seek"; positionMs: number; playing: boolean };
+  | { kind: "seek"; positionMs: number; playing: boolean }
+  | { kind: "exitLoop"; instance: string; region: number; pass: string; requested: boolean };
 export interface ExecutionAudioCatalog {
   output: ExecutionAudioOutput;
   durationMs: number;
   group: string;
   seekIncludesEnd: boolean;
+  performanceLoops?: boolean;
 }
 export interface ExecutionMediaState {
   id: string;
@@ -32,4 +34,12 @@ export interface ExecutionAudioState {
   positionMs: number;
   durationMs: number;
   problem: string | null;
+  instance?: string | null;
+  loopState?: {
+    region: number;
+    name: string;
+    pass: string;
+    exitRequested: boolean;
+    pendingExit: boolean | null;
+  } | null;
 }

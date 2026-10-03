@@ -41,7 +41,7 @@ impl MediaPort {
         let intent = control.pending(request)?;
         match intent.command {
             MediaCommand::Play => {}
-            MediaCommand::Seek { position_ms, .. } if sample.position_ms == position_ms => {}
+            MediaCommand::Seek { position_ms, .. } if sample.matches_seek(position_ms) => {}
             _ => return Err(Code::State),
         }
         if control.activated || prepared.key() != request.group {

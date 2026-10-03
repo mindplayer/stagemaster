@@ -42,7 +42,6 @@ export function PrepareSources({
   ];
   const valid = choices.filter((s) => selected.includes(`${s.kind}:${s.id}`));
   const music = valid.some((s) => s.kind === "audioTimeline");
-  const looped = !!project.audio?.loopRegions?.some((r) => r.enabled);
   const visible = choices.filter((s) =>
     s.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
   );
@@ -68,9 +67,6 @@ export function PrepareSources({
                 checked={selected.includes(key)}
                 disabled={
                   disabled ||
-                  (s.kind === "audioTimeline" &&
-                    looped &&
-                    !selected.includes(key)) ||
                   (!selected.includes(key) && valid.length >= 63)
                 }
                 onChange={(e) =>
@@ -88,9 +84,6 @@ export function PrepareSources({
         })}
         {!visible.length && <p>没有匹配的节目</p>}
       </div>
-      {looped && project.audio && (
-        <p role="status">音乐含已启用的循环区段，请先停用循环再载入后台。</p>
-      )}
       {music && (
         <label className="execution-audio-route">
           声音输出
@@ -114,7 +107,7 @@ export function PrepareSources({
         </button>
         <button
           className="wb-primary"
-          disabled={disabled || !valid.length || (music && looped)}
+          disabled={disabled || !valid.length}
           onClick={() =>
             onPrepare(
               valid.map(({ kind, id }) =>

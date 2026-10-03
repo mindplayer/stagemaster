@@ -17,6 +17,19 @@ impl Client {
         }
         validation::decimal(revision)?;
         validation::decimal(generation)?;
+        if let MediaAction::ExitLoop {
+            instance,
+            region,
+            pass,
+            ..
+        } = &action
+            && (!catalog.performance_loops
+                || *region >= 128
+                || validation::decimal(instance)? == 0
+                || validation::decimal(pass)? == 0)
+        {
+            return Err("当前后台不支持循环控制或循环目标无效".into());
+        }
         if let MediaAction::Seek { position_ms, .. } = &action
             && (*position_ms > catalog.duration_ms
                 || (*position_ms == catalog.duration_ms && !catalog.seek_includes_end))

@@ -1,5 +1,9 @@
 # 当前开发状态
 
+TIME-001 正式后台循环增量完成（基线 `db87319`，main；结果为本次 `feat(audio): integrate background performance loops` 提交）：依据 [ADR-122](decisions/PRODUCT-ADR-122-background-audio-loops.md)，真实 PCM 回跳观测、预编译灯光复用、本遍退出／取消、精确采样帧定位及桌面组件已贯通。188 项相关 Rust、311 UI、类型、全工作区严格 Clippy／fmt、Xtensa runtime-check、桌面打包及原生静音验收通过；旧全量回归曾主动终止，不宣称全工作区测试通过。原生循环第三遍、暂停／退出／取消、退出后续播与停止归零成立，另修正节目选择列表被通用纵向样式覆盖；最终重新打包与原生布局／筛选复验通过。无第三方依赖升级、工程或设备包格式变化，未操作物理声卡、板卡或 UE。验收后台与窗口均正常关闭，用户 `output/`、工程及其他窗口保持。完整 TIME-001／goal 未完成：接续提供方重启重绑定、多进程试听输出权及云端／U 盘统一交付。
+
+本轮进度核对：按用户收敛后的“框架扎实、可运行验证、暂不追求全部专业细节”估计约 80%，仍有约 20%；为粗略工程判断，不代表商业交付比例。剩余主要是 TIME-001 提供方重启与恢复收尾、多独立编辑进程的音频输出权、云端与 U 盘共同交付路径的代表性验证及整体审查。具体商业加密／限时不在本轮实施范围，移动端和实体控台全量开发也不前置。持续 goal active；用户 `output/`、原工程、窗口及设备保持。
+
 TIME-001 末尾定位与回执草稿增量完成（基线 `e0e2487`；结果为本次 `feat(audio): complete background end seeking and receipt-driven progress` 提交，main）：[工单](tasks/TIME-001-independent-clock-boundaries.md)／[ADR-121](decisions/PRODUCT-ADR-121-background-audio-end-seek.md)。原生音源实际结束、原 Host 完成释放与重播已接通，旧后台能力仍可识别；原生验收发现并修复成功定位后草稿残留导致滑条不跟随。分批 67 项相关 Rust 检查、最终 6 项进程专项、311 UI、类型、全工作区严格 Clippy／fmt、桌面打包及原生静音软件验收通过；末尾／越界／取消／重播／暂停定位／滑条 End 均成立。无第三方依赖升级或工程／设备包变化，未重跑全工作区测试，未操作物理声卡／板卡／UE。完整 TIME-001／goal 未完成：接续正式循环回跳／退出及预编译复用，之后提供方重启、多进程试听输出权和云端／U 盘共用交付。用户 output/、工程和其他窗口保持；验收后台与窗口已正常关闭。
 
 TIME-001 桌面后台音乐入口增量完成（基线 `99ca5df`；结果为本次 `feat(desktop): integrate background music controls` 提交，main）：[工单](tasks/TIME-001-independent-clock-boundaries.md)／[ADR-120](decisions/PRODUCT-ADR-120-background-audio-client.md)。原后台来源目录可选择音乐与明确输出，准备固定资源副本；正式桌面接播放／暂停／停止／精确定位与当前编辑试听互斥。128 项相关 Rust 回归、最终 4 项入口测试、307 UI、类型、全工作区严格 Clippy／fmt、桌面打包及原生静音软件验收通过；真实退出编辑器后原音乐继续，重开只读控制及确认关闭通过。新增生产文件不超过 200 行，无第三方依赖升级或工程／设备包格式变化，未重跑全工作区测试。完整 TIME-001／goal 未完成：接续循环／末尾定位／提供方重启，再推进云端／U 盘共用交付；多独立编辑进程既有试听的全局输出权仍未解决。用户 output/、工程、窗口与设备保持；隔离验收窗口和后台已正常关闭，未操作物理声卡或板卡。

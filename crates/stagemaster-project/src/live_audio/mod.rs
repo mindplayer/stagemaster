@@ -84,6 +84,16 @@ impl LiveAudioTimeline {
         }
         Ok(())
     }
+    /// Sample an admitted media loop boundary using the existing immutable plans.
+    /// The owning media group validates consumption continuity before calling this method.
+    /// # Errors
+    /// Reject inactive sources or positions outside the authored track before changing output.
+    pub fn repeat_at(&mut self, position: u64) -> Result<(), String> {
+        if self.status == Status::Idle || position > self.duration_ms() {
+            return Err("音乐循环来源未运行或位置越界".into());
+        }
+        self.sample(position, true)
+    }
     fn sample(&mut self, position: u64, reassert: bool) -> Result<(), String> {
         let reference = self.track.lighting_at(position);
         let origin = reference.map_or(0, |r| r.start_ms);

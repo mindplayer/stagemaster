@@ -64,6 +64,7 @@ impl Session {
                 status: Status::Ready,
                 last: None,
                 observed_host_ns: 0,
+                looping: false,
             });
         }
         if session.sources.iter().any(|s| {

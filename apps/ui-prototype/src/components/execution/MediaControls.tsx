@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { audioTime } from "../../audio-tools";
+import { MediaLoopControls } from "./MediaLoopControls";
 import type { ExecutionView } from "../../execution-types";
 import type { ExecutionMediaAction } from "../../execution-media-types";
 import {
@@ -155,6 +156,9 @@ export function MediaControls({
           停止音乐
         </button>
       </div>
+      {config.performanceLoops && (
+        <MediaLoopControls audio={audio} disabled={disabled} onAction={onAction} />
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();

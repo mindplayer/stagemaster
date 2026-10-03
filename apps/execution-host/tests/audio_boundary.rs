@@ -38,9 +38,9 @@ fn preparation_requires_valid_explicit_audio_and_untampered_portable_assets() {
                     .as_array_mut()
                     .unwrap()
                     .push(json!({"key":"media.audio-loop-regions","version":1}));
-                raw["media"]["audioEditing"]["loopRegions"] = json!([{"id":id(99),"name":"重复","startMs":0,"endMs":1000,"plays":{"kind":"count","count":2},"enabled":true,"locked":false}]);
+                raw["media"]["audioEditing"]["loopRegions"] = json!([{"id":id(99),"name":"重复","startMs":0,"endMs":1000,"plays":{"kind":"count","count":0},"enabled":true,"locked":false}]);
                 fs::write(&show, serde_json::to_vec(&raw).unwrap()).unwrap();
-                stagemaster_project::Document::decode(&fs::read(&show).unwrap()).unwrap();
+                assert!(stagemaster_project::Document::decode(&fs::read(&show).unwrap()).is_err());
             }
         }
         fs::write(&manifest, serde_json::to_vec(&value).unwrap()).unwrap();
@@ -55,7 +55,10 @@ fn preparation_requires_valid_explicit_audio_and_untampered_portable_assets() {
             &run,
         );
         if case == 5 {
-            assert!(error.contains("演出循环"));
+            assert!(
+                error.contains("/media/audioEditing/loopRegions/0/plays"),
+                "{error}"
+            );
         }
     }
 }

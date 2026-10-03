@@ -108,10 +108,20 @@ fn complete(
                 }
                 return session.stop_media(group.key, now).map_err(|_| Code::State);
             }
-            if !activated || group.position_ms < position_ms {
+            if !activated {
                 return Err(Code::State);
             }
             playing
+        }
+        MediaCommand::ExitLoop { .. } => {
+            return if !activated
+                && group.key == request.ticket.group
+                && matches!(group.status, Status::Following | Status::Paused)
+            {
+                Ok(())
+            } else {
+                Err(Code::State)
+            };
         }
     };
     let expected = if playing {

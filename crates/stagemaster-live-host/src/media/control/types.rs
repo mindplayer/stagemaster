@@ -13,7 +13,16 @@ pub enum MediaCommand {
     Play,
     Pause,
     Stop,
-    Seek { position_ms: u64, playing: bool },
+    Seek {
+        position_ms: u64,
+        playing: bool,
+    },
+    ExitLoop {
+        instance: u64,
+        region: usize,
+        pass: u64,
+        requested: bool,
+    },
 }
 
 /// Granted by the original input authority; neither an operator lease nor a physical-output permit.

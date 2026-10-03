@@ -1,6 +1,8 @@
 #![allow(dead_code)] // Shared by independently compiled integration-test executables.
 pub mod audio;
+pub mod client_audio;
 pub mod group;
+pub mod loops;
 pub mod rejection;
 use reqwest::{Client, RequestBuilder};
 use serde_json::{Value, json};

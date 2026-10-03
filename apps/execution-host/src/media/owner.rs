@@ -25,6 +25,7 @@ pub(super) struct View {
     pub duration_ms: u64,
     pub instance: Option<String>,
     pub frames: String,
+    pub loop_state: Option<super::looping::LoopState>,
     pub problem: Option<String>,
 }
 pub(crate) struct Owner {
@@ -50,6 +51,7 @@ impl Owner {
             duration_ms: setup.duration_ms,
             instance: None,
             frames: "0".into(),
+            loop_state: None,
             problem: None,
         }));
         let observer = host.observer();

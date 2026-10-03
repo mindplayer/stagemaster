@@ -95,6 +95,12 @@ impl Player {
             Self::Audio(p) => p.apply_timeline(command, position),
         }
     }
+    pub fn repeat_at(&mut self, position: u64) -> Result<(), String> {
+        match self {
+            Self::Audio(p) => p.repeat_at(position),
+            Self::Program(_) => Err("普通列表不能接收音乐循环回跳".into()),
+        }
+    }
     pub fn copy_contribution(
         &self,
         values: &mut [Option<u16>],

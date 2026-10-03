@@ -14,6 +14,8 @@ pub struct AudioCatalog {
     pub duration_ms: u64,
     pub group: String,
     pub seek_includes_end: bool,
+    #[serde(default)]
+    pub performance_loops: bool,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -80,6 +82,16 @@ pub struct AudioState {
     pub instance: Option<String>,
     pub frames: String,
     pub problem: Option<String>,
+    pub loop_state: Option<LoopState>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoopState {
+    pub region: usize,
+    pub name: String,
+    pub pass: String,
+    pub exit_requested: bool,
+    pub pending_exit: Option<bool>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(
@@ -92,5 +104,14 @@ pub enum MediaAction {
     Play {},
     Pause {},
     Stop {},
-    Seek { position_ms: u64, playing: bool },
+    Seek {
+        position_ms: u64,
+        playing: bool,
+    },
+    ExitLoop {
+        instance: String,
+        region: usize,
+        pass: String,
+        requested: bool,
+    },
 }

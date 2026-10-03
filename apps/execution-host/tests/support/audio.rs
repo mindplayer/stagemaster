@@ -9,9 +9,12 @@ use std::{
 };
 
 pub fn write(path: &Path) -> PathBuf {
+    write_rate(path, 8000)
+}
+pub fn write_rate(path: &Path, rate: u32) -> PathBuf {
     let manifest = group::write(path);
     let wav = path.with_file_name("music.wav");
-    let size = 8000_u32 * 5 * 2 * 2;
+    let size = rate * 5 * 2 * 2;
     let mut bytes = Vec::new();
     bytes.extend(b"RIFF");
     bytes.extend((36 + size).to_le_bytes());
@@ -19,13 +22,13 @@ pub fn write(path: &Path) -> PathBuf {
     bytes.extend(16_u32.to_le_bytes());
     bytes.extend(1_u16.to_le_bytes());
     bytes.extend(2_u16.to_le_bytes());
-    bytes.extend(8000_u32.to_le_bytes());
-    bytes.extend(32000_u32.to_le_bytes());
+    bytes.extend(rate.to_le_bytes());
+    bytes.extend((rate * 4).to_le_bytes());
     bytes.extend(4_u16.to_le_bytes());
     bytes.extend(16_u16.to_le_bytes());
     bytes.extend(b"data");
     bytes.extend(size.to_le_bytes());
-    for frame in 0..40000 {
+    for frame in 0..(rate * 5) {
         let sample = i16::try_from(frame % 8000 + 1).unwrap();
         bytes.extend(sample.to_le_bytes());
         bytes.extend((-sample).to_le_bytes());

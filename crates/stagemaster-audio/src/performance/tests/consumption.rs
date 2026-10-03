@@ -67,12 +67,17 @@ fn material_loops_move_backwards_but_consumption_and_instance_do_not() {
         assert_eq!(stamp.instance, instance);
         assert_eq!(stamp.frames, frame);
         assert_eq!(
+            stamp.frames,
+            snapshot.position.tick + snapshot.position.repeated_ticks
+        );
+        assert_eq!(
             snapshot.position.tick,
             if frame < 48 { frame % 16 } else { frame - 32 }
         );
     }
     let ended = control.snapshot().unwrap();
     assert!(ended.position.ended);
+    assert_eq!(ended.position.repeated_ticks, 32);
     for _ in 0..5 {
         assert_eq!(source.next(), None);
     }

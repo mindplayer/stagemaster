@@ -48,6 +48,7 @@ pub struct Sample {
     pub sequence: u64,
     pub position_ms: u64,
     pub playing: bool,
+    pub progress: Option<super::MediaProgress>,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GroupInfo {
@@ -66,6 +67,7 @@ pub struct Prepared {
     pub(super) position_ms: u64,
     pub(super) playing: bool,
     pub(super) players: Vec<(usize, Player)>,
+    pub(super) looping: bool,
 }
 impl Prepared {
     #[must_use]

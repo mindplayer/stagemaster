@@ -16,7 +16,8 @@ pub struct Activation {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ObservationReceipt {
     pub serial: u64,
-    pub key: GroupKey,
+    /// Fixed identity belongs to the containing `MediaState`; retain the input playback generation.
+    pub generation: u64,
     pub sample_sequence: u64,
     pub result: Result<(), Code>,
 }

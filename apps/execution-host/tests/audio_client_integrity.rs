@@ -71,6 +71,8 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
             ("/audio/durationMs", json!(0)),
             ("/audio/output", json!("unknown")),
             ("/audio/seekIncludesEnd", json!("true")),
+            ("/audio/performanceLoops", json!(true)),
+            ("/audio/performanceLoops", json!("false")),
             ("/capabilities", json!([])),
             ("/sources/1/selection/kind", json!("manual")),
         ] {
@@ -97,6 +99,7 @@ fn music_catalog_and_state_must_agree_for_controllers_and_readonly_renderers() {
             ("/snapshot/state/audio/positionMs", json!(5001)),
             ("/snapshot/state/audio/frames", json!("01")),
             ("/snapshot/state/audio/instance", json!("0")),
+            ("/snapshot/state/audio/loopState", json!({"region":0,"name":"未声明循环","pass":"1","exitRequested":false,"pendingExit":null})),
             ("/snapshot/state/media/0/id", json!(group::id(99))),
             ("/snapshot/state/media/0/generation", json!("-1")),
             (
@@ -127,6 +130,10 @@ async fn verify_legacy(path: &std::path::Path, proxy: &Proxy, valid: &Value) {
     // Old hosts remain usable but their advertised exclusive end must still be honored.
     let mut legacy = valid.clone();
     legacy["audio"]["seekIncludesEnd"] = json!(false);
+    legacy["audio"]
+        .as_object_mut()
+        .unwrap()
+        .remove("performanceLoops");
     *proxy.replacement.lock().unwrap() = Some(("/source", legacy));
     let mut legacy_client = Client::open(path).await.unwrap();
     Reader::open(path).await.unwrap();

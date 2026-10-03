@@ -1,5 +1,7 @@
+mod control;
 mod ending;
 mod job;
+mod looping;
 mod observation;
 mod output;
 mod owner;

@@ -59,6 +59,8 @@ impl LoopSchedule {
 pub struct LoopPosition {
     /// Original source position, never an expanded or wall-clock timeline.
     pub tick: u64,
+    /// Cumulative backward distance since the last explicit seek, in the same timebase.
+    pub repeated_ticks: u64,
     /// Index within the immutable schedule; absent between regions or at the end.
     pub region: Option<usize>,
     pub pass: Option<u64>,
@@ -69,6 +71,7 @@ pub struct LoopPosition {
 #[derive(Clone, Copy)]
 struct Cursor {
     tick: u64,
+    repeated_ticks: u64,
     next_region: usize,
     pass: u64,
     exit_requested: bool,
@@ -88,6 +91,7 @@ impl LoopPlayback {
             schedule,
             cursor: Cursor {
                 tick: 0,
+                repeated_ticks: 0,
                 next_region: 0,
                 pass: 1,
                 exit_requested: false,
@@ -107,6 +111,7 @@ impl LoopPlayback {
             .map(|_| self.cursor.next_region);
         LoopPosition {
             tick: self.cursor.tick,
+            repeated_ticks: self.cursor.repeated_ticks,
             region,
             pass: region.map(|_| self.cursor.pass),
             exit_requested: self.cursor.exit_requested,
@@ -123,6 +128,7 @@ impl LoopPlayback {
         }
         self.cursor = Cursor {
             tick,
+            repeated_ticks: 0,
             next_region: self.schedule.regions.partition_point(|r| r.end <= tick),
             pass: 1,
             exit_requested: false,
@@ -170,6 +176,8 @@ impl LoopPlayback {
                 u128::from(region.end - cursor.tick) + u128::from(passes - 1) * u128::from(length)
             });
             if let Some(until_exit) = until_exit.filter(|&v| v <= u128::from(ticks)) {
+                let repeats = remaining_passes.ok_or("循环剩余次数无效")? - 1;
+                cursor.add_repeats(repeats, length)?;
                 ticks -= u64::try_from(until_exit).map_err(|_| "循环剩余时间超出范围")?;
                 cursor.tick = region.end;
                 cursor.next_region += 1;
@@ -180,6 +188,7 @@ impl LoopPlayback {
             let total = u128::from(cursor.tick - region.start) + u128::from(ticks);
             let completed =
                 u64::try_from(total / u128::from(length)).map_err(|_| "循环播放次数超出范围")?;
+            cursor.add_repeats(completed, length)?;
             cursor.pass = cursor
                 .pass
                 .checked_add(completed)
@@ -190,5 +199,15 @@ impl LoopPlayback {
         }
         self.cursor = cursor;
         Ok(self.position())
+    }
+}
+
+impl Cursor {
+    fn add_repeats(&mut self, count: u64, length: u64) -> Result<(), String> {
+        self.repeated_ticks = count
+            .checked_mul(length)
+            .and_then(|ticks| self.repeated_ticks.checked_add(ticks))
+            .ok_or("循环累计回跳时间已耗尽")?;
+        Ok(())
     }
 }

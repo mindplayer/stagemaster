@@ -20,6 +20,11 @@ impl Session {
         if now_ms >= prepared.deadline_ms
             || sample.position_ms != prepared.position_ms
             || sample.playing != prepared.playing
+            || (prepared.looping && sample.progress.is_none())
+            || (sample.progress.is_some() && !prepared.players.iter().all(|(_, p)| p.is_audio()))
+            || sample
+                .progress
+                .is_some_and(|p| p.consumed_ticks != 0 || p.repeated_ticks != 0)
         {
             return Err("同步组准备已过期或实际媒体位置不匹配".into());
         }
@@ -41,6 +46,7 @@ impl Session {
             entry.reassert_at_ms = Some(now_ms);
         }
         self.media[index].generation = generation;
+        self.media[index].looping = prepared.looping;
         self.media[index].accept(sample, observed);
         let result = self.compose(now_ms);
         self.finish(result)
@@ -84,7 +90,11 @@ impl Session {
             if !previous.playing {
                 player.apply_timeline(Command::Resume, previous.position_ms)?;
             }
-            player.apply_timeline(Command::Advance, sample.position_ms)?;
+            if sample.repeated_since(previous) {
+                player.repeat_at(sample.position_ms)?;
+            } else {
+                player.apply_timeline(Command::Advance, sample.position_ms)?;
+            }
             if !sample.playing {
                 player.apply_timeline(Command::Pause, sample.position_ms)?;
             }

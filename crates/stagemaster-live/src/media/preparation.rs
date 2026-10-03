@@ -76,6 +76,13 @@ impl Preparer {
             position_ms,
             playing,
             players,
+            looping: self
+                .members
+                .iter()
+                .all(|(_, s)| matches!(s, PlaybackSelection::AudioTimeline))
+                && doc
+                    .audio_timeline()
+                    .is_some_and(|t| t.loop_regions.iter().any(|r| r.enabled)),
         })
     }
 }

@@ -51,6 +51,13 @@ impl Runner {
                 sequence: render.sequence,
                 position_ms: native.snapshot.position.tick * 1000 / u64::from(render.sample_rate),
                 playing: render.applied.playing,
+                progress: Some(stagemaster_live::media::MediaProgress {
+                    instance: native.instance,
+                    sample_rate: render.sample_rate,
+                    position_ticks: native.snapshot.position.tick,
+                    consumed_ticks: native.snapshot.consumption.map_or(0, |c| c.frames),
+                    repeated_ticks: native.snapshot.position.repeated_ticks,
+                }),
             },
             mapping,
         )))
@@ -61,9 +68,11 @@ impl Runner {
         }
         if let Some(native) = self.native()? {
             let position = self.transport.position();
+            let loop_state = self.loop_state(native);
             if let Ok(mut view) = self.view.lock() {
                 view.position_ms = position.position_ms;
                 view.instance = Some(native.instance.to_string());
+                view.loop_state = loop_state;
                 view.frames = native
                     .snapshot
                     .consumption
@@ -177,6 +186,7 @@ impl Runner {
         }
         if let Ok(mut view) = self.view.lock() {
             view.status = "failed";
+            view.loop_state = None;
             view.problem = Some(problem);
         }
         if self.state().is_err() {

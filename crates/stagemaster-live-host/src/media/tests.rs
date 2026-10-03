@@ -38,6 +38,7 @@ pub(super) fn setup_controlled(
         .media_preparer(session.media_key([50; 16]).unwrap())
         .unwrap();
     let sample = Sample {
+        progress: None,
         at: clock.at(1_000_000_000),
         sequence: 1,
         position_ms: 0,
@@ -205,7 +206,14 @@ fn latest_observation_is_bounded_and_failed_preparations_are_reclaimed_after_shu
     backend.tick(1003).unwrap();
     let receipt = backend.state().media[0].unwrap().observation.unwrap();
     assert_eq!(receipt.sample_sequence, 1000);
+    assert_eq!(receipt.generation, active.generation());
     assert_eq!(receipt.result, Ok(()));
+    port.publish(key, sample, map).unwrap();
+    backend.tick(1004).unwrap();
+    let state = backend.state().media[0].unwrap();
+    assert_eq!(state.group.key, active);
+    assert_eq!(state.observation.unwrap().generation, key.generation());
+    assert_eq!(state.observation.unwrap().result, Err(Code::State));
     drop(backend);
     assert_eq!(port.publish(active, sample, map), Err(Code::State));
     assert_eq!(port.reclaim(ticket, false).unwrap().result, Some(Ok(())));

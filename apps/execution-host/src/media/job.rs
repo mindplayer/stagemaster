@@ -11,6 +11,7 @@ use std::{
 
 pub(super) enum Failure {
     Superseded,
+    Rejected(Code),
     Problem(String),
 }
 impl From<String> for Failure {
@@ -19,49 +20,6 @@ impl From<String> for Failure {
     }
 }
 impl Runner {
-    pub(super) fn observe_control(
-        &mut self,
-        media: stagemaster_live_host::media::MediaState,
-    ) -> Result<bool, String> {
-        if let Some(control) = media.control
-            && self
-                .request
-                .is_some_and(|r| r.ticket == control.request.ticket)
-            && let Some(result) = control.result
-        {
-            if result.is_err() {
-                return Err("后台未确认当前音乐操作，音源已停止".into());
-            }
-            if self.is_end_seek(control.request.command) {
-                self.active = None;
-                self.pending_sample = None;
-            }
-            self.request = None;
-        }
-        if let Some(control) = media.control.filter(|c| c.result.is_none())
-            && self.seen != Some(control.request.ticket)
-        {
-            self.seen = Some(control.request.ticket);
-            self.request = Some(control.request);
-            if let Ok(mut view) = self.view.lock() {
-                view.problem = None;
-                view.status = "preparing";
-            }
-            match self.execute(control.request, media.group.key) {
-                Ok(()) => {}
-                Err(Failure::Superseded) => self.cancel_job(),
-                Err(Failure::Problem(problem)) => return Err(problem),
-            }
-            return Ok(true);
-        }
-        // Explicit EOF is completed through its control receipt, not a second termination request.
-        Ok(media.control.is_some_and(|control| {
-            control.result.is_none()
-                && self.request == Some(control.request)
-                && self.is_end_seek(control.request.command)
-        }))
-    }
-
     pub(super) fn guard(&mut self, request: ControlRequest) -> Result<(), Failure> {
         loop {
             if self.cancel.load(Ordering::Acquire) {
@@ -73,7 +31,14 @@ impl Runner {
                 .map_err(|e| e.to_string())?
                 >= request.deadline_ms
             {
-                return Err(Failure::Problem("音乐操作准备超时".into()));
+                return Err(
+                    if matches!(request.command, MediaCommand::ExitLoop { .. }) {
+                        // An expired loop intent must not stop the already-running source.
+                        Failure::Superseded
+                    } else {
+                        Failure::Problem("音乐操作准备超时".into())
+                    },
+                );
             }
             match self.port.control_state() {
                 Ok(Some(current)) if current.request == request && current.result.is_none() => {
@@ -142,16 +107,21 @@ impl Runner {
             .seek_preparation(position, false)?
             .ok_or_else(|| "后台正式音源未准备".to_string())?
             .prepare(&self.cancel)?;
-        let prepared =
-            self.prepare
-                .prepare(key, &self.doc, position, false, request.deadline_ms)?;
         self.guard(request)?;
         self.transport.apply_seek(source)?;
         if let Some(output) = &mut self.software {
             output.reset_clock();
         }
         self.transport.prime_performance()?;
-        let (sample, mapping) = self.confirmed_sample(request, 0)?;
+        let (actual, _) = self.confirmed_sample(request, 0)?;
+        let prepared = self.prepare.prepare(
+            key,
+            &self.doc,
+            actual.position_ms,
+            false,
+            request.deadline_ms,
+        )?;
+        let (sample, mapping) = self.confirmed_sample(request, actual.sequence)?;
         self.guard(request)?;
         let activation = self
             .port
@@ -185,6 +155,7 @@ impl Runner {
     ) -> Result<(), Failure> {
         self.guard(request)?;
         match request.command {
+            MediaCommand::ExitLoop { .. } => self.exit_loop(request)?,
             command if self.is_end_seek(command) => self.seek_end(request)?,
             MediaCommand::Stop => {
                 self.transport.stop();
@@ -216,7 +187,7 @@ impl Runner {
                         self.prepare_at(request, key, position_ms)?;
                         playing
                     }
-                    MediaCommand::Stop => unreachable!(),
+                    MediaCommand::Stop | MediaCommand::ExitLoop { .. } => unreachable!(),
                 };
                 self.guard(request)?;
                 if playing {
@@ -243,17 +214,12 @@ impl Runner {
             }
         }
         self.guard(request)?;
-        self.wait(request, |r| {
-            match r.port.complete_control(request.ticket, Ok(())) {
-                Ok(()) => Ok(Some(())),
-                Err(Code::Busy) => Ok(None),
-                Err(e) => Err(e.to_string()),
-            }
-        })?;
+        self.complete_request(request, Ok(()))?;
         // Completion is asynchronous. Keep the provider free to process the next explicit intent.
         if let Ok(mut view) = self.view.lock() {
             view.status = if matches!(request.command, MediaCommand::Stop) {
                 view.position_ms = 0;
+                view.loop_state = None;
                 "stopped"
             } else if self.is_end_seek(request.command) {
                 view.position_ms = view.duration_ms;

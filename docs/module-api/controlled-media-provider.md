@@ -6,7 +6,7 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 
 `LiveBackend::with_controlled_media(session, &[ControlSpec])` 在原 Host 启动前注册固定组，返回相同的后台与 MediaPort。组必须已存在且不重复，素材位置上限在 1–86400000 ms，作业期限为 1–60000 ms；具体预算由适配层按目标能力确定，不代表物理同步精度。未注册的组保持原 `with_media` 行为。
 
-操作者提交 `Action::RequestMedia { group, command }`，其中 `MediaCommand` 为 Play／Pause／Stop／Seek（位置及期望播放状态）。必须使用权威观察中的当前组键，经原租约、请求序号、修订和回执检查。错误控制者或旧修订不会向提供方投递意图；重复命令重取原回执，不再创建提供方请求。
+操作者提交 `Action::RequestMedia { group, command }`，其中 `MediaCommand` 为 Play／Pause／Stop／Seek（位置及期望播放状态）／ExitLoop（原生实例、区段、遍数与退出意图）。必须使用权威观察中的当前组键，经原租约、请求序号、修订和回执检查。错误控制者或旧修订不会向提供方投递意图；重复命令重取原回执，不再创建提供方请求。
 
 成功回执表示意图已接纳。实际结果从 `State.media[].control` 读取：`ControlState.request` 包含不可伪造票据、命令和宿主绝对期限；result 为 None 时仍在等待提供方，成功／提供方失败／超时分别表达。历史请求回执中的状态不会随异步结果修改，应读取新的权威观察。退出操作者会话不取消已接纳意图，新操作者的明确命令可以替代它。
 
@@ -15,7 +15,7 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 | 调用 | 职责 |
 | --- | --- |
 | `MediaPort::control_state()` | 读取最新已授权意图和完成状态；不刷新期限；未注册、已关闭或暂时忙明确返回错误 |
-| `stage_requested(ticket, prepared, sample, mapping)` | 将当前播放／定位请求的准备结果放入原单个准备槽；定位首个样本须等于指定位置；暂停／停止不能用此途径重建计划 |
+| `stage_requested(ticket, prepared, sample, mapping)` | 将当前播放／定位请求的准备结果放入原单个准备槽；定位首个样本须匹配指定位置或其原生采样帧量化；暂停／停止／循环退出不能用此途径重建计划 |
 | `reclaim(activation, withdraw)` | 原准备侧回收成功交换出的旧计划或失败计划；超时观察不等于自动取消 |
 | `publish(group, sample, mapping)` | 沿用实际提供方消费／回调观测，原时间和序号不得重新盖章 |
 | `complete_control(ticket, result)` | 实际源操作和相关观测被接纳后报告完成；完成投递不等于宿主已应用，继续读取权威观察 |
@@ -24,7 +24,7 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 
 主调度以 try_lock 查看准备结果，再核对当前票据、期限、是否已经激活及原组代次。失败计划留在准备槽中供提供方回收，调度不析构它。注册为受控的组拒绝旧的直接激活／停止入口，避免灯光单独切换而音源没有同步处理。正常纯观察组仍使用原入口。
 
-完成时宿主检查媒体组实际状态：播放须 Following，暂停须 Paused；普通定位还必须由本请求成功激活过准备结果，且观测位置符合目标。按 [ADR-121](../development/decisions/PRODUCT-ADR-121-background-audio-end-seek.md)，等于 ControlSpec.duration_ms 的末尾定位由提供方确认实际结束，不提交替换计划或渲染样本；宿主要求尚未激活、组键仍与请求相同，在期限内通过原完成槽释放贡献。playing 在末尾不改变终态。停止在提供方报告实际操作完成后释放该组灯光贡献并更新代次。普通媒体健康观测独立于输入租约，其他自主来源继续运行。
+完成时宿主检查媒体组实际状态：播放须 Following，暂停须 Paused；普通定位还必须由本请求成功激活过准备结果，激活时核对目标的实际采样位置；循环回跳后的当前位置不再与原定位目标作大小比较。循环退出须保持原组键并仍在 Following／Paused，由提供方确认实际回调已应用退出意图。按 [ADR-121](../development/decisions/PRODUCT-ADR-121-background-audio-end-seek.md)，等于 ControlSpec.duration_ms 的末尾定位由提供方确认实际结束，不提交替换计划或渲染样本；宿主要求尚未激活、组键仍与请求相同，在期限内通过原完成槽释放贡献。playing 在末尾不改变终态。停止在提供方报告实际操作完成后释放该组灯光贡献并更新代次。普通媒体健康观测独立于输入租约，其他自主来源继续运行。
 
 ## 失败与适用边界
 
@@ -32,6 +32,6 @@ TIME-001／[ADR-117](../development/decisions/PRODUCT-ADR-117-controlled-media-p
 
 后台销毁后拒绝新的控制查询、准备与完成，原已占用计划仍可回收。控制槽、观察槽和准备槽都固定容量；未注册提供方、错误位置和旧输入控制权在适用边界拒绝。
 
-实际 WAV／原 Host 验证已授权请求、操作者退出、帧边界暂停、定位新代次、完整灯光帧和停止。软件时钟测试覆盖锁忙、超时、替代、计数耗尽、失败和回收。没有开启物理声卡或灯具。独立应用的常驻音频所有者、自然结束和桌面命令已按 ADR-119／120 接入；循环回跳与提供方重启重绑定仍未完成。此进程内接口不新增 HTTP、GATT、工程或设备包格式。
+实际 WAV／原 Host 验证已授权请求、操作者退出、帧边界暂停、定位新代次、完整灯光帧和停止。软件时钟测试覆盖锁忙、超时、替代、计数耗尽、失败和回收。没有开启物理声卡或灯具。独立应用的常驻音频所有者、自然结束和桌面命令已按 ADR-119／120 接入；循环回跳和退出按 ADR-122 扩展，提供方重启重绑定仍未完成。此进程内接口不新增 HTTP、GATT、工程或设备包格式。
 
 原 Transport 的静音挂载、普通正式音乐和实际请求代次见[后台原生音频驻留](resident-native-audio.md)。该适配已与本宿主及独立应用的常驻所有者组合验证。

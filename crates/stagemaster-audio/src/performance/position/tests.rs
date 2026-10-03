@@ -13,6 +13,7 @@ const PAUSE: PlaybackRequest = PlaybackRequest {
 fn value(tick: u64) -> LoopPosition {
     LoopPosition {
         tick,
+        repeated_ticks: tick * 2,
         region: Some(usize::try_from(tick % 128).unwrap()),
         pass: Some(tick + 1),
         exit_requested: tick.is_multiple_of(2),

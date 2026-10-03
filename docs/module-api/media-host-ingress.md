@@ -1,6 +1,6 @@
 # 后台媒体准备与观测入口
 
-TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host-ingress.md)。这是原独立宿主的进程内适配，沿用[媒体组](media-source-groups.md)及[控制权／回执](shared-live-host.md)。HTTP、桌面正式后台音频和设备协议还没有开放此入口。
+TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host-ingress.md)。这是原独立宿主的进程内适配，沿用[媒体组](media-source-groups.md)及[控制权／回执](shared-live-host.md)。独立应用和桌面的正式后台音频已通过可信提供方接入；这些对象不直接向远程或设备协议开放。
 
 ## 准备与所有权
 
@@ -29,7 +29,7 @@ TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host
 
 ## 连续观测与时间
 
-观测槽采用最新值覆盖，中间值可以跳过；每次调度每组至多取一条。`State.media` 返回当前 `GroupInfo` 与最近观测回执，含发布序号、输入组键、采样序号和结果。观测不会更改操作者修订／租约，停止／定位后的旧代次仍被原媒体组拒绝。停止提供新观测后沿用组失联期限，重复读缓存不续期。
+观测槽采用最新值覆盖，中间值可以跳过；每次调度每组至多取一条。`State.media` 返回当前 `GroupInfo` 与最近观测回执，含发布序号、输入播放代次 `generation`、采样序号和结果。固定组身份由所属 `GroupInfo` 提供，回执代次可能不同于当前代次；调用者须核对自己的发布序号与输入代次。入槽及执行仍以完整组键校验，停止／定位后的旧代次被拒绝。按 [ADR-122](../development/decisions/PRODUCT-ADR-122-background-audio-loops.md) 去除重复身份，使固定状态数组保持原栈预算，不新增调度堆分配。观测不会更改操作者修订／租约；停止提供新观测后沿用组失联期限，重复读缓存不续期。
 
 `Host::clock()` 与实际 worker 共用一个本机单调原点及基值；`at_ns(original_instant)` 转换原采样时间，早于宿主原点和溢出会拒绝。`LocalClock` 仅用于同进程 `std::time::Instant` 的已知同源映射；零漂移／零转换误差只指这个软件坐标转换，不是声卡、音箱或独立设备的精度。
 
@@ -41,4 +41,4 @@ TIME-001／[ADR-114](../development/decisions/PRODUCT-ADR-114-bounded-media-host
 
 真实工程、同一后台线程、原解码音源已跨边界验证：音频实际消费驱动灯光列表，输入控制权释放且客户端退出后继续；观测中断时媒体失联，自主效果仍推进。另覆盖准备追赶的实际通道值、暂停、重复回执、旧组键、撤回、唯一槽容量、忙锁、耗尽拒绝、队列满／过期及宿主结束后的回收。全部为软件验证，未打开物理声卡或输出设备。
 
-尚需把独立进程应用层和桌面正式音频生命周期接入；正式音源暂停健康已按 [ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md) 用实际回调验证：以回调序号、原时刻与已应用状态跟随，暂停消费保持，回调停止后旧缓存被拒绝且按原期限失联。提供方重启重绑定、循环回跳、普通试听／临时循环仍有明确缺口。可信应用还须限制准备作业与音源资源总量，槽容量不等于整个应用的资源预算。物理端口与声卡呈现时间单独实测。
+独立进程与桌面正式音乐已接入，详见[后台音频应用契约](background-audio-application.md)；正式音源暂停健康已按 [ADR-115](../development/decisions/PRODUCT-ADR-115-audio-render-health.md) 用实际回调验证：以回调序号、原时刻与已应用状态跟随，暂停消费保持，回调停止后旧缓存被拒绝且按原期限失联。循环按 ADR-122 扩展，提供方重启重绑定及普通试听／临时循环的统一仍待完成。可信应用必须限制准备作业与音源资源总量，槽容量不等于整个应用的资源预算。物理端口与声卡呈现时间单独实测。

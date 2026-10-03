@@ -1,6 +1,6 @@
 use crate::{
     group::{Catalog, wire::identity},
-    wire::Failure,
+    wire::{Decimal, Failure},
 };
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -20,7 +20,16 @@ pub(crate) enum Operation {
     Play {},
     Pause {},
     Stop {},
-    Seek { position_ms: u64, playing: bool },
+    Seek {
+        position_ms: u64,
+        playing: bool,
+    },
+    ExitLoop {
+        instance: Decimal,
+        region: usize,
+        pass: Decimal,
+        requested: bool,
+    },
 }
 pub(crate) fn action(
     catalog: &Catalog,
@@ -48,6 +57,35 @@ pub(crate) fn action(
         Operation::Play {} => MediaCommand::Play,
         Operation::Pause {} => MediaCommand::Pause,
         Operation::Stop {} => MediaCommand::Stop,
+        Operation::ExitLoop {
+            instance,
+            region,
+            pass,
+            requested,
+        } => {
+            let view = owner.view();
+            if instance.0 == 0
+                || pass.0 == 0
+                || *region >= stagemaster_project::MAX_AUDIO_LOOP_REGIONS
+                || view["instance"]
+                    .as_str()
+                    .and_then(|v| v.parse::<u64>().ok())
+                    != Some(instance.0)
+                || view["loopState"]["region"].as_u64() != Some(*region as u64)
+                || view["loopState"]["pass"]
+                    .as_str()
+                    .and_then(|v| v.parse::<u64>().ok())
+                    != Some(pass.0)
+            {
+                return Err(Failure::invalid());
+            }
+            MediaCommand::ExitLoop {
+                instance: instance.0,
+                region: *region,
+                pass: pass.0,
+                requested: *requested,
+            }
+        }
         Operation::Seek {
             position_ms,
             playing,

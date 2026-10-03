@@ -40,7 +40,7 @@ impl Worker {
                 });
             self.receipt = Some(ObservationReceipt {
                 serial: update.serial,
-                key: update.key,
+                generation: update.key.generation(),
                 sample_sequence: update.sample.sequence,
                 result,
             });

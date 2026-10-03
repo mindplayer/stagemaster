@@ -16,6 +16,7 @@ pub(super) struct PublishedPosition {
     applied_playing: AtomicBool,
     sequence: AtomicU64,
     tick: AtomicU64,
+    repeated_ticks: AtomicU64,
     region: AtomicU64,
     pass: AtomicU64,
     exit: AtomicBool,
@@ -58,6 +59,7 @@ impl PublishedPosition {
             applied_playing: AtomicBool::new(false),
             sequence: AtomicU64::new(0),
             tick: AtomicU64::new(0),
+            repeated_ticks: AtomicU64::new(0),
             region: AtomicU64::new(u64::MAX),
             pass: AtomicU64::new(0),
             exit: AtomicBool::new(false),
@@ -120,6 +122,8 @@ impl PublishedPosition {
         self.applied_playing
             .store(stamps.applied.playing, Ordering::SeqCst);
         self.tick.store(position.tick, Ordering::SeqCst);
+        self.repeated_ticks
+            .store(position.repeated_ticks, Ordering::SeqCst);
         self.region.store(
             position.region.map_or(u64::MAX, |v| v as u64),
             Ordering::SeqCst,
@@ -145,6 +149,7 @@ impl PublishedPosition {
             let stamps = self.stamps();
             let value = LoopPosition {
                 tick: self.tick.load(Ordering::SeqCst),
+                repeated_ticks: self.repeated_ticks.load(Ordering::SeqCst),
                 region: (region != u64::MAX)
                     .then(|| usize::try_from(region).ok())
                     .flatten(),
