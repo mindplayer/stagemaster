@@ -4,7 +4,7 @@ PLAYER-002A 仅诊断：共享播放内核自检／负载、BLE GATT 直连及�
 
 上句描述默认诊断构建。DEVICE-002 已增加专用 `application-gatt` 构建，使用独立开发凭据、免系统配对的加密 GATT、实际双槽安装与桌面任务；[配置／调用／复现](../../docs/module-api/development-gatt-configuration.md)及[真实验收](../../docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)。对应 `application-build`／`application-check`，不会自动刷机，GPIO21 仍禁用。云端及文件许可尚未实现。
 
-DEVICE-003 新增 `runtime-gatt`，对应 `runtime-application-build`／`runtime-application-check`；要求显式 v2 设备开发配置，产物独立位于 `target/esp32-runtime-application/`。运行服务与安装服务共用安全通信，第二核独立推进软件节目；仍保持 GPIO21 禁用，不声明物理发送。协议主机测试与 Xtensa 完整构建已通过，尚未实板验收；[运行入口、权限、维护切换和构建夹具](../../docs/module-api/firmware-runtime-gatt.md)。这不是自动安装／刷写命令，虚构编号的构建夹具禁止刷入实板。
+DEVICE-003 新增 `runtime-gatt`，对应 `runtime-application-build`／`runtime-application-check`；要求显式 v2 设备开发配置，产物独立位于 `target/esp32-runtime-application/`。运行服务与安装服务共用安全通信，第二核独立推进软件节目；仍保持 GPIO21 禁用，不声明物理发送。协议主机测试与 Xtensa 完整构建已通过，第九增量另以真实配置完成受控刷写、启动恢复与运行 GATT 实测；[运行入口、权限、维护切换和构建夹具](../../docs/module-api/firmware-runtime-gatt.md)。这不是自动安装／刷写命令，虚构编号的构建夹具禁止刷入实板。
 
 HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断开／保活过期后熄灭；板级代码始终保持 GPIO21 低。串口会报告对应引脚驱动状态。此灯接在 TXD1，未来接入 UART／DMX 时必须把发送脚的独占权交给输出适配，不能再调用诊断灯控制。灯的实际颜色／亮度仍需肉眼核验；日志不证明已发送 DMX。见[硬件记录](../../docs/development/tasks/HW-003-link-indicator.md)。
 
@@ -201,3 +201,14 @@ USB 观察器不开复位控制线，日志中的临时配对码脱敏；实时�
 ## 分层内存（MEMORY-001）
 
 工作器构建启用 esp-hal 八线 PSRAM，自检成功后仅使用 2 MiB 固定 NOR 读缓存；不加入内部默认堆。擦写前缓存失效、驱动读取缓冲仍在内部内存。PSRAM 初始化／自检失败回退原读取路径，日志区分实测总量与缓存占用。软件栈哨兵与原硬件保护同时启用；单点栈采样不等于完整高水位。实板验证与边界见 [MEMORY-001](../../docs/development/tasks/MEMORY-001-bounded-board-memory.md)。
+
+## 真实设备运行验收（DEVICE-003）
+
+[验收记录](../../docs/development/tasks/DEVICE-003-runtime-board-acceptance.md)使用同一原生 Service／JSON 接口，不另写 GATT 协议。仅限已授权的本台设备，运行固件必须报告自检通过及禁止物理发送；先释放其他客户端连接。两模式都不安装节目、不启用 RS485：`observe` 只读目录／状态，`exercise` 显式取得控制、载入现有保持场景、开始／暂停／继续、断线重连、停止并归还控制；已有运行实例／控制者时拒绝接管。多个发现候选必须传入本次发现标识。
+
+```sh
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-host --example runtime_device --locked --offline -- "$PWD/data/DEVICE-003/runtime-development-access/controller.smddev" observe
+CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-host --example runtime_device --locked --offline -- "$PWD/data/DEVICE-003/runtime-development-access/controller.smddev" exercise
+```
+
+固件构建须选择该目录的 `device.smddev`，不要用虚构编号夹具；刷写显式指定 runtime-application ELF 和原 `partitions-storage.csv`／ota_0。该配置及 ELF 含开发秘密，不提交或发布。串口打开可能使板卡 USB 复位；不要在正在运行的无线验收中另开串口读者。正常结束后工具退出并断开；如果断言失败，须保留日志并重新观察实际状态，不能假定失败已撤销设备上执行的操作。

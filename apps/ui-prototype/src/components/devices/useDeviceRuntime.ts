@@ -17,6 +17,7 @@ import {
   shouldRenew,
 } from "../../device-runtime-tools";
 import { deviceError } from "../../device-tools";
+import { DeviceRuntimeWork } from "../../device-runtime-work";
 
 // Mounted by DeviceCenter, not by its collapsible body. Never owns the device clock.
 export function useDeviceRuntime(
@@ -39,9 +40,8 @@ export function useDeviceRuntime(
   }>({ reply: null, view: null, lease: null });
   const current = useRef(connection);
   current.current = connection;
-  const generation = useRef(0),
-    pending = useRef(false),
-    cancelList = useRef(false);
+  const generation = useRef(0), cancelList = useRef(false);
+  const workQueue = useRef(new DeviceRuntimeWork());
   const renewed = useRef("0");
   const known = useRef({ catalog: "", steps: "" });
   const epoch = connection?.epoch;
@@ -179,7 +179,8 @@ export function useDeviceRuntime(
   }
   useEffect(() => {
     const token = ++generation.current;
-    pending.current = false;
+    const queue = new DeviceRuntimeWork();
+    workQueue.current = queue;
     setBusy(false);
     setListing("");
     latest.current = { reply: null, view: null, lease: null };
@@ -200,31 +201,23 @@ export function useDeviceRuntime(
         .catch(() => {});
       return () => {
         ++generation.current;
+        queue.invalidate();
       };
     }
     let timer: ReturnType<typeof setTimeout>;
     async function poll() {
       if (!live(token, epoch!)) return;
-      if (!pending.current) {
-        pending.current = true;
-        setBusy(true);
-        try {
-          await refresh(token, epoch!);
-          if (live(token, epoch!)) setReadError("");
-        } catch (e) {
-          if (live(token, epoch!)) setReadError(deviceError(e));
-        } finally {
-          if (live(token, epoch!)) {
-            pending.current = false;
-            setBusy(false);
-          }
-        }
+      try {
+        await queue.observe(() => refresh(token, epoch!));
+      } catch (e) {
+        if (live(token, epoch!)) setReadError(deviceError(e));
       }
       if (live(token, epoch!)) timer = setTimeout(() => void poll(), 1000);
     }
     void poll();
     return () => {
       ++generation.current;
+      queue.invalidate();
       clearTimeout(timer);
     };
   }, [port, epoch, connection?.phase]);
@@ -233,23 +226,23 @@ export function useDeviceRuntime(
   ) {
     if (
       !port ||
-      pending.current ||
+      workQueue.current.commandPending ||
       epoch == null ||
       connection?.phase !== "connected"
     )
       return;
     const token = generation.current;
-    pending.current = true;
     setBusy(true);
     setError("");
     try {
-      await work(token, epoch);
+      await workQueue.current.command(async () => {
+        if (live(token, epoch)) await work(token, epoch);
+      });
       if (live(token, epoch)) setReadError("");
     } catch (e) {
       if (live(token, epoch)) setError(deviceError(e));
     } finally {
       if (live(token, epoch)) {
-        pending.current = false;
         setBusy(false);
       }
     }
@@ -294,7 +287,7 @@ export function useDeviceRuntime(
     programs,
     programCount: valid ? (observed?.programCount ?? null) : null,
     steps,
-    busy,
+    busy: busy || !!listing,
     listing,
     ready: valid && !readError,
     error: error || readError,

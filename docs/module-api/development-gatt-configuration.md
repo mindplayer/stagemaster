@@ -55,4 +55,4 @@ DEVICE-003／[ADR-133](../development/decisions/PRODUCT-ADR-133-firmware-runtime
 CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-device-auth --example development_credentials --features application --locked --offline -- 01010101010101010101010101010101 "$PWD/data/DEVICE-003/runtime-build-validation" --runtime
 ```
 
-不应对已经存在的目录重复运行，也不能仅改旧文件的版本／权限字节。新镜像命令与软件运行、维护切换约束见[固件运行入口](firmware-runtime-gatt.md)。运行版尚未实板验收，上文旧安装版的无线证据不自动适用于新镜像。
+不应对已经存在的目录重复运行，也不能仅改旧文件的版本／权限字节。新镜像命令与软件运行、维护切换约束见[固件运行入口](firmware-runtime-gatt.md)。运行版已用本设备真实编号和新的 v2 配置完成独立[实板验收增量](../development/tasks/DEVICE-003-runtime-board-acceptance.md)，旧安装版的无线证据不自动适用于新镜像；生产凭据提供者与商业许可仍待后续实施。

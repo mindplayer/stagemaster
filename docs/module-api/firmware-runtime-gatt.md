@@ -33,8 +33,8 @@ STAGEMASTER_DEVICE_CONFIGURATION="$PWD/data/DEVICE-003/runtime-build-validation/
 STAGEMASTER_DEVICE_CONFIGURATION="$PWD/data/DEVICE-003/runtime-build-validation/device.smddev" bash tools/hardware/firmware.sh runtime-application-build
 ```
 
-上例是本项目已生成的虚构编号 `01010101010101010101010101010101` 构建夹具，只验证编译，不能刷入实际板卡；设备启动会核对真实编号。生成实际设备配置及刷机属于明确的后续步骤。产物位于权限 0700 的 `target/esp32-runtime-application/`，嵌入开发密钥，保持本机且不提交；旧安装凭据未修改。
+上例是本项目已生成的虚构编号 `01010101010101010101010101010101` 构建夹具，只验证编译，不能刷入实际板卡；设备启动会核对真实编号。实际设备已另用 `data/DEVICE-003/runtime-development-access` 对应真实编号的 v2 配置完成受控构建／刷写；夹具与实际配置不可混用。产物位于权限 0700 的 `target/esp32-runtime-application/`，嵌入开发密钥，保持本机且不提交；旧安装凭据未修改。
 
 主机测试直接引用实际固件 `gate.rs`／`protocol.rs`，使用真实安全会话、包、安装器和运行工作器；覆盖旧安装、软件运行、观察权限、队列失败、保活、撤销和错误计时。Xtensa 严格检查及最终完整链接通过，镜像 808,704 字节，占 ota_0 的 25.71%。链接 `.bss` 192,468 字节已含 128 KiB 堆区与第二核栈，不能重复加总；不代表动态峰值。主核／工作器静态任务槽、堆和实际调用栈仍需实板采样。保留裸机链接 RWX 告警，原工具链记录见[硬件工具说明](../../tools/hardware/README.md)。
 
-实际射频、启动恢复、长时间内存／调度、桌面操作和 UART DMX 均未由本增量验收；完整出口见 [DEVICE-003](../development/tasks/DEVICE-003-remote-runtime.md)。
+第七增量未进行实板验收；后续真实射频／28 节目启动恢复、原生运行控制与断线自主进度已在[第九增量](../development/tasks/DEVICE-003-runtime-board-acceptance.md)取得证据。600 秒 USB 观察不是完整峰值或长时稳定性证明，诊断 LIVE tick 不是节目实际帧时序。真实 UART DMX 和完整整机出口仍未完成。
