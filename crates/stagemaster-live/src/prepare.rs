@@ -1,7 +1,8 @@
+use crate::{PlaybackSelection, player::Player};
 use crate::{Session, SourceSpec, source::Entry};
 use stagemaster_engine::live::{Kind, LiveMixer, MAX_SOURCES, Source};
-use stagemaster_playback::{MAX_EFFECT_CHANNELS, MAX_KEYFRAMES, MAX_TARGET_VALUES};
 use stagemaster_project::Document;
+use stagemaster_project::LiveSourceBudget;
 
 impl Session {
     /// Prepare all sources from one immutable snapshot. No output or playback is started.
@@ -9,6 +10,20 @@ impl Session {
     /// # Errors
     /// Reject empty, duplicate, unknown, oversized or manual-only groups, or preparation failure.
     pub fn prepare(
+        doc: &Document,
+        boot: [u8; 16],
+        specs: &[SourceSpec],
+        now_ms: u64,
+    ) -> Result<Self, String> {
+        if specs
+            .iter()
+            .any(|s| matches!(s.playback, Some(PlaybackSelection::AudioTimeline)))
+        {
+            return Err("音乐轨道必须绑定明确的媒体同步组".into());
+        }
+        Self::prepare_sources(doc, boot, specs, now_ms)
+    }
+    pub(super) fn prepare_sources(
         doc: &Document,
         boot: [u8; 16],
         specs: &[SourceSpec],
@@ -23,32 +38,24 @@ impl Session {
             }
         }
         let mut prepared = Vec::with_capacity(specs.len());
-        let (mut targets, mut effects, mut keyframes) = (0, 0, 0);
+        let mut budget = LiveSourceBudget::default();
         for spec in specs {
             let player = spec
                 .playback
                 .as_ref()
-                .map(|selection| doc.compile_live_source(selection, now_ms))
+                .map(|selection| Player::prepare(doc, selection, now_ms))
                 .transpose()?;
             if let Some(player) = &player {
-                let plan = player.plan();
-                targets += plan.steps().len() * plan.defaults().len();
-                effects += plan.effect_channel_count();
-                keyframes += plan.keyframe_count();
-                if targets > MAX_TARGET_VALUES
-                    || effects > MAX_EFFECT_CHANNELS
-                    || keyframes > MAX_KEYFRAMES
-                {
-                    return Err("来源组累计目标值、效果或关键帧超出宿主预算".into());
-                }
+                budget.add(player.budget())?;
             }
+
             prepared.push(player);
         }
         let first = prepared
             .iter()
             .flatten()
             .next()
-            .ok_or("来源组至少需要一个场景或场景列表")?;
+            .ok_or("来源组至少需要一个播放来源")?;
         let output = first.prepare_output()?;
         let layout = first.layout().clone();
         if prepared.iter().flatten().any(|p| p.layout() != &layout) {

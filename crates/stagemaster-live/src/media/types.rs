@@ -1,4 +1,4 @@
-use stagemaster_project::LiveSequencePlayer;
+use crate::player::Player;
 use stagemaster_time::{Clock, Instant};
 
 #[derive(Clone, Copy, Debug)]
@@ -61,7 +61,7 @@ pub struct Prepared {
     pub(super) deadline_ms: u64,
     pub(super) position_ms: u64,
     pub(super) playing: bool,
-    pub(super) players: Vec<(usize, LiveSequencePlayer)>,
+    pub(super) players: Vec<(usize, Player)>,
 }
 impl Prepared {
     #[must_use]

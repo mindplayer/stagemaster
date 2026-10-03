@@ -13,7 +13,7 @@ impl Session {
             return Err("媒体跟随来源须通过所属同步组控制".into());
         }
         match (&self.sources[index].player, command) {
-            (Some(p), Command::Execute(i)) if i >= p.plan().steps().len() => {
+            (Some(p), Command::Execute(i)) if i >= p.step_count() => {
                 return Err("所选步骤不存在".into());
             }
             (None, c) if c != Command::Stop => return Err("手动层不支持场景列表命令".into()),

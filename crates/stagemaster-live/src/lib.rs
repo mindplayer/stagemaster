@@ -3,6 +3,7 @@
 mod commands;
 mod composition;
 pub mod media;
+mod player;
 mod prepare;
 mod source;
 mod types;
@@ -10,8 +11,8 @@ mod types;
 use source::Entry;
 use stagemaster_engine::live::LiveMixer;
 pub use stagemaster_playback::Command;
-use stagemaster_project::{LiveOutput, LiveSequencePlayer};
-pub use types::{Change, Frame, Key, SourceInfo, SourceSpec};
+use stagemaster_project::LiveOutput;
+pub use types::{Change, Frame, Key, PlaybackSelection, SourceInfo, SourceSpec};
 
 pub struct Session {
     boot: [u8; 16],
@@ -79,7 +80,7 @@ impl Session {
                     s.media_group
                         .map_or_else(|| p.status(), |g| self.media[g].player_status(p.status()))
                 }),
-                step: s.player.as_ref().and_then(LiveSequencePlayer::index),
+                step: s.player.as_ref().and_then(player::Player::index),
             })
     }
     /// Semantic values and ownership from the last complete software composition.

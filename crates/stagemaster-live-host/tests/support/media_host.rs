@@ -2,7 +2,7 @@
 use crate::support::fixtures::{decode, fixture, id, set, specs};
 use serde_json::json;
 use stagemaster_live::{
-    Key, Session,
+    Key, Session, SourceSpec,
     media::{GroupSpec, Limits, Preparer, Sample},
 };
 use stagemaster_live_host::{
@@ -37,6 +37,16 @@ impl Rig {
             "periodMs":1000,"spreadDegrees":0,"phaseDegrees":0,"reverse":false,"waveform":"triangle","dutyPercent":50,
             "channels":[{"attribute":"blue","low":10_000,"high":50_000}]
         }}})).unwrap()).unwrap();
+        Self::from_prepared_document(doc, &specs(), make)
+    }
+    pub fn with_document(doc: Document, sources: &[SourceSpec]) -> Self {
+        Self::from_prepared_document(doc, sources, |backend| (backend, ())).0
+    }
+    fn from_prepared_document<B: Backend<Profile = Live>, T>(
+        doc: Document,
+        sources: &[SourceSpec],
+        make: impl FnOnce(LiveBackend) -> (B, T),
+    ) -> (Self, T) {
         let provider = Clock::new([60; 16], 1).unwrap();
         let group = GroupSpec {
             id: [50; 16],
@@ -50,7 +60,7 @@ impl Rig {
                 position_tolerance_ms: 1,
             },
         };
-        let session = Session::prepare_with_media(&doc, [9; 16], &specs(), &[group], 0).unwrap();
+        let session = Session::prepare_with_media(&doc, [9; 16], sources, &[group], 0).unwrap();
         let target = session.host_clock();
         let key = session.media_key([50; 16]).unwrap();
         let prepare = session.media_preparer(key).unwrap();

@@ -102,3 +102,19 @@
 审查结论：本增量通过，结果为本次 `feat(audio): confirm pause at render frame boundaries` 提交；完整 TIME-001 和持续目标保持未完成。6 项新增，最终全工作区 901 项通过（原有忽略 1 项），30 个 crate 文档测试运行、2 个示例通过；严格全工作区 Clippy／fmt 通过。全量后仅将解码故障测试改为首帧释放预读槽，避免后台失败抢先被消费线程读取导致测试请求时机不稳定，随后 5 项生命周期专项和严格检查通过，生产代码未改。日志 `logs/time-001-render-workspace-tests.log`／`time-001-render-final-lifecycle.log`／`time-001-render-final-clippy.log`／`time-001-render-fmt.log`。静态检查曾报集成测试函数超过 100 行，已按启动与观测职责提取，未放宽规则。
 
 接续代码核对：`apps/execution-host/src/group/prepare.rs` 仍仅准备场景／列表／手动来源，`apps/desktop/src/session/audio.rs` 仍持有正式音频和预演路径。后台音频接入必须让受原控制权校验的命令驱动独立媒体所有者，不能在请求解析阶段直接播放，也不能令媒体所有者抢走操作者租约。还需复用现行 `Document::compile_audio_segment` 和 `AudioSegmentPlayer` 的真实灯光段落、交叉渐变及素材循环，不能拿测试中的普通场景列表替代现有音乐编排。接续应把这些边界落到同一后台应用的实际入口，再推进云端／U 盘交付。
+
+## 真实音乐编排的预备来源增量
+
+基线 `f083454`，main 主工作区，当前会话单写者；依据 [ADR-116](../decisions/PRODUCT-ADR-116-prepared-audio-lighting-source.md)／[来源契约](../../module-api/audio-timeline-source.md)。前一状态询问轮询到测试／严格检查进程正常终止，为 verified wait；本轮继续审查与修正未提交实现，完整目标保持 active。
+
+- 正式音乐灯光轨道进入原 Session／媒体准备器／Host；默认段、启用片段与绑定卡点在调度外编译。单段定点采样复用原 render::step，动态交叉复用 SceneCrossfade，不另建时钟或效果引擎。
+- 贡献只覆盖编排涉及的语义属性，在这个范围内保留原默认值／空白语义；范围外自主灯光照常运行。普通采样、暂停／继续不抢回手动修改，片段转换与明确重新激活才接管。
+- 审查复现了一次前进跨过完整片段、前后均为空白时漏掉结束接管的问题。新增回归先失败，随后修正为识别跨过的启用片段结束，保留停用片段和空白连续采样不接管的断言；日志 `logs/time-001-audio-gap-regression-before.log`／`time-001-audio-source-boundaries.log`。
+- 音乐及普通来源共享累计目标值／效果／关键帧预算；交叉两侧都收费。真实 64 灯 × 256 片段达到 16384 效果通道时可准备，多一个片段拒绝；两条 128 片段轨道恰好达限，再加入普通效果场景拒绝。没有用计数器单测代替实际编译与组准备。
+- 音乐超时长观测在推进来源前拒绝，保留原帧；工程快照变更、未绑定媒体组、错误定位和旧代次继续受原保护。实际 WAV 解码与后台线程验证现行编排、交叉、操作者退出、暂停和真实失联。
+
+新增生产文件最大 141 行，测试最大 195 行，未改变第三方依赖、工程／设备包／HTTP／GATT 格式或界面。应用清单仍只暴露既有场景／列表／手动来源，本次是独立进程音频迁移的真实编排基础，不能声明桌面音频已转移后台。用户工程、`output/`、窗口和设备保持，未打开物理声卡或灯具输出。
+
+接续代码核对：`Application::action` 在实际控制权校验前解析请求，音频开始／定位不能在此产生副作用；应由原 LiveBackend 的受控命令与回执接入有界音频所有者。原 Transport 的无正式循环路径仍没有完整消费／健康观测，不能用界面游标代替真实观测。正式音频所有权、提供方重启重绑定、素材循环回跳、普通试听统一及桌面入口继续属于本工单。正式循环还须检查整轨重准备成本与预编译内容复用，不将每次回跳都能在下一帧前完成编译作为前提，也不把编译移入音频回调；随后推进云端／U 盘共用交付。
+
+审查结论：预备来源增量通过，结果为本次 `feat(live): prepare authored audio lighting sources` 提交。11 项新增专项；最终 912 项全工作区测试通过（原有忽略 1 项），2 个文档示例通过；全工作区严格 Clippy／fmt 和 Xtensa runtime-check 通过。日志为 `logs/time-001-audio-source-workspace-tests.log`、`time-001-audio-source-final-clippy.log`、`time-001-audio-source-xtensa.log`、`time-001-audio-source-fmt.log`。此前专项测试用错误命令构造片段停用状态，改为已有 `editLightingClips` 启停命令后通过，未放宽产品校验；跳段遗漏已先复现再修正。全部 Cargo 验证串行执行，未重复无关界面／UE 或物理验收。本回合为 progress，完整 TIME-001 与 goal 仍 active。

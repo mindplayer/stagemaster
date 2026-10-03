@@ -1,8 +1,8 @@
 use super::{GroupKey, Prepared};
-use crate::{Command, Session};
+use crate::{Command, PlaybackSelection, Session, player::Player};
 use stagemaster_engine::live::Layout;
 use stagemaster_playback::MAX_TIME_MS;
-use stagemaster_project::{Document, PackageSelection};
+use stagemaster_project::Document;
 
 /// Immutable preparation capability, separable from the running Session and its thread.
 /// Keep one per group; callers bound concurrent jobs and dispose results off the scheduler.
@@ -10,7 +10,7 @@ pub struct Preparer {
     boot: [u8; 16],
     index: usize,
     layout: Layout,
-    members: Vec<(usize, PackageSelection)>,
+    members: Vec<(usize, PlaybackSelection)>,
 }
 impl Session {
     /// Export immutable preparation metadata before moving the session to its scheduling owner.
@@ -59,7 +59,7 @@ impl Preparer {
         }
         let mut players = Vec::with_capacity(self.members.len());
         for (source, selection) in &self.members {
-            let mut player = doc.compile_live_source(selection, 0)?;
+            let mut player = Player::prepare(doc, selection, 0)?;
             if player.layout() != &self.layout {
                 return Err("同步组准备使用了不同的工程版本".into());
             }

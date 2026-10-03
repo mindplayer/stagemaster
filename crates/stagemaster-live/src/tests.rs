@@ -13,9 +13,12 @@ fn exhausted_source_or_frame_serial_retracts_the_entire_observation() {
     let spec = SourceSpec {
         id: [1; 16],
         priority: 0,
-        playback: Some(PackageSelection::Scene {
-            id: doc.view().scenes[0].id.clone(),
-        }),
+        playback: Some(
+            PackageSelection::Scene {
+                id: doc.view().scenes[0].id.clone(),
+            }
+            .into(),
+        ),
     };
     for source_fault in [false, true] {
         let mut s = Session::prepare(&doc, [1; 16], std::slice::from_ref(&spec), 0).unwrap();

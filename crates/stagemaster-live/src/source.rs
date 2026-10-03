@@ -1,13 +1,13 @@
+use crate::{PlaybackSelection, player::Player};
 use stagemaster_engine::live::{Frame, Handle, LiveMixer};
-use stagemaster_project::{LiveSequencePlayer, PackageSelection};
 
 pub(super) struct Entry {
     pub id: [u8; 16],
     pub handle: Handle,
     pub serial: u64,
     pub level: u16,
-    pub player: Option<LiveSequencePlayer>,
-    pub selection: Option<PackageSelection>,
+    pub player: Option<Player>,
+    pub selection: Option<PlaybackSelection>,
     pub media_group: Option<usize>,
     pub sampled_at_ms: u64,
     pub reassert_at_ms: Option<u64>,

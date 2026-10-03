@@ -66,6 +66,6 @@ pub fn playback(n: u8, selection: PackageSelection) -> SourceSpec {
     SourceSpec {
         id: [n; 16],
         priority: 0,
-        playback: Some(selection),
+        playback: Some(selection.into()),
     }
 }

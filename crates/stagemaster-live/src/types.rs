@@ -6,7 +6,7 @@ pub struct SourceSpec {
     pub id: [u8; 16],
     pub priority: i16,
     /// None registers a trusted manual attribute layer.
-    pub playback: Option<PackageSelection>,
+    pub playback: Option<PlaybackSelection>,
 }
 /// Process-local source identity. Caller must supply a fresh boot ID at every preparation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,4 +34,25 @@ pub struct SourceInfo {
     pub level: u16,
     pub status: Option<Status>,
     pub step: Option<usize>,
+}
+
+/// Host preparation choices; device package selections and wire formats remain separate.
+#[derive(Clone, Debug)]
+pub enum PlaybackSelection {
+    Program(PackageSelection),
+    AudioTimeline,
+}
+impl From<PackageSelection> for PlaybackSelection {
+    fn from(value: PackageSelection) -> Self {
+        Self::Program(value)
+    }
+}
+impl PlaybackSelection {
+    #[must_use]
+    pub const fn program(&self) -> Option<&PackageSelection> {
+        match self {
+            Self::Program(p) => Some(p),
+            Self::AudioTimeline => None,
+        }
+    }
 }

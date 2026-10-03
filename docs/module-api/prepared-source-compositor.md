@@ -6,7 +6,7 @@ MIX-003／[ADR-106](../development/decisions/PRODUCT-ADR-106-prepared-source-com
 
 ## 准备与归属
 
-`Session::prepare(&Document, fresh_boot, &[SourceSpec], now_ms)` 从同一个不可变工程快照准备 1–64 个固定来源；`SourceSpec.playback` 为场景／列表选择或手动层。至少一个播放来源提供属性布局与唯一编码器。身份非零且唯一；每次重建必须用新的启动身份，旧 `Key` 无效。准备不会启动播放或生成可用输出。
+`Session::prepare(&Document, fresh_boot, &[SourceSpec], now_ms)` 从同一个不可变工程快照准备 1–64 个固定来源；`SourceSpec.playback` 为 `Some(PlaybackSelection::Program(PackageSelection))` 或手动层 None。音乐编排另以 `AudioTimeline` 经 `prepare_with_media` 接入明确同步组，见[预备音乐来源](audio-timeline-source.md)。至少一个播放来源提供属性布局与唯一编码器。身份非零且唯一；每次重建必须用新的启动身份，旧 `Key` 无效。准备不会启动播放或生成可用输出。
 
 准备复用 `Document::compile_live_source` 和既有 Player，不另建效果／时间引擎。全组最多 512 个语义属性、262144 个步骤目标值、16384 条效果通道、131072 个关键帧；后面三项是全部播放器的累计预算，并保留每个计划的原有限制。准备逐个编译、检查后保留，发现错误整体不返回 Session。排序空间预留来源数×属性数；正常推进不扩容。此预算用于桌面／ARM 类标准宿主，未据此承诺 ESP32 容量、系统分配器永不失败或硬实时截止时间。
 

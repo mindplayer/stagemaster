@@ -1,4 +1,6 @@
 //! Authoritative, UI-independent editor for the supported lighting project subset.
+mod live_audio;
+pub use live_audio::{LiveAudioTimeline, LiveSourceBudget};
 mod audio_crossfade;
 mod audio_crossfade_compile;
 mod audio_crossfade_validate;

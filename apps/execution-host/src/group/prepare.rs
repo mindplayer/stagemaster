@@ -57,7 +57,7 @@ pub(crate) fn prepare(project: &Path, manifest: &Path) -> Result<Prepared<Live>,
             Ok(SourceSpec {
                 id: *id.as_bytes(),
                 priority: s.priority,
-                playback,
+                playback: playback.map(Into::into),
             })
         })
         .collect::<Result<Vec<_>, String>>()?;
@@ -70,7 +70,11 @@ pub(crate) fn prepare(project: &Path, manifest: &Path) -> Result<Prepared<Live>,
     let mut description = Vec::new();
     let mut output = None;
     for (spec, info) in specs.iter().zip(session.sources()) {
-        let compiled = match &spec.playback {
+        let compiled = match spec
+            .playback
+            .as_ref()
+            .and_then(stagemaster_live::PlaybackSelection::program)
+        {
             Some(PackageSelection::Scene { id }) => Some(document.compile_scene(id)?),
             Some(PackageSelection::Sequence { id }) => Some(document.compile_sequence(id)?),
             None => None,
@@ -84,7 +88,7 @@ pub(crate) fn prepare(project: &Path, manifest: &Path) -> Result<Prepared<Live>,
             ("手动编程器".into(), Vec::new())
         };
         description.push(json!({"id":Uuid::from_bytes(info.id).to_string(),"name":name,"priority":spec.priority,
-            "selection":spec.playback.as_ref().map_or_else(||json!({"kind":"manual"}),|s|json!(s)),"steps":steps}));
+            "selection":spec.playback.as_ref().and_then(stagemaster_live::PlaybackSelection::program).map_or_else(||json!({"kind":"manual"}),|s|json!(s)),"steps":steps}));
         entries.push(Entry {
             id: Uuid::from_bytes(info.id),
             key: info.key,

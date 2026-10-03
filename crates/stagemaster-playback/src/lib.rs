@@ -8,6 +8,8 @@ mod advance;
 mod commands;
 mod crossfade;
 mod effect;
+mod held_scene;
+pub use held_scene::HeldScene;
 mod loop_schedule;
 mod observation;
 mod output_master;

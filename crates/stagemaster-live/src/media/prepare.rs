@@ -18,7 +18,7 @@ impl Session {
         if groups.len() > sources.len() {
             return Err("同步组数量超出来源数量".into());
         }
-        let mut session = Self::prepare(doc, boot, sources, now_ms)?;
+        let mut session = Self::prepare_sources(doc, boot, sources, now_ms)?;
         for (index, spec) in groups.iter().enumerate() {
             let limits = spec.limits;
             if spec.id == [0; 16]
@@ -46,16 +46,11 @@ impl Session {
                 if entry.player.is_none() || entry.media_group.is_some() {
                     return Err("手动来源或重复来源不能加入同步组".into());
                 }
-                let steps = entry
+                if !entry
                     .player
                     .as_ref()
                     .ok_or("同步组缺少播放器")?
-                    .plan()
-                    .steps();
-                if steps
-                    .iter()
-                    .take(steps.len().saturating_sub(1))
-                    .any(|step| step.wait_ms.is_none())
+                    .continuous()
                 {
                     return Err("媒体跟随列表的中间步骤不能等待人工推进".into());
                 }
@@ -70,6 +65,14 @@ impl Session {
                 last: None,
                 observed_host_ns: 0,
             });
+        }
+        if session.sources.iter().any(|s| {
+            s.player
+                .as_ref()
+                .is_some_and(crate::player::Player::is_audio)
+                && s.media_group.is_none()
+        }) {
+            return Err("音乐轨道必须绑定明确的媒体同步组".into());
         }
         Ok(session)
     }

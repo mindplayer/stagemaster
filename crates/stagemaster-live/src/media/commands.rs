@@ -60,6 +60,14 @@ impl Session {
         let index = self.media_index(key)?;
         let observed =
             self.media[index].validate(sample, mapping, self.host_clock(), now_ms, false)?;
+        if self.media[index].members.iter().any(|&source| {
+            self.sources[source]
+                .player
+                .as_ref()
+                .is_none_or(|p| !p.supports_position(sample.position_ms))
+        }) {
+            return Err("媒体位置超出来源时长".into());
+        }
         self.tick(now_ms)?;
         let result = self.advance_media(index, sample, now_ms).and_then(|()| {
             self.media[index].accept(sample, observed);
