@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+watchdog-probe = []
 dmx-uart = ["dep:stagemaster-output-port"]
 dmx-queue = ["dmx-uart", "stagemaster-output-port/queued-dmx", "dep:embassy-sync"]
 runtime-gatt = ["application-gatt"]
@@ -74,3 +75,8 @@ required-features = ["dmx-uart"]
 name = "dmx-queue"
 path = "examples/dmx_queue.rs"
 required-features = ["dmx-queue"]
+
+[[example]]
+name = "watchdog-probe"
+path = "examples/watchdog_probe.rs"
+required-features = ["watchdog-probe"]

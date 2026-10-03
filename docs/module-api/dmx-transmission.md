@@ -1,6 +1,6 @@
 # DMX 单帧发送事务
 
-[OUTPUT-002](../development/tasks/OUTPUT-002-dmx-transmission.md)／[ADR-135](../development/decisions/PRODUCT-ADR-135-dmx-transmission.md)。代码在 `stagemaster-output-port::dmx`，复用原 Ticket／Event；基本事务无堆、无运行依赖。此层是异步执行者，不是另一个端口控制器。同步 `Driver::submit` 与此层已通过可选[有界队列](queued-dmx.md)完成软件连接与实际 S3 构建，原服务的[运行／输出协调](runtime-output-coordination.md)及逻辑侧固件组装也已链接；独立看门狗与真实物理发送仍待验收，不能直接同步等待整帧发送。
+[OUTPUT-002](../development/tasks/OUTPUT-002-dmx-transmission.md)／[ADR-135](../development/decisions/PRODUCT-ADR-135-dmx-transmission.md)。代码在 `stagemaster-output-port::dmx`，复用原 Ticket／Event；基本事务无堆、无运行依赖。此层是异步执行者，不是另一个端口控制器。同步 `Driver::submit` 与此层已通过可选[有界队列](queued-dmx.md)完成软件连接与实际 S3 构建，原服务的[运行／输出协调](runtime-output-coordination.md)及逻辑侧固件组装也已链接；独立看门狗及逻辑 UART 实板联测已补验，真实差分波形仍待验收，不能直接同步等待整帧发送。
 
 | 调用 | 约束与结果 |
 | --- | --- |
@@ -16,8 +16,8 @@
 
 总期限覆盖准备、Break、MAB、写入和排空。时钟倒退、期限计算溢出、提前唤醒、零／越界写进度、I/O 错误均停止并关闭使能。期限优先于迟到完成；正常完成保留空闲 MARK，后续帧仍由上层独立节拍决定。取消后 UART 内可能尚有旧数据，下一次发送先在使能关闭的情况下排空，不能重新开使能后泄漏旧帧尾部。
 
-实际 S3 适配位于 `apps/esp32-player/src/board/dmx.rs`，独占 UART1／GPIO17／GPIO21，与原连接指示灯所有者不可同时构造。复用锁定 esp-hal 的配置、Break、部分写与 flush；同原运行器使用 Embassy 单调时钟。HAL 的最后字节检查包含同步轮询：硬件卡死或整核停顿时，异步期限不能代替独立硬件看门狗。该门槛及中断优先级、实际时序仍在正式输出接线任务中开放。
+实际 S3 适配位于 `apps/esp32-player/src/board/dmx.rs`，独占 UART1／GPIO17／GPIO21，与原连接指示灯所有者不可同时构造。复用锁定 esp-hal 的配置、Break、部分写与 flush；同原运行器使用 Embassy 单调时钟。HAL 的最后字节检查包含同步轮询：硬件卡死或整核停顿时，异步期限不能代替独立硬件看门狗。[板级看门狗](device-watchdog.md)已通过四类实板故障注入；发送／UART IRQ 的第二核隔离经逻辑侧联测验证，电气波形与长期负载仍在正式输出任务中开放。
 
 `dmx-uart` 独立实验镜像仅供逻辑侧测量准备，所有调用保持 GPIO21 低；它不会调用 enable，不会返回产品级“RS485 已发送”回执，无蓝牙或节目安装。当前只完成构建，未刷入或测波形。正式 runtime-gatt 镜像、设备能力位和桌面接口均未切换为物理输出。
 
-软件证据覆盖真实 JSON → 编译包 → Installer → Runtime → Port → 异步事务 → 可控线路，20 帧的完整字节逐一比较；取消、超时与停止门另行检查。后续有界请求／完成槽、停止优先和独立发送已按上述队列契约补验。这些是软件线路证据，不是已接灯或合规认证。原运行服务的逻辑侧组装已完成，接续独立看门狗、实板资源／时序，再以差分波形和受控负载验收。
+软件证据覆盖真实 JSON → 编译包 → Installer → Runtime → Port → 异步事务 → 可控线路，20 帧的完整字节逐一比较；取消、超时与停止门另行检查。后续有界请求／完成槽、停止优先和独立发送已按上述队列契约补验。这些是软件线路证据，不是已接灯或合规认证。原运行服务的逻辑侧组装已完成实板载入、运行、暂停、断线续播和停止，资源及故障修正见工单；接续差分波形、最大负载和长期验收。

@@ -32,6 +32,12 @@ static STACK_TOP: AtomicUsize = AtomicUsize::new(0);
 static SAMPLED_DEPTH: AtomicUsize = AtomicUsize::new(0);
 static OPERATIONS: AtomicU32 = AtomicU32::new(0);
 static MAX_OPERATION_US: AtomicU32 = AtomicU32::new(0);
+// UART coordination adds bounded port state to the worker's async call chain.
+// The 32 KiB variant tripped the hardware stack guard during real package load;
+// reserve internal SRAM for the full parser/loader path, not just sampled callers.
+#[cfg(feature = "runtime-dmx-probe")]
+const STACK_BYTES: usize = 48 * 1024;
+#[cfg(not(feature = "runtime-dmx-probe"))]
 const STACK_BYTES: usize = 32 * 1024;
 
 pub fn live_epoch() -> Option<Epoch> {
@@ -45,7 +51,7 @@ pub fn start(
     boot: [u8; 16],
     cache: &'static mut [u8],
     #[cfg(not(feature = "runtime-dmx-probe"))] _output_disabled: &crate::board::OutputDisabled,
-    #[cfg(feature = "runtime-dmx-probe")] driver: crate::board::output_probe::Driver,
+    #[cfg(feature = "runtime-dmx-probe")] output: crate::board::output_probe::Setup,
 ) {
     static STACK: ConstStaticCell<Stack<STACK_BYTES>> = ConstStaticCell::new(Stack::new());
     static EXECUTOR: StaticCell<Executor> = StaticCell::new();
@@ -53,6 +59,8 @@ pub fn start(
     STACK_TOP.store(stack.top() as usize, Ordering::Release);
     esp_rtos::start_second_core(cpu, interrupt, stack, move || {
         EXECUTOR.init(Executor::new()).run(|spawner| {
+            #[cfg(feature = "runtime-dmx-probe")]
+            let driver = output.start(report);
             spawner.spawn(
                 run(
                     flash,
@@ -94,6 +102,8 @@ pub fn report() {
     frame_probe::report();
     #[cfg(feature = "runtime-dmx-probe")]
     output::report();
+    #[cfg(feature = "runtime-dmx-probe")]
+    crate::board::dmx::metrics::report();
 }
 fn record_operation(start: esp_hal::time::Instant) {
     MAX_OPERATION_US.fetch_max(
@@ -125,6 +135,8 @@ async fn run(
     )
     .await
     {
+        #[cfg(feature = "runtime-dmx-probe")]
+        crate::board::watchdog::WORKER.fail();
         #[cfg(feature = "application-gatt")]
         runtime_io::publish(None);
         LIVE_EPOCH.store(0, Ordering::Release);

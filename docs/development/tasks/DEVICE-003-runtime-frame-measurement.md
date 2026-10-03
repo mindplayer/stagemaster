@@ -1,5 +1,7 @@
 # DEVICE-003：实际节目帧与资源测量
 
+后续 2026-10-04 [OUTPUT-002 联测](OUTPUT-002-dmx-transmission.md)已增加实际 UART 与独立看门狗，发现并修复栈保护和发送调度故障：同板原包 180 秒通过，断线约 40 Hz、最大间隔 29.888 ms、堆峰值仍为 53,140 字节，UART 无故障。本文件保留不含 UART 的原始测量，不能将其与后续联测混作同一基线；受限独立播放器判断保持，实际差分输出和长期出口仍开放。
+
 状态：本增量完成，短期实际帧／资源测量通过；基线 d9cba78，main，结果为本次 `fix(esp32): measure program frames and bound diagnostic writes` 提交。当前会话单写者；目标回合分类 progress，完整 DEVICE-003／AUDIT-001／goal 保持 active。起始工作区仅用户 output/，保持不动。FRAMEWORK-001 已完成，不重开。
 
 ## 问题与限定范围

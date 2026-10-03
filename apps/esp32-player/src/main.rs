@@ -49,7 +49,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let mut output_disabled = board::OutputDisabled::new(peripherals.GPIO21, peripherals.GPIO17);
     #[cfg(feature = "runtime-dmx-probe")]
     let output_line =
-        board::dmx::DmxLine::new(peripherals.UART1, peripherals.GPIO17, peripherals.GPIO21)
+        board::dmx::PreparedLine::new(peripherals.UART1, peripherals.GPIO17, peripherals.GPIO21)
             .unwrap();
     esp_alloc::heap_allocator!(size: 128 * 1024);
     #[cfg(feature = "worker-readiness")]
@@ -87,7 +87,8 @@ async fn main(_spawner: embassy_executor::Spawner) {
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
     #[cfg(feature = "runtime-dmx-probe")]
-    let output_driver = board::output_probe::start(_spawner, output_line);
+    let output_setup =
+        board::output_probe::Setup::new(output_line, peripherals.TIMG1, peripherals.FROM_CPU_INTR2);
     let connector =
         esp_radio::ble::controller::BleConnector::new(peripherals.BT, Default::default()).unwrap();
     let controller = trouble_host::prelude::ExternalController::<_, 20>::new(connector);
@@ -105,7 +106,7 @@ async fn main(_spawner: embassy_executor::Spawner) {
             #[cfg(not(feature = "runtime-dmx-probe"))]
             &output_disabled,
             #[cfg(feature = "runtime-dmx-probe")]
-            output_driver,
+            output_setup,
         );
         #[cfg(not(any(feature = "binding-readiness", feature = "application-gatt")))]
         _spawner.spawn(worker_probe::run(identity.boot()).unwrap());

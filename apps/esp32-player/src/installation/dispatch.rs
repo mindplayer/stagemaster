@@ -33,6 +33,7 @@ pub(super) async fn serve<S: Storage, P: PlaybackPolicy>(
                 sampler.failed();
                 return false;
             }
+            crate::board::watchdog::WORKER.beat();
         }
         // Non-UART builds continuously own the disabled transmitter.
         #[cfg(not(feature = "runtime-dmx-probe"))]
@@ -130,6 +131,10 @@ fn sample<S: Storage, P: PlaybackPolicy>(
             sampler.failed();
             return false;
         }
+    }
+    #[cfg(feature = "runtime-dmx-probe")]
+    if result.is_ok() {
+        crate::board::watchdog::WORKER.beat();
     }
     result.is_ok()
 }

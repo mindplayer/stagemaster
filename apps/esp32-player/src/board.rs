@@ -4,7 +4,11 @@ pub mod dmx;
 #[cfg(feature = "runtime-dmx-probe")]
 mod logic_dmx;
 #[cfg(feature = "runtime-dmx-probe")]
+mod output_driver;
+#[cfg(feature = "runtime-dmx-probe")]
 pub mod output_probe;
+#[cfg(feature = "runtime-dmx-probe")]
+pub mod watchdog;
 #[cfg(not(feature = "runtime-dmx-probe"))]
 use esp_hal::{
     gpio::{Level, Output, OutputConfig},

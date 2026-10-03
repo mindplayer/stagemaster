@@ -1,14 +1,12 @@
 # 当前执行计划
 
-OUTPUT-002 原运行服务的逻辑侧输出组装已通过：ManagedWorker／LocalOutput／Port／队列／UART 调用链、真实静默维护及新实例激活完成软件验收，128 项相关测试通过；[工单](tasks/OUTPUT-002-dmx-transmission.md)记录 S3 最终构建与限制。GPIO21 仍关闭、未刷机；下一项独立硬件看门狗与逻辑侧实板时序／资源，再真实 RS485 及产品输出状态。完整持续目标 active，已完成框架轮不重开。
+OUTPUT-002 看门狗及逻辑 UART 联测增量完成：四类独立硬件故障注入和原包 180 秒真实服务复测通过，修复栈保护与发送超时；第二核中断执行器隔离发送，最大间隔 29.888 ms、断线约 40 Hz、堆峰值 53,140 字节。详见[输出工单](tasks/OUTPUT-002-dmx-transmission.md)。当前实板已刷入通过联测的实验运行镜像、GPIO21 仍禁用；接续真实差分线路、最重负载／长期验收及产品输出状态。完整持续目标 active，框架轮不重开。
 
-OUTPUT-002 有界驱动交接已完成：原 Port／固定队列／Transmitter 的完整软件链及实际 S3 构建通过，45 项相关测试覆盖真实工程和独立线程唤醒。详见[当前工单](tasks/OUTPUT-002-dmx-transmission.md)。下一项正式固件 Runtime 快照、显式输出激活、维护门、诊断灯与 UART 引脚交接及独立看门狗；仍禁用物理输出，不把逻辑实验回执当作 RS485 发送。完整持续目标 active，框架轮不重开。
-
-更新：2026-10-03。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
+更新：2026-10-04。当前 Astra 会话统一负责规划、实现、验证与集成，依据 [DEV-ADR-002](decisions/DEV-ADR-002-astra-direct.md)。本文是唯一现行执行计划，替代原 v1／v2；首版软硬件范围以 [PRODUCT-ADR-001](decisions/PRODUCT-ADR-001-first-software-hardware-delivery.md) 为准，当前框架优先级以 [ADR-097](decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 为准。
 
 ## 当前任务
 
-[OUTPUT-002](tasks/OUTPUT-002-dmx-transmission.md)已完成单帧事务、S3 UART 适配准备和 30 项软件验证／实际构建；接续原 Port 到异步发送的有界交接、停止优先、独立看门狗及实际固件输出，随后波形与长期验收。当前设备保持旧运行固件、RS485 禁用，不把实验目标构建视为已物理输出。
+[OUTPUT-002](tasks/OUTPUT-002-dmx-transmission.md)已完成单帧事务、固定交接、原 Runtime 协调、独立硬件看门狗及实际 UART 逻辑侧短测；原 Port／Queue／Transmitter 继续复用。下一项明确实物线路测量条件，按原时序与资源预算验收代表性最重负载和长期运行，再接产品输出状态；没有测量工具时不得把软件回执或绿色指示灯当作差分波形通过。
 
 最新 DEVICE-003 [实际帧测量及设备职责判断](tasks/DEVICE-003-runtime-frame-measurement.md)已完成：首轮时序失败后修正诊断输出，实板复测约 40 Hz、最长 25.810 ms、零错误；保留 ESP32-S3 受限包解析／自主状态机，纯网桥保持独立可选角色。接续 UART DMX 物理节拍与快照交接、最重负载及长期验收；不重开框架轮，不将短测当商业交付。
 

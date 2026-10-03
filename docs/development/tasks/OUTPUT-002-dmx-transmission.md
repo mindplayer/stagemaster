@@ -1,8 +1,60 @@
 # OUTPUT-002：DMX 完整帧发送适配
 
-当前结果：运行／输出协调与原服务逻辑侧固件组装增量完成，完整输出链仍进行中；基线 `df435e7`，main，结果为本次 `feat(device): coordinate runtime frames and output quiescence` 提交，当前会话单写者。上一轮有界队列已提交，分类 progress。依据 [ADR-137](../decisions/PRODUCT-ADR-137-runtime-output-coordination.md) 接原 ManagedWorker 维护门、当前快照与 Port，并在原运行服务的实验组装中验证真实 UART／诊断引脚独占；GPIO21 仍强制关闭，本轮未刷机／打开串口或蓝牙，用户窗口／工程／output/ 保持。硬件看门狗和物理时序出口继续保留。
+本轮结果：独立硬件看门狗及原服务 UART 逻辑侧实板联测增量完成；基线 `80076c0`，main，结果为本次 `fix(esp32): supervise and isolate bounded DMX output` 提交，当前会话单写者，分类 progress。按 [ADR-138](../decisions/PRODUCT-ADR-138-device-watchdog.md)／[ADR-139](../decisions/PRODUCT-ADR-139-s3-output-scheduling.md) 复用原 Receiver 和官方 Wdt／InterruptExecutor，修复实测栈保护与发送调度故障。无新播放器、协议或第三方版本变化；完整输出链／DEVICE-003／goal 继续开放。用户 output/、工程及窗口保持。
 
-## 运行与输出协调结果
+本轮开工前原生只读验收确认同一设备 `534d4553503332533300288485569774`、28 节目、原包摘要、无运行实例／无控制者，串口无占用；`logs/output-002-watchdog-before-device.log`。沿用既有板卡测试／替换固件授权，原分区表与节目区保持，GPIO21 全程禁用。独立探针注入发送任务同步卡死／退出、第二核停顿／主动失败，必须看到 CoreMwdt1 和后续稳定启动；不以软件策略测试、编译或一次重启替代硬件故障证据。宿主日志时间只估计复位延迟，预定发送停顿／退出和主动失败 0.5～2 秒、第二核失活 2～4 秒触发复位，不是示波器精度。结束恢复带真实设备配置的原服务逻辑侧镜像，验证目录和实际播放／停止。
+
+上一已提交增量（以下描述保留当时验证边界；本轮实板结果见后文）：运行／输出协调与原服务逻辑侧固件组装增量完成，完整输出链仍进行中；基线 `df435e7`，main，结果为本次 `feat(device): coordinate runtime frames and output quiescence` 提交，当前会话单写者。上一轮有界队列已提交，分类 progress。依据 [ADR-137](../decisions/PRODUCT-ADR-137-runtime-output-coordination.md) 接原 ManagedWorker 维护门、当前快照与 Port，并在原运行服务的实验组装中验证真实 UART／诊断引脚独占；GPIO21 仍强制关闭，本轮未刷机／打开串口或蓝牙，用户窗口／工程／output/ 保持。硬件看门狗和物理时序出口继续保留。
+
+## 看门狗验收中的测量修正
+
+初始独立探针编译的 Cpu 导入路径错误已按锁定 HAL 的 system::Cpu 修正，原检查日志保留。首轮 sender-stall 已出现 CoreMwdt1，但固定 12 次报告的最后一行没有完整收到，严格分析拒绝；探针改为持续报告，仍要求连续至少 12 秒，不降低恢复观察要求。
+
+后续 worker-stall 的应用启动行接收时间比故障晚 4.139190 秒，最初把它当作复位时刻，分析失败。逐行核对独立 ROM 日志发现 `rst:0x8 (TG1WDT_SYS_RST)` 实际在故障后 2.956703 秒出现；应用启动行与第 1 秒报告同批到达，是串口交付时间不能代表芯片复位的证据。分析器因此明确分开 ROM 复位延迟、应用启动接收延迟、恢复计数三项，保持原硬件超时边界，并要求独立 ROM 原因、CoreMwdt1、无额外复位以及连续恢复。初轮失败日志保留；这仍是宿主观测，不宣称示波器级时间或一般性排除所有故障。
+
+## 完整服务发现的真实栈故障
+
+首次完整 runtime-dmx-probe 运行 28 节目原包，载入首个真实场景时 AppCpu 的硬件栈保护触发：`Detected a write to the stack guard value on AppCpu`。watchdog 接着报告 Deadline 并经 CoreMwdt1 复位；这轮联测失败，不把故障恢复当业务通过。证据 `logs/output-002-watchdog-runtime-{board,gatt}.log`；反解回溯 `runtime-stack-trace.log` 落在原包读取／加载调用链。此前 27,325 字节调用点采样未覆盖更深峰值，再次说明采样不等于高水位。
+
+仅本 UART 组装将第二核栈从 32 KiB 调整为 48 KiB 内部 SRAM，正常旧固件保持 32 KiB；看门狗仍为 1／2／10 秒，包加载上限及 128 KiB 堆不改。真实链接 .bss 仅增加 16,384 字节（202,252 → 218,636），`logs/output-002-watchdog-runtime-size-{before,after}.log`。真实配置严格检查及构建通过；同板同包后续复验结果见下节。
+
+## UART 调度故障与复验
+
+48 KiB 栈修正后真实载入通过，但第一核普通任务中的 UART 发送仍失败。原 Port 只暴露通用 Driver 错误，故增加板级小型诊断包装，保留原 Queue 的第一个具体 Fault；不改变公共 Driver 契约或重试规则。随后固定原子耗时记录定位到 `Deadline`：单次 write 最大 44,261 µs，40 ms 总期限触发取消（break／write／drain 取消计数 0／1／0）。原始失败记录依次在 `logs/output-002-watchdog-{stack-fixed,fault-report,driver-report,uart-timing}-*.log`，没有以恢复启动当成功。
+
+按 ADR-139 将发送与 UART IRQ 绑定第二核的 Priority2 InterruptExecutor，普通工作器仍在原线程执行器，第一核处理 BLE／诊断。HAL 的 async UART 为 !Send，检查拒绝迁移已初始化的对象；最终把阻塞所有者传给目标任务，在该任务内绑定中断，没有 unsafe Send。保持 40 ms 发送／100 ms 新鲜度及看门狗 1／2／10 秒预算，既有队列／Runtime 无修改。
+
+最终同板同包单次 180 秒观察通过：真实配置、原固定分区表、原 B 槽 generation 18／110,772 字节／28 节目；运行“环绕波浪 · 11”，不是同时运行全部节目。原生 GATT 的载入、开始、暂停、继续、断开 45 秒、同启动同实例重连、停止和归还控制全部通过。
+
+| 测量 | 结果 |
+| --- | --- |
+| 实际运行帧 | 33 份累计采样，断线连续采样 41.549984 秒、40.000015 Hz；暂停保持进度并持续出帧 |
+| 计算／调度 | tick／render／采样最大 944 µs；尝试间隔最大 29.888 ms，超过 30／50 ms 均为 0，帧／时钟错误为 0 |
+| 实际 UART 调用 | 最后提交 6,151／完成 6,150；采样时允许一帧在途，所有输出状态无故障。最后阶段为停止后的档案默认帧，不冒充仍在演出 |
+| UART 等待 | 单次 write 最长 5,593 µs，drain 1,983 µs，break 调用等待 1,546 µs；取消均为 0。是软件操作等待，不是引脚 Break／MAB 测量 |
+| 运行资源 | 内部堆峰值 53,140 字节／固定 131,072 字节，观测最小空闲 80,136；8 MiB PSRAM 自检通过 |
+| 栈／镜像 | 第二核明确预留 48 KiB，调用点采样 27,405 字节；无栈保护／panic／运行复位。镜像 865,152 字节，占 3 MiB 分区 27.50%；最终 .bss 218,860 字节 |
+
+原始证据 `logs/output-002-watchdog-isolated-{check,build,flash,board,capture,gatt,size}.log`；严格帧分析 `data/OUTPUT-002/watchdog-isolated-runtime-report.json`，UART 核对记录 `data/OUTPUT-002/watchdog-isolated-uart-report.json`。最后节目已停止、无控制者、蓝牙和串口验收会话关闭，设备保留已验证的逻辑侧运行镜像，原节目未写入或擦除。GPIO21 全程禁用；没有外部差分线路／真实灯具证据，没有把操作耗时解释为完整 CPU 利用率或栈峰值。
+
+## 独立看门狗与软件出口
+
+独立故障探针使用相同板级监督模块；其测试布置是第一核监督、第二核进度。四类硬件注入均看到 ROM `TG1WDT_SYS_RST` 和应用 `CoreMwdt1`，恢复计数连续，未出现重启循环。该探针证明复位机制与监督策略；最终第二核中断组装的正常业务证据见上文，不冒称所有真实外设故障都已注入。
+
+| 故障 | 宿主观察 ROM 复位延迟 | 后续连续恢复 |
+| --- | --- | --- |
+| 发送同步卡死 | 0.980302 秒 | 21 秒 |
+| 发送任务退出 | 0.980348 秒 | 21 秒 |
+| 工作器停顿 | 2.956703 秒 | 19 秒 |
+| 工作器主动失败 | 0.980317 秒 | 21 秒 |
+
+证据 `logs/output-002-watchdog-final-故障名称-{build,flash,board,capture}.log` 和 `data/OUTPUT-002/watchdog-故障名称.json`。ROM 与应用日志交付时间区分如上，不是示波器级计时。
+
+135 项相关 Rust 测试通过（原 128＋新增 7），工作区全部目标严格 Clippy（application／output／queued-dmx／development-device-access）通过；`logs/output-002-watchdog-regression.log`／`final-clippy.log`。策略覆盖迟到进度不能复活、停顿、时钟／计数倒退或耗尽、锁存失败、真实跨线程失败竞态；3 项看门狗报告工具与原 5 项帧报告工具测试通过。最终 S3 运行组装严格检查／构建，以及旧正常固件、独立 UART／队列目标严格检查通过，见 `logs/output-002-watchdog-{isolated-check,isolated-build,final-original-check,final-uart-check,final-queue-check}.log`；保留原裸机 RWX 链接告警。fmt、脚本语法、文档本地引用与差异检查通过，两个锁文件无变化。新增／修改生产文件最大 279 行，职责按监督、进度、诊断与板级调度拆分。
+
+此次证据继续支持 ESP32-S3 的受限独立播放器角色：主机编译完整工程，设备解析受限包、运行状态机与单路灯光；没有因容量或算力整体降为纯网桥的依据。代表性最重节目、完整栈高水位、8 小时压力、真实 UART／RS485 波形和产品输出状态仍未完成；不能宣称商业交付或任意灯效都能独立运行。下一阶段按这些出口推进，不扩张本轮为重做框架。
+
+## 已提交的运行与输出协调结果
 
 可选 `install-worker/output` 中的 LocalOutput 只协调原 Runtime 和 Port。新播放实例请求本地来源，载入／读取不激活；开始后暂停、控制租约释放保留自主帧，停止仍使用原档案默认值。维护或显式关闭撤回输出，真实 Queue／UART 静默后才能确认当前维护请求；帧身份／修订／节目／实例／采样时间严格核对，错误锁存。见[调用契约](../../module-api/runtime-output-coordination.md)。
 
@@ -50,7 +102,7 @@
 
 固件只增加 output-port 本地可选依赖与独立实验目标，锁文件只新增这一条本地 crate，无第三方升级；主工作区锁文件不变。生产文件最大 95 行、最大新增测试支持文件不足 200 行。fmt、脚本语法、差异及文档本地链接检查通过。UI／工程／设备包／协议字节没有变更，未重复旧界面测试或声明已发送真实 DMX。
 
-## 接续边界
+## 上一增量时的接续边界
 
 原同步 Driver、有界异步发送与 Runtime 快照／激活／维护协调已按上文接通，原服务的逻辑侧固件组装已链接；引脚所有权明确从诊断灯交给 UART。接续独立硬件看门狗与逻辑侧实板时序／资源观测，再进行经过电气确认且获授权的差分波形测试和正式产品输出状态接线。不能把逻辑实验镜像的发送回执显示成正式 RS485 已发送。
 

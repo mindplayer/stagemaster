@@ -1,7 +1,10 @@
 //! Sole UART1/GPIO17/GPIO21 owner. Never coexist with the diagnostic TX LED owner.
+#[cfg(feature = "runtime-dmx-probe")]
+#[path = "dmx/metrics.rs"]
+pub mod metrics;
 use embassy_time::{Delay, Instant, Timer};
 use esp_hal::{
-    Async,
+    Async, Blocking,
     gpio::{Level, Output, OutputConfig},
     peripherals::{GPIO17, GPIO21, UART1},
     uart::{Config, ConfigError, DataBits, Parity, StopBits, TxError, UartTx},
@@ -12,7 +15,12 @@ pub struct DmxLine {
     tx: UartTx<'static, Async>,
     direction: Output<'static>,
 }
-impl DmxLine {
+/// Configure disabled pins on boot; bind the UART interrupt on its execution core.
+pub struct PreparedLine {
+    tx: UartTx<'static, Blocking>,
+    direction: Output<'static>,
+}
+impl PreparedLine {
     pub fn new(
         uart: UART1<'static>,
         tx: GPIO17<'static>,
@@ -25,8 +33,24 @@ impl DmxLine {
             .with_data_bits(DataBits::_8)
             .with_parity(Parity::None)
             .with_stop_bits(StopBits::_2);
-        let tx = UartTx::new(uart, config)?.with_tx(tx).into_async();
+        let tx = UartTx::new(uart, config)?.with_tx(tx);
         Ok(Self { tx, direction })
+    }
+    pub fn into_async(self) -> DmxLine {
+        DmxLine {
+            tx: self.tx.into_async(),
+            direction: self.direction,
+        }
+    }
+}
+impl DmxLine {
+    #[cfg(not(feature = "runtime-dmx-probe"))]
+    pub fn new(
+        uart: UART1<'static>,
+        tx: GPIO17<'static>,
+        enable: GPIO21<'static>,
+    ) -> Result<Self, ConfigError> {
+        Ok(PreparedLine::new(uart, tx, enable)?.into_async())
     }
     pub fn is_disabled(&self) -> bool {
         self.direction.is_set_low()
@@ -41,17 +65,31 @@ impl Line for DmxLine {
         self.direction.set_high();
     }
     async fn break_signal(&mut self, bits: u32) -> Result<(), TxError> {
+        #[cfg(feature = "runtime-dmx-probe")]
+        let operation = metrics::Operation::begin(0);
         self.tx.send_break_async(&mut Delay, bits).await;
+        #[cfg(feature = "runtime-dmx-probe")]
+        operation.complete();
         Ok(())
     }
     async fn write(&mut self, bytes: &[u8]) -> Result<usize, TxError> {
-        self.tx.write_async(bytes).await
+        #[cfg(feature = "runtime-dmx-probe")]
+        let operation = metrics::Operation::begin(1);
+        let result = self.tx.write_async(bytes).await;
+        #[cfg(feature = "runtime-dmx-probe")]
+        operation.complete();
+        result
     }
     async fn drain(&mut self) -> Result<(), TxError> {
         // HAL also checks the final shifter after FIFO drain. Its last-byte poll
         // is synchronous; an independent hardware watchdog is still required
         // for a wedged peripheral/CPU before enabling production RS485 output.
-        self.tx.flush_async().await
+        #[cfg(feature = "runtime-dmx-probe")]
+        let operation = metrics::Operation::begin(2);
+        let result = self.tx.flush_async().await;
+        #[cfg(feature = "runtime-dmx-probe")]
+        operation.complete();
+        result
     }
 }
 impl Drop for DmxLine {
@@ -67,5 +105,7 @@ impl Clock for Monotonic {
     }
     async fn wait_until_us(&self, deadline: u64) {
         Timer::at(Instant::from_micros(deadline)).await;
+        #[cfg(feature = "runtime-dmx-probe")]
+        metrics::timer(deadline);
     }
 }

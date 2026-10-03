@@ -12,7 +12,9 @@ HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断�
 
 ## 项目内环境
 
-完整运行服务的 UART 逻辑侧组装：使用项目内 v2 开发配置，通过 `STAGEMASTER_DEVICE_CONFIGURATION=配置绝对路径 bash tools/hardware/firmware.sh runtime-output-probe-check`／`runtime-output-probe-build` 构建。产物在 `target/esp32-runtime-output-probe/`，沿原 GATT／安装／第二核运行器调用真实发送队列，第一核独占 UART；GPIO21 仍强制低，GPIO17 不再用于蓝牙连接常亮指示。`UART LOGIC ONLY` 是逻辑串行进度，不是 RS485 输出能力。该镜像与普通诊断 flash 默认目标不同，不用普通 flash 子命令刷入。当前只完成软件验收、实际检查／链接，实板与看门狗另验收；详见[运行输出协调](../../docs/module-api/runtime-output-coordination.md)。
+完整运行服务的 UART 逻辑侧组装：使用项目内 v2 开发配置，通过 `STAGEMASTER_DEVICE_CONFIGURATION=配置绝对路径 bash tools/hardware/firmware.sh runtime-output-probe-check`／`runtime-output-probe-build` 构建。产物在 `target/esp32-runtime-output-probe/`，沿原 GATT／安装／第二核运行器调用真实发送队列，第二核独立中断执行器拥有 UART，普通工作器通过固定队列交接；GPIO21 仍强制低，GPIO17 不再用于蓝牙连接常亮指示。`UART LOGIC ONLY` 是逻辑串行进度，不是 RS485 输出能力。该镜像与普通诊断 flash 默认目标不同，不用普通 flash 子命令刷入。当前已完成原包实板联测及四类独立看门狗故障注入；实际 RS485 波形与长期压力仍须另验收；详见[运行输出协调](../../docs/module-api/runtime-output-coordination.md)。
+
+看门狗独立探针：明确设置 `STAGEMASTER_WATCHDOG_CASE=sender-stall|sender-exit|worker-stall|worker-failed` 中的一项，运行 `bash tools/hardware/firmware.sh watchdog-probe-check`／`watchdog-probe-build`。产物在 `target/esp32-watchdog-probe/`，不包含 BLE／存储；会主动触发主系统复位，不作为常用运行镜像。授权刷入后，以 `serial_observe.py --timestamps` 单次捕获原启动、注入、ROM 复位及持续恢复，再运行 `python3 tools/hardware/watchdog_report.py 故障名称 日志路径`。结束须恢复真实配置的运行镜像；禁止把虚构编号夹具刷入实板。分析器区分 ROM 复位时刻与应用日志交付时刻，宿主时间不代表波形精度。详见[看门狗契约](../../docs/module-api/device-watchdog.md)与[实际结果](../../docs/development/tasks/OUTPUT-002-dmx-transmission.md)。
 
 有界驱动实验目标：`bash tools/hardware/firmware.sh dmx-queue-check`／`dmx-queue-build`。产物 `target/esp32-dmx-queue/xtensa-esp32s3-none-elf/release/examples/dmx-queue`，原 Port／队列／Transmitter 连接真实 UART，但实验适配层永不打开 GPIO21；只在逻辑侧运行 40 帧并停止排空，无蓝牙／安装，完成回执不代表 RS485。当前严格检查和链接通过、未刷入；同样不使用普通 flash 子命令。原运行服务的逻辑侧组装见下文；看门狗和正式物理输出另验收，见[队列契约](../../docs/module-api/queued-dmx.md)。
 
