@@ -6,6 +6,8 @@
 
 ## 当前事实与范围
 
+物理输出前置 [OUTPUT-002](OUTPUT-002-dmx-transmission.md)已补单帧事务／S3 UART 适配准备，真实 Runtime 和原 Port 的完整字节对照、取消／完成软件测试及交叉构建通过；有界异步交接、正式固件输出和线路测量未接通，当前设备保持禁用发送。
+
 Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、回执和维护门；device-channel 已复用 TCP／GATT 承载，安装与运行客户端分别协商。原生 Service／Ble 已有明确运行入口，新 runtime-gatt 固件已刷入本台设备，原生与桌面实际运行控制验证通过；桌面维护入口的软件证据保持，完整维护／物理输出仍须独立验收。不得再造播放器，也不能把安装成功显示为运行或物理输出。接续实板 GATT、自主运行和物理输出证据。
 
 第一增量依 [ADR-127](../decisions/PRODUCT-ADR-127-device-operation-permissions.md)：限定 `device-auth::application`、原 `install-worker::secure`、相关验收和契约。既有安装凭据不提升权限；不修改工程／设备包／配置字节或固件。源码按许可范围、准入、安装适配与测试分文件，目标新增文件低于 300 行。全量基线仍运行时使用项目 `tmp/framework-001-light-target` 隔离构建，不覆盖原测试产物。

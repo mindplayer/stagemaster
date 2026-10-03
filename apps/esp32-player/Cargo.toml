@@ -8,6 +8,7 @@ license = "LicenseRef-Proprietary"
 [workspace]
 
 [features]
+dmx-uart = ["dep:stagemaster-output-port"]
 runtime-gatt = ["application-gatt"]
 application-gatt = ["worker-readiness", "dep:stagemaster-device-session", "dep:stagemaster-device-auth", "stagemaster-device-auth/application", "stagemaster-install-worker/application", "dep:stagemaster-package"]
 secure-gatt-test = ["dep:stagemaster-device-session", "esp-alloc/internal-heap-stats"]
@@ -23,6 +24,7 @@ worker-readiness = ["storage-readiness", "dep:stagemaster-install-worker", "dep:
 worker-write-test = ["worker-readiness", "dep:stagemaster-package", "dep:sha2"]
 
 [dependencies]
+stagemaster-output-port = { path = "../../crates/stagemaster-output-port", optional = true }
 stagemaster-device-session = { path = "../../crates/stagemaster-device-session", optional = true }
 stagemaster-device-auth = { path = "../../crates/stagemaster-device-auth", optional = true }
 sha2 = { version = "=0.10.9", default-features = false, optional = true }
@@ -60,3 +62,8 @@ overflow-checks = true
 
 [profile.dev]
 opt-level = "s"
+
+[[example]]
+name = "dmx-uart"
+path = "examples/dmx_uart.rs"
+required-features = ["dmx-uart"]

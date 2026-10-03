@@ -2,6 +2,7 @@
 //! No hardware implementation is provided. A driver must uphold its completion contract.
 #![no_std]
 #![forbid(unsafe_code)]
+pub mod dmx;
 mod driver;
 mod lifecycle;
 mod port;

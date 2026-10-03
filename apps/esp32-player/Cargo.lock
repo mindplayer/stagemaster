@@ -2243,6 +2243,7 @@ dependencies = [
  "stagemaster-install",
  "stagemaster-install-worker",
  "stagemaster-nor-store",
+ "stagemaster-output-port",
  "stagemaster-package",
  "stagemaster-playback",
  "stagemaster-runtime",
@@ -2282,6 +2283,10 @@ dependencies = [
  "stagemaster-install",
  "stagemaster-package",
 ]
+
+[[package]]
+name = "stagemaster-output-port"
+version = "0.1.0"
 
 [[package]]
 name = "stagemaster-package"

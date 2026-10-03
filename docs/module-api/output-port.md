@@ -39,6 +39,8 @@ OUTPUT-001／[ADR-103](../development/decisions/PRODUCT-ADR-103-output-port-auth
 
 ## Driver 的真实责任
 
+异步 DMX 单帧事务及 S3 UART 适配准备已由 [OUTPUT-002](dmx-transmission.md)补充，软件完整帧／取消／完成测试和 Xtensa 构建通过；同步 Driver 与异步发送之间的有界队列、正式固件接线及实物输出仍未完成。不能用同步阻塞等待替代该交接。
+
 `submit(ticket, slots, valid_until_ms)` 成功仅表示接纳；驱动须复制／拥有数据，实际开始前再检查同源单调时钟。无隐式自动重发，无隐藏帧队列；过期未开始发送报告 `Expired(ticket)`，实际完成才报告 `Sent(ticket)`。对于未来网络适配，写入套接字不等于远端完成 DMX 发送，必须明确定义并验证实际边界。
 
 `quiesce(ticket)` 必须禁止新发送、丢弃排队工作并结束／取消在途操作，之后才能报告 `Quiet(ticket)`。静默可以取消尚未完成的帧，此时不会伪造 Sent。事件由 `poll()` 非阻塞提供，适配层自己的事件队列必须有界；溢出报告故障。

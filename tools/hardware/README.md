@@ -12,6 +12,8 @@ HW-003 起，诊断握手成功后复用 GPIO17 上的 RS485 绿灯常亮，断�
 
 ## 项目内环境
 
+OUTPUT-002 的独立 UART 逻辑侧实验目标：`bash tools/hardware/firmware.sh dmx-uart-check`／`dmx-uart-build`。产物 `target/esp32-dmx-uart/xtensa-esp32s3-none-elf/release/examples/dmx-uart`，只生成 GPIO17 逻辑波形，GPIO21 始终低，无 BLE／安装服务；不调用发送使能或冒称 RS485 已发送。当前仅交叉检查／构建通过，未刷写或测波形。该目标不替代正常 runtime-gatt，也不能交给普通 firmware.sh flash（其默认仍是旧诊断 ELF）。实际物理输出、独立看门狗和线路适配另验收，见[单帧事务](../../docs/module-api/dmx-transmission.md)。
+
 所有下载、缓存与环境均留项目 `tmp/`，不改用户全局 Rust 或 shell 配置。
 
 - espup **0.17.1**，Apple Silicon 官方发布二进制 SHA-256 `ab0e937d659396ed2b3b0c0f74d29bdf570217f096ea88fa58b8966cf4d32cba`。
