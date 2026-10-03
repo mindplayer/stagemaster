@@ -8,7 +8,7 @@
 
 已核对总体架构、现行开发计划、媒体 ADR-052、伪 API 和实际 crate／桌面组装。保留既有类型与语义；纠正总体文档中“正式音频全部外部执行／尚未实施”的过期说法，同时保留外部专业音视频路线和真实同步的未完成边界。
 
-## 当前判断
+## 本工单基线时的判断
 
 - Rust 无界面播放／设备运行、音频适配和中立预演已有基础，适合继续演进，无证据要求重选主技术栈。
 - 桌面仍以 Tauri 的 Session 组装编辑／音频／预演，不能据此宣称 UI 崩溃后专业主机仍独立演出。跨端应用服务与执行生命周期需要可运行验证。
@@ -32,3 +32,5 @@ AUDIO-020 可视编辑后移，正式任务未完成；保留 `f0e5d9b` 已验�
 接口草案 `tsc -p docs/module-api/tsconfig.json` 通过；11 份变更文档的 545 个本地 Markdown 文件目标检查通过；`git diff --check` 通过。自行审查确认新增决定与 AGENTS／README／总体架构／媒体设计／执行计划一致，未将规划描述为运行实现。
 
 最终变更仅为项目规则与文档；产品源码保持 `f0e5d9b`，无需重复 Rust／UI 全量编译测试，也没有实机、音频或 UE 新验收。集成结果为本次 `docs(architecture): align integrated stage platform and multi-device roadmap` 提交。未解决项是 ADR-097 表列的运行边界验证及 AUDIO-020 完整出口，持续目标仍 active。
+
+2026-10-03 接续审查：[FRAMEWORK-001](FRAMEWORK-001-platform-exit-review.md) 已完成软件边界整体验收，基线回归和 R1 组装修复差异验证均通过。上文为 `f0e5d9b` 时点的发现，现行状态与未完成的真实设备／商业化／专业功能见[整体报告](../../architecture-framework-review-2026-10-03.md)。当前转 DEVICE-003 产品接线，完整持续目标不结束。
