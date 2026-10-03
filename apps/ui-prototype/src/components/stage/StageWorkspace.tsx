@@ -1,8 +1,13 @@
+import { useStageSelectionActions } from "./useStageSelectionActions";
+import { useStageSelection } from "./useStageSelection";
+import { useObjectTranslation } from "./useObjectTranslation";
+import { StageObjectGroupInspector } from "./StageObjectGroupInspector";
+import { translationCommand } from "./object-translation";
 import { useStageVisibility } from "./useStageVisibility";
 import { useArrangementEntry } from "./useArrangementEntry";
 import { StageLayoutStatus } from "./StageLayoutStatus";
 import type { RiggingPreviewPort } from "../../rigging-preview-types";
-import { lockTargets, placementTargets, stageTarget } from "../../stage-locks";
+import { lockTargets, placementTargets } from "../../stage-locks";
 import { DockPane } from "../layout/DockPane";
 import type { ReactNode } from "react";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
@@ -31,12 +36,12 @@ import { selectedStage, stageCommand, objectSpace } from "../../stage-tools";
 import { validateEditorForm } from "../workbench/form-validation";
 import { StageCanvas } from "./StageCanvas";
 import { StageLibraryPanel } from "./StageLibraryPanel";
-import { visibleStage, type PlanVisibility } from "./stage-display";
+
 import { StageSelectionInspector } from "./StageSelectionInspector";
 import { ArrangementInspector } from "./ArrangementInspector";
 import { useStageArrangement } from "./useStageArrangement";
 import { arrangementStage } from "./arrangement-session";
-import { placementBatch, togglePlacement } from "../../placement-tools";
+import { placementBatch } from "../../placement-tools";
 import "./stage.css";
 export interface StageHandle {
   collect(): EditOperation[];
@@ -79,26 +84,19 @@ export const StageWorkspace = forwardRef<
   },
   ref,
 ) {
-  const [selection, setSelection] = useState<StageSelection | null>(null);
+  const selected = useStageSelection(project.stage);
+  const { selection, targets } = selected;
   const { planVisibility, setPlanVisibility, revealInPlan, revealPlacements } =
     useStageVisibility(project);
   const projectRef = useRef(project);
   projectRef.current = project;
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const selectedPlacements = project.stage.placements.filter((p) =>
-    selectedIds.includes(p.fixtureId),
-  );
-  const liveIds =
-    selection?.kind === "placement"
-      ? selectedIds.filter((id) =>
-          selectedPlacements.some((p) => p.fixtureId === id),
-        )
-      : [];
-  const selectionKey = JSON.stringify(liveIds);
+  const liveIds = selected.ids;
+  const selectionKey = JSON.stringify(selected.fixturesOnly ? liveIds : []);
   useEffect(
     () => onSelectedFixtures(JSON.parse(selectionKey) as string[]),
     [selectionKey, onSelectedFixtures],
   );
+  const translation = useObjectTranslation(project, targets, onPending);
   const [draft, setDraft] = useState<StageObject | null>(null),
     draftRef = useRef<StageObject | null>(null);
   const moving = useRef(false);
@@ -130,8 +128,7 @@ export const StageWorkspace = forwardRef<
     edit,
     onResult(target, next, focus) {
       if (target) revealInPlan(target, next);
-      setSelection(target);
-      setSelectedIds(target?.kind === "placement" ? [target.id] : []);
+      selected.replace(target ? [target] : []);
       setQuery("");
       cancel();
       if (focus) setFocusRequest((v) => v + 1);
@@ -156,8 +153,7 @@ export const StageWorkspace = forwardRef<
     onAccepted: acceptPlacements,
     onResult(ids, next) {
       revealPlacements(ids, next);
-      setSelectedIds(ids);
-      setSelection(ids.length ? { kind: "placement", id: ids.at(-1)! } : null);
+      selected.placements(ids);
       setQuery("");
       setFocusRequest((v) => v + 1);
       cancel();
@@ -183,8 +179,7 @@ export const StageWorkspace = forwardRef<
       ...projectRef.current,
       stage: arrangementStage(projectRef.current.stage, placements),
     });
-    setSelectedIds(ids);
-    setSelection({ kind: "placement", id: ids.at(-1)! });
+    selected.placements(ids);
     setQuery("");
   }
   function cancel() {
@@ -193,6 +188,7 @@ export const StageWorkspace = forwardRef<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >("input,select,textarea")
       .forEach((field) => field.setCustomValidity(""));
+    translation.cancel();
     arrangement.cancel();
     rigging.draft.cancel();
     draftRef.current = null;
@@ -200,27 +196,20 @@ export const StageWorkspace = forwardRef<
     setLocalError("");
     onPending(moving.current);
   }
-  async function changePlanVisibility(next: PlanVisibility) {
-    if (!(await beforeChange())) return;
-    const shown = visibleStage(projectRef.current.stage, next);
-    const ids = liveIds.filter((id) =>
-      shown.placements.some((p) => p.fixtureId === id),
-    );
-    setSelectedIds(ids);
-    setSelection(
-      selection?.kind === "placement"
-        ? ids.length
-          ? { kind: "placement", id: ids.at(-1)! }
-          : null
-        : selectedStage(shown, selection)
-          ? selection
-          : null,
-    );
-    setPlanVisibility(next);
-    cancel();
-  }
+  const selectAction = useStageSelectionActions({
+    project,
+    visible,
+    busy,
+    beforeChange,
+    selected,
+    reveal: revealInPlan,
+    setVisibility: setPlanVisibility,
+    cancel,
+    onError: setLocalError,
+  });
   function collect(): EditOperation[] {
     if (moving.current) throw new Error("请先完成拖动，或按 Esc 取消");
+    if (translation.pending()) return translation.collect();
     if (arrangement.session) return arrangement.collect();
     if (rigging.draft.session) return rigging.draft.collect();
     if (!draftRef.current) return [];
@@ -253,8 +242,7 @@ export const StageWorkspace = forwardRef<
       )
         return false;
       revealPlacements(ids);
-      setSelection(ids.length ? { kind: "placement", id: ids.at(-1)! } : null);
-      setSelectedIds(ids);
+      selected.placements(ids);
       cancel();
       return true;
     },
@@ -263,8 +251,7 @@ export const StageWorkspace = forwardRef<
       if (placed) revealInPlan({ kind: "placement", id });
       setFixtureId(id);
       setQuery("");
-      setSelection(placed ? { kind: "placement", id } : null);
-      setSelectedIds(placed ? [id] : []);
+      selected.placements(placed ? [id] : []);
       setFocusRequest((n) => n + 1);
       cancel();
       requestAnimationFrame(() =>
@@ -274,44 +261,14 @@ export const StageWorkspace = forwardRef<
       );
     },
   }));
-  async function choose(
-    target: StageSelection,
-    additive = false,
-    preserve = false,
-  ) {
-    if (await beforeChange()) {
-      revealInPlan(target);
-      if (target.kind === "placement") {
-        const next =
-          preserve && liveIds.includes(target.id)
-            ? liveIds
-            : togglePlacement(liveIds, target.id, additive);
-        setSelectedIds(next);
-        setSelection(
-          next.length ? { kind: "placement", id: next.at(-1)! } : null,
-        );
-      } else {
-        setSelection(target);
-        setSelectedIds([]);
-      }
-      cancel();
-    }
+  function choose(target: StageSelection, additive = false, preserve = false) {
+    return selectAction({ kind: "choose", target, additive, preserve });
   }
-  async function choosePlacements(ids: string[], additive = false) {
-    if (!(await beforeChange())) return;
-    const next = additive ? [...new Set([...liveIds, ...ids])] : ids;
-    revealPlacements(next);
-    setSelectedIds(next);
-    setSelection(next.length ? { kind: "placement", id: next.at(-1)! } : null);
-    cancel();
+  function choosePlacements(ids: string[], additive = false) {
+    return selectAction({ kind: "placements", ids, additive });
   }
   async function setLocked(locked: boolean) {
     if (!(await beforeChange())) return;
-    const targets = liveIds.length
-      ? placementTargets(liveIds)
-      : object
-        ? [stageTarget(object)]
-        : [];
     if (!targets.length) return;
     const next = await edit({
       op: "setEditLocks",
@@ -343,8 +300,11 @@ export const StageWorkspace = forwardRef<
           onQuery={setQuery}
           selection={selection}
           selectedIds={liveIds}
+          selectedTargets={targets}
           visibility={planVisibility}
-          onVisibility={(next) => void changePlanVisibility(next)}
+          onVisibility={(next) =>
+            void selectAction({ kind: "visibility", value: next })
+          }
           onSelect={(target, additive) => void choose(target, additive)}
           onCreate={(kind) => void objects.create(kind)}
           onCreateRig={() => void objects.createRig()}
@@ -378,6 +338,29 @@ export const StageWorkspace = forwardRef<
               project={project}
               visibility={planVisibility}
               selection={selection}
+              selectedTargets={
+                rigging.draft.session || arrangement.session
+                  ? placementTargets(
+                      rigging.draft.session?.ids ?? arrangement.session!.ids,
+                    )
+                  : targets
+              }
+              translationPreview={
+                translation.problem ? null : translation.draft
+              }
+              onTranslate={(targets, delta) => {
+                try {
+                  void edit(
+                    translationCommand(
+                      projectRef.current.stage,
+                      targets,
+                      delta,
+                    ),
+                  );
+                } catch (reason) {
+                  setLocalError((reason as Error).message);
+                }
+              }}
               selectedIds={
                 rigging.draft.session?.ids ??
                 arrangement.session?.ids ??
@@ -394,6 +377,7 @@ export const StageWorkspace = forwardRef<
               focusRequest={focusRequest}
               busy={busy}
               pending={
+                translation.pending() ||
                 draft !== null ||
                 !!arrangement.session ||
                 !!rigging.draft.session
@@ -419,6 +403,7 @@ export const StageWorkspace = forwardRef<
                 moving.current = value;
                 onPending(
                   value ||
+                    translation.pending() ||
                     draftRef.current !== null ||
                     arrangement.pending() ||
                     rigging.draft.pending(),
@@ -440,6 +425,18 @@ export const StageWorkspace = forwardRef<
                 arrangement.prepareApply();
                 void beforeChange();
               }}
+            />
+          ) : targets.length > 1 && !selected.fixturesOnly ? (
+            <StageObjectGroupInspector
+              project={project}
+              targets={targets}
+              translation={translation}
+              busy={busy}
+              error={localError || error}
+              onApply={() => void beforeChange()}
+              onCancel={cancel}
+              onClear={() => void choosePlacements([])}
+              onLock={(locked) => void setLocked(locked)}
             />
           ) : (
             <StageSelectionInspector

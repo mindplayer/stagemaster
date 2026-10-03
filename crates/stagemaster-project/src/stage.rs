@@ -136,6 +136,10 @@ pub enum StageEdit {
         fixture_ids: Vec<String>,
         delta_meters: SpatialVector3,
     },
+    TranslateObjects {
+        targets: Vec<crate::StageEditLock>,
+        delta_meters: SpatialVector3,
+    },
     TransformPlacements {
         fixture_ids: Vec<String>,
         yaw_degrees: String,
@@ -255,17 +259,7 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             )?;
         }
         StageEdit::DuplicateSpace { id: source, name } => {
-            let copy_id = duplicate(root, "spaces", &source, &name)?;
-            let mut enclosure = array(&root["stage"], "constructions")
-                .iter()
-                .find(|c| c["shape"]["kind"] == "enclosure" && c["shape"]["spaceId"] == source)
-                .cloned();
-            if let Some(ref mut enclosure) = enclosure {
-                enclosure["id"] = id().into();
-                enclosure["name"] = format!("{name}围护").into();
-                enclosure["shape"]["spaceId"] = copy_id.into();
-                list(root, "constructions")?.push(enclosure.clone());
-            }
+            duplicate_space(root, &source, &name)?;
         }
         StageEdit::DuplicateConstruction { id, name } => {
             if array(&root["stage"], "constructions")
@@ -300,6 +294,12 @@ pub(super) fn apply(root: &mut Value, command: StageEdit) -> Result<(), String> 
             delta_meters,
         } => {
             crate::stage_translation::apply(root, &fixture_ids, &delta_meters)?;
+        }
+        StageEdit::TranslateObjects {
+            targets,
+            delta_meters,
+        } => {
+            crate::stage_object_translation::apply(root, &targets, &delta_meters)?;
         }
         StageEdit::TransformPlacements {
             fixture_ids,
@@ -338,6 +338,20 @@ fn put(
     } else {
         value["id"] = id().into();
         values.push(value);
+    }
+    Ok(())
+}
+fn duplicate_space(root: &mut Value, source: &str, name: &str) -> Result<(), String> {
+    let copy_id = duplicate(root, "spaces", source, name)?;
+    let mut enclosure = array(&root["stage"], "constructions")
+        .iter()
+        .find(|c| c["shape"]["kind"] == "enclosure" && c["shape"]["spaceId"] == source)
+        .cloned();
+    if let Some(ref mut enclosure) = enclosure {
+        enclosure["id"] = id().into();
+        enclosure["name"] = format!("{name}围护").into();
+        enclosure["shape"]["spaceId"] = copy_id.into();
+        list(root, "constructions")?.push(enclosure.clone());
     }
     Ok(())
 }

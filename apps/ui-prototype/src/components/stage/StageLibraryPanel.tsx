@@ -16,6 +16,7 @@ export function StageLibraryPanel({
   onQuery,
   selection,
   selectedIds,
+  selectedTargets,
   visibility,
   onVisibility,
   onSelect,
@@ -33,6 +34,7 @@ export function StageLibraryPanel({
   onQuery(query: string): void;
   selection: StageSelection | null;
   selectedIds: string[];
+  selectedTargets?: StageSelection[];
   visibility: PlanVisibility;
   onVisibility(value: PlanVisibility): void;
   onSelect(target: StageSelection, additive?: boolean): void;
@@ -97,6 +99,7 @@ export function StageLibraryPanel({
         project={project}
         selection={selection}
         selectedIds={selectedIds}
+        selectedTargets={selectedTargets}
         query={query}
         onClearQuery={() => onQuery("")}
         busy={busy}

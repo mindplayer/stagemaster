@@ -1,3 +1,4 @@
+import { translationPreview } from "../src/components/stage/object-translation";
 // Isolated transaction host. Real workspace/components; no device, playback or native bridge.
 import { createRoot } from "react-dom/client";
 import { useRef, useState } from "react";
@@ -42,6 +43,32 @@ function Harness() {
     const next = structuredClone(source.current);
     for (const c of commands) {
       if (c.op !== "stage") throw new Error("本验收只接受场地命令");
+      if (c.command.op === "translateObjects") {
+        const preview = translationPreview(
+          next.stage,
+          c.command.targets.map((t) => ({ kind: t.kind, id: t.targetId })),
+          c.command.deltaMeters,
+        );
+        next.stage.constructions = next.stage.constructions.map(
+          (value) =>
+            (
+              preview({ kind: "construction", value }) as {
+                kind: "construction";
+                value: typeof value;
+              }
+            ).value,
+        );
+        next.stage.placements = next.stage.placements.map(
+          (value) =>
+            (
+              preview({ kind: "placement", value }) as {
+                kind: "placement";
+                value: typeof value;
+              }
+            ).value,
+        );
+        continue;
+      }
       if (c.command.op === "putSpace") {
         const { op: _, id, ...values } = c.command;
         const space = {
@@ -135,7 +162,7 @@ function Harness() {
             <button
               onClick={async () => {
                 if (await flush())
-                  setSaved(JSON.stringify(source.current.stage.placements));
+                  setSaved(JSON.stringify(source.current.stage));
               }}
             >
               保存验收
@@ -199,6 +226,9 @@ function Harness() {
         {JSON.stringify(project.stage.placements)}
       </output>
       <output aria-label="保存内容">{saved}</output>
+      <output aria-label="实际构件">
+        {JSON.stringify(project.stage.constructions)}
+      </output>
       <output aria-label="实际空间">
         {JSON.stringify(project.stage.spaces)}
       </output>

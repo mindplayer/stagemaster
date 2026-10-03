@@ -24,7 +24,7 @@ export function validateEditorForm(
           ? `${label}需要填写整数`
           : `${label}请按 ${step} 的步长输入`;
     } else if (validity.patternMismatch)
-      error = `${label}请使用 #RRGGBB 格式，例如 #3979FF`;
+      error = `${label}${field.getAttribute("data-pattern-message") ?? "请使用 #RRGGBB 格式，例如 #3979FF"}`;
     else if (!validity.valid) error = `请检查${label}`;
     if (error) {
       field.setCustomValidity(error);

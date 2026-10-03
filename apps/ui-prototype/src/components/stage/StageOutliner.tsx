@@ -27,6 +27,7 @@ export function StageOutliner({
   project,
   selection,
   selectedIds,
+  selectedTargets,
   query,
   busy,
   visibility,
@@ -37,6 +38,7 @@ export function StageOutliner({
   project: ProjectView;
   selection: StageSelection | null;
   selectedIds: string[];
+  selectedTargets?: StageSelection[];
   query: string;
   busy: boolean;
   visibility: PlanVisibility;
@@ -51,6 +53,7 @@ export function StageOutliner({
     query,
     selection,
     selectedIds,
+    selectedTargets,
   );
   const parent = members.find(
     (m) => m.target.id === selection?.id && m.target.kind === selection.kind,
@@ -82,9 +85,13 @@ export function StageOutliner({
         className={`stage-object ${nested ? "nested" : ""} ${hidden ? "plan-hidden" : ""}`}
         title={`${name}${locked ? " · 已锁定" : ""} · ${detail}${hidden ? " · 选择后在平面图中显示" : ""}`}
         aria-pressed={
-          target.kind === "placement"
-            ? selectedIds.includes(target.id)
-            : selection?.id === target.id && selection.kind === target.kind
+          selectedTargets
+            ? selectedTargets.some(
+                (t) => t.kind === target.kind && t.id === target.id,
+              )
+            : target.kind === "placement"
+              ? selectedIds.includes(target.id)
+              : selection?.id === target.id && selection.kind === target.kind
         }
         disabled={busy}
         onClick={(e) => onSelect(target, e.shiftKey || e.metaKey || e.ctrlKey)}

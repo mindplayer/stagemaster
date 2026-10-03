@@ -83,6 +83,11 @@ export interface StageView {
   placements: FixturePlacement[];
 }
 export type StageEdit =
+  | {
+      op: "translateObjects";
+      targets: StageEditLock[];
+      deltaMeters: SpatialVector3;
+    }
   | { op: "setEditLocks"; targets: StageEditLock[]; locked: boolean }
   | ({ op: "putSpace" } & Omit<StageSpace, "id"> & { id: string | null })
   | { op: "duplicateSpace"; id: string; name: string }

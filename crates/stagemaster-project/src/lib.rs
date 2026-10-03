@@ -107,6 +107,7 @@ mod stage;
 mod stage_constructions;
 pub use seating::{SeatingAisle, SeatingArc, SeatingLayout, SeatingShape};
 mod stage_locks;
+mod stage_object_translation;
 mod stage_transform;
 mod stage_translation;
 pub use audio_group::MarkerGroupAction;

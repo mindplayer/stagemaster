@@ -36,6 +36,7 @@ export function outlineSelectionStatus(
   query: string,
   selection: StageSelection | null,
   selectedIds: string[],
+  selectedTargets?: StageSelection[],
 ) {
   const all = new Set([
     ...project.stage.spaces.map((s) =>
@@ -52,13 +53,15 @@ export function outlineSelectionStatus(
       ]),
   );
   const chosen = new Set(
-    selection?.kind === "placement"
-      ? selectedIds
-          .map((id) => stageTargetKey({ kind: "placement", id }))
-          .filter((key) => all.has(key))
-      : selection && all.has(stageTargetKey(selection))
-        ? [stageTargetKey(selection)]
-        : [],
+    selectedTargets
+      ? selectedTargets.map(stageTargetKey).filter((key) => all.has(key))
+      : selection?.kind === "placement"
+        ? selectedIds
+            .map((id) => stageTargetKey({ kind: "placement", id }))
+            .filter((key) => all.has(key))
+        : selection && all.has(stageTargetKey(selection))
+          ? [stageTargetKey(selection)]
+          : [],
   );
   return {
     count: chosen.size,

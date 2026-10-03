@@ -24,7 +24,7 @@ export function StageLockControls({
             ? count
               ? "已锁定"
               : "可编辑"
-            : `已锁定 ${count} / ${targets.length} 台`}
+            : `已锁定 ${count} / ${targets.length} 个`}
         </span>
         <div className="stage-lock-buttons">
           <button type="button" disabled={busy} onClick={() => onLock(!all)}>
