@@ -40,6 +40,14 @@ pub(super) struct Inner {
         tokio::sync::mpsc::Sender<super::installation::Call>,
     )>,
     pub(super) install_busy: std::sync::Weak<()>,
+    pub(super) runtime_state: crate::RuntimeSnapshot,
+    pub(super) runtime_calls: Option<(
+        stagemaster_runtime_protocol::Ready,
+        tokio::sync::mpsc::Sender<super::runtime::Call>,
+    )>,
+    pub(super) runtime_busy: std::sync::Weak<()>,
+    pub(super) runtime_until: Option<Instant>,
+    pub(super) runtime_request_until: Option<Instant>,
 }
 impl Inner {
     pub(super) fn touch(&mut self) {
@@ -52,12 +60,21 @@ impl Inner {
         self.snapshot.last_reply_age_ms = None;
         self.last_reply = None;
         self.installation = None;
+        self.runtime_state.peer = None;
+        self.runtime_calls = None;
+        self.runtime_until = None;
+        self.runtime_request_until = None;
+        self.runtime_busy = std::sync::Weak::new();
         self.install_busy = std::sync::Weak::new();
     }
     pub(super) fn snapshot(&mut self) -> Snapshot {
         if let Some(last) = self.last_reply {
             let age = last.age();
-            if self.snapshot.phase == Phase::Connected && age >= FRESH_MS {
+            let expired = [self.runtime_until, self.runtime_request_until]
+                .into_iter()
+                .flatten()
+                .any(|until| Instant::now() >= until);
+            if self.snapshot.phase == Phase::Connected && (age >= FRESH_MS || expired) {
                 self.snapshot.phase = Phase::Stopping;
                 self.snapshot.problem = Some(Problem::new(C::Timeout));
                 self.clear_live();

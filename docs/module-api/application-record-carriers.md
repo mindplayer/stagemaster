@@ -39,6 +39,6 @@ if let Some(response) = channel.receive()? {
 
 真实本机 TCP 和使用实际 GATT 分片编解码的 20 字节软件承载，都通过同一 `Channel` 完成工程包安装、保活插入、摘要／目录和落盘逐字节校验。故障测试覆盖取消、半包期限、溢出、错误密钥、旧回执、篡改／重放、重连及固定权限期限。原 BLE 通知／连接／安装回归继续执行。
 
-DEVICE-003 第四增量在两种承载上补齐共享运行客户端及原工作器软件验证；正式原生 BLE 服务／固件运行队列和桌面操作尚未接线，具体证据与限制见[运行客户端](device-runtime-client.md)。
+DEVICE-003 第四增量在两种承载上补齐共享运行客户端及原工作器软件验证；第五增量已补[原生设备运行服务](native-device-runtime-service.md)，共用 GATT 记录代码但独立于旧安装端点。固件运行队列和桌面操作尚未接线，具体证据与限制见[运行客户端](device-runtime-client.md)。
 
 软件字节流通过不等于 USB 驱动、以太网设备、跨平台、射频或真实 DMX 已验收；此次抽取没有操作实板，原有 [DEVICE-002 实板证据](../development/tasks/DEVICE-002-direct-installation-acceptance.md)保留为历史基线。外层通用端点目录、网络身份、设备角色和更多控制协议仍需各自增量。当前开发配置不等于商业方案，遵循 [ADR-101](../development/decisions/PRODUCT-ADR-101-commercial-security-boundaries.md)。

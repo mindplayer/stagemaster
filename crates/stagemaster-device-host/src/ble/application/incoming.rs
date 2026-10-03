@@ -1,7 +1,7 @@
 //! Continuously drain SDK notifications; overflow and partial-record timeout are terminal.
 #[cfg(test)]
 mod tests;
-use super::{C, Problem, RESPONSE, SERVICE, now};
+use super::{C, Problem, now};
 use btleplug::api::ValueNotification;
 use futures_util::{StreamExt, stream::BoxStream};
 use stagemaster_device_link::secure::{Receiver, Record};
@@ -23,6 +23,7 @@ impl Incoming {
         mut stream: BoxStream<'static, ValueNotification>,
         origin: Instant,
         budget: usize,
+        endpoint: [uuid::Uuid; 2],
     ) -> Self {
         let (sender, queue) = mpsc::channel(4);
         let failed = Arc::new(AtomicBool::new(false));
@@ -40,7 +41,7 @@ impl Incoming {
                     next = stream.next() => match next { Some(n) => n, None => break },
                     () = tokio::time::sleep(Duration::from_millis(25)) => continue,
                 };
-                if notification.service_uuid != SERVICE || notification.uuid != RESPONSE {
+                if notification.service_uuid != endpoint[0] || notification.uuid != endpoint[1] {
                     continue;
                 }
                 match receiver.push(&notification.value, now(origin)) {
@@ -66,7 +67,7 @@ impl Incoming {
     }
     pub fn next(&mut self) -> Result<Option<Record>, Problem> {
         if !self.healthy() {
-            return Err(Problem::new(C::Installation));
+            return Err(Problem::new(C::Lost));
         }
         match self.queue.try_recv() {
             Ok(record) => Ok(Some(record)),

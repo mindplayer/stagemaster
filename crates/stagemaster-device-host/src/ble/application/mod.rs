@@ -11,7 +11,11 @@ use uuid::Uuid;
 pub(super) const SERVICE: Uuid = Uuid::from_u128(0xf889eda0_0100_4e83_968e_799ab99558fa);
 const REQUEST: Uuid = Uuid::from_u128(0xf889eda2_0100_4e83_968e_799ab99558fa);
 const RESPONSE: Uuid = Uuid::from_u128(0xf889eda3_0100_4e83_968e_799ab99558fa);
+const RUNTIME_SERVICE: Uuid = Uuid::from_u128(0xf889edb0_0100_4e83_968e_799ab99558fa);
+const RUNTIME_REQUEST: Uuid = Uuid::from_u128(0xf889edb2_0100_4e83_968e_799ab99558fa);
+const RUNTIME_RESPONSE: Uuid = Uuid::from_u128(0xf889edb3_0100_4e83_968e_799ab99558fa);
 pub(super) type Channel = stagemaster_device_channel::Channel<GattRecords>;
+pub(super) type Runtime = stagemaster_device_channel::runtime::RuntimeClient<GattRecords>;
 fn now(origin: Instant) -> u64 {
     u64::try_from(origin.elapsed().as_millis()).unwrap_or(u64::MAX)
 }
@@ -24,44 +28,74 @@ pub(super) async fn prepare(
     desc: stagemaster_device_info::Description,
     config: &crate::DevelopmentConfiguration,
 ) -> Result<Channel, Problem> {
-    let chars = peripheral.characteristics();
-    let find = |uuid, property| {
-        chars
-            .iter()
-            .find(|c| {
-                c.service_uuid == SERVICE && c.uuid == uuid && c.properties.contains(property)
-            })
-            .cloned()
-            .ok_or_else(|| Problem::new(C::Installation))
-    };
-    let request = find(REQUEST, CharPropFlags::WRITE_WITHOUT_RESPONSE)?;
-    let response = find(RESPONSE, CharPropFlags::NOTIFY)?;
-    let origin = Instant::now();
-    let budget = usize::from(peripheral.mtu().saturating_sub(3).min(244));
-    let sender = Sender::new(budget, 0).map_err(super::installation::wire)?;
-    let incoming = Incoming::spawn(
-        peripheral.notifications().await.map_err(super::error)?,
-        origin,
-        budget,
-    );
-    peripheral
-        .subscribe(&response)
-        .await
-        .map_err(super::error)?;
     Channel::prepare(
-        GattRecords {
-            peripheral: peripheral.clone(),
-            request,
-            sender,
-            incoming: Some(incoming),
-            origin,
-            usable: true,
-        },
+        records(peripheral, [SERVICE, REQUEST, RESPONSE], C::Installation).await?,
         desc,
         config,
     )
     .await
     .map_err(super::installation::wire)
+}
+pub(super) async fn prepare_runtime(
+    peripheral: &Peripheral,
+    desc: stagemaster_device_info::Description,
+    config: &crate::DevelopmentConfiguration,
+    expected: stagemaster_runtime_protocol::Access,
+) -> Result<Runtime, Problem> {
+    let channel = Channel::prepare_runtime(
+        records(
+            peripheral,
+            [RUNTIME_SERVICE, RUNTIME_REQUEST, RUNTIME_RESPONSE],
+            C::Runtime,
+        )
+        .await?,
+        desc,
+        config,
+        expected,
+    )
+    .await
+    .map_err(crate::runtime::wire)?;
+    Runtime::new(channel).map_err(crate::runtime::wire)
+}
+async fn records(
+    peripheral: &Peripheral,
+    endpoints: [Uuid; 3],
+    failure: C,
+) -> Result<GattRecords, Problem> {
+    let [service_id, request_id, response_id] = endpoints;
+    let chars = peripheral.characteristics();
+    let find = |uuid, property| {
+        chars
+            .iter()
+            .find(|c| {
+                c.service_uuid == service_id && c.uuid == uuid && c.properties.contains(property)
+            })
+            .cloned()
+            .ok_or_else(|| Problem::new(failure))
+    };
+    let request = find(request_id, CharPropFlags::WRITE_WITHOUT_RESPONSE)?;
+    let response = find(response_id, CharPropFlags::NOTIFY)?;
+    let origin = Instant::now();
+    let budget = usize::from(peripheral.mtu().saturating_sub(3).min(244));
+    let sender = Sender::new(budget, 0).map_err(|e| Problem::new(failure).detail(e.to_string()))?;
+    let incoming = Incoming::spawn(
+        peripheral.notifications().await.map_err(super::error)?,
+        origin,
+        budget,
+        [service_id, response_id],
+    );
+    peripheral
+        .subscribe(&response)
+        .await
+        .map_err(super::error)?;
+    Ok(GattRecords {
+        peripheral: peripheral.clone(),
+        request,
+        sender,
+        incoming: Some(incoming),
+        origin,
+        usable: true,
+    })
 }
 
 pub(super) struct GattRecords {

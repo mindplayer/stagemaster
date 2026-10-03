@@ -1,3 +1,4 @@
+use super::super::{RESPONSE, RUNTIME_RESPONSE, RUNTIME_SERVICE, SERVICE};
 use super::*;
 use stagemaster_device_link::secure::Sender;
 use tokio::sync::mpsc::{UnboundedSender, unbounded_channel};
@@ -6,7 +7,10 @@ fn channel() -> (UnboundedSender<ValueNotification>, Incoming) {
     let stream =
         futures_util::stream::unfold(rx, |mut rx| async { rx.recv().await.map(|n| (n, rx)) })
             .boxed();
-    (tx, Incoming::spawn(stream, Instant::now(), 20))
+    (
+        tx,
+        Incoming::spawn(stream, Instant::now(), 20, [SERVICE, RESPONSE]),
+    )
 }
 fn notification(value: Vec<u8>) -> ValueNotification {
     ValueNotification {
@@ -104,4 +108,34 @@ async fn incomplete_record_expires_without_waiting_for_more_notifications() {
     tokio::time::advance(Duration::from_millis(5100)).await;
     until(|| !rx.healthy()).await;
     assert!(rx.next().is_err());
+}
+
+#[tokio::test]
+async fn runtime_notifications_cannot_consume_installation_records_or_a_foreign_service() {
+    let (tx, rx) = unbounded_channel();
+    let stream =
+        futures_util::stream::unfold(rx, |mut rx| async { rx.recv().await.map(|n| (n, rx)) })
+            .boxed();
+    let mut incoming = Incoming::spawn(
+        stream,
+        Instant::now(),
+        20,
+        [RUNTIME_SERVICE, RUNTIME_RESPONSE],
+    );
+    let mut sender = Sender::new(20, 0).unwrap();
+    // Invalid records on another endpoint must not consume sequence or revoke this one.
+    tx.send(notification(vec![255])).unwrap();
+    let mut foreign = notification(vec![255]);
+    foreign.uuid = RUNTIME_RESPONSE;
+    tx.send(foreign).unwrap();
+    let mut wrong_characteristic = notification(vec![255]);
+    wrong_characteristic.service_uuid = RUNTIME_SERVICE;
+    tx.send(wrong_characteristic).unwrap();
+    for mut packet in packets(&mut sender, b"runtime") {
+        packet.service_uuid = RUNTIME_SERVICE;
+        packet.uuid = RUNTIME_RESPONSE;
+        tx.send(packet).unwrap();
+    }
+    assert_eq!(incoming.receive().await.unwrap().bytes(), b"runtime");
+    assert!(incoming.healthy());
 }

@@ -1,4 +1,5 @@
 mod application;
+mod connection;
 mod discovery;
 mod installation;
 mod notifications;
@@ -35,6 +36,7 @@ pub struct Ble {
     scanning: bool,
     installation: Option<installation::Channel>,
     application: Option<application::Channel>,
+    runtime: Option<application::Runtime>,
     credentials: Option<std::sync::Arc<crate::DevelopmentConfiguration>>,
     bonded_experiment: bool,
 }
@@ -59,79 +61,42 @@ impl Transport for Ble {
         self.stop().await
     }
     async fn connect(&mut self, id: &str) -> Result<(), Problem> {
-        let discovered = self
-            .found
-            .get(id)
-            .cloned()
-            .ok_or_else(|| Problem::new(C::Unavailable))?;
-        // CoreBluetooth drops its internal peripheral after disconnect. Resolve
-        // the native identifier again so reconnect doesn't use a dead handle.
-        let adapter = self
-            .adapter
+        self.connect_mode(id, None).await
+    }
+    async fn connect_runtime(
+        &mut self,
+        id: &str,
+        expected: stagemaster_runtime_protocol::Access,
+    ) -> Result<(), Problem> {
+        self.connect_mode(id, Some(expected)).await
+    }
+    fn runtime_peer(&self) -> Option<stagemaster_runtime_protocol::Ready> {
+        self.runtime.as_ref().and_then(application::Runtime::peer)
+    }
+    fn runtime_pending(&self) -> Option<stagemaster_runtime_protocol::Request> {
+        self.runtime
             .as_ref()
-            .ok_or_else(|| Problem::new(C::Adapter))?;
-        let peripheral = match adapter
-            .retrieve_peripherals(RetrievePeripheralsOptions {
-                identifiers: Some(vec![discovered.id()]),
-                services: None,
-            })
+            .and_then(application::Runtime::pending)
+    }
+    async fn send_runtime(
+        &mut self,
+        intent: crate::RuntimeIntent,
+    ) -> Result<stagemaster_runtime_protocol::Request, Problem> {
+        self.runtime
+            .as_mut()
+            .ok_or_else(|| Problem::new(C::Runtime))?
+            .send(intent.operation, intent.expected_revision)
             .await
-        {
-            Ok(values) => values
-                .into_iter()
-                .find(|p| p.id() == discovered.id())
-                .ok_or_else(|| Problem::new(C::Unavailable))?,
-            Err(btleplug::Error::NotSupported(_)) => discovered,
-            Err(value) => return Err(error(value)),
-        };
-        self.found.insert(id.to_owned(), peripheral.clone());
-        self.pending = Some(peripheral.clone()); // retained even when connect is cancelled
-        peripheral.connect().await.map_err(error)?;
-        peripheral.discover_services().await.map_err(error)?;
-        let characteristics = peripheral.characteristics();
-        self.description = characteristics
-            .iter()
-            .find(|c| c.service_uuid == SERVICE && c.uuid == DESCRIPTION)
-            .cloned();
-        if self
-            .description
-            .as_ref()
-            .is_some_and(|c| !c.properties.contains(CharPropFlags::READ))
-        {
-            return Err(Problem::new(C::Description));
-        }
-        let find = |uuid, flag| {
-            characteristics
-                .iter()
-                .find(|c| {
-                    c.service_uuid == SERVICE && c.uuid == uuid && c.properties.contains(flag)
-                })
-                .cloned()
-                .ok_or_else(|| Problem::new(C::Protocol))
-        };
-        self.characteristics = Some([
-            find(RX, CharPropFlags::WRITE)?,
-            find(TX, CharPropFlags::READ)?,
-            find(INFO, CharPropFlags::READ)?,
-        ]);
-        if let Some(characteristic) = &self.description {
-            let bytes = peripheral.read(characteristic).await.map_err(error)?;
-            let desc =
-                stagemaster_device_info::Description::decode(&bytes).map_err(installation::wire)?;
-            if desc.authentication == stagemaster_device_session::AUTHENTICATION {
-                if let Some(config) = self
-                    .credentials
-                    .as_ref()
-                    .filter(|c| c.device() == desc.device)
-                    && desc.declares(stagemaster_device_info::capability::INSTALLATION)
-                {
-                    self.application = Some(application::prepare(&peripheral, desc, config).await?);
-                }
-            } else if self.bonded_experiment {
-                self.installation = installation::Channel::prepare(&peripheral, &bytes).await?;
-            }
-        }
-        Ok(())
+            .map_err(crate::runtime::wire)
+    }
+    fn try_runtime_response(
+        &mut self,
+    ) -> Result<Option<stagemaster_runtime_protocol::Response>, Problem> {
+        self.runtime
+            .as_mut()
+            .ok_or_else(|| Problem::new(C::Runtime))?
+            .receive()
+            .map_err(crate::runtime::wire)
     }
     fn installation_peer(&self) -> Option<crate::InstallationPeer> {
         if let Some(channel) = &self.application {
@@ -172,6 +137,9 @@ impl Transport for Ble {
         if let Some(channel) = &mut self.application {
             channel.heartbeat().await.map_err(installation::wire)?;
         }
+        if let Some(client) = &mut self.runtime {
+            client.heartbeat().await.map_err(crate::runtime::wire)?;
+        }
         let (peripheral, characteristics) = self.active()?;
         peripheral
             .write(&characteristics[0], bytes, WriteType::WithResponse)
@@ -187,6 +155,7 @@ impl Transport for Ble {
         peripheral.read(&characteristics[2]).await.map_err(error)
     }
     async fn disconnect(&mut self) -> Result<(), Problem> {
+        self.runtime = None;
         self.application = None;
         self.installation = None;
         self.characteristics = None;
@@ -222,6 +191,21 @@ impl Transport for Ble {
                         .ok_or_else(|| Problem::new(C::Description))?,
                 )
                 .map_err(installation::wire)?;
+        }
+        if let Some(client) = &self.runtime {
+            let description = bytes
+                .as_deref()
+                .ok_or_else(|| Problem::new(C::Description))?;
+            let description = stagemaster_device_info::Description::decode(description)
+                .map_err(installation::wire)?;
+            let peer = client.peer().ok_or_else(|| Problem::new(C::Runtime))?;
+            if peer.peer.device != description.device
+                || peer.peer.boot != description.boot
+                || peer.peer.connection != description.session
+                || !description.declares(stagemaster_device_info::capability::RUNTIME_APPLICATION)
+            {
+                return Err(Problem::new(C::Runtime));
+            }
         }
         Ok(bytes)
     }

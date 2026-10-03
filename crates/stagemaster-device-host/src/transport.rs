@@ -33,5 +33,36 @@ pub trait Transport: Send + 'static {
     fn try_installation_notification(&mut self) -> Result<Option<Vec<u8>>, Problem> {
         Ok(None)
     }
+    /// Explicit runtime mode, never an upgrade from an installation connection.
+    fn connect_runtime(
+        &mut self,
+        _id: &str,
+        _expected: stagemaster_runtime_protocol::Access,
+    ) -> impl Future<Output = Result<(), Problem>> + Send {
+        async { Err(Problem::new(ProblemCode::Runtime)) }
+    }
+    /// Validated, live readiness from the shared authenticated runtime client.
+    fn runtime_peer(&self) -> Option<stagemaster_runtime_protocol::Ready> {
+        None
+    }
+    /// Once sending has begun, retain the request even on error/cancellation.
+    /// A live peer with no pending request means a send was rejected before transmission.
+    fn runtime_pending(&self) -> Option<stagemaster_runtime_protocol::Request> {
+        None
+    }
+    fn send_runtime(
+        &mut self,
+        _intent: crate::RuntimeIntent,
+    ) -> impl Future<Output = Result<stagemaster_runtime_protocol::Request, Problem>> + Send {
+        async { Err(Problem::new(ProblemCode::Runtime)) }
+    }
+    /// Nonblocking, cancel-safe reply.
+    /// # Errors
+    /// Invalid replies or expired authentication preserve delivery uncertainty.
+    fn try_runtime_response(
+        &mut self,
+    ) -> Result<Option<stagemaster_runtime_protocol::Response>, Problem> {
+        Ok(None)
+    }
     fn disconnect(&mut self) -> impl Future<Output = Result<(), Problem>> + Send;
 }

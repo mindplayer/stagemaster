@@ -16,13 +16,15 @@ HOST-005 已提供[桌面后台执行](desktop-background-execution.md)：独立
 
 ## 直接从哪里看
 
-[设备操作范围](device-operation-permissions.md)：DEVICE-003 将安装、观察和运行控制分开，旧安装凭据不提升权限；正式网络入口与物理输出仍待接通。
+[设备操作范围](device-operation-permissions.md)：DEVICE-003 将安装、观察和运行控制分开，旧安装凭据不提升权限；生产固件运行入口与物理输出仍待接通。
 
-[设备运行连接入口](device-runtime-application.md)：类型化请求复用原工作器、控制租约和独立运行；历史回执、分页、权限撤销与断线归还已验证，网络／固件／桌面仍待接线。
+[设备运行连接入口](device-runtime-application.md)：类型化请求复用原工作器、控制租约和独立运行；历史回执、分页、权限撤销与断线归还已验证，生产固件／桌面仍待接线。
 
 [设备运行消息 SMRT v1](device-runtime-wire.md)：独立版本协商、严格有界消息、状态与目录页及加密工作器往返已验证；原安装消息保持，生产固件任务尚未接入。
 
-[共享设备运行客户端](device-runtime-client.md)：运行握手复用原 Channel，两种软件承载连接原工作器；单个待确认请求、历史回复、取消／重试与固定期限已验证，正式原生服务、固件与桌面操作待接线。
+[共享设备运行客户端](device-runtime-client.md)：运行握手复用原 Channel，两种软件承载连接原工作器；单个待确认请求、历史回复、取消／重试与固定期限已验证。
+
+[原生设备运行服务](native-device-runtime-service.md)：原 Service／Ble 已接明确运行连接、串行调用和独立 GATT 端点；历史与未确认意图保留，取消／保活／重连已作软件验证。固件运行任务与桌面操作待接线。
 
 [独立时钟与媒体跟随组](media-source-groups.md)：TIME-001 以真实 Player／统一合成／软件端口验证媒体定位与自主执行分离；独立准备器、播放代次、失联和有界时钟映射已有运行实现，原生音频和独立宿主入口仍需接入。
 

@@ -5,6 +5,8 @@ mod credentials;
 mod description;
 pub use credentials::{DevelopmentConfiguration, read_development_configuration};
 mod installation_peer;
+mod runtime;
+pub use runtime::{RuntimeIntent, RuntimeSnapshot};
 mod service;
 mod transport;
 pub use ble::Ble;
@@ -121,6 +123,7 @@ pub enum ProblemCode {
     Protocol,
     Description,
     Installation,
+    Runtime,
     Lost,
     Stale,
     Busy,
@@ -150,6 +153,7 @@ impl Problem {
             C::Protocol => "设备回复与当前通信协议不匹配，请核对设备固件",
             C::Description => "设备身份或能力描述无效，请核对固件并重新连接",
             C::Installation => "当前连接尚未获得节目安装权限，请检查设备能力与认证状态",
+            C::Runtime => "当前连接未取得运行访问权限，请核对设备能力与连接方式",
             C::Lost => "设备连接已中断，请检查供电与距离后重新连接",
             C::Stale => "连接状态已变化，请按当前状态重新操作",
             C::Busy => "正在处理设备连接，请等待完成或取消当前操作",

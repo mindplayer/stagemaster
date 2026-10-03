@@ -8,6 +8,10 @@ use stagemaster_device_info::{Description, MODEL_WAVESHARE_ESP32_S3_RS485_CAN, c
 pub struct DeviceDescription {
     #[serde(skip)]
     pub(crate) installation_declared: bool,
+    #[serde(skip)]
+    pub(crate) runtime_declared: bool,
+    #[serde(skip)]
+    pub(crate) diagnostic_session: u64,
     pub device_id: String,
     pub boot_id: String,
     pub model: u16,
@@ -44,6 +48,8 @@ impl DeviceDescription {
         let l = value.limits;
         Ok(Self {
             installation_declared: value.declares(cap::INSTALLATION),
+            runtime_declared: value.declares(cap::RUNTIME_APPLICATION),
+            diagnostic_session: value.session,
             device_id: hex(&value.device),
             boot_id: hex(&value.boot),
             model: value.model,

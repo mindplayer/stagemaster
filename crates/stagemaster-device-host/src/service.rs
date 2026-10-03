@@ -1,6 +1,7 @@
 mod connected;
 mod diagnostics;
 mod installation;
+mod runtime;
 mod scan;
 mod state;
 
@@ -48,6 +49,11 @@ impl<B: Transport> Service<B> {
                 closed: false,
                 installation: None,
                 install_busy: std::sync::Weak::new(),
+                runtime_state: crate::RuntimeSnapshot::default(),
+                runtime_calls: None,
+                runtime_busy: std::sync::Weak::new(),
+                runtime_until: None,
+                runtime_request_until: None,
             })),
             backend: Arc::new(AsyncMutex::new(backend)),
         }
@@ -58,6 +64,14 @@ impl<B: Transport> Service<B> {
     /// # Errors
     /// Rejects old operation epochs, overlapping work, unknown handles or closed service.
     pub fn request(&self, request: Request) -> Result<Snapshot, Problem> {
+        self.request_with_runtime(request, None)
+    }
+
+    fn request_with_runtime(
+        &self,
+        request: Request,
+        runtime: Option<stagemaster_runtime_protocol::Access>,
+    ) -> Result<Snapshot, Problem> {
         let mut state = self.inner.lock().map_err(|_| Problem::new(C::Closed))?;
         if state.closed {
             return Err(Problem::new(C::Closed));
@@ -121,6 +135,12 @@ impl<B: Transport> Service<B> {
         state.snapshot.selected = selected;
         state.snapshot.heartbeat_count = 0;
         state.clear_live();
+        if id.is_some() {
+            state.runtime_state = crate::RuntimeSnapshot {
+                connection_epoch: runtime.map(|_| epoch),
+                ..crate::RuntimeSnapshot::default()
+            };
+        }
         if id.is_none() {
             state.snapshot.candidates.clear();
             state.snapshot.scan_performed = false;
@@ -132,7 +152,7 @@ impl<B: Transport> Service<B> {
         let inner = self.inner.clone();
         let backend = self.backend.clone();
         tokio::spawn(async move {
-            run(inner, backend, epoch, id, rx).await;
+            run(inner, backend, epoch, id, runtime, rx).await;
         });
         Ok(state.snapshot())
     }
@@ -173,13 +193,14 @@ async fn run<B: Transport>(
     backend: Arc<AsyncMutex<B>>,
     epoch: u32,
     id: Option<String>,
+    runtime: Option<stagemaster_runtime_protocol::Access>,
     mut cancel: watch::Receiver<bool>,
 ) {
     let mut backend = backend.lock().await;
     let result = tokio::select! {
         biased;
         _ = cancel.changed() => Ok(()),
-        result = AssertUnwindSafe(operate(&inner, &mut *backend, epoch, id.as_deref())).catch_unwind() =>
+        result = AssertUnwindSafe(operate(&inner, &mut *backend, epoch, id.as_deref(), runtime)).catch_unwind() =>
             result.unwrap_or_else(|_| Err(Problem::new(C::Cleanup).detail("蓝牙适配器内部异常".into()))),
     };
     // Both paths use cleanup; never abort the task itself or reuse its adapter early.
@@ -223,9 +244,14 @@ async fn operate<B: Transport>(
     backend: &mut B,
     epoch: u32,
     id: Option<&str>,
+    runtime: Option<stagemaster_runtime_protocol::Access>,
 ) -> Result<(), Problem> {
     if let Some(id) = id {
-        connected::run(inner, backend, epoch, id).await
+        if let Some(expected) = runtime {
+            runtime::drive::run(inner, backend, epoch, id, expected).await
+        } else {
+            connected::run(inner, backend, epoch, id).await
+        }
     } else {
         scan::run(inner, backend, epoch).await
     }

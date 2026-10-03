@@ -20,6 +20,8 @@
 
 第三增量 [ADR-129](decisions/PRODUCT-ADR-129-runtime-wire-protocol.md) 的 [SMRT v1](../module-api/device-runtime-wire.md) 与工作器适配已完成：74 项相关测试通过，含 16 项新增；同上两类严格检查通过，最长步骤页 1,142 字节。第四增量 [ADR-130](decisions/PRODUCT-ADR-130-runtime-client-channel.md) 已接共享 Channel 的运行握手／[客户端](../module-api/device-runtime-client.md)，155 项相关回归（含 16 项新增）、全工作区严格 Clippy 与 Xtensa application-gatt 检查通过。下一接线点为原生设备服务／生产队列与固件独立调度，随后桌面操作；保留物理输出出口，完整 DEVICE-003 不关闭。
 
+第五增量 [ADR-131](decisions/PRODUCT-ADR-131-native-device-runtime-service.md) 已将客户端接入原 [Service／Ble](../module-api/native-device-runtime-service.md)，独立运行端点、互斥连接、历史／未确认意图和取消清理通过 96 项相关回归（含 9 项新增），全工作区全部目标严格 Clippy 通过。当前入口推进到生产队列／运行 GATT 服务及固件独立调度，随后桌面节目／状态／操作；不将软件承载验证当作当前实板已有运行能力。
+
 [PLAN-004](tasks/PLAN-004-composable-device-family.md)／[ADR-100](decisions/PRODUCT-ADR-100-composable-device-family.md)进一步明确按能力组装的设备家族：当前桌面是共享基座的一种产品，纯输出、独立播放、控制面可组合但角色不混同。接续独立进程验证只代表电脑／ARM 类宿主的适配，不要求 ESP32 使用同一操作系统或网络栈；不扩大为立即开发所有硬件版本。
 
 云端与 U 盘作为并行交付入口，后续分发验收共用内容身份、完整性／能力／许可校验、安装和激活。本地准备后执行，交付途径不隐式改变商业权限；U 盘直连需目标能力验证，不作为当前 ESP32 的前置要求。

@@ -22,7 +22,9 @@ devices.shutdown().await?;
 
 服务析构会请求取消，避免遗留后台心跳；正式应用退出仍应等待 `shutdown` 以获得清理结果。
 
-主机命令仅 `status`／`scan`／`connect`／`cancel`。`cancel` 用于取消准备／搜索／连接及主动断开；新操作必须带当前 `epoch`。每个扫描／连接意图产生新的代号，过期命令被拒绝；清理结束前禁止复用适配器。修订 `revision` 供界面拒绝迟到状态，重复查询不创建蓝牙会话。查询可能发现连接已过期并启动释放，不会给设备续期。
+现有前端主机命令仅 `status`／`scan`／`connect`／`cancel`。`cancel` 用于取消准备／搜索／连接及主动断开；新操作必须带当前 `epoch`。每个扫描／连接意图产生新的代号，过期命令被拒绝；清理结束前禁止复用适配器。修订 `revision` 供界面拒绝迟到状态，重复查询不创建蓝牙会话。查询可能发现连接已过期并启动释放，不会给设备续期。
+
+DEVICE-003 第五增量新增[原生运行入口](native-device-runtime-service.md) `connect_runtime`／`exchange_runtime`／`runtime_snapshot`，复用同一个 Service 和清理任务；安装、运行分别握手，暂未接入前端命令。运行模式使用独立 GATT 服务，不能误入安装维护；固件端实现与实板验收仍待完成。
 
 ## 状态与资源
 
