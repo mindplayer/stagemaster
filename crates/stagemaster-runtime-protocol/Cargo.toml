@@ -1,0 +1,15 @@
+[package]
+name = "stagemaster-runtime-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+stagemaster-runtime = { path = "../stagemaster-runtime" }
+stagemaster-install = { path = "../stagemaster-install" }
+stagemaster-package = { path = "../stagemaster-package" }
+minicbor = { version = "=2.3.0", default-features = false }
+
+[lints]
+workspace = true

@@ -2269,6 +2269,7 @@ dependencies = [
  "stagemaster-install",
  "stagemaster-package",
  "stagemaster-runtime",
+ "stagemaster-runtime-protocol",
  "stagemaster-transfer",
 ]
 
@@ -2302,6 +2303,16 @@ dependencies = [
  "stagemaster-install",
  "stagemaster-package",
  "stagemaster-playback",
+]
+
+[[package]]
+name = "stagemaster-runtime-protocol"
+version = "0.1.0"
+dependencies = [
+ "minicbor",
+ "stagemaster-install",
+ "stagemaster-package",
+ "stagemaster-runtime",
 ]
 
 [[package]]

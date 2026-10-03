@@ -1,6 +1,6 @@
 # DEVICE-003：设备运行控制链路
 
-状态：分权前置与运行应用入口增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
+状态：分权、运行应用入口与有界消息增量已验证，完整设备运行链路实施中。2026-10-03；首增量基线 `4d741a4`，第二增量产品基线 `8d13434`，第三增量 `61047e8`，main，当前会话单写者。本工单接续框架审查揭示的 AUDIT-001 F01 缺口；FRAMEWORK-001 已于 `f22a611` 收尾，完整 goal 保持 active。
 
 ## 当前事实与范围
 
@@ -48,3 +48,20 @@ Runtime／ManagedWorker 已有已安装目录、载入、执行、控制权、�
 第二增量审查结论：按 `feat(device): expose admitted runtime operations on the existing worker` 集成。本任务的完整出口仍开放：正式运行就绪／版本与有界编解码、承载队列／独立固件调度、桌面目录／操作／状态、实际端口和物理输出。完成本入口不关闭 F01，也不把旧框架轮重新打开。未操作用户工程、output/、窗口、蓝牙、声卡或物理灯具。
 
 最终整理检查：全工作区全部目标严格 Clippy 退出码 0；Xtensa application-gatt 复查退出码 0，`logs/device-003-runtime-xtensa-final.log`；fmt／差异检查通过。8 份文档的 490 个本地文件链接无缺失，`logs/device-003-runtime-doc-links.json`。本增量不重复已经结束的 FRAMEWORK-001 全量基线，也不将相关 58 项称为最新全部产品回归。
+
+## 第三增量：有界消息与协商
+
+基线 `61047e8`，main；上一目标回合已提交实际产品代码，分类为 progress。遵循 [ADR-129](../decisions/PRODUCT-ADR-129-runtime-wire-protocol.md)，新增 no_std 协议 crate；原操作模型移入共享契约，旧 operations 路径重导出。新增工作器 `negotiate`／`process_message`，通过实时授权事实生成独立运行就绪，重用原请求去重与执行，不打开安装工作器。协议数据只能描述权限，不能构造真实 Grant。
+
+写入范围：新 runtime-protocol、原 install-worker 的操作模型／有界消息适配／测试、工作区清单和主机／固件锁文件、相关文档。宿主与固件均只增加本地模块依赖边，不升级第三方。协议严格依赖 1,280 字节单消息预算，单条步骤页极限 1,142 字节；不额外发明分片。具体数组、操作号、回复和错误号见 [SMRT v1](../../module-api/device-runtime-wire.md)。
+
+实际验证：
+
+- `logs/device-003-wire-tests-reviewed.log`：74 项相关 Rust 测试通过，0 失败／忽略；包含原 58 项、13 项协议与 3 项加密工作器新增测试，文档测试 0 项。
+- 协议专项覆盖独立固定字节向量、全操作／状态／错误、最大文本／序号、截断／尾随、未知版本／位／类型、超长和错误 UTF-8、无界数组与逐位变异。首次极限测试的手算长度多计 1 字节，复核数组各段后改为独立求和 `8+1+41+42+2+1048=1142`，没有改生产编码来迎合测试，也没有删除上限或完整性断言。
+- 加密专项采用真实 Noise＋Session 和原安装包／工作器。协商不抢权或进入维护，目录到选择／载入／执行及暂停／继续／下一步／停止贯通；重复执行保持原实例和历史回执，完整 512 通道帧与独立 Player 一致，断线后原实例自主运行；观察拒绝、过期修订、错误安装消息和重复协商均拒绝。
+- `logs/device-003-wire-clippy-reviewed.log`：全工作区全部目标严格 Clippy（application）退出码 0；`logs/device-003-wire-xtensa.log`：application-gatt 的 Xtensa 严格检查退出码 0。初始检查的参数按引用／命名／条件写法已修复，未放宽 lint。
+
+审查结论：本增量按 `feat(device): encode bounded runtime negotiation and operations` 集成，源码／测试新增文件低于 300 行。正式 Channel 仍只有安装入口；接续运行握手和共享客户端，再承载队列、固件独立调度、桌面状态及真实端口。加密内存往返没有冒充 TCP／GATT 实际运行验收。未刷机，未操作真实设备、声卡、UE、用户工程或 output/；完整 DEVICE-003／goal 仍开放。
+
+最终格式／差异检查通过；7 份文档的 490 个本地文件目标无缺失，两个锁文件的外部包版本／校验值与基线逐项一致，`logs/device-003-wire-doc-check.json`。生产依赖树无认证／安全会话／安装工作器／Tokio／蓝牙／桌面框架，`logs/device-003-wire-dependencies.log`，依赖方向未反转。用户 output/ 不纳入提交。

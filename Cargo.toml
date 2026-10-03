@@ -20,6 +20,7 @@ members = [
   "crates/stagemaster-install-store",
   "crates/stagemaster-nor-store",
   "crates/stagemaster-runtime",
+  "crates/stagemaster-runtime-protocol",
   "crates/stagemaster-runtime-host",
   "crates/stagemaster-transfer",
   "crates/stagemaster-install-worker",

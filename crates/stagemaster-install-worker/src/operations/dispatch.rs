@@ -3,11 +3,6 @@ use crate::ManagedWorker;
 use stagemaster_install::Storage;
 use stagemaster_runtime::{Code, Grant, MaintenanceError, Origin, PlaybackPolicy, Request};
 
-impl From<Code> for Failure {
-    fn from(value: Code) -> Self {
-        Self::Runtime(value)
-    }
-}
 impl Connection {
     pub(super) fn apply<S: Storage, P: PlaybackPolicy>(
         &mut self,
@@ -109,7 +104,7 @@ fn program<S: Storage, P: PlaybackPolicy>(
                     kind: entry.kind,
                     id: entry.id,
                 },
-                name: Text::copy(&entry.name)?,
+                name: Text::new(&entry.name)?,
                 loader_bytes: u32::try_from(entry.usage.loader_peak_bytes)
                     .map_err(|_| Failure::Bounds)?,
             })
@@ -131,8 +126,8 @@ fn step<S: Storage, P: PlaybackPolicy>(
         .map(|entry| -> Result<Step, Failure> {
             Ok(Step {
                 id: entry.id,
-                name: Text::copy(&entry.name)?,
-                number: Text::copy(&entry.number)?,
+                name: Text::new(&entry.name)?,
+                number: Text::new(&entry.number)?,
             })
         })
         .transpose()?;

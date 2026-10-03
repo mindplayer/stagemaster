@@ -1,6 +1,6 @@
 # 设备运行连接的应用入口
 
-DEVICE-003 第二增量；依据 [ADR-128](../development/decisions/PRODUCT-ADR-128-device-runtime-application.md)。`stagemaster-install-worker::operations` 由 `application` 特性提供，借用原 [ManagedWorker](maintained-install-worker.md) 和 [Runtime](device-runtime.md)，不另建播放器。本文描述已实现的类型化调用边界，网络协议、无线任务队列和桌面操作仍待接通。
+DEVICE-003 第二增量；依据 [ADR-128](../development/decisions/PRODUCT-ADR-128-device-runtime-application.md)。`stagemaster-install-worker::operations` 由 `application` 特性提供，借用原 [ManagedWorker](maintained-install-worker.md) 和 [Runtime](device-runtime.md)，不另建播放器。本文描述已实现的类型化调用边界；第三增量增加 [SMRT v1 消息](device-runtime-wire.md)，正式连接握手、无线任务队列和桌面操作仍待接通。
 
 ## 所有者与调用顺序
 
@@ -47,10 +47,10 @@ connection.close(&mut worker)?;
 
 `Reply` 包含请求、成功明细或业务失败、处理时的软件状态及目录／步骤数量。`Detail` 一次只返回状态、一条节目或一条步骤；索引等于数量返回 None，超过数量拒绝。文本按现行包的 512 字节上限完整复制，不借用以后会释放的目录；不会静默截断名称。旧回执的名称和状态始终表示原请求时点。
 
-当前 Reply 是内部 Rust 值，包含固定容量文本和完整状态，**不是冻结的网络字节格式，也未声称可装入单个安全记录**。后续编解码必须明确版本、报文预算和必要的分页，不能直接复制结构体内存，也不能把内部槽数量当固件整体内存预算。
+Reply 是内部 Rust 值，包含固定容量文本和完整状态，不能直接复制结构体内存作为网络字节。第三增量由独立 Response 投影生成 SMRT v1，目录／步骤页不重复附带完整状态，最长步骤页 1,142 字节已验证适配原安全记录；内部槽数量仍不是固件整体内存预算。共享 Operation／Request／Reply 等类型移到 `stagemaster-runtime-protocol`，原 operations 路径保留重导出。
 
 ## 失败与验证边界
 
 载入等存储操作前后都重查授权。若工作开始后撤销或到期，存储操作可能已经完成；后置检查拒绝交付旧结果并归还输入权，不声称回滚、不自动重试。接纳、已载入、运行实例、软件采样和物理发送仍是不同事实。
 
-真实安装包、Noise／Session、ManagedWorker 与原 Runtime 已验证自主运行、控制接管、历史重试、失效隔离、维护及分页；完整灯值与独立 Player 对照。软件证据详见[工单](../development/tasks/DEVICE-003-remote-runtime.md#第二增量运行应用入口)。正式运行就绪／编解码、承载队列、固件独立调度、桌面入口和实际 DMX 输出仍是后续出口。
+真实安装包、Noise／Session、ManagedWorker 与原 Runtime 已验证自主运行、控制接管、历史重试、失效隔离、维护及分页；完整灯值与独立 Player 对照。软件证据详见[工单](../development/tasks/DEVICE-003-remote-runtime.md#第二增量运行应用入口)。消息协商／编解码及工作器适配已由第三增量补齐；正式 Channel 接入、承载队列、固件独立调度、桌面入口和实际 DMX 输出仍是后续出口。

@@ -30,7 +30,10 @@ pub struct Text {
     len: usize,
 }
 impl Text {
-    pub(super) fn copy(value: &str) -> Result<Self, Failure> {
+    /// Copy bounded UTF-8 without truncation or allocation.
+    /// # Errors
+    /// Reject text longer than the package label limit.
+    pub fn new(value: &str) -> Result<Self, Failure> {
         if value.len() > MAX_TEXT_BYTES {
             return Err(Failure::Bounds);
         }
@@ -45,7 +48,7 @@ impl Text {
     /// Only if an implementation bug violates this type's private UTF-8 invariant.
     #[must_use]
     pub fn as_str(&self) -> &str {
-        // Only copy() constructs this value, from valid UTF-8 without truncation.
+        // Only new() constructs this value, from valid UTF-8 without truncation.
         core::str::from_utf8(&self.bytes[..self.len]).expect("bounded UTF-8 text")
     }
 }
@@ -97,27 +100,8 @@ pub struct Reply {
     pub step_count: u16,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Error {
-    Closed,
-    Obsolete,
-    Identity,
-    Denied,
-    Sequence,
-    Clock,
-    Runtime(Code),
-}
-impl core::fmt::Display for Error {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::Closed => f.write_str("设备运行连接已关闭"),
-            Self::Obsolete => f.write_str("设备操作权限已失效，请重新连接并读取状态"),
-            Self::Identity => f.write_str("设备运行请求不属于当前连接或启动"),
-            Self::Denied => f.write_str("当前连接没有此设备操作权限"),
-            Self::Sequence => f.write_str("设备运行请求序号冲突，请重新读取状态"),
-            Self::Clock => f.write_str("设备运行入口计时异常"),
-            Self::Runtime(error) => error.fmt(f),
-        }
+impl From<Code> for Failure {
+    fn from(value: Code) -> Self {
+        Self::Runtime(value)
     }
 }
-impl core::error::Error for Error {}

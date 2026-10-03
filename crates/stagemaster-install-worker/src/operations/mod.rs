@@ -1,8 +1,12 @@
-//! Serialized runtime application boundary. No wire decoder, scheduler or physical output.
+//! Serialized runtime application boundary and bounded wire adapter. No scheduler or output driver.
 mod dispatch;
+mod error;
 mod lifecycle;
-mod model;
-pub use model::{Detail, Error, Failure, Operation, Program, Reply, Request, Step, Text};
+mod wire;
+pub use error::Error;
+pub use stagemaster_runtime_protocol::{
+    Detail, Failure, Operation, Program, Reply, Request, Step, Text,
+};
 
 use crate::ManagedWorker;
 use stagemaster_device_auth::application::{Grant, Scope};
@@ -18,6 +22,7 @@ pub struct Connection {
     last: Option<Reply>,
     last_ms: u64,
     closed: bool,
+    wire_ready: bool,
 }
 impl Connection {
     /// Validate current application access without touching runtime state or maintenance.
@@ -51,6 +56,7 @@ impl Connection {
             last: None,
             last_ms: now,
             closed: false,
+            wire_ready: false,
         })
     }
 

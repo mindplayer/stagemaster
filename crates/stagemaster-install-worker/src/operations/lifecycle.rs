@@ -44,6 +44,7 @@ impl Connection {
         device: &mut ManagedWorker<S, P>,
     ) -> Result<(), Code> {
         self.closed = true;
+        self.wire_ready = false;
         self.last = None;
         if let Some(lease) = self.lease.take() {
             let state = device.state();

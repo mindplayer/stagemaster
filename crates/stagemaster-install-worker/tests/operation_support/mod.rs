@@ -16,6 +16,14 @@ pub fn all() -> Permissions {
         .with(Scope::Installation)
 }
 pub fn access(boot: [u8; 16], principal: u8, permissions: Permissions, now: u64) -> Session {
+    admitted_pair(boot, principal, permissions, now).1
+}
+pub fn admitted_pair(
+    boot: [u8; 16],
+    principal: u8,
+    permissions: Permissions,
+    now: u64,
+) -> (stagemaster_device_session::Channel, Session) {
     static NEXT: AtomicU64 = AtomicU64::new(1);
     let context = Context {
         device: [1; 16],
@@ -43,7 +51,7 @@ pub fn access(boot: [u8; 16], principal: u8, permissions: Permissions, now: u64)
     server.confirm(&cipher[..n], now).unwrap();
     let n = server.confirmation(&mut cipher, now).unwrap();
     client.confirm(&cipher[..n], now).unwrap();
-    Session::admit(
+    let session = Session::admit(
         server,
         DevelopmentPermit::scoped(
             context.device,
@@ -57,7 +65,8 @@ pub fn access(boot: [u8; 16], principal: u8, permissions: Permissions, now: u64)
         context,
         now,
     )
-    .unwrap()
+    .unwrap();
+    (client, session)
 }
 pub struct Peer {
     pub access: Session,
