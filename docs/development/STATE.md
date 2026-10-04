@@ -4,6 +4,12 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
+- **[FIXTURE-010 内置程序](tasks/FIXTURE-010-discrete-builtin-programs.md)实施中**，基线 main `f9a8ef5`，先提交限定计划／[ADR-159](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)。接续 30W 第 10 通道，明确离散自动／声控／外部控制，默认禁止自走、不穿越档位、不承载复位；复用原功能／包／历史，新增声明能力。主工作区单写者，用户 output/ 保持，goal active。
+
+## 上一增量记录：后台管理锁生命周期 2026-10-04
+
+以下保留 `f9a8ef5` 实际交付，接续以上方入口为准。
+
 - **[EXEC-015 后台管理锁生命周期](tasks/EXEC-015-background-manager-lock-lifecycle.md)完成，完整回归出口恢复**，基线 main `266aa76`，限定计划先提交 `c34062e`，结果为本次 `fix(execution): release manager locks at transaction exit` 提交；主工作区单写者，用户 output/ 保持。
 - 私有成功取得 guard 在正常／早退／异常退出尽力明确 unlock；取得失败不得解锁他人，迟到旧副本不解锁新写者，忙／系统错误分开。受控真实子进程保留复制描述符时原管理生命周期确定性失败，修复后下一真实编辑预留成功。管理持锁时段、音频 OutputScope／宿主长期锁／死亡判断、时钟／控制／协议与依赖均不改；不把此机制写成所有历史偶发的已证实根因。
 - 本次原命令 **1230 Rust＋2 文档**、严格 Clippy／fmt／差异与正式 `.app` 构建通过，原失败及音乐／后台保护旧断言未改。3 个 ignored 均为父测试真正调用的子进程入口。5 项新确定性测试先失败后通过；测试目录权限修正与取消错误缓存目标的初次构建日志保留。没有 UI／UE 源码变更，不冒充重复 UI 验收；FIXTURE-009 418 UI 是上一增量实际结果。
