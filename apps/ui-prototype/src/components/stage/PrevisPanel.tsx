@@ -25,6 +25,7 @@ export function PrevisPanel({
   onFollowCurrent,
   allowPlacement = true,
   placementLocked = false,
+  placementProblem = "",
   contextKey,
   ...interactions
 }: {
@@ -39,6 +40,7 @@ export function PrevisPanel({
   onFollowCurrent?(follow: boolean): void;
   allowPlacement?: boolean;
   placementLocked?: boolean;
+  placementProblem?: string;
   contextKey: string;
 } & PrevisInteractions) {
   const [status, setStatus] = useState<PrevisStatus | null>(null);
@@ -205,6 +207,7 @@ export function PrevisPanel({
         busy={busy}
         allowPlacement={allowPlacement && !background}
         placementLocked={placementLocked || background}
+        placementProblem={placementProblem}
         contextKey={background ? `background:${source.hostId}` : contextKey}
         {...(background
           ? {

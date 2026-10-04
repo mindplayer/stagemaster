@@ -68,6 +68,13 @@ enum Request {
         #[serde(rename = "spacingScale")]
         spacing_scale: String,
     },
+    PrevisObjectTranslation {
+        generation: u32,
+        version: String,
+        targets: Vec<session::ViewportTarget>,
+        #[serde(rename = "deltaMeters")]
+        delta_meters: SpatialVector3,
+    },
     PrevisTranslation {
         generation: u32,
         version: String,
@@ -166,6 +173,14 @@ fn dispatch(
                 yaw_degrees,
                 spacing_scale,
             )?;
+        }
+        Request::PrevisObjectTranslation {
+            generation,
+            version,
+            targets,
+            delta_meters,
+        } => {
+            session.translate_objects_from_viewport(generation, &version, targets, delta_meters)?;
         }
         Request::PrevisTranslation {
             generation,

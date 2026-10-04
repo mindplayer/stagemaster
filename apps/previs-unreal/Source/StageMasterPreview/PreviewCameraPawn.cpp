@@ -76,6 +76,8 @@ void APreviewCameraPawn::ViewAction(const FString& Action)
         MarqueeMode = Action == TEXT("marqueeAdd") ? StageMaster::EMarqueeMode::Add :
             Action == TEXT("marqueeRemove") ? StageMaster::EMarqueeMode::Remove : StageMaster::EMarqueeMode::Replace;
     }
+    else if (Action == TEXT("selectAllObjects") || Action == TEXT("selectFixturesOnly"))
+    { CancelDrag(); AllObjects = ObjectsEnabled && Action == TEXT("selectAllObjects"); }
     else if (Action == TEXT("selectionThrough")) ToggleSelectionThrough();
     else if (Action == TEXT("cancel")) CancelDrag();
     else if (Action == TEXT("move")) { CancelDrag(); MoveMode = true; }
@@ -127,7 +129,7 @@ void APreviewCameraPawn::FocusSelected()
     CancelDrag();
     if (!Scene) return;
     FBox Bounds(ForceInit);
-    for (const auto& Id : SelectedIds) if (const auto Fixture = Scene->FindFixture(Id)) Bounds += Fixture->Origin;
+    for (const auto& Id : SelectedIds) { const auto Box = Scene->ObjectBounds(Id); if (Box.IsValid) Bounds += Box; }
     if (Bounds.IsValid) FitBounds(Bounds.ExpandBy(30), 300);
 }
 void APreviewCameraPawn::TopView()

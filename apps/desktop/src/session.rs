@@ -24,7 +24,9 @@ mod files;
 mod output;
 mod preview;
 mod previs;
+mod previs_objects;
 mod previs_translation;
+pub(crate) use previs_objects::ViewportTarget;
 #[cfg(test)]
 mod profile_file_tests;
 #[cfg(test)]

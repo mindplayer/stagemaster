@@ -170,3 +170,82 @@ test("取消手势作废已排队提案，后续操作仍可使用同一选择",
   assert.equal(previous(), false);
   assert.equal(scope.capture()(), true);
 });
+
+test("混合位移沿同一宿主队列校验全部目标，剥离渲染器回执字段", async () => {
+  const requests: unknown[] = [];
+  let queued!: () => Promise<void>;
+  const targets = [
+    { kind: "construction" as const, id: "rig" },
+    { kind: "placement" as const, id: "lamp" },
+  ];
+  const actions = previsInteractions({
+    page: "stage",
+    stage: { current: null },
+    selectedIds: [],
+    selectedTargets: targets,
+    project: () => null,
+    run: async (work) => {
+      queued = work;
+      return true;
+    },
+    request: async (command) => {
+      requests.push(command);
+    },
+    select: () => {},
+    notice: () => {},
+  });
+  const proposal = {
+    kind: "objectTranslation",
+    requestId: "a".repeat(32),
+    generation: 7,
+    version: "9",
+    targets,
+    deltaMeters: { x: "1", y: "0", z: "0" },
+  };
+  await actions.onObjectTranslation!(proposal, () => false);
+  await assert.rejects(queued, /上下文已变化/);
+  await actions.onObjectTranslation!(
+    { ...proposal, targets: [...targets].reverse() },
+    () => true,
+  );
+  await assert.rejects(queued, /上下文已变化/);
+  assert.equal(requests.length, 0);
+  await actions.onObjectTranslation!(proposal, () => true);
+  await queued();
+  assert.deepEqual(requests, [
+    {
+      kind: "previsObjectTranslation",
+      generation: 7,
+      version: "9",
+      targets,
+      deltaMeters: proposal.deltaMeters,
+    },
+  ]);
+  const fixtureRequests: unknown[] = [];
+  const fixtureActions = previsInteractions({
+    page: "stage",
+    stage: { current: null },
+    selectedIds: ["lamp"],
+    project: () => null,
+    run: async (work) => {
+      await work();
+      return true;
+    },
+    request: async (command) => {
+      fixtureRequests.push(command);
+    },
+    select: () => {},
+    notice: () => {},
+  });
+  await fixtureActions.onTranslation(
+    { ...proposal, fixtureIds: ["lamp"] },
+    () => true,
+  );
+  assert.deepEqual(fixtureRequests[0], {
+    kind: "previsTranslation",
+    generation: 7,
+    version: "9",
+    fixtureIds: ["lamp"],
+    deltaMeters: proposal.deltaMeters,
+  });
+});

@@ -1,3 +1,4 @@
+import { createPrevisResponder } from "../../previs-responses";
 import { useEffect, useRef, useState } from "react";
 import type { PixelStreaming } from "@epicgames-ps/lib-pixelstreamingfrontend-ue5.8";
 import type {
@@ -5,9 +6,9 @@ import type {
   PrevisTool,
   MarqueeMode,
 } from "../../previs-types";
-import { readPrevisMessage } from "../../previs-messages";
+
 import { PrevisInteractionScope } from "../../previs-interaction-scope";
-import { sameFixtureSelection } from "../../previs-selection";
+
 import { PrevisSelectionTools } from "./PrevisSelectionTools";
 import { PrevisMoveTools } from "./PrevisMoveTools";
 import { resumeVisibleVideo } from "./resume-visible-video";
@@ -19,6 +20,7 @@ export function PrevisViewport({
   busy,
   allowPlacement = true,
   placementLocked = false,
+  placementProblem = "",
   contextKey,
   ...interactions
 }: {
@@ -26,6 +28,7 @@ export function PrevisViewport({
   busy: boolean;
   allowPlacement?: boolean;
   placementLocked?: boolean;
+  placementProblem?: string;
   contextKey: string;
 } & PrevisInteractions) {
   const parent = useRef<HTMLDivElement>(null);
@@ -40,6 +43,7 @@ export function PrevisViewport({
     cutaway: false,
     interactionVersion: 0,
     marqueeSupported: false,
+    allObjects: false,
     marqueeMode: "replace" as MarqueeMode,
     selectionThrough: false,
     vertical: false,
@@ -47,15 +51,27 @@ export function PrevisViewport({
   });
   const callbacks = useRef(interactions);
   callbacks.current = interactions;
-  const incompatible = viewState.interactionVersion !== 3;
-  const tooMany = interactions.selectedIds.length > 256;
+  const incompatible = viewState.interactionVersion !== 4;
+  const selectionCount = (
+    interactions.selectedTargets ?? interactions.selectedIds
+  ).length;
+  const mixed = !!interactions.selectedTargets?.some(
+    (t) => t.kind !== "placement",
+  );
+  const tooMany = selectionCount > 256;
   const canPlace =
-    allowPlacement && !placementLocked && !tooMany && !incompatible;
+    allowPlacement &&
+    !placementLocked &&
+    !placementProblem &&
+    !tooMany &&
+    !incompatible;
   const canMove = useRef(canPlace);
   canMove.current = canPlace;
   const scope = useRef(new PrevisInteractionScope());
   const selectionScope = useRef(new PrevisInteractionScope());
-  const selectionKey = JSON.stringify(interactions.selectedIds);
+  const selectionKey = JSON.stringify(
+    interactions.selectedTargets ?? interactions.selectedIds,
+  );
   scope.current.update(`${contextKey}:${selectionKey}`, canPlace);
   selectionScope.current.update(`${contextKey}:${selectionKey}`, true);
   const [retry, setRetry] = useState(0);
@@ -69,6 +85,7 @@ export function PrevisViewport({
       cutaway: false,
       interactionVersion: 0,
       marqueeSupported: false,
+      allObjects: false,
       marqueeMode: "replace" as MarqueeMode,
       selectionThrough: false,
       vertical: false,
@@ -112,100 +129,19 @@ export function PrevisViewport({
             videoElementParent: container,
           });
           stream.current = player;
-          const proposals = new Set<string>();
           let connectionEpoch = 0;
-          let selectionEpoch = 0;
-          player.addResponseEventListener("stagemaster-view", (response) => {
-            if (!active) return;
-            const value = readPrevisMessage(response);
-            if (!value) return;
-            if (value.kind === "state") setViewState(value);
-            if (value.kind === "selection" || value.kind === "selectionGroup") {
-              const ids =
-                value.kind === "selectionGroup"
-                  ? value.fixtureIds
-                  : value.fixtureId
-                    ? [value.fixtureId]
-                    : [];
-              const selection = ++selectionEpoch,
-                connection = connectionEpoch;
-              const current = selectionScope.current.capture();
-              void callbacks.current
-                .onSelect(
-                  ids,
-                  () =>
-                    active &&
-                    current() &&
-                    selection === selectionEpoch &&
-                    connection === connectionEpoch,
-                )
-                .then((ok) => {
-                  if (active && selection === selectionEpoch && !ok)
-                    player.emitUIInteraction({
-                      action: "selectGroup",
-                      fixtureIds: callbacks.current.selectedIds,
-                    });
-                });
-            }
-            if (value.kind === "placement") {
-              player.emitUIInteraction({
-                action: "placementResult",
-                requestId: value.requestId,
-                accepted: false,
-              });
-            }
-            if (
-              (value.kind === "translation" || value.kind === "transform") &&
-              !proposals.has(value.requestId)
-            ) {
-              proposals.add(value.requestId);
-              if (proposals.size > 32)
-                proposals.delete(proposals.values().next().value!);
-              const { generation, version, fixtureIds } = value;
-              const epoch = connectionEpoch,
-                receivedAt = performance.now();
-              const permitted = scope.current.capture();
-              if (
-                !permitted() ||
-                !sameFixtureSelection(callbacks.current.selectedIds, fixtureIds)
-              ) {
-                player.emitUIInteraction({
-                  action: "placementResult",
-                  requestId: value.requestId,
-                  accepted: false,
-                });
-                return;
-              }
-              const valid = () =>
-                active &&
-                permitted() &&
-                connectionEpoch === epoch &&
-                performance.now() - receivedAt < 2500;
-              const proposal = { generation, version, fixtureIds };
-              const pending =
-                value.kind === "translation"
-                  ? callbacks.current.onTranslation(
-                      { ...proposal, deltaMeters: value.deltaMeters },
-                      valid,
-                    )
-                  : callbacks.current.onTransform(
-                      {
-                        ...proposal,
-                        yawDegrees: value.yawDegrees,
-                        spacingScale: value.spacingScale,
-                      },
-                      valid,
-                    );
-              void pending.then((accepted) => {
-                if (active)
-                  player.emitUIInteraction({
-                    action: "placementResult",
-                    requestId: value.requestId,
-                    accepted,
-                  });
-              });
-            }
-          });
+          player.addResponseEventListener(
+            "stagemaster-view",
+            createPrevisResponder({
+              active: () => active,
+              callbacks: () => callbacks.current,
+              state: setViewState,
+              send: (value) => player.emitUIInteraction(value),
+              scope: scope.current,
+              selectionScope: selectionScope.current,
+              connection: () => connectionEpoch,
+            }),
+          );
           const status = (text: string) => {
             connectionEpoch++;
             if (active) {
@@ -278,10 +214,11 @@ export function PrevisViewport({
   }, [contextKey, canPlace]);
   useEffect(() => {
     if (playing)
-      stream.current?.emitUIInteraction({
-        action: "selectGroup",
-        fixtureIds: interactions.selectedIds,
-      });
+      stream.current?.emitUIInteraction(
+        interactions.selectedTargets && viewState.interactionVersion === 4
+          ? { action: "selectTargets", targets: interactions.selectedTargets }
+          : { action: "selectGroup", fixtureIds: interactions.selectedIds },
+      );
   }, [playing, selectionKey, contextKey, viewState.interactionVersion]);
   function view(action: string) {
     if (
@@ -289,6 +226,8 @@ export function PrevisViewport({
         "cancel",
         "inspect",
         "selectionThrough",
+        "selectAllObjects",
+        "selectFixturesOnly",
         "marqueeReplace",
         "marqueeAdd",
         "marqueeRemove",
@@ -314,7 +253,7 @@ export function PrevisViewport({
           查看全场
         </button>
         <button
-          disabled={!playing || !interactions.selectedIds.length}
+          disabled={!playing || !selectionCount}
           onClick={() => view("selected")}
         >
           聚焦所选
@@ -323,13 +262,14 @@ export function PrevisViewport({
           <button
             disabled={!playing || busy || !canPlace}
             title={
-              placementLocked
+              placementProblem ||
+              (placementLocked
                 ? "所选灯位包含锁定对象，请在属性栏解锁"
                 : tooMany
-                  ? "一次最多移动 256 台灯具"
+                  ? "一次最多移动 256 个对象"
                   : incompatible
-                    ? "三维组件需要更新后才能移动灯位"
-                    : undefined
+                    ? "三维组件需要更新后才能移动对象"
+                    : undefined)
             }
             aria-pressed={viewState.move}
             onClick={() => {
@@ -344,16 +284,21 @@ export function PrevisViewport({
               }
             }}
           >
-            {placementLocked
-              ? "所选灯位有锁定"
-              : tooMany
-                ? "所选超过 256 台"
-                : "布置所选灯具"}
+            {placementProblem
+              ? "所选对象不可移动"
+              : placementLocked
+                ? "所选灯位有锁定"
+                : tooMany
+                  ? "所选超过 256 个"
+                  : interactions.selectedTargets
+                    ? "移动所选对象"
+                    : "布置所选灯具"}
           </button>
         )}
         {allowPlacement && (
           <PrevisMoveTools
             moving={viewState.move}
+            fixturesOnly={!mixed}
             tool={viewState.tool}
             contextKey={`${contextKey}:${selectionKey}`}
             onExact={(yawDegrees, spacingScale) =>
@@ -369,6 +314,10 @@ export function PrevisViewport({
           />
         )}
         <PrevisSelectionTools
+          objectsSupported={
+            interactions.selectedTargets !== undefined && !incompatible
+          }
+          allObjects={viewState.allObjects}
           supported={viewState.marqueeSupported}
           disabled={!playing || viewState.move}
           through={viewState.selectionThrough}
@@ -424,11 +373,11 @@ export function PrevisViewport({
         </span>
         <span>
           {allowPlacement && playing && incompatible
-            ? "三维组件版本不兼容，请更新后再移动灯位"
+            ? "三维组件版本不兼容，请更新后再移动对象"
             : viewState.move
-              ? `${viewState.tool === "rotate" ? "左右拖动整组旋转" : viewState.tool === "scale" ? "左右拖动调整灯间距" : viewState.vertical ? "拖动升降所选灯具" : "水平拖动所选灯具"} · Esc 取消 · 松手整组应用`
+              ? `${viewState.tool === "rotate" ? "左右拖动整组旋转" : viewState.tool === "scale" ? "左右拖动调整灯间距" : viewState.vertical ? "拖动升降所选对象" : "水平拖动所选对象"} · Esc 取消 · 松手整组应用`
               : viewState.marqueeSupported
-                ? "拖框选灯 · Shift 加选 · ⌘/Ctrl 减选 · 右键或 Option 旋转 · 滚动缩放"
+                ? `${viewState.allObjects ? "拖框选择对象" : "拖框选灯"} · Shift 加选 · ⌘/Ctrl 减选 · 右键或 Option 旋转 · 滚动缩放`
                 : "Shift 点击增减选择 · 右键或 Option 旋转 · 加 Shift 平移 · 滚动缩放"}
         </span>
       </div>

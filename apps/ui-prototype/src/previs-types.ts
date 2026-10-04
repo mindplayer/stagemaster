@@ -1,3 +1,4 @@
+import type { PrevisTarget } from "./previs-objects";
 export type PrevisSource =
   | { kind: "defaults" }
   | { kind: "scene"; sceneId: string }
@@ -23,6 +24,15 @@ export interface PrevisPlacement {
   placement: FixturePlacement;
 }
 export interface PrevisInteractions {
+  selectedTargets?: PrevisTarget[];
+  onSelectTargets?(
+    targets: PrevisTarget[],
+    isActive: () => boolean,
+  ): Promise<boolean>;
+  onObjectTranslation?(
+    proposal: PrevisObjectTranslation,
+    isActive: () => boolean,
+  ): Promise<boolean>;
   selectedIds: string[];
   onSelect(ids: string[], isActive: () => boolean): Promise<boolean>;
   onPrepareMove(): Promise<boolean>;
@@ -52,3 +62,10 @@ export interface PrevisTransform {
 export type PrevisTool = "horizontal" | "vertical" | "rotate" | "scale";
 
 export type MarqueeMode = "replace" | "add" | "remove";
+
+export interface PrevisObjectTranslation {
+  generation: number;
+  version: string;
+  targets: PrevisTarget[];
+  deltaMeters: SpatialVector3;
+}

@@ -2,6 +2,7 @@
 #include "PreviewSceneActor.h"
 #include "PreviewSelection.h"
 #include "PreviewTransform.h"
+#include "PreviewObjects.h"
 #include "GameFramework/PlayerController.h"
 
 bool APreviewCameraPawn::PointOnDragPlane(const FVector2D& Screen, FVector& Point) const
@@ -13,7 +14,7 @@ bool APreviewCameraPawn::PointOnDragPlane(const FVector2D& Screen, FVector& Poin
 }
 void APreviewCameraPawn::RestoreFixtures(const TArray<FString>& Ids)
 {
-    if (Scene) for (const auto& Id : Ids) Scene->RestorePosition(Id);
+    if (Scene) Scene->RestoreObjects(Ids);
 }
 void APreviewCameraPawn::ClearPendingPlacement()
 {
@@ -29,7 +30,7 @@ void APreviewCameraPawn::PlacementResult(const FString& Id, bool Accepted)
     if (!Accepted)
     {
         ClearPendingPlacement();
-        InteractionMessage = TEXT("整组灯位未应用，请检查桌面提示");
+        InteractionMessage = TEXT("整组对象未应用，请检查桌面提示");
     }
 }
 void APreviewCameraPawn::DragTo(const FVector2D& Screen)
@@ -50,20 +51,8 @@ void APreviewCameraPawn::DragTo(const FVector2D& Screen)
     FVector Delta = Point + DragOffset - DragOrigin;
     if (IsVerticalMove()) Delta.X = Delta.Y = 0;
     else Delta.Z = 0;
-    for (const auto& Id : DragIds)
-    {
-        const auto Fixture = Scene->FindFixture(Id);
-        if (!Fixture || (Fixture->Origin + Delta).ContainsNaN() || (Fixture->Origin + Delta).GetAbsMax() > 10000000)
-        {
-            CancelDrag();
-            InteractionMessage = TEXT("整组移动超出允许范围，已恢复原位");
-            return;
-        }
-    }
-    for (const auto& Id : DragIds)
-    {
-        if (!Scene->PreviewPosition(Id, Scene->FindFixture(Id)->Origin + Delta)) { CancelDrag(); return; }
-    }
+    if (!Scene->PreviewObjects(DragIds, Delta))
+    { CancelDrag(); InteractionMessage = TEXT("整组移动超出允许范围，已恢复原位"); return; }
     DragPosition = DragOrigin + Delta;
     DragMoved = true;
 }
@@ -78,15 +67,18 @@ void APreviewCameraPawn::FinishDrag()
         CancelDrag();
         return;
     }
-    auto Proposal = Transforming ? StageMaster::TransformRequest(Scene->GetScene().Stamp, DragIds, DragYaw, DragScale)
-        : StageMaster::TranslationRequest(Scene->GetScene().Stamp, DragIds, DragPosition - DragOrigin);
+    const auto FixtureIds = StageMaster::FixtureIds(DragIds);
+    const bool Mixed = FixtureIds.Num() != DragIds.Num();
+    auto Proposal = Transforming ? StageMaster::TransformRequest(Scene->GetScene().Stamp, FixtureIds, DragYaw, DragScale)
+        : Mixed ? StageMaster::ObjectTranslationRequest(Scene->GetScene().Stamp, DragIds, DragPosition - DragOrigin)
+        : StageMaster::TranslationRequest(Scene->GetScene().Stamp, FixtureIds, DragPosition - DragOrigin);
     if (!Proposal.IsValid())
     {
         CancelDrag();
-        InteractionMessage = TEXT("整组灯位超出允许范围，已恢复原位");
+        InteractionMessage = TEXT("整组对象超出允许范围，已恢复原位");
         return;
     }
-    Proposal->SetStringField(TEXT("kind"), Transforming ? TEXT("transform") : TEXT("translation"));
+    Proposal->SetStringField(TEXT("kind"), Transforming ? TEXT("transform") : Mixed ? TEXT("objectTranslation") : TEXT("translation"));
     PendingPlacement = FGuid::NewGuid().ToString(EGuidFormats::Digits).ToLower();
     PendingFixtures = DragIds;
     PendingDelta = DragPosition - DragOrigin;

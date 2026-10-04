@@ -14,6 +14,9 @@ struct FStamp
 };
 struct FMesh
 {
+    FString ConstructionId;
+    bool Movable = false;
+    TArray<FString> AttachedFixtureIds;
     bool EnclosureShell = false;
     FString Id;
     FString Name;

@@ -1,6 +1,7 @@
 #include "PreviewCameraPawn.h"
 #include "PreviewSceneActor.h"
 #include "PreviewTransform.h"
+#include "PreviewObjects.h"
 
 bool APreviewCameraPawn::PrepareTransform()
 {
@@ -8,7 +9,7 @@ bool APreviewCameraPawn::PrepareTransform()
     FBox Bounds(ForceInit);
     for (const auto& Id : DragIds)
     {
-        const auto Fixture = Scene->FindFixture(Id);
+        const auto Fixture = Scene->SelectionFixture(Id);
         if (!Fixture) return false;
         Bounds += Fixture->Origin;
     }
@@ -27,7 +28,7 @@ bool APreviewCameraPawn::PreviewTransform(double Angle, double Scale)
     TArray<FVector> Positions;
     for (const auto& Id : DragIds)
     {
-        const auto Fixture = Scene->FindFixture(Id);
+        const auto Fixture = Scene->SelectionFixture(Id);
         if (!Fixture) { CancelDrag(); return false; }
         const auto Next = StageMaster::TransformPoint(Fixture->Origin, DragCenter, Angle, Scale);
         if (Next.ContainsNaN() || Next.GetAbsMax() > 10000000)
@@ -37,7 +38,7 @@ bool APreviewCameraPawn::PreviewTransform(double Angle, double Scale)
         Positions.Add(Next);
     }
     for (int32 Index = 0; Index < DragIds.Num(); ++Index)
-        if (!Scene->PreviewTransform(DragIds[Index], Positions[Index], Angle)) { CancelDrag(); return false; }
+        if (!Scene->PreviewTransform(Scene->SelectionFixture(DragIds[Index])->Id, Positions[Index], Angle)) { CancelDrag(); return false; }
     DragYaw = Angle;
     DragScale = Scale;
     DragMoved = true;
@@ -47,9 +48,9 @@ bool APreviewCameraPawn::PreviewTransform(double Angle, double Scale)
 }
 void APreviewCameraPawn::TransformExact(const TArray<FString>& Ids, double Angle, double Scale)
 {
-    if (!MoveMode || !Scene || Dragging || !PendingPlacement.IsEmpty() || Ids != SelectedIds ||
+    if (!MoveMode || !Scene || Dragging || !PendingPlacement.IsEmpty() || Ids != StageMaster::FixtureIds(SelectedIds) || Ids.Num() != SelectedIds.Num() ||
         (Tool != TEXT("rotate") && Tool != TEXT("scale"))) return;
-    DragIds = Ids;
+    DragIds = SelectedIds;
     DragSerial = Scene->GetSceneSerial();
     if (!PrepareTransform()) { DragIds.Empty(); return; }
     Dragging = true;

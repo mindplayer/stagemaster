@@ -1,3 +1,5 @@
+import { useStageViewportSelection } from "./useStageViewportSelection";
+import type { PrevisTarget } from "../../previs-objects";
 import { useStageSelectionActions } from "./useStageSelectionActions";
 import { useStageSelection } from "./useStageSelection";
 import { useObjectTranslation } from "./useObjectTranslation";
@@ -47,6 +49,10 @@ export interface StageHandle {
   collect(): EditOperation[];
   accept(): void;
   revealFixture(id: string): void;
+  selectObjects(
+    targets: PrevisTarget[],
+    isActive: () => boolean,
+  ): Promise<boolean>;
   selectFixtures(ids: string[], isActive: () => boolean): Promise<boolean>;
 }
 export const StageWorkspace = forwardRef<
@@ -54,6 +60,7 @@ export const StageWorkspace = forwardRef<
   {
     project: ProjectView;
     onSelectedFixtures(ids: string[]): void;
+    onSelectedTargets?(targets: StageSelection[]): void;
     visible: boolean;
     canvasVisible?: boolean;
     viewControls?: ReactNode;
@@ -70,6 +77,7 @@ export const StageWorkspace = forwardRef<
   {
     project,
     onSelectedFixtures,
+    onSelectedTargets,
     visible,
     canvasVisible = true,
     viewControls,
@@ -221,6 +229,15 @@ export const StageWorkspace = forwardRef<
       throw reason;
     }
   }
+  const selectObjects = useStageViewportSelection({
+    targets,
+    onTargets: onSelectedTargets,
+    project: projectRef,
+    beforeChange,
+    replace: selected.replace,
+    reveal: revealInPlan,
+    cancel,
+  });
   useImperativeHandle(ref, () => ({
     collect,
     accept() {
@@ -228,6 +245,7 @@ export const StageWorkspace = forwardRef<
       rigging.draft.accept();
       cancel();
     },
+    selectObjects,
     async selectFixtures(ids, isActive) {
       if (!isActive() || !(await beforeChange()) || !isActive()) return false;
       if (

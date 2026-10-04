@@ -1,6 +1,8 @@
+import { readPrevisTargets, type PrevisTarget } from "./previs-objects.ts";
 import type {
   PrevisPlacement,
   PrevisTranslation,
+  PrevisObjectTranslation,
   PrevisTransform,
   PrevisTool,
   MarqueeMode,
@@ -17,6 +19,7 @@ type ViewMessage =
       cutaway: boolean;
       interactionVersion: number;
       marqueeSupported: boolean;
+      allObjects: boolean;
       marqueeMode: MarqueeMode;
       selectionThrough: boolean;
       vertical: boolean;
@@ -24,6 +27,8 @@ type ViewMessage =
     }
   | { kind: "selection"; fixtureId: string }
   | { kind: "selectionGroup"; fixtureIds: string[] }
+  | { kind: "selectionTargets"; targets: PrevisTarget[] }
+  | ({ kind: "objectTranslation"; requestId: string } & PrevisObjectTranslation)
   | ({ kind: "transform"; requestId: string } & PrevisTransform)
   | ({ kind: "translation"; requestId: string } & PrevisTranslation)
   | ({ kind: "placement"; requestId: string } & PrevisPlacement);
@@ -58,6 +63,7 @@ export function readPrevisMessage(json: string): ViewMessage | null {
       text(v.selection, 1024) &&
       text(v.workLight) &&
       typeof v.move === "boolean" &&
+      (v.allObjects === undefined || typeof v.allObjects === "boolean") &&
       (v.cutaway === undefined || typeof v.cutaway === "boolean") &&
       (v.tool === undefined ||
         (typeof v.tool === "string" &&
@@ -82,12 +88,17 @@ export function readPrevisMessage(json: string): ViewMessage | null {
         cutaway: v.cutaway === true,
         interactionVersion: Number(v.interactionVersion ?? 1),
         marqueeSupported: v.marqueeSupported === true,
+        allObjects: v.allObjects === true,
         marqueeMode: (v.marqueeMode ?? "replace") as MarqueeMode,
         selectionThrough: v.selectionThrough === true,
         vertical: v.vertical === true,
         tool: (v.tool ??
           (v.vertical ? "vertical" : "horizontal")) as PrevisTool,
       };
+    if (v.kind === "selectionTargets" && Object.keys(v).length === 2) {
+      const targets = readPrevisTargets(v.targets);
+      return targets ? { kind: "selectionTargets", targets } : null;
+    }
     if (v.kind === "selection" && text(v.fixtureId))
       return { kind: "selection", fixtureId: v.fixtureId };
     if (
@@ -97,7 +108,9 @@ export function readPrevisMessage(json: string): ViewMessage | null {
     )
       return { kind: "selectionGroup", fixtureIds: v.fixtureIds };
     if (
-      !["placement", "translation", "transform"].includes(String(v.kind)) ||
+      !["placement", "translation", "transform", "objectTranslation"].includes(
+        String(v.kind),
+      ) ||
       !text(v.requestId, 36) ||
       !/^[a-f0-9]{32}$/.test(v.requestId) ||
       !Number.isInteger(v.generation) ||
@@ -108,6 +121,24 @@ export function readPrevisMessage(json: string): ViewMessage | null {
       BigInt(v.version) > 18446744073709551615n
     )
       return null;
+    if (v.kind === "objectTranslation") {
+      const targets = readPrevisTargets(v.targets, 256);
+      if (
+        Object.keys(v).length !== 6 ||
+        !targets?.length ||
+        !vector(v.deltaMeters) ||
+        Object.values(v.deltaMeters).some((n) => Math.abs(Number(n)) > 200000)
+      )
+        return null;
+      return {
+        kind: "objectTranslation",
+        requestId: v.requestId,
+        generation: Number(v.generation),
+        version: v.version,
+        targets,
+        deltaMeters: v.deltaMeters,
+      };
+    }
     if (v.kind === "transform") {
       const scalar = (n: unknown, min: number, max: number) =>
         text(n, 32) &&

@@ -117,6 +117,7 @@ void APreviewSceneActor::ApplyScene(StageMaster::FScene&& Scene)
         auto Material = UMaterialInstanceDynamic::Create(SurfaceMaterial, Component);
         Material->SetVectorParameterValue(TEXT("Color"), Mesh.Color);
         Component->SetMaterial(0, Material);
+        Component->SetRelativeLocation(FVector::ZeroVector);
     }
     for (auto It = Meshes.CreateIterator(); It; ++It)
     {

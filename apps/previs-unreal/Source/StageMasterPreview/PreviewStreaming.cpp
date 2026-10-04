@@ -6,6 +6,7 @@
 #include "PreviewCameraPawn.h"
 #include "PreviewInput.h"
 #include "PreviewSelection.h"
+#include "PreviewObjects.h"
 #include "PreviewTransform.h"
 #include "GameFramework/PlayerController.h"
 #include "Serialization/JsonReader.h"
@@ -30,8 +31,9 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
         State->SetStringField(TEXT("workLight"), Camera->WorkLightText().ToString());
         State->SetBoolField(TEXT("move"), Camera->IsMoveMode());
         State->SetBoolField(TEXT("cutaway"), Camera->IsCutaway());
-        State->SetNumberField(TEXT("interactionVersion"), 3);
+        State->SetNumberField(TEXT("interactionVersion"), 4);
         State->SetBoolField(TEXT("marqueeSupported"), true);
+        State->SetBoolField(TEXT("allObjects"), Camera->IsAllObjects());
         State->SetStringField(TEXT("marqueeMode"), Camera->GetMarqueeMode());
         State->SetBoolField(TEXT("selectionThrough"), Camera->IsSelectionThrough());
         State->SetBoolField(TEXT("vertical"), Camera->IsVerticalMove());
@@ -101,6 +103,11 @@ void FPreviewStreaming::Tick(APreviewCameraPawn* Camera)
             {
                 TArray<FString> Ids;
                 if (StageMaster::ReadFixtureSelection(Object, Ids)) WeakCamera->SelectFromHost(Ids);
+            }
+            else if (Action == TEXT("selectTargets") && Object->Values.Num() == 2)
+            {
+                TArray<FString> Keys;
+                if (StageMaster::ReadObjectSelection(Object, Keys)) WeakCamera->SelectObjectsFromHost(Keys);
             }
             else if (Action == TEXT("transformExact") && Object->Values.Num() == 4)
             {

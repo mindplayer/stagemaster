@@ -19,7 +19,7 @@ bool MarqueeSelection(const TArray<FString>& Before, const TArray<FString>& Hits
         Unique.Empty();
         for (const auto& Id : *Group)
         {
-            if (Id.IsEmpty() || Id.Len() > 256 || Unique.Contains(Id)) return false;
+            if (Id.IsEmpty() || Id.Len() > 258 || Unique.Contains(Id)) return false;
             Unique.Add(Id);
         }
     }

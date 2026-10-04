@@ -1,3 +1,4 @@
+import { translationProblem } from "../stage/object-translation";
 import { opticsLabels } from "../../fixture-optics";
 import { isStageLocked } from "../../stage-locks";
 import {
@@ -87,6 +88,11 @@ export const WorkbenchViewport = forwardRef<
       >
         <SharedPrevis
           {...previs}
+          placementProblem={
+            preview.selectedTargets?.length
+              ? translationProblem(project.stage, preview.selectedTargets)
+              : undefined
+          }
           placementLocked={preview.selectedIds.some((id) =>
             isStageLocked(project.stage, { kind: "placement", id }),
           )}

@@ -1,6 +1,7 @@
 #include "PreviewCameraPawn.h"
 #include "PreviewSceneActor.h"
 #include "PreviewSelection.h"
+#include "PreviewObjects.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PlayerController.h"
 
@@ -19,15 +20,19 @@ void APreviewCameraPawn::TickSelection()
     if (Dragging && (!Scene->CanMoveFixtures() || DragSerial != Scene->GetSceneSerial()))
     {
         CancelDrag();
-        InteractionMessage = TEXT("灯位拖动已取消：连接或工程状态变化");
+        InteractionMessage = TEXT("对象拖动已取消：连接或工程状态变化");
     }
     if (Marquee.Active && (!Scene->CanMoveFixtures() || Marquee.Serial != Scene->GetSceneSerial())) CancelDrag();
-    for (const auto& Id : SelectedIds) if (const auto Fixture = Scene->FindFixture(Id))
+    for (const auto& Id : SelectedIds)
     {
-        const FVector Position = Scene->PreviewLocation(Id);
         const FColor Color = Id == SelectedIds.Last() ? FColor(255, 211, 124) : FColor(124, 168, 255);
-        DrawDebugSphere(GetWorld(), Position, 17, 16, Color, false, 0, 1, 1.5f);
-        DrawDebugDirectionalArrow(GetWorld(), Position, Position + Scene->PreviewDirection(Id) * 80, 10, Color, false, 0, 1, 1.5f);
+        if (const auto Fixture = Scene->SelectionFixture(Id))
+        {
+            const FVector Position = Scene->PreviewLocation(Fixture->Id);
+            DrawDebugSphere(GetWorld(), Position, 17, 16, Color, false, 0, 1, 1.5f);
+            DrawDebugDirectionalArrow(GetWorld(), Position, Position + Scene->PreviewDirection(Fixture->Id) * 80, 10, Color, false, 0, 1, 1.5f);
+        }
+        else { const auto Box = Scene->ObjectBounds(Id); if (Box.IsValid) DrawDebugBox(GetWorld(), Box.GetCenter(), Box.GetExtent(), Color, false, 0, 1, 1.5f); }
     }
 }
 void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive, bool Remove)
@@ -44,16 +49,16 @@ void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive, bool R
     Additive |= Remove;
     FHitResult Hit;
     Player->GetHitResultAtScreenPosition(Screen, ECC_Visibility, true, Hit);
-    FString Id = Scene->FixtureAt(Hit);
+    FString Id = Scene->ObjectAt(Hit, ObjectsEnabled && AllObjects);
     // Selected handles stay usable among overlapping bodies or behind scenery.
     // Only movement mode gives them priority; ordinary picking keeps scene depth.
     if (MoveMode && !Additive)
     {
         double Nearest = 14 * 14;
-        for (const auto& Selected : SelectedIds) if (const auto Candidate = Scene->FindFixture(Selected))
+        for (const auto& Selected : SelectedIds) if (const auto Candidate = Scene->ObjectBounds(Selected, false); Candidate.IsValid)
         {
             FVector2D Projected;
-            if (Player->ProjectWorldLocationToScreen(Candidate->Origin, Projected))
+            if (Player->ProjectWorldLocationToScreen(Candidate.GetCenter(), Projected))
             {
                 const double Squared = (Projected - Screen).SizeSquared();
                 if (Squared <= Nearest) { Id = Selected; Nearest = Squared; }
@@ -62,20 +67,20 @@ void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive, bool R
     }
     const auto After = StageMaster::SelectFixture(SelectedIds, Id, Additive, MoveMode);
     PublishSelection(After);
-    const auto Fixture = Scene->FindFixture(Id);
-    if (!MoveMode || Additive || !Fixture) return;
+    const auto Anchor = Scene->ObjectBounds(Id, false);
+    if (!MoveMode || Additive || !Anchor.IsValid) return;
     if (SelectedIds.Num() > 256)
     {
-        InteractionMessage = TEXT("一次最多移动 256 台灯具，请缩小选择范围");
+        InteractionMessage = TEXT("一次最多移动 256 个对象，请缩小选择范围");
         return;
     }
     if (!Scene->CanMoveFixtures())
     {
-        InteractionMessage = TEXT("场地尚未同步，请稍后再移动灯位");
+        InteractionMessage = TEXT("场地尚未同步，请稍后再移动对象");
         return;
     }
-    for (const auto& Selected : SelectedIds) if (!Scene->FindFixture(Selected)) return;
-    DragOrigin = Fixture->Origin;
+    if (!Scene->CanTranslateObjects(SelectedIds)) { InteractionMessage = TEXT("所选对象不能直接平移，请检查属性栏"); return; }
+    DragOrigin = Anchor.GetCenter();
     DragIds = SelectedIds;
     DragSerial = Scene->GetSceneSerial();
     DragScreenOrigin = Screen;
@@ -101,19 +106,32 @@ void APreviewCameraPawn::SelectAt(const FVector2D& Screen, bool Additive, bool R
 }
 void APreviewCameraPawn::SelectFromHost(const TArray<FString>& Ids)
 {
-    if (Ids == SelectedIds) return;
-    CancelDrag();
-    ClearPendingPlacement();
-    SelectedIds = Ids;
+    TArray<FString> Keys;
+    for (const auto& Id : Ids) Keys.Add(StageMaster::FixtureKey(Id));
+    if (Keys == SelectedIds && !ObjectsEnabled) return;
+    CancelDrag(); ClearPendingPlacement();
+    ObjectsEnabled = AllObjects = false;
+    SelectedIds = Keys;
+}
+void APreviewCameraPawn::SelectObjectsFromHost(const TArray<FString>& Keys)
+{
+    if (Keys == SelectedIds && ObjectsEnabled) return;
+    CancelDrag(); ClearPendingPlacement();
+    ObjectsEnabled = true;
+    SelectedIds = Keys;
+    if (StageMaster::FixtureIds(Keys).Num() != Keys.Num() && (Tool == TEXT("rotate") || Tool == TEXT("scale"))) Tool = TEXT("horizontal");
 }
 FText APreviewCameraPawn::SelectionText() const
 {
-    if (Scene && !SelectedIds.IsEmpty()) if (const auto Fixture = Scene->FindFixture(SelectedIds.Last()))
+    if (Scene && !SelectedIds.IsEmpty())
     {
-        const FVector Location = Scene->PreviewLocation(Fixture->Id);
-        const auto Position = StageMaster::ToMeters(Location);
-        return FText::FromString(FString::Printf(TEXT("已选 %d 台 · %s   位置 %.3f / %.3f / %.3f 米"),
-            SelectedIds.Num(), *Fixture->Name, Position.X, Position.Y, Position.Z));
+        const auto Box = Scene->ObjectBounds(SelectedIds.Last());
+        if (Box.IsValid)
+        {
+            const auto Position = StageMaster::ToMeters(Box.GetCenter());
+            return FText::FromString(FString::Printf(TEXT("已选 %d 个 · %s   位置 %.3f / %.3f / %.3f 米"),
+                SelectedIds.Num(), *Scene->ObjectName(SelectedIds.Last()), Position.X, Position.Y, Position.Z));
+        }
     }
-    return FText::FromString(TEXT("未选择灯具"));
+    return FText::FromString(TEXT("未选择对象"));
 }

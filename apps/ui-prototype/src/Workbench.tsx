@@ -1,3 +1,5 @@
+import { viewportTargets } from "./previs-objects";
+import type { StageSelection } from "./stage-types";
 import { previsInteractions } from "./components/workbench/previs-interactions";
 import { useSceneRemoval } from "./components/workbench/useSceneRemoval";
 import { SceneRemovalDialog } from "./components/workbench/SceneRemovalDialog";
@@ -133,6 +135,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
   const sharedPrevis = useRef<SharedPrevisHandle>(null);
   const [stageView, setStageView] = useState<"plan" | "three">("plan");
   const [stageSelected, setStageSelected] = useState<string[]>([]);
+  const [stageTargets, setStageTargets] = useState<StageSelection[]>([]);
   const [monitorVisible, setMonitorVisible] = useState(false);
   const audioSession = useAudio(
     host,
@@ -900,6 +903,10 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 generation: () => current.current.generation,
                 run: (work, flushDrafts) => run(work, flushDrafts),
                 ...previsInteractions({
+                  selectedTargets:
+                    page === "stage"
+                      ? viewportTargets(stageTargets)
+                      : undefined,
                   page,
                   stage,
                   selectedIds:
@@ -962,6 +969,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                 />
               }
               onSelectedFixtures={setStageSelected}
+              onSelectedTargets={setStageTargets}
               project={project}
               visible={page === "stage"}
               busy={busy}

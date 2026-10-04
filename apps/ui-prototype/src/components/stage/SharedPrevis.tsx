@@ -31,6 +31,7 @@ export const SharedPrevis = forwardRef<
     contextKey: string;
     allowPlacement: boolean;
     placementLocked?: boolean;
+    placementProblem?: string;
     busy: boolean;
     fixed?: boolean;
     viewControls?: ReactNode;

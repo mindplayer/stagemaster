@@ -15,6 +15,9 @@ pub const MAX_TRIANGLES: usize = 100_000;
 #[serde(rename_all = "camelCase")]
 pub struct Mesh {
     pub id: String,
+    pub construction_id: String,
+    pub movable: bool,
+    pub attached_fixture_ids: Vec<String>,
     pub name: String,
     pub color: [f32; 3],
     pub view_role: &'static str,

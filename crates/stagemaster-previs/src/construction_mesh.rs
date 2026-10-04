@@ -85,9 +85,18 @@ pub(super) fn build(stage: &StageView) -> Result<Vec<Mesh>, String> {
             return Err("场地超出当前预演的 100000 个三角面限制".into());
         }
         let is_enclosure = floor_triangles.is_some();
+        let attached_fixture_ids: Vec<String> = stage
+            .attachments
+            .iter()
+            .filter(|a| a.construction_id == construction.id)
+            .map(|a| a.fixture_id.clone())
+            .collect();
         if let Some(floor) = floor_triangles {
             meshes.push(Mesh {
                 id: format!("{}:floor", construction.id),
+                construction_id: construction.id.clone(),
+                movable: false,
+                attached_fixture_ids: Vec::new(),
                 name: construction.name.clone(),
                 triangles: floor,
                 color,
@@ -95,6 +104,9 @@ pub(super) fn build(stage: &StageView) -> Result<Vec<Mesh>, String> {
             });
         }
         meshes.push(Mesh {
+            construction_id: construction.id.clone(),
+            movable: !is_enclosure,
+            attached_fixture_ids,
             id: if is_enclosure {
                 format!("{}:shell", construction.id)
             } else {

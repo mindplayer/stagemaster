@@ -30,6 +30,9 @@ public:
     bool IsSelectionThrough() const { return SelectionThrough; }
     bool GetMarquee(FVector2D& Start, FVector2D& End, bool& Removing) const;
     void SelectFromHost(const TArray<FString>& Ids);
+    void SelectObjectsFromHost(const TArray<FString>& Keys);
+    bool CanSelectObjects() const { return ObjectsEnabled; }
+    bool IsAllObjects() const { return AllObjects; }
     void PlacementResult(const FString& Id, bool Accepted);
     bool IsMoveMode() const { return MoveMode; }
     bool IsVerticalMove() const { return Tool == TEXT("vertical"); }
@@ -52,6 +55,8 @@ private:
     void FinishMarquee();
     StageMaster::FMarqueeGesture Marquee;
     bool SelectionThrough = false;
+    bool ObjectsEnabled = false;
+    bool AllObjects = false;
     StageMaster::EMarqueeMode MarqueeMode = StageMaster::EMarqueeMode::Replace;
     bool PrepareTransform();
     bool PreviewTransform(double Yaw, double Scale);

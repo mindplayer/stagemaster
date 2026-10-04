@@ -4,6 +4,7 @@ import type { PrevisTool } from "../../previs-types";
 
 export function PrevisMoveTools({
   moving,
+  fixturesOnly = true,
   tool,
   disabled,
   contextKey,
@@ -11,6 +12,7 @@ export function PrevisMoveTools({
   onExact,
 }: {
   moving: boolean;
+  fixturesOnly?: boolean;
   tool: PrevisTool;
   disabled: boolean;
   contextKey: string;
@@ -24,7 +26,7 @@ export function PrevisMoveTools({
     setError("");
   }, [contextKey, tool, moving]);
   if (!moving) return null;
-  const exact = tool === "rotate" || tool === "scale";
+  const exact = fixturesOnly && (tool === "rotate" || tool === "scale");
   return (
     <>
       <span role="group" aria-label="三维布置工具">
@@ -35,16 +37,20 @@ export function PrevisMoveTools({
             ["rotate", "整组旋转", "rotate"],
             ["scale", "间距缩放", "scale"],
           ] as const
-        ).map(([id, label, action]) => (
-          <button
-            key={id}
-            disabled={disabled}
-            aria-pressed={tool === id}
-            onClick={() => onAction(action)}
-          >
-            {label}
-          </button>
-        ))}
+        )
+          .filter(
+            ([id]) => fixturesOnly || id === "horizontal" || id === "vertical",
+          )
+          .map(([id, label, action]) => (
+            <button
+              key={id}
+              disabled={disabled}
+              aria-pressed={tool === id}
+              onClick={() => onAction(action)}
+            >
+              {label}
+            </button>
+          ))}
       </span>
       {exact && (
         <form

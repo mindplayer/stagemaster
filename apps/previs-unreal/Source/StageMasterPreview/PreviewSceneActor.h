@@ -45,6 +45,15 @@ public:
     uint64 GetSceneSerial() const { return SceneSerial; }
     FBox GetBounds() const;
     FString FixtureAt(const FHitResult& Hit) const;
+    const StageMaster::FFixture* SelectionFixture(const FString& Key) const;
+    TArray<FString> SelectionKeys(bool AllObjects) const;
+    FString ObjectAt(const FHitResult& Hit, bool AllObjects) const;
+    FBox ObjectBounds(const FString& Key, bool Draft = true) const;
+    FString ObjectName(const FString& Key) const;
+    bool CanTranslateObjects(const TArray<FString>& Keys) const;
+    bool PreviewObjects(const TArray<FString>& Keys, const FVector& Delta);
+    void RestoreObjects(const TArray<FString>& Keys);
+    TArray<FString> AffectedFixtures(const TArray<FString>& Keys) const;
     const StageMaster::FFixture* FindFixture(const FString& Id) const;
     FVector PreviewLocation(const FString& Id) const;
     FVector PreviewDirection(const FString& Id) const;

@@ -1,4 +1,5 @@
 #include "PreviewProtocol.h"
+#include "PreviewObjects.h"
 #include "Dom/JsonValue.h"
 
 namespace StageMaster
@@ -62,6 +63,7 @@ bool ReadMesh(const TSharedPtr<FJsonObject>& Object, FMesh& Out, int32& TotalTri
     if (!Text(Object, TEXT("id"), Out.Id) || !Text(Object, TEXT("name"), Out.Name) || !Color(Object, Out.Color) || !Array(Object, TEXT("triangles"), Triangles, 100000)) return false;
     FString Role(TEXT("solid"));
     if (Object->HasField(TEXT("viewRole")) && (!Object->TryGetStringField(TEXT("viewRole"), Role) || (Role != TEXT("solid") && Role != TEXT("enclosureShell")))) return false;
+    if (!ReadMeshOwner(Object, Out)) return false;
     Out.EnclosureShell = Role == TEXT("enclosureShell");
     TotalTriangles += Triangles->Num();
     if (TotalTriangles > 100000) return false;
@@ -173,6 +175,7 @@ bool ReadScene(const TSharedPtr<FJsonObject>& Object, FScene& Out, FString& Erro
         Ids.Add(Fixture.Id);
         Next.Fixtures.Add(MoveTemp(Fixture));
     }
+    if (!ValidObjectOwners(Next)) return false;
     Out = MoveTemp(Next);
     Error.Empty();
     return true;

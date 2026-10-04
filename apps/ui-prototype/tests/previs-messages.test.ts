@@ -65,6 +65,7 @@ test("剖视状态兼容旧渲染器，拒绝错误字段类型", () => {
     vertical: false,
     tool: "horizontal",
     marqueeSupported: false,
+    allObjects: false,
     marqueeMode: "replace",
     selectionThrough: false,
   });
@@ -77,6 +78,7 @@ test("剖视状态兼容旧渲染器，拒绝错误字段类型", () => {
       vertical: false,
       tool: "horizontal",
       marqueeSupported: false,
+      allObjects: false,
       marqueeMode: "replace",
       selectionThrough: false,
     },
@@ -187,6 +189,7 @@ test("渲染器显式提供移动交互版本和方向，错误类型不开放�
   assert.deepEqual(readPrevisMessage(JSON.stringify(state)), {
     ...state,
     marqueeSupported: false,
+    allObjects: false,
     marqueeMode: "replace",
     selectionThrough: false,
   });

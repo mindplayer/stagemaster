@@ -34,17 +34,27 @@
 
 无效草稿保留在原字段；草稿应用导致版本变化时旧提案拒绝。前端还核对提案与当前有序选择完全一致；跨工程／页面／选择变化、连接轮次变化或排队超过 2.5 秒使延迟请求失效。UE 临时位置最多等待 3 秒或下一次权威场地更新；拒绝、取消、失焦或断开恢复全部成员。返回 `{action:"placementResult", requestId, accepted}`，接受反馈不能代替权威快照。旧 `previsPlacement` 与单灯 HTTP 诊断端点保留原校验，但新视窗拒绝旧 `kind:"placement"` 提案，不向旧渲染器开放移动。
 
-周期状态显式提供 `interactionVersion:3`、`move` 和 `vertical`；不兼容版本可查看但不移动。`selectGroup` 携带有序 `fixtureIds`（0–1024 个唯一身份），对应事件为 `{kind:"selectionGroup",fixtureIds}`。末项为活动对象，空数组清空，迟到选灯同样检查上下文与连接轮次。旧单灯选择事件仍可读；主流程使用共享集合。视窗消息最多 65536 字符，UE 输入最多 49152 字符；身份长度至多 256 字符。选择／镜头命令不具备直接工程写入权限。
+周期状态显式提供 `interactionVersion:4`、`move` 和 `vertical`；不兼容版本可查看但不移动。纯灯具 `selectGroup` 携带有序 `fixtureIds`（0–1024 个唯一身份），对应事件为 `{kind:"selectionGroup",fixtureIds}`；场地页完整选择使用下述 STAGE-009 的 typed targets。末项为活动对象，空数组清空，迟到选择同样检查上下文与连接轮次。旧单灯选择事件仍可读。视窗消息最多 65536 字符，UE 输入最多 49152 字符；身份长度至多 256 字符。选择／镜头命令不具备直接工程写入权限。
 
-UE 5.8 默认 MouseUp 忽略最终坐标，适配器保留既有终点修正后释放捕获；`(65535,65535)` 越界标记、MouseLeave 与 Esc 取消拖动。场地／帧协议仍为版本 2，未增加第二份工程或时钟。旋转／缩放已由 STAGE-006 接通，混合构件组仍后续。
+UE 5.8 默认 MouseUp 忽略最终坐标，适配器保留既有终点修正后释放捕获；`(65535,65535)` 越界标记、MouseLeave 与 Esc 取消拖动。场地／帧协议仍为版本 2，未增加第二份工程或时钟。纯灯具旋转／缩放已由 STAGE-006 接通，混合构件组平移见 STAGE-009。
 
 ### 三维灯位框选（STAGE-008／ADR-147）
 
 查看模式拖动矩形按安装点的屏幕投影选灯，3 像素阈值，释放后一次发布原 `selectionGroup`。默认只选镜头前、视窗内且未被其他对象遮挡的安装点；遮挡射线只到安装点，不能把其后方场景算作遮挡。显式穿透允许选择被挡灯位。新灯序沿场地顺序；加选保持原有顺序，减选只去掉命中成员；无命中替换清空，加／减保持。点击保留原命中深度与修饰键切换语义。
 
-周期 state 附可选 `marqueeSupported:boolean`、`selectionThrough:boolean` 与 `marqueeMode:"replace"|"add"|"remove"`，缺省分别 false／false／replace，类型错误拒绝。`interactionVersion:3` 保持；旧组件不显示新操作。单字段动作 `selectionThrough` 切换穿透，`marqueeReplace`／`marqueeAdd`／`marqueeRemove` 设置默认方式；Shift 加选、Command／Ctrl 减选优先于默认方式。移动模式不框选，锁灯可选但沿原移动权限拒绝编辑。
+周期 state 附可选 `marqueeSupported:boolean`、`selectionThrough:boolean` 与 `marqueeMode:"replace"|"add"|"remove"`，缺省分别 false／false／replace，类型错误拒绝。本能力起于交互版本 3，当前 STAGE-009 为 4；旧组件不显示新操作。单字段动作 `selectionThrough` 切换穿透，`marqueeReplace`／`marqueeAdd`／`marqueeRemove` 设置默认方式；Shift 加选、Command／Ctrl 减选优先于默认方式。移动模式不框选，锁灯可选但沿原移动权限拒绝编辑。
 
 手势绑定场地代次，复用原取消／失焦／越界／尺寸／镜头／工具／源变化保护，最终释放坐标仍经原适配器更新。选择上限 1024，移动上限 256；超限原子拒绝。查看设置和框选不写工程、不建灯组、不增加历史；主机选择的异步上下文／连接门继续有效。完整验收与边界见 [STAGE-008](../development/tasks/STAGE-008-3d-fixture-marquee.md)。
+
+### 三维场地对象（STAGE-009／ADR-148）
+
+场地网格增加 `constructionId`、`movable`、`attachedFixtureIds`，属于可重建的只读投影。围护底面／外壳共一个身份且不可平移；支撑体声明其挂灯。UE 校验同一归属元数据一致、挂灯存在且不属于多个支撑体。旧投影可显示；有归属才可选择构件。没有增加持久网格实体。
+
+交互版本 4 使用 `{action:"selectTargets",targets:[{kind:"placement"|"construction",id}]}` 与 `{kind:"selectionTargets",targets}`，严格拒绝多余字段、重复／未知目标和超过 1024 项。场地页共享完整有序选择，其他编辑页仍只选灯。UE 内部带类型前缀的键只用于查看，不能写入文件。`allObjects` 状态缺省 false；`selectFixturesOnly`／`selectAllObjects` 切换仅灯具／全部对象，影响新的命中，不改工程。构件框选按合并包围盒中心，灯具按安装点，保留原遮挡、穿透和加减规则。空间本身不参与三维命中。
+
+混合组只提供水平／升降，松手发 `{kind:"objectTranslation",requestId,generation,version,targets,deltaMeters}`。主机 `project_request.previsObjectTranslation` 复用 Rust `StageEdit::TranslateObjects`；1–256 个直接目标，挂灯去重联动，直接及间接锁定／非法位置整体拒绝，单次历史。UE 仅临时移动所属网格及去重灯体，接受后以权威投影收敛。纯灯具平移／旋转／缩放沿用原入口。
+
+前端响应处理独立于视窗组件：每连接去重最近 32 个提案，匹配完整有序目标；新的三维选择立即使排队旧提案失效，异步选择失败只在同上下文／连接时恢复当前主机集合。旧连接不发反馈，未实现能力不降级为灯具子集；期限和草稿保护沿原组位移契约。验收与实际限制见 [STAGE-009](../development/tasks/STAGE-009-3d-stage-objects.md)。
 
 所有成功响应包含：
 
