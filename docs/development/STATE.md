@@ -4,7 +4,15 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-当前实施 [EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md)，基线 main `65a9242`，先提交限定诊断计划；未认定旧循环 rejected 原因。检查原请求／回执／媒体完成边界，确定性验证后再决定最小修复，不重发控制或改变原保护。
+**[EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md)限定分类增量完成，自审通过**，基线 main `65a9242`，计划 `18d644f`／[ADR-162](decisions/PRODUCT-ADR-162-adapter-refusal-receipts.md) `da1d368` 先提交；结果为本次 `fix(execution): preserve adapter refusal receipts` 提交。适配 busy／closed／invalid 保留真实 code／message，不更改协议、提交、时钟、控制权或添加重试。旧循环 rejected 根因仍未知。
+
+- 4 分类保护先红后绿；4 新真实回环宿主测试明确区分提交前 503／原回执 409、接纳后只读 503、Revision 拒绝和同一媒体 request Failed，不重发或虚构完成。最终原全量 **1269 Rust＋2 文档**、严格 Clippy／fmt、引用／JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试调用。没有 UI／UE 源码改动，不冒记重复 UI 434 项。证据 `data/EXEC-016/verification.json`、日志 `logs/exec-016-*`。
+- **正式桌面复杂音乐定位稳定性未通过**：原工程相同副本、静音预演、定位 10 秒一次先已接纳后 request 1 Failed（软件消费超过 500 毫秒），明确重新准备 request 2 TimedOut。没有故障注入，UI 正确显示失败／保留草稿而非假成功；普通音乐操作仍有真实缺陷。后台明确关闭、所属窗口退出，原工程／MP3／默认最近目录／FIXTURE-012 哈希及用户 output/ 保持，未启用听音／UE／设备。
+- 优先接续 **[AUDIO-021 复杂音乐准备与消费连续性](tasks/AUDIO-021-complex-preparation-continuity.md) ready**：先测量复现，复用既有准备／播放器，保护 500 毫秒消费、原期限／时钟／回执，不盲目重试；本计划先纳入版本。修复后回 H3／FIXTURE-006。新消费失败不等于旧 rejected 根因；完整 goal active，听音／GPU／完整灯型／物理／长期与客户 UE 包仍未关闭。
+
+## 上一增量记录：独立光源受控频闪与轮盘 2026-10-05
+
+以下保留 `65a9242` 的实际交付，接续以上方入口为准。
 
 - **[FIXTURE-012 独立光源受控频闪与轮盘](tasks/FIXTURE-012-independent-emitter-functions.md)有限软件增量完成，自审通过**，基线 main `8d27e28`，计划／[ADR-161](decisions/PRODUCT-ADR-161-independent-emitter-functions.md)先提交 `a29b376`；结果为本次 `feat(fixtures): control independent shutters and wheel slots` 提交。明确开闭／受控频闪、固定轮盘及单图案抖动接入原功能模型／播放器；新增有限能力门控，无新持久字段／固件。声控、自走、复位、自动轮盘与未知混合宏仍屏蔽，三维不虚构多光源光束。
 - 最终实际 **1261 Rust＋2 文档、434 UI、230 格式**、类型、严格 Clippy／fmt／相关 Prettier、引用／严格 JSON、差异和正式 `.app` 构建通过。3 个既有子进程入口由父测试调用。全量先暴露只读 503，测试按原期限等待并查询同一 accepted／Applied 回执、不重发控制；随后旧循环 rejected 原因仍未知，增强诊断而未放宽断言，最终通过不能证明历史根因修复。失败与证据保留 `logs/fixture-012-*`／`data/FIXTURE-012/verification.json`。

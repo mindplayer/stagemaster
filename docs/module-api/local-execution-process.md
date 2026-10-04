@@ -47,6 +47,8 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run -p stagemaster-exec
 
 内核控制序号与会话序号分别维护。收到内核 Receipt（包括业务拒绝）才推进内核序号；排队／期限／租约等未产生 Receipt 的失败不推进。成功重新取得控制权后使用新租约及其首个序号。传输结果不明先查原回执，不能自动新建会话并重新启动节目。
 
+适配层在提交内核之前拒绝动作时，已接纳的会话操作仍以 complete／rejected 结束，保留原 code／message（例如 busy、closed、invalid），不将繁忙或关闭统称为参数非法；不虚构执行状态或媒体 request，也不消耗尚未提交的内核序号。输入控制权 Binding 保持，unknown 仍沿原规则清理。见 [ADR-162](../development/decisions/PRODUCT-ADR-162-adapter-refusal-receipts.md)。HTTP POST 后只读观测返回 503 不代表动作未接纳；只能核对原序号回执和权威状态，不能重发控制。媒体 accepted 与同一 request 的 Applied／Failed／TimedOut 仍分开。
+
 HTTP 响应丢失不取消已接纳处理；有界后台任务持有原 Ticket，等待超时继续等同一回执。明确区分业务拒绝与结果不明；后者须核对状态／重新取得控制权。会话或控制租约失效、客户端关闭、控制客户端被杀都不自动停止已开始的节目。新客户端按策略显式取得／接管控制权，旧控制者的延迟指令不能改变新控制者的运行。
 
 执行进程被操作系统杀死不在上述继续运行承诺内；本轮未提供自动重启、断电恢复正在播放、桌面进程托管、操作系统关机协调或输出节点失联接管。正常关闭会删除发现文件，保留安装目录用于核对；异常进程退出可能留下发现文件，后续启动仍要求新运行目录与身份。

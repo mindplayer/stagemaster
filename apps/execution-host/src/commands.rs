@@ -1,7 +1,7 @@
 use crate::{
     application::Application,
     sessions::{Binding, Change, Completion, Job},
-    wire::Command,
+    wire::{Command, Failure, Operation},
 };
 use serde_json::json;
 use stagemaster_runtime::{Grant, Origin};
@@ -11,12 +11,13 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[derive(Clone, Copy)]
 enum Problem {
     Host(Error),
     Unknown,
     NoControl,
     Exhausted,
-    Invalid,
+    Adapter(Failure),
 }
 impl From<Error> for Problem {
     fn from(value: Error) -> Self {
@@ -41,16 +42,38 @@ pub(crate) fn run<M: Application>(
     adapter: &M::Context,
     job: &Job<M>,
 ) -> Completion<M> {
-    execute(host,adapter,job).unwrap_or_else(|error| {
-        let (code,message,change)=match error {
-            Problem::Host(e)=>(format!("{e:?}"),e.to_string(),Change::Keep),
-            Problem::Unknown=>("unknown".into(),"操作结果无法确认，请重新核对状态和控制权".into(),Change::Clear),
-            Problem::NoControl=>("noControl".into(),"请先取得运行控制权".into(),Change::Keep),
-            Problem::Exhausted=>("exhausted".into(),"控制序号已耗尽，请重新取得控制权".into(),Change::Keep),
-            Problem::Invalid=>("invalid".into(),"操作参数无效".into(),Change::Keep),
-        };
-        Completion { outcome:json!({"kind":if code=="unknown" {"unknown"} else {"rejected"},"code":code,"message":message}),change }
-    })
+    execute(host, adapter, job).unwrap_or_else(rejected)
+}
+fn translated<M: Application>(
+    action: &Operation,
+    adapter: &M::Context,
+) -> Result<M::Action, Problem> {
+    M::action(action, adapter).map_err(Problem::Adapter)
+}
+fn rejected<M: Application>(error: Problem) -> Completion<M> {
+    let (code, message, change) = match error {
+        Problem::Host(e) => (format!("{e:?}"), e.to_string(), Change::Keep),
+        Problem::Unknown => (
+            "unknown".into(),
+            "操作结果无法确认，请重新核对状态和控制权".into(),
+            Change::Clear,
+        ),
+        Problem::NoControl => (
+            "noControl".into(),
+            "请先取得运行控制权".into(),
+            Change::Keep,
+        ),
+        Problem::Exhausted => (
+            "exhausted".into(),
+            "控制序号已耗尽，请重新取得控制权".into(),
+            Change::Keep,
+        ),
+        Problem::Adapter(failure) => (failure.1.into(), failure.2.into(), Change::Keep),
+    };
+    Completion {
+        outcome: json!({"kind":if code=="unknown" {"unknown"} else {"rejected"},"code":code,"message":message}),
+        change,
+    }
 }
 fn execute<M: Application>(
     host: &Mutex<Host<M>>,
@@ -92,7 +115,7 @@ fn execute<M: Application>(
             action,
         } => {
             let serial = binding.next.ok_or(Problem::Exhausted)?;
-            let action = M::action(action, adapter).map_err(|_| Problem::Invalid)?;
+            let action = translated::<M>(action, adapter)?;
             let pending =
                 binding
                     .client
@@ -124,6 +147,10 @@ fn execute<M: Application>(
                 change: Change::Clear,
             })
         }
-        Command::Acquire { .. } => Err(Problem::Invalid),
+        Command::Acquire { .. } => Err(Problem::Adapter(Failure::invalid())),
     }
 }
+
+#[cfg(test)]
+#[path = "tests/command_failures.rs"]
+mod tests;

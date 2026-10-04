@@ -3,6 +3,8 @@
 pub mod audio;
 #[cfg(feature = "audio")]
 pub mod client_audio;
+pub mod client_observation;
+pub mod client_proxy;
 pub mod group;
 #[cfg(feature = "audio")]
 pub mod loops;

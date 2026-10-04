@@ -1,35 +1,10 @@
+pub use super::client_observation::{settled, wait};
 use stagemaster_execution_client::{Client, MediaAction, MediaCompletion, View};
-use std::time::{Duration, Instant};
-
-pub async fn wait(client: &mut Client, predicate: impl Fn(&View) -> bool) -> View {
-    let end = Instant::now() + Duration::from_secs(6);
-    loop {
-        let view = match client.refresh().await {
-            Ok(view) => view,
-            // Observation uses a non-blocking slot. Retry only its explicit busy response,
-            // under the original deadline; never resend a control command.
-            Err(error) if error == "后台请求未成功（503），请核对连接与原回执" =>
-            {
-                assert!(Instant::now() < end, "{error}");
-                tokio::time::sleep(Duration::from_millis(10)).await;
-                continue;
-            }
-            Err(error) => panic!("{error}"),
-        };
-        if predicate(&view) {
-            return view;
-        }
-        assert!(Instant::now() < end, "{view:?}");
-        tokio::time::sleep(Duration::from_millis(10)).await;
-    }
-}
-pub async fn settled(client: &mut Client) -> View {
-    wait(client, |v| !v.pending).await
-}
 pub async fn apply(client: &mut Client, action: MediaAction) -> View {
     let view = settled(client).await;
     let state = &view.observation.snapshot.as_ref().unwrap().state;
-    client
+    let action_label = format!("{action:?}");
+    let submitted = client
         .apply_media(
             &view.host_id,
             &state.revision,
@@ -37,11 +12,21 @@ pub async fn apply(client: &mut Client, action: MediaAction) -> View {
             &state.media[0].generation,
             action,
         )
-        .await
-        .unwrap();
+        .await;
+    if let Err(error) = submitted {
+        assert_eq!(error, super::client_observation::BUSY, "{action_label}");
+        // Only resolve this serial. A failed admission cannot produce an accepted receipt.
+    }
+    let serial = client.view().record.unwrap().serial;
     let accepted = settled(client).await;
-    let outcome = accepted.record.as_ref().unwrap().outcome.as_ref().unwrap();
-    assert_eq!(outcome.kind, "accepted", "{outcome:?}");
+    let record = accepted.record.as_ref().unwrap();
+    assert_eq!(record.serial, serial);
+    let outcome = record.outcome.as_ref().unwrap();
+    assert_eq!(
+        outcome.kind, "accepted",
+        "action={action_label}, revision={}, generation={}, serial={serial}, outcome={outcome:?}",
+        state.revision, state.media[0].generation
+    );
     let expected = outcome.state.as_ref().unwrap().media[0]
         .control
         .as_ref()
