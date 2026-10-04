@@ -4,6 +4,8 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
+当前实施 [EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md)，基线 main `65a9242`，先提交限定诊断计划；未认定旧循环 rejected 原因。检查原请求／回执／媒体完成边界，确定性验证后再决定最小修复，不重发控制或改变原保护。
+
 - **[FIXTURE-012 独立光源受控频闪与轮盘](tasks/FIXTURE-012-independent-emitter-functions.md)有限软件增量完成，自审通过**，基线 main `8d27e28`，计划／[ADR-161](decisions/PRODUCT-ADR-161-independent-emitter-functions.md)先提交 `a29b376`；结果为本次 `feat(fixtures): control independent shutters and wheel slots` 提交。明确开闭／受控频闪、固定轮盘及单图案抖动接入原功能模型／播放器；新增有限能力门控，无新持久字段／固件。声控、自走、复位、自动轮盘与未知混合宏仍屏蔽，三维不虚构多光源光束。
 - 最终实际 **1261 Rust＋2 文档、434 UI、230 格式**、类型、严格 Clippy／fmt／相关 Prettier、引用／严格 JSON、差异和正式 `.app` 构建通过。3 个既有子进程入口由父测试调用。全量先暴露只读 503，测试按原期限等待并查询同一 accepted／Applied 回执、不重发控制；随后旧循环 rejected 原因仍未知，增强诊断而未放宽断言，最终通过不能证明历史根因修复。失败与证据保留 `logs/fixture-012-*`／`data/FIXTURE-012/verification.json`。
 - 正式 Rust 宿主拒绝声控副本；模式导出导入新身份、两灯 **17／35** 配适、两独立快门／固定色片／单图案抖动稀疏记录、一次撤销重做和明确色片 **23→20** 重映射／取消／两灯一次交换历史通过。原 1 灯／3 项保持，最终 3 灯／6 模式／11 项，保存退出同实例最近重开字节相同。来源与默认最近目录哈希保持，用户 output/ 未触碰；自有原生／组件页／Vite 退出，无音乐、UE、后台或设备输出。
