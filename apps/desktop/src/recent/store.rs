@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::{self, File},
     io::{Read, Write},
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
+mod write_lock;
 
 const MAX_ENTRIES: usize = 12;
 const MAX_BYTES: u64 = 65_536;
@@ -119,19 +120,7 @@ impl Store {
 
     fn update(&self, change: impl FnOnce(&mut Vec<Entry>)) -> Result<(), String> {
         fs::create_dir_all(&self.0).map_err(|_| "无法创建最近工程目录")?;
-        let lock_path = self.0.join("recent.lock");
-        if fs::symlink_metadata(&lock_path).is_ok_and(|m| !m.is_file()) {
-            return Err("最近工程锁文件无效".into());
-        }
-        let lock = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(lock_path)
-            .map_err(|_| "无法锁定最近工程记录")?;
-        lock.try_lock()
-            .map_err(|_| "其他窗口正在更新最近工程，请稍后重试")?;
+        let _lock = write_lock::WriteLock::acquire(&self.0)?;
         let mut catalog = self.read()?;
         change(&mut catalog.entries);
         let bytes = serde_json::to_vec(&catalog).map_err(|_| "最近工程记录编码失败")?;
