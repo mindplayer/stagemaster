@@ -4,6 +4,12 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
+- **[EXEC-015 后台管理锁生命周期](tasks/EXEC-015-background-manager-lock-lifecycle.md)实施中**，基线 main `266aa76`，先提交限定计划；只修私有管理锁退出与错误定位，复制／继承候选机制先确定性复现。保留原失败、音频所有权／宿主长期锁和真实竞争拒绝，不把 isolated 通过当全量恢复。
+
+## 上一增量记录：两轴速度控制 2026-10-04
+
+以下保留 `266aa76` 的限定功能交付及全量失败，接续以上方当前入口为准。
+
 - **[FIXTURE-009 两轴速度控制](tasks/FIXTURE-009-pan-tilt-speed-control.md)限定功能与相关验收完成**，基线 main `ce0447d`，计划／[ADR-158](decisions/PRODUCT-ADR-158-pan-tilt-speed-control.md)先提交 `fe04e5b`，结果为本次 `feat(fixtures): author independent pan tilt speed channels` 提交。主工作区单写者，用户 `output/` 保持；完整全量出口仍有旧后台管理锁失败，不能声称通过。
 - Rust 独立共同两轴速度 normalized／LTP 建档；UI 默认必填／错误定位／取消、基础与几何保持、场景“控制”及速度稀疏预设；复用原播放器／包／映射／历史。非零起址、8／16 位、释放／渐变／总控隔离和整批换模式验证；不猜方向／物理速度、不混同时间、自动程序或持时复位，不改结构／版本／依赖，不发布实灯档案。
 - 本次实际相关 **309 Rust、418 UI**、类型／严格 Clippy／相关格式／模式格式／正式构建通过；真实组件 7 项，正式 `.app` 两灯 17／28 配适、62.5% 精确成组输入、撤销重做／草稿取消、模式导出导入独立身份、整组换模式和保存退出／最近重开通过。来源与默认最近目录哈希不变，保存重开字节相同；自有原生／组件进程退出，无音乐、UE、设备或执行后台。证据 `data/FIXTURE-009/verification.json`，日志 `logs/fixture-009-*`。
