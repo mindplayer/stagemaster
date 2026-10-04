@@ -4,6 +4,12 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
+- **[FIXTURE-009 两轴速度控制](tasks/FIXTURE-009-pan-tilt-speed-control.md)实施中**，产品基线 main `ce0447d`，单工作区写者，先提交限定计划／[ADR-158](decisions/PRODUCT-ADR-158-pan-tilt-speed-control.md)。核对 FIXTURE-006 原始通道证据与现有 FIXTURE-005／007／008：先补 30W 通道 9／18CH 通道 5 的独立建档与编排，不猜方向／物理速度、不混同渐变、自动／声控或复位，不发布完整实灯档案。用户 `output/` 保持。
+
+## 上一增量记录：普通节目批量操作 2026-10-04
+
+以下保留 `ce0447d` 的实际交付，接续以上方当前入口为准。
+
 - **[EXEC-014 普通节目批量操作与保护](tasks/EXEC-014-source-batch-control.md)限定增量完成**，基线 main `e09ebd1`，计划／[ADR-157](decisions/PRODUCT-ADR-157-source-batch-control.md)先提交 `9482272`，结果为本次 `feat(execution): control reviewed program selections atomically` 提交。主工作区单写者，用户 `output/` 保持；不重复 PROJECT-003／共同亮度／后台总控。
 - Rust 同刻全组预检、原播放器、一次最终合成；宿主原控制权／版本／有界队列／单回执，v2 可选 sourceBatch，v1 拒绝。普通节目多选可跨筛选，冻结完整目标审阅、取消／Escape／上下文失效保护；一次请求，不前端逐条发送，不混入音乐或手动。停止只归还所选贡献，零值／释放／熄灯语义不变；工程／包格式、时钟和依赖未改。
 - 本次实际：最终原命令 **1218 Rust＋2 文档、414 UI**、类型、严格 Clippy、Rust／UI 格式／差异与正式 `.app` 构建通过；2 个既有 ignored 子进程入口由父测试调用。真实组件 64 来源、筛选外审阅、未知回执／迟到回复与 266px 窄栏；Escape 焦点缺陷先复现后修复，最终补齐旧控制会话异常回执隔离并重跑相关 UI／构建，正式包再次两场景批量和真实窗口失焦检查通过。新测试预期／可见性及严格检查失败日志保留，没有禁用保护。证据 `data/EXEC-014/verification.json`，日志 `logs/exec-014-*`。
