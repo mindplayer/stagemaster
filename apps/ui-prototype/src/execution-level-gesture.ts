@@ -2,14 +2,18 @@ import type { ExecutionRequest, ExecutionStatus } from "./execution-types";
 import {
   levelRuntime,
   sameLevelSession,
-  sourceLevel,
   newLevelSerial,
   type LevelContext,
   type LevelIdentity,
 } from "./execution-level-context.ts";
+import {
+  sourceLevelTarget,
+  type ExecutionGestureTarget,
+} from "./execution-gesture-target.ts";
 
 export interface LevelGestureView {
   source: string | null;
+  key: string | null;
   target: number;
   phase: "idle" | "dragging" | "settling" | "cancelled";
   problem: string;
@@ -17,11 +21,14 @@ export interface LevelGestureView {
 export interface LiveLevels {
   view: LevelGestureView;
   begin(source: string): boolean;
+  beginTarget(target: ExecutionGestureTarget): boolean;
   change(source: string, value: number): void;
   finish(source: string): void;
   cancel(source?: string, reason?: string): void;
 }
 interface Gesture extends LevelIdentity {
+  operation: ExecutionGestureTarget;
+  changed: boolean;
   target: number;
   confirmed: number;
   ending: boolean;
@@ -36,6 +43,7 @@ interface Dependencies {
 }
 export const idleLevelGesture: LevelGestureView = {
   source: null,
+  key: null,
   target: 0,
   phase: "idle",
   problem: "",
@@ -55,8 +63,14 @@ export class LevelGestureController {
     return this.gesture !== null;
   }
   begin(source: string): boolean {
+    return this.beginTarget(sourceLevelTarget(source));
+  }
+  beginTarget(operation: ExecutionGestureTarget): boolean {
     if (this.gesture) {
-      if (this.gesture.source !== source || !this.valid(this.gesture))
+      if (
+        this.gesture.operation.key !== operation.key ||
+        !this.valid(this.gesture)
+      )
         return false;
       this.gesture.ending = false;
       this.publish();
@@ -64,24 +78,27 @@ export class LevelGestureController {
     }
     const context = this.deps.context();
     const runtime = levelRuntime(context.status);
-    const value = runtime && sourceLevel(runtime, source);
+    const value = runtime && (operation.value(runtime) ?? operation.initial);
     if (
       !context.available ||
       context.busy ||
       !runtime ||
       runtime.pending ||
-      value == null
+      value == null ||
+      !operation.valid(runtime)
     )
       return false;
     const identity = {
       host: runtime.hostId,
       layout: runtime.catalog.layout,
       session: runtime.sessionId!,
-      source,
+      source: operation.source,
     };
     if (!sameLevelSession(identity, runtime)) return false;
     this.gesture = {
       ...identity,
+      operation,
+      changed: false,
       target: value,
       confirmed: value,
       ending: false,
@@ -95,7 +112,7 @@ export class LevelGestureController {
     const gesture = this.gesture;
     if (
       !gesture ||
-      gesture.source !== source ||
+      gesture.operation.key !== source ||
       gesture.ending ||
       gesture.cancelled
     )
@@ -105,19 +122,26 @@ export class LevelGestureController {
       return;
     }
     gesture.target = value;
+    gesture.changed = true;
     this.publish();
     this.kick(gesture);
   }
   finish(source: string) {
     const gesture = this.gesture;
-    if (!gesture || gesture.source !== source || gesture.cancelled) return;
+    if (!gesture || gesture.operation.key !== source || gesture.cancelled)
+      return;
+    if (!gesture.changed) {
+      this.gesture = null;
+      this.publish();
+      return;
+    }
     gesture.ending = true;
     this.publish();
     this.kick(gesture);
   }
-  cancel(source?: string, reason = "已停止连续调整，请核对实际电平") {
+  cancel(source?: string, reason = "已停止连续调整，请核对实际设定值") {
     const gesture = this.gesture;
-    if (!gesture || (source && gesture.source !== source)) return;
+    if (!gesture || (source && gesture.operation.key !== source)) return;
     gesture.cancelled = true;
     this.problem = reason;
     if (!this.pumping) this.gesture = null;
@@ -132,13 +156,15 @@ export class LevelGestureController {
     return (
       !gesture.cancelled &&
       context.available &&
-      sameLevelSession(gesture, levelRuntime(context.status))
+      sameLevelSession(gesture, levelRuntime(context.status)) &&
+      gesture.operation.valid(levelRuntime(context.status)!)
     );
   }
   private check(gesture: Gesture, status?: ExecutionStatus) {
     if (
       !this.valid(gesture) ||
-      !sameLevelSession(gesture, levelRuntime(status))
+      !sameLevelSession(gesture, levelRuntime(status)) ||
+      !gesture.operation.valid(levelRuntime(status)!)
     )
       throw new Error("连接或控制状态已变化，已停止连续调整");
     return status!.runtime!;
@@ -147,6 +173,7 @@ export class LevelGestureController {
     const g = this.gesture;
     this.deps.publish({
       source: g?.source ?? null,
+      key: g?.operation.key ?? null,
       target: g?.target ?? 0,
       phase: !g
         ? "idle"
@@ -182,7 +209,9 @@ export class LevelGestureController {
   }
   private async pause(gesture: Gesture, deadline: number, ms = 50) {
     if (this.deps.now() >= deadline)
-      throw new Error("电平确认超时，已停止继续发送，请核对实际电平");
+      throw new Error(
+        `${gesture.operation.label}确认超时，已停止继续发送，请核对实际设定值`,
+      );
     await this.deps.wait(ms);
     if (!this.valid(gesture)) throw new Error("连续调整已中断，请核对实际电平");
   }
@@ -205,13 +234,15 @@ export class LevelGestureController {
         );
       }
       const target = gesture.target;
-      if (sourceLevel(current, gesture.source) === target) {
+      if (gesture.operation.value(current) === target) {
         gesture.confirmed = target;
         return;
       }
       const previous = current.record?.serial;
       if (this.deps.now() >= deadline)
-        throw new Error("准备电平操作超时，请核对实际电平后重试");
+        throw new Error(
+          `准备${gesture.operation.label}操作超时，请核对实际设定值后重试`,
+        );
       this.lastSent = this.deps.now();
       current = this.check(
         gesture,
@@ -220,12 +251,14 @@ export class LevelGestureController {
           hostId: gesture.host,
           revision: current.observation.snapshot!.state.revision,
           source: gesture.source,
-          action: { kind: "level", value: target },
+          action: gesture.operation.action(target),
         }),
       );
       const serial = current.record?.serial;
       if (!newLevelSerial(serial, previous))
-        throw new Error("未取得本次电平回执，已停止继续发送");
+        throw new Error(
+          `未取得本次${gesture.operation.label}回执，已停止继续发送`,
+        );
       for (;;) {
         const record = current.record;
         if (!record || record.serial !== serial)
@@ -233,15 +266,13 @@ export class LevelGestureController {
         if (record.status === "complete") {
           if (record.outcome?.kind !== "applied")
             throw new Error(
-              record.outcome?.message || "后台未应用电平，已停止连续调整",
+              record.outcome?.message ||
+                `后台未应用${gesture.operation.label}，已停止连续调整`,
             );
-          if (
-            !current.pending &&
-            sourceLevel(current, gesture.source) === target
-          )
+          if (!current.pending && gesture.operation.value(current) === target)
             break;
         } else if (record.status !== "pending")
-          throw new Error("电平结果未知，已停止继续发送");
+          throw new Error(`${gesture.operation.label}结果未知，已停止继续发送`);
         await this.pause(gesture, deadline);
         current = this.check(
           gesture,

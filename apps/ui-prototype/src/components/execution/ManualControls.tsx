@@ -16,6 +16,7 @@ import {
 import { ManualFixturePicker } from "./ManualFixturePicker";
 import { ManualValueEditor } from "./ManualValueEditor";
 import { ManualReadings } from "./ManualReadings";
+import { ManualBrightnessControls } from "./ManualBrightnessControls";
 import { ManualSceneRecorder } from "./ManualSceneRecorder";
 import { SourceControls } from "./SourceControls";
 import "./manual-controls.css";
@@ -194,7 +195,9 @@ export function ManualControls({
               fixtures={fixtures}
               selected={selected}
               held={held}
-              disabled={!!draft || working}
+              disabled={
+                !!draft || working || !!submitted || !!live?.view.source
+              }
               onSelect={(ids) => {
                 setSelected(ids);
                 setAttribute("");
@@ -223,7 +226,9 @@ export function ManualControls({
                     <select
                       aria-label="手动共同属性"
                       value={attr.key}
-                      disabled={!!draft || working}
+                      disabled={
+                        !!draft || working || !!submitted || !!live?.view.source
+                      }
                       onChange={(e) => {
                         setAttribute(e.target.value);
                         setProblem("");
@@ -236,6 +241,18 @@ export function ManualControls({
                       ))}
                     </select>
                   </label>
+                  {live && attr.key === "dimmer" && !attr.function && (
+                    <ManualBrightnessControls
+                      runtime={runtime}
+                      source={source.id}
+                      selected={selected}
+                      live={live}
+                      disabled={disabled || working || !!submitted}
+                      active={active}
+                      observed={observed}
+                      pending={!!draft || levelDirty || working || !!submitted}
+                    />
+                  )}
                   <ManualValueEditor
                     attribute={attr}
                     draft={input}

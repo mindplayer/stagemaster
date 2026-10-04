@@ -4,6 +4,7 @@ import {
   idleLevelGesture,
 } from "../../execution-level-gesture";
 import type { ExecutionRequest, ExecutionStatus } from "../../execution-types";
+import type { ExecutionGestureTarget } from "../../execution-gesture-target";
 
 export function useLiveLevels(
   status: ExecutionStatus | null,
@@ -57,6 +58,8 @@ export function useLiveLevels(
     () => ({
       isBusy: () => controller.busy,
       begin: (source: string) => controller.begin(source),
+      beginTarget: (target: ExecutionGestureTarget) =>
+        controller.beginTarget(target),
       change: (source: string, value: number) =>
         controller.change(source, value),
       finish: (source: string) => controller.finish(source),

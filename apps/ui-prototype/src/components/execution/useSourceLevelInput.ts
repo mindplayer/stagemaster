@@ -27,7 +27,7 @@ export function useSourceLevelInput(
 ) {
   const range = useRef<HTMLInputElement>(null);
   const input = useRef<"pointer" | "keyboard" | "cancelled" | null>(null);
-  const dragging = live?.view.source === id && live.view.phase === "dragging";
+  const dragging = live?.view.key === id && live.view.phase === "dragging";
   const end = live?.finish;
   useEffect(() => {
     if (!dragging && input.current) input.current = "cancelled";

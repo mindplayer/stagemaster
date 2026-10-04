@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BackgroundExecution } from "../src/components/execution/BackgroundExecution";
 import { applicationHost } from "../src/hosts/application-host";
 import type { ApplicationHost } from "../src/application-host";
-import type { ExecutionRequest } from "../src/execution-types";
+import type { ExecutionRequest, ExecutionAction } from "../src/execution-types";
 import { stageProject } from "./stage-organization-fixture";
 import { levelFixture } from "./execution-level-fixture";
 import "../src/base.css";
@@ -20,16 +20,44 @@ let failed = false,
   rejected = false,
   delay = 300,
   serial = 0;
-let pending: { at: number; source: string; value: number } | null = null;
+let pending: { at: number; source: string; action: ExecutionAction } | null =
+  null;
 const host: ApplicationHost = {
   ...applicationHost,
   execution: async (request: ExecutionRequest) => {
     await new Promise((resolve) => setTimeout(resolve, 5));
     if (failed) throw new Error("测试连接中断");
     if (pending && performance.now() >= pending.at) {
-      if (!rejected)
-        state.sources.find((s) => s.id === pending!.source)!.level =
-          pending.value;
+      const source = state.sources.find((s) => s.id === pending!.source)!;
+      const action = pending.action;
+      if (!rejected && action.kind === "level") source.level = action.value;
+      if (!rejected && action.kind === "patch") {
+        for (const change of action.changes) {
+          const index = source.held!.findIndex(
+            (t) =>
+              t.fixtureId === change.fixtureId &&
+              t.attribute === change.attribute,
+          );
+          if (change.value.kind === "release") {
+            if (index >= 0) {
+              source.held!.splice(index, 1);
+              source.heldValues!.splice(index, 1);
+            }
+          } else if (change.value.kind === "normalized") {
+            if (index < 0) {
+              source.held!.push({
+                fixtureId: change.fixtureId,
+                attribute: change.attribute,
+              });
+              source.heldValues!.push(change.value.value);
+            } else source.heldValues![index] = change.value.value;
+          }
+        }
+      }
+      if (!rejected && action.kind === "stop") {
+        source.held = [];
+        source.heldValues = [];
+      }
       state.revision = String(BigInt(state.revision) + 1n);
       runtime.pending = false;
       runtime.record = {
@@ -37,14 +65,14 @@ const host: ApplicationHost = {
         status: "complete",
         outcome: {
           kind: rejected ? "rejected" : "applied",
-          message: rejected ? "测试拒绝本次电平" : null,
+          message: rejected ? "测试拒绝本次连续调整" : null,
         },
       };
       pending = null;
     }
     if (request.kind !== "snapshot")
       history.push({ at: Math.round(performance.now()), ...request });
-    if (request.kind === "apply" && request.action.kind === "level") {
+    if (request.kind === "apply") {
       if (
         pending ||
         !runtime.controlling ||
@@ -54,7 +82,7 @@ const host: ApplicationHost = {
       pending = {
         at: performance.now() + delay,
         source: request.source,
-        value: request.action.value,
+        action: request.action,
       };
       runtime.pending = true;
       runtime.record = {

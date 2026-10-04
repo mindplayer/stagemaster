@@ -27,7 +27,7 @@ export function SourceLevelControls({
   onAction(action: ExecutionAction): void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
-  const own = live?.view.source === id;
+  const own = live?.view.key === id;
   const input = useSourceLevelInput(
     id,
     draft === null && active && observed,
