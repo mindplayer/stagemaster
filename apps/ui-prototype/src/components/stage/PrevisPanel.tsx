@@ -185,7 +185,7 @@ export function PrevisPanel({
           {problem ||
             status?.problem ||
             (status?.connected
-              ? "三维已连接"
+              ? "预演数据已连接"
               : status?.enabled
                 ? "三维正在启动"
                 : "三维已关闭")}

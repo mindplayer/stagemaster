@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { overrideLogger } from '@epicgames-ps/lib-pixelstreamingcommon-ue5.8';
+import { overrideLogger, MessageHelpers, Messages } from '@epicgames-ps/lib-pixelstreamingcommon-ue5.8';
 import { SignallingServer, Logger } from '@epicgames-ps/lib-pixelstreamingsignalling-ue5.8';
 
 // Authentication wraps the upstream protocol; SDP, ICE and reconnect semantics stay upstream.
@@ -16,6 +16,38 @@ export function authorize(request, expected, role) {
   // Upstream diagnostics include request.url. Never allow credentials into them.
   request.url = '/';
   return valid;
+}
+
+function discoverLateRenderer(server) {
+  // This local single-renderer viewer queries once, then waits for readiness events.
+  // Only viewers that actually received an empty directory need a late notification.
+  const waiting = new Set();
+  server.playerRegistry.on('added', id => {
+    const player = server.playerRegistry.get(id);
+    player.protocol.on(Messages.listStreamers.typeName, () => {
+      if (!player.subscribedStreamer && !server.streamerRegistry.streamers.some(streamer => streamer.streaming))
+        waiting.add(id);
+      else waiting.delete(id);
+    });
+  });
+  server.playerRegistry.on('removed', id => waiting.delete(id));
+  const notify = () => {
+    const message = MessageHelpers.createMessage(Messages.streamerList, {
+      ids: server.streamerRegistry.streamers.filter(streamer => streamer.streaming)
+        .map(streamer => streamer.streamerId),
+    });
+    if (!message.ids.length) return;
+    for (const id of waiting) {
+      const player = server.playerRegistry.get(id);
+      waiting.delete(id);
+      // Publish once even before subscription acknowledgement; never disturb a live viewer.
+      if (player && !player.subscribedStreamer) player.sendMessage(message);
+    }
+  };
+  server.streamerRegistry.on('added', id => {
+    server.streamerRegistry.find(id)?.on('id_changed', notify);
+  });
+  server.streamerRegistry.on('removed', notify);
 }
 
 export async function start(rendererToken, viewerToken) {
@@ -35,7 +67,7 @@ export async function start(rendererToken, viewerToken) {
     maxPayload: 256 * 1024, perMessageDeflate: false,
     verifyClient: ({ req }) => authorize(req, role === 'renderer' ? rendererToken : viewerToken, role),
   });
-  new SignallingServer({
+  const server = new SignallingServer({
     streamerPort: 0,
     streamerWsOptions: { server: renderer, port: undefined, ...options('renderer') },
     httpServer: viewer,
@@ -45,6 +77,7 @@ export async function start(rendererToken, viewerToken) {
     peerOptions: { iceServers: [] },
     authorizeStreamerId: () => 'StageMaster',
   });
+  discoverLateRenderer(server);
   return { rendererPort, viewerPort };
 }
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {

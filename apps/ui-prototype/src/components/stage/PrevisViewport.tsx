@@ -13,6 +13,10 @@ import { PrevisSelectionTools } from "./PrevisSelectionTools";
 import { PrevisMoveTools } from "./PrevisMoveTools";
 import { resumeVisibleVideo } from "./resume-visible-video";
 import { observePrevisInputGeometry } from "./previs-input-geometry";
+import {
+  observePrevisConnection,
+  previsConnectionView,
+} from "./previs-connection";
 
 /** Video transport adapter only. The document and playback clock stay in Rust. */
 export function PrevisViewport({
@@ -33,8 +37,10 @@ export function PrevisViewport({
 } & PrevisInteractions) {
   const parent = useRef<HTMLDivElement>(null);
   const stream = useRef<PixelStreaming | null>(null);
-  const [message, setMessage] = useState("");
-  const [playing, setPlaying] = useState(false);
+  const [connection, setConnection] = useState(
+    previsConnectionView("disabled"),
+  );
+  const { message, playing, canPlay } = connection;
   const [viewState, setViewState] = useState({
     status: "",
     selection: "",
@@ -76,7 +82,7 @@ export function PrevisViewport({
   selectionScope.current.update(`${contextKey}:${selectionKey}`, true);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
-    setPlaying(false);
+    setConnection(previsConnectionView(url ? "connecting" : "disabled"));
     setViewState({
       status: "",
       selection: "",
@@ -91,7 +97,6 @@ export function PrevisViewport({
       vertical: false,
       tool: "horizontal" as PrevisTool,
     });
-    setMessage(url ? "正在连接三维画面…" : "");
     if (!url || !parent.current) return;
     let active = true;
     const container = parent.current;
@@ -120,7 +125,9 @@ export function PrevisViewport({
               [Flags.UseMic]: false,
               [Flags.UseCamera]: false,
               [Flags.SuppressBrowserKeys]: false,
-              [Flags.WaitForStreamer]: true,
+              // The local server publishes readiness after an empty directory. Upstream
+              // polling would otherwise resubscribe when its already-scheduled query returns.
+              [Flags.WaitForStreamer]: false,
               [Flags.MatchViewportResolution]: false,
               [NumericParameters.MaxReconnectAttempts]: 5,
             },
@@ -142,32 +149,15 @@ export function PrevisViewport({
               connection: () => connectionEpoch,
             }),
           );
-          const status = (text: string) => {
-            connectionEpoch++;
-            if (active) {
-              setPlaying(false);
-              setMessage(text);
-            }
-          };
-          player.addEventListener("playStream", () => {
-            if (active) {
-              setPlaying(true);
-              setMessage("");
-              if (!canMove.current)
+          const stopConnection = observePrevisConnection(
+            player,
+            (next) => {
+              if (!active) return;
+              setConnection(next);
+              if (next.playing && !canMove.current)
                 player.emitUIInteraction({ action: "inspect" });
-            }
-          });
-          player.addEventListener("webRtcDisconnected", () =>
-            status("三维画面已断开，可以重新连接"),
-          );
-          player.addEventListener("webRtcFailed", () =>
-            status("三维画面连接失败，可以重试"),
-          );
-          player.addEventListener("playStreamRejected", () =>
-            status("点击播放三维画面"),
-          );
-          player.addEventListener("playStreamError", () =>
-            status("三维画面暂时无法播放"),
+            },
+            () => connectionEpoch++,
           );
           // Official keyboard input listens to the document. Enable it only while the viewport owns focus.
           const focus = () => config.setFlagEnabled(Flags.KeyboardInput, true);
@@ -186,6 +176,7 @@ export function PrevisViewport({
           });
           player.connect();
           cleanup = () => {
+            stopConnection();
             stopGeometry();
             stopResume();
             container.removeEventListener("focusin", focus);
@@ -200,7 +191,7 @@ export function PrevisViewport({
         },
       )
       .catch(() => {
-        if (active) setMessage("三维视窗组件加载失败，请重新打开");
+        if (active) setConnection(previsConnectionView("loadError"));
       });
     return () => {
       active = false;
@@ -356,7 +347,11 @@ export function PrevisViewport({
             <p>{url ? message : "开启三维预演，查看当前工程的灯光与空间"}</p>
             {url && (
               <div>
-                <button onClick={() => stream.current?.play()}>播放画面</button>
+                {canPlay && (
+                  <button onClick={() => stream.current?.play()}>
+                    播放画面
+                  </button>
+                )}
                 <button onClick={() => setRetry((value) => value + 1)}>
                   重新连接
                 </button>
