@@ -6,6 +6,10 @@ import type {
 import type { ProfileDraft } from "./fixture-tools";
 import { FixtureFieldError, fixtureInteger } from "./fixture-field-error.ts";
 import { functionLabels, initialFunction } from "./fixture-function-types.ts";
+import {
+  programKey,
+  validateProgramDefinition,
+} from "./fixture-program-rules.ts";
 export type FunctionDraft = Omit<
   FunctionDefinition,
   "dmxFrom" | "dmxTo" | "dmxDefault"
@@ -122,7 +126,10 @@ export function functionDefinition(
     `${prefix}-default-position`,
     "默认区间位置",
   );
-  return { functions, defaultValue: { functionKey: chosen.key, position } };
+  const defaultValue = { functionKey: chosen.key, position };
+  if (c.attribute === programKey)
+    validateProgramDefinition(functions, defaultValue, i);
+  return { functions, defaultValue };
 }
 /** New fields start unassigned semantically: the user must name the function from their manual. */
 export function newFunction(from = 0): FunctionDraft {
@@ -162,6 +169,7 @@ export function addFunctionChannel(
 ): ProfileDraft {
   if (
     !(attribute in functionLabels) ||
+    attribute === programKey ||
     draft.channels.some((c) => c.attribute === attribute)
   )
     return draft;

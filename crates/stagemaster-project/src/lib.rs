@@ -69,6 +69,7 @@ mod encoding;
 mod fixture;
 mod fixture_axis_speed;
 mod fixture_optics;
+mod fixture_program;
 pub use fixture_optics::is_continuous_optics_attribute;
 mod fixture_appearance;
 mod fixture_exchange;

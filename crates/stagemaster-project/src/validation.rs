@@ -116,6 +116,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::audio_loops::CAPABILITY,
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
+            crate::fixture_program::CAPABILITY,
             crate::fixture_appearance::CAPABILITY,
             crate::sequence_script::CAPABILITY,
             "lighting.positioning",

@@ -22,6 +22,7 @@ export const functionLabels: Record<string, string> = {
   "gobo-wheel": "图案盘",
   shutter: "快门与频闪",
   prism: "棱镜",
+  "fixture-program": "内置程序",
 };
 export function initialFunction(f: FunctionDefinition): FunctionSelection {
   return {

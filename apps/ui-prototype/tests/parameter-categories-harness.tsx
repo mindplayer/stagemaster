@@ -63,8 +63,45 @@ const fixture: FixtureView = {
   domainName: "灯光",
   universe: 1,
   address: 1,
-  footprint: 12,
-  attributes,
+  footprint: 13,
+  attributes: [
+    ...attributes,
+    {
+      key: "fixture-program",
+      label: "内置程序",
+      defaultValue: 0,
+      function: {
+        fine: false,
+        default: { functionKey: "external", position: 0 },
+        functions: [
+          {
+            key: "external",
+            name: "外部通道控制",
+            mode: "slot",
+            dmxFrom: 0,
+            dmxTo: 59,
+            dmxDefault: 0,
+          },
+          {
+            key: "auto.3",
+            name: "自动 3（禁用资料）",
+            mode: "slot",
+            dmxFrom: 60,
+            dmxTo: 84,
+            dmxDefault: 60,
+          },
+          {
+            key: "sound.3",
+            name: "声控 3（禁用资料）",
+            mode: "slot",
+            dmxFrom: 160,
+            dmxTo: 184,
+            dmxDefault: 160,
+          },
+        ],
+      },
+    },
+  ],
 };
 function Harness() {
   const [width, setWidth] = useState(300);
@@ -190,7 +227,7 @@ function Harness() {
                     attributes:
                       selection === "dimmer"
                         ? attributes.filter((a) => a.key === "dimmer")
-                        : attributes,
+                        : fixture.attributes,
                   },
                 ]
           }

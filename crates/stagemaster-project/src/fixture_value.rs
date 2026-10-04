@@ -4,7 +4,14 @@ use serde_json::{Value, json};
 
 pub(super) const CAPABILITY: &str = "lighting.fixture-functions";
 pub(super) fn is_function_key(key: &str) -> bool {
-    ["color-wheel", "gobo-wheel", "shutter", "prism"].contains(&key)
+    [
+        "color-wheel",
+        "gobo-wheel",
+        "shutter",
+        "prism",
+        crate::fixture_program::KEY,
+    ]
+    .contains(&key)
 }
 pub(super) fn require(root: &mut Value) {
     if !array(root, "requires")
@@ -78,12 +85,19 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
         .ok_or("灯具属性没有通道映射")?;
     if attribute["valueType"]["kind"] == "function" {
         if !is_function_key(key) || attribute["mix"] != "ltp" {
-            return Err("功能属性仅支持色盘、图案盘、快门和棱镜，并采用后值优先".into());
+            return Err("功能属性必须为受支持类型，并采用后值优先".into());
         }
         let functions = functions(channel)?.ok_or("功能属性缺少区间定义")?;
         crate::fixture_appearance::validate_channel(key, &functions)?;
+        if key == crate::fixture_program::KEY {
+            crate::fixture_program::validate_functions(&functions)?;
+            crate::fixture_program::validate_selection(&selection(value)?)?;
+        }
         FunctionTable::new(&functions, channel["encoding"] == "u16-be")?.encode(&selection(value)?)
     } else {
+        if key == crate::fixture_program::KEY {
+            return Err("内置程序不能使用普通百分比".into());
+        }
         if channel.get("functions").is_some() {
             return Err("普通属性不能携带功能区间".into());
         }
@@ -99,6 +113,7 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
 /// Validate defaults and require an explicit capability even for unused profiles.
 pub(super) fn validate(root: &Value) -> Result<(), String> {
     crate::fixture_appearance::validate(root)?;
+    crate::fixture_program::validate(root)?;
     let mut present = false;
     for profile in array(&root["lighting"], "profiles") {
         for attribute in array(profile, "attributes") {

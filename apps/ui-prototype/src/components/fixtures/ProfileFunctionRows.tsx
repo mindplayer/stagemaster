@@ -7,6 +7,9 @@ export function ProfileFunctionRows({
   colorWheel,
   max,
   onChange,
+  fixedOnly = false,
+  preserveKey,
+  kindLabel,
 }: {
   functions: FunctionDraft[];
   prefix: string;
@@ -14,6 +17,9 @@ export function ProfileFunctionRows({
   colorWheel: boolean;
   max: number;
   onChange(functions: FunctionDraft[]): void;
+  fixedOnly?: boolean;
+  preserveKey?: string;
+  kindLabel?(key: string): string;
 }) {
   return (
     <div className="profile-function-rows">
@@ -25,6 +31,7 @@ export function ProfileFunctionRows({
           );
         return (
           <div className="profile-function-row" key={f.key}>
+            {kindLabel && <span>{kindLabel(f.key)}</span>}
             <label>
               功能名称
               <input
@@ -41,6 +48,7 @@ export function ProfileFunctionRows({
               控制方式
               <select
                 name={`${field}-mode`}
+                disabled={fixedOnly}
                 value={f.mode}
                 aria-label={`${channelLabel}功能 ${j + 1} 控制方式`}
                 onChange={(e) =>
@@ -48,7 +56,7 @@ export function ProfileFunctionRows({
                 }
               >
                 <option value="slot">固定档位</option>
-                <option value="range">区间调节</option>
+                {!fixedOnly && <option value="range">区间调节</option>}
               </select>
             </label>
             {(
@@ -76,6 +84,7 @@ export function ProfileFunctionRows({
             <button
               type="button"
               aria-label={`删除${channelLabel}功能 ${j + 1}`}
+              disabled={f.key === preserveKey}
               onClick={() => onChange(functions.filter((_, i) => i !== j))}
             >
               删除

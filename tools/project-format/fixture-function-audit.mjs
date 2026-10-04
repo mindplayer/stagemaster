@@ -1,6 +1,7 @@
 // Offline authoring-contract checks only. Runtime mapping belongs to Rust.
+import { auditFixtureProgram } from './fixture-program-audit.mjs';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
-const keys = new Set(['color-wheel', 'gobo-wheel', 'shutter', 'prism']);
+const keys = new Set(['color-wheel', 'gobo-wheel', 'shutter', 'prism', 'fixture-program']);
 export function auditFixtureFunctions(project) {
   const profiles = new Map((project.lighting?.profiles ?? []).map(p => [p.id, p]));
   const fixtures = new Map((project.lighting?.fixtures ?? []).map(f => [f.id, f]));
@@ -11,9 +12,12 @@ export function auditFixtureFunctions(project) {
     const channel = profile.channels.find(c => c.attribute === key);
     const f = channel?.functions?.find(f => f.key === value.functionKey);
     assert(value.kind === 'function' && f, '未知灯具功能或值类型错误');
+    if (key === 'fixture-program') assert(value.functionKey === 'external', '声控和内置自走档位已屏蔽，演出仅允许外部通道控制');
     assert(f.mode !== 'slot' || value.position === 0, '固定档位的位置必须为零');
   }
   for (const profile of profiles.values()) {
+    for (const a of profile.attributes) if (a.key === 'fixture-program')
+      auditFixtureProgram(project, a, profile.channels.find(c => c.attribute === a.key));
     for (const c of profile.channels) {
       const a = profile.attributes.find(a => a.key === c.attribute);
       if (a?.valueType.kind !== 'function') { assert(!c.functions, '线性属性不能带功能区间'); continue; }

@@ -3,6 +3,10 @@ import type { FixtureView, SceneView } from "../../application-host";
 import type { ParameterDraft } from "../../editor-tools";
 import { initialFunction } from "../../fixture-function-types";
 import { functionState } from "../../function-parameter-tools";
+import {
+  programKey,
+  programSelectionAllowed,
+} from "../../fixture-program-rules";
 export function FunctionParameter({
   attribute,
   fixtures,
@@ -27,6 +31,10 @@ export function FunctionParameter({
   const selection = pending?.function ?? state.selection;
   const mixed = state.mixed && draft === undefined;
   const chosen = spec.functions.find((f) => f.key === selection.functionKey);
+  const selectable =
+    attribute.key === programKey
+      ? spec.functions.filter((f) => programSelectionAllowed(f.key))
+      : spec.functions;
   const mode =
     typeof draft === "object" && "mode" in draft
       ? draft.mode
@@ -64,7 +72,7 @@ export function FunctionParameter({
         value={mixed ? "" : selection.functionKey}
         onKeyDown={escape}
         onChange={(e) => {
-          const f = spec.functions.find((f) => f.key === e.target.value);
+          const f = selectable.find((f) => f.key === e.target.value);
           if (f) put(attribute.key, { function: initialFunction(f) });
         }}
       >
@@ -73,12 +81,17 @@ export function FunctionParameter({
             混合功能
           </option>
         )}
-        {spec.functions.map((f) => (
+        {selectable.map((f) => (
           <option key={f.key} value={f.key}>
             {f.name}
           </option>
         ))}
       </select>
+      {attribute.key === programKey && (
+        <p className="wb-dim">
+          声控、内置自走等自主档位已屏蔽，不能用于编排或播放。仅允许外部通道控制；释放遵循下层／默认，不是复位或机械急停。
+        </p>
+      )}
       {attribute.key === "color-wheel" && (
         <WheelSlotChoices
           functions={spec.functions}

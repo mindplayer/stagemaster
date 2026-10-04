@@ -7,6 +7,7 @@ import {
 } from "../../fixture-function-draft";
 import type { ChannelDraft } from "../../fixture-function-draft";
 import { functionLabels } from "../../fixture-function-types";
+import { programKey } from "../../fixture-program";
 import { ProfileChannelFields } from "./ProfileChannelFields";
 import { ProfileFunctionRows } from "./ProfileFunctionRows";
 import "./profile-functions.css";
@@ -21,19 +22,22 @@ export function ProfileFunctionChannels({
     <section className="profile-functions" aria-label="灯具功能通道">
       <h3>功能通道</h3>
       <div className="profile-actions">
-        {Object.entries(functionLabels).map(([key, label]) => (
-          <button
-            type="button"
-            key={key}
-            disabled={value.channels.some((c) => c.attribute === key)}
-            onClick={() => setDraft(addFunctionChannel(value, key))}
-          >
-            添加{label}
-          </button>
-        ))}
+        {Object.entries(functionLabels)
+          .filter(([key]) => key !== programKey)
+          .map(([key, label]) => (
+            <button
+              type="button"
+              key={key}
+              disabled={value.channels.some((c) => c.attribute === key)}
+              onClick={() => setDraft(addFunctionChannel(value, key))}
+            >
+              添加{label}
+            </button>
+          ))}
       </div>
       {value.channels.map((c, i) => {
-        if (!(c.attribute in functionLabels)) return null;
+        if (!(c.attribute in functionLabels) || c.attribute === programKey)
+          return null;
         const label = functionLabels[c.attribute],
           prefix = `channel-${i}`,
           functions = c.functions ?? [];

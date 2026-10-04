@@ -5,6 +5,7 @@ export const presetAttributeScopes = [
   { id: "color", name: "仅颜色", keys: parameterCategoryKeys("color") },
   { id: "position", name: "仅位置", keys: ["pan", "tilt"] },
   { id: "axisSpeed", name: "仅两轴速度控制", keys: ["pan-tilt-speed"] },
+  { id: "program", name: "仅内置程序", keys: ["fixture-program"] },
   { id: "beam", name: "仅图案与棱镜", keys: parameterCategoryKeys("beam") },
   { id: "shutter", name: "仅快门与频闪", keys: ["shutter"] },
   { id: "optics", name: "仅镜头与光圈", keys: parameterCategoryKeys("optics") },

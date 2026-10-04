@@ -118,6 +118,12 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     for channel in &def.channels {
         crate::fixture_optics::validate(channel)?;
         crate::fixture_axis_speed::validate(channel)?;
+        if channel.attribute == crate::fixture_program::KEY {
+            crate::fixture_program::validate_functions(
+                channel.functions.as_deref().ok_or("内置程序缺少档位")?,
+            )?;
+            crate::fixture_program::validate_default(&channel.default_value)?;
+        }
         if crate::fixture_value::is_function_key(&channel.attribute) && channel.functions.is_none()
         {
             return Err(format!(
@@ -223,6 +229,7 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             definition,
         } => {
             crate::fixture_appearance::require(root, &definition);
+            crate::fixture_program::require(root, &definition);
             if definition.channels.iter().any(|c| c.functions.is_some()) {
                 crate::fixture_value::require(root);
             }

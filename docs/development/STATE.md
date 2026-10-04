@@ -1,10 +1,13 @@
 # 当前开发状态
 
-## 当前实施入口 2026-10-04
+## 当前实施入口 2026-10-05
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-- **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)实施中**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`。用户本轮明确屏蔽声控等影响演出的通道值，[ADR-159 顶部政策](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)覆盖原可选自动／声控方案：仅外部通道控制可输出，自主档位只保留禁用资料，正常编辑／预设／读入／编译统一拒绝。前期允许式测试保留历史，不冒作新规则交付；最终按禁止规则重跑。复位／未知混合宏仍不支持，用户 output/ 与来源保持，goal active。
+- **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)软件增量完成，自审通过**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`，用户屏蔽政策先提交 `ca11ff6`；结果为本次 `fix(fixtures): block autonomous fixture program selections` 提交。用户要求覆盖原允许式方案，[ADR-159 顶部](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)明确仅外部控制可执行，声控／自走只保留禁用资料。Rust 编辑／整批／预设／读入／编译、手动输出和手动记录统一拒绝，UI 仅外部菜单；未知复位／混合宏不开放。复用原功能／播放器／有界包，无新计时器或固件变更。
+- 本次最终实际 **1241 Rust＋2 文档、423 UI、210 格式检查**、UI／契约类型、严格 Clippy、Rust／相关 UI 格式、JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试实际调用。最初自主选择与手动绕过先失败后修复，失败／前期允许式历史证据保留，不冒作最终禁止验收。证据 `data/FIXTURE-010/verification.json`，日志 `logs/fixture-010-*`。
+- 最终正式包两灯仅外部选择、成组释放／一次历史、禁用资料／非法代表值定位、独立模式文件导出导入、原子两灯换模式及保存退出重开通过。禁止声控副本读入原子拒绝并保持当前安全工程；两独立九档模式、5 灯／7 属性与 external/0 保持。来源和默认最近目录哈希未改，用户 output/ 保持；拥有的验收窗口／组件页／Vite 关闭，音乐／UE／后台／设备未启用。
+- 接续 **H3 [FIXTURE-006](tasks/FIXTURE-006-real-fixture-intake.md)**：先核对独立发光单元等依赖，限定下一软件增量并记录契约／ADR；不把旧裸包／未确认厂家宏当作已经审查安全，不恢复声控／自走。完整实际 11／18CH、听音／GPU、物理差分／实灯／长期及客户无 UE 编辑器包未完成，完整 goal active。
 
 ## 上一增量记录：后台管理锁生命周期 2026-10-04
 

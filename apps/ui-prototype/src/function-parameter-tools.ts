@@ -1,5 +1,9 @@
 import type { FixtureView, SceneView } from "./application-host";
 import type { FunctionSelection } from "./fixture-function-types";
+import {
+  programKey,
+  programSelectionAllowed,
+} from "./fixture-program-rules.ts";
 export interface FunctionParameterDraft {
   function: FunctionSelection;
   percent?: string;
@@ -38,6 +42,11 @@ export function functionDraftValue(
   attribute: FixtureView["attributes"][number],
   draft: FunctionParameterDraft,
 ) {
+  if (
+    attribute.key === programKey &&
+    !programSelectionAllowed(draft.function.functionKey)
+  )
+    throw new Error("声控和内置自走档位已屏蔽，演出仅允许外部通道控制");
   const f = attribute.function?.functions.find(
     (f) => f.key === draft.function.functionKey,
   );

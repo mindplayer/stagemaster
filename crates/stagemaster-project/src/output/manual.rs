@@ -50,6 +50,9 @@ impl CompiledOutput {
             .map(|value| match (&binding.functions, value) {
                 (None, ProfileDefault::Normalized(value)) => Ok(*value),
                 (Some(functions), ProfileDefault::Function(selection)) => {
+                    if attribute == crate::fixture_program::KEY {
+                        crate::fixture_program::validate_selection(selection)?;
+                    }
                     FunctionTable::new(functions, binding.fine)?.encode(selection)
                 }
                 _ => Err("手动属性类型不匹配，功能通道必须明确选择功能".into()),
