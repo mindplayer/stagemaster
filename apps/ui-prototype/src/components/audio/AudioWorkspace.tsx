@@ -1,23 +1,27 @@
 import { useOrderedSelection } from "../selection/useOrderedSelection";
-import { useRevealItem, type RevealItem } from "../layout/useRevealItem";
+import {
+  useAudioWorkspaceHandle,
+  type AudioHandle,
+} from "./useAudioWorkspaceHandle";
 import { AudioClipGroupFadeInspector } from "./AudioClipGroupFadeInspector";
 import { groupFadeDraft } from "./clip-group-fade";
 import { clipMotionCommand } from "./clip-trim-tools";
 import { useClipSelection } from "./useClipSelection";
-import { clipsInRange } from "./clip-selection";
+import { useAudioLaneSelections } from "./useAudioLaneSelections";
+import { audioWorkspaceShortcuts } from "./audio-workspace-shortcuts";
 import { AudioResourceHeader } from "./AudioResourceHeader";
 import { PerformanceLoopList } from "./PerformanceLoopList";
 import { usePerformanceLoopActions } from "./usePerformanceLoopActions";
+import { usePerformanceLoopBatch } from "./usePerformanceLoopBatch";
 import { AudioClipLibrary } from "./AudioClipLibrary";
 import { useAudioClipActions } from "./useAudioClipActions";
 import { AudioWorkspaceTransport } from "./AudioWorkspaceTransport";
 import { DockPane } from "../layout/DockPane";
 import { AudioMarkerLibrary } from "./AudioMarkerBatch";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type {
   ApplicationHost,
   EditCommand,
-  EditOperation,
   ProjectView,
 } from "../../application-host";
 import type { AudioEdit, AudioMarker } from "../../audio-types";
@@ -30,11 +34,7 @@ import { AudioWaveform } from "./AudioWaveform";
 import type { useAudio } from "./useAudio";
 import { useMarkerActions } from "./useMarkerActions";
 import "./audio.css";
-export interface AudioHandle {
-  collect(): EditOperation[];
-  accept(): void;
-  reveal(kind: "clip" | "marker", id: string): boolean;
-}
+export type { AudioHandle } from "./useAudioWorkspaceHandle";
 export const AudioWorkspace = forwardRef<
   AudioHandle,
   {
@@ -68,7 +68,6 @@ export const AudioWorkspace = forwardRef<
   },
   ref,
 ) {
-  const [revealRequest, setRevealRequest] = useState<RevealItem | null>(null);
   const track = project.audio;
   const trackIdentity = track
     ? `${project.id}:${track.asset.digest}:${track.inMs}:${track.outMs}`
@@ -79,10 +78,12 @@ export const AudioWorkspace = forwardRef<
   const batch = !!trackIdentity && batchKey === `${trackIdentity}:markers`;
   const clipBatch =
     !!track?.lightingClips && batchKey === `${trackIdentity}:clips`;
+  const loopBatch = !!trackIdentity && batchKey === `${trackIdentity}:loops`;
   useEffect(() => setBatchKey(""), [trackIdentity]);
   const [selected, setSelected] = useState("");
   const clipSelection = useClipSelection(trackIdentity, track?.lightingClips);
   const markerSelection = useOrderedSelection(trackIdentity, track?.markers);
+  const loopSelection = useOrderedSelection(trackIdentity, track?.loopRegions);
   const [query, setQuery] = useState("");
   const [problem, setProblem] = useState("");
   const { draft, form, change, cancel, collect } = useAudioWorkspaceDraft(
@@ -119,31 +120,61 @@ export const AudioWorkspace = forwardRef<
     onProblem: setProblem,
   });
   const loops = usePerformanceLoopActions({
-    track, identity: trackIdentity, selected, visible, position: audio.position.positionMs,
-    beforeChange, edit, onDraft: change,
-    onSelect: (id) => { setSelected(id); setBatchKey(""); }, onProblem: setProblem,
-  });
-  const blocked = busy || audio.preparing || markerActions.acting || loops.acting;
-  const revealRoot = useRevealItem(revealRequest, visible, blocked);
-  useImperativeHandle(ref, () => ({
-    collect,
-    accept: cancel,
-    reveal(kind, id) {
-      const items = kind === "clip" ? track?.lightingClips : track?.markers;
-      if (!items?.some((item) => item.id === id)) return false;
-      cancel();
+    track,
+    identity: trackIdentity,
+    selected,
+    visible,
+    position: audio.position.positionMs,
+    contextKey: `${loopBatch}:${loopSelection.ids.join("|")}`,
+    beforeChange,
+    edit,
+    onDraft: change,
+    onSelect: (id) => {
       setSelected(id);
       setBatchKey("");
-      setQuery("");
-      setRevealRequest((previous) => ({
-        id,
-        serial: (previous?.serial ?? 0) + 1,
-      }));
-      return true;
     },
-  }));
+    onProblem: setProblem,
+  });
+  const loopGroup = usePerformanceLoopBatch({
+    track,
+    identity: trackIdentity,
+    visible,
+    active: loopBatch,
+    selection: loopSelection,
+    execute: loops.execute,
+  });
+  const blocked =
+    busy || audio.preparing || markerActions.acting || loops.acting;
+  const { revealRequest, root: revealRoot } = useAudioWorkspaceHandle(ref, {
+    track,
+    visible,
+    blocked,
+    collect,
+    cancel,
+    select: setSelected,
+    clearBatch: () => setBatchKey(""),
+    clearQuery: () => setQuery(""),
+  });
+  const lanes = useAudioLaneSelections({
+    track,
+    identity: trackIdentity,
+    selected,
+    markerBatch: batch,
+    clipBatch,
+    loopBatch,
+    markerPending: markerGroupPending,
+    clipPending: clipGroupPending,
+    markers: markerSelection,
+    clips: clipSelection,
+    loops: loopSelection,
+    loopActions: loops,
+    loopGroup,
+    setBatchKey,
+    setMarkerBatch,
+    edit,
+  });
   function setMarkerBatch(value: boolean) {
-    if (markerGroupPending || clipGroupPending) return;
+    if (markerGroupPending || clipGroupPending || loopGroup.pending) return;
     if (value && !markerSelection.ids.length)
       markerSelection.replace([selected]);
     setBatchKey(value ? `${trackIdentity}:markers` : "");
@@ -152,6 +183,7 @@ export const AudioWorkspace = forwardRef<
     return onEdit({ op: "audio", command });
   }
   async function choose(id: string) {
+    if (loopGroup.pending) return;
     if (await beforeChange()) {
       setSelected(id);
       setBatchKey("");
@@ -159,7 +191,7 @@ export const AudioWorkspace = forwardRef<
     }
   }
   async function addMarker() {
-    if (!track || blocked) return;
+    if (!track || blocked || loopGroup.pending) return;
     if (!(await beforeChange())) return;
     try {
       const state = await host.audio(generation(), { kind: "snapshot" });
@@ -204,32 +236,20 @@ export const AudioWorkspace = forwardRef<
     >
       <div
         className="audio-shell"
-        onKeyDown={(e) => {
-          if (
-            e.target instanceof HTMLElement &&
-            e.target.closest(
-              "input,select,textarea,button,[contenteditable=true]",
-            )
-          )
-            return;
-          if (blocked || removeMusic || e.repeat) return;
-          if (e.code === "Space") {
-            e.preventDefault();
+        onKeyDown={audioWorkspaceShortcuts({
+          blocked: blocked || removeMusic,
+          playPause: () =>
             void audio.command({
               kind: audio.position.playing ? "pause" : "play",
-            });
-          }
-          if (e.key.toLowerCase() === "m" && !e.metaKey && !e.ctrlKey) {
-            e.preventDefault();
-            void addMarker();
-          }
-        }}
+            }),
+          addMarker: () => void addMarker(),
+        })}
       >
         <DockPane region="library" visible={visible}>
           <section ref={revealRoot} className="audio-resources">
             <AudioResourceHeader
               track={track}
-              blocked={blocked}
+              blocked={blocked || loopGroup.pending}
               host={host}
               choose={choose}
               locate={() => void audio.prepare("locate")}
@@ -288,7 +308,7 @@ export const AudioWorkspace = forwardRef<
                 track={track}
                 scenes={project.scenes}
                 selected={selected}
-                busy={blocked || markerGroupPending}
+                busy={blocked || markerGroupPending || loopGroup.pending}
                 onSelect={choose}
                 onSeek={seek}
                 onAdd={() => void clips.add()}
@@ -303,6 +323,18 @@ export const AudioWorkspace = forwardRef<
                 busy={blocked || markerGroupPending || clipGroupPending}
                 onSelect={(id) => void choose(id)}
                 onAdd={() => void loops.add()}
+                group={{
+                  active: loopBatch,
+                  visible,
+                  selection: loopSelection,
+                  actions: loopGroup,
+                  onMode: () =>
+                    void loops.mode(() => {
+                      if (!loopBatch && !loopSelection.ids.length)
+                        loopSelection.replace([selected]);
+                      setBatchKey(loopBatch ? "" : `${trackIdentity}:loops`);
+                    }),
+                }}
               />
             )}
             {track && (
@@ -311,7 +343,9 @@ export const AudioWorkspace = forwardRef<
                 batch={batch}
                 onBatch={setMarkerBatch}
                 selectionState={markerSelection}
-                pending={markerGroupPending || clipGroupPending}
+                pending={
+                  markerGroupPending || clipGroupPending || loopGroup.pending
+                }
                 onPending={setMarkerGroupPending}
                 workspaceVisible={visible}
                 onEdit={edit}
@@ -343,7 +377,7 @@ export const AudioWorkspace = forwardRef<
                   session={audio}
                   blocked={blocked}
                   shared={sharedTransport}
-                  selected={batch || clipBatch ? "" : selected}
+                  selected={batch || clipBatch || loopBatch ? "" : selected}
                   addMarker={addMarker}
                 />
                 <AudioWaveform
@@ -354,8 +388,8 @@ export const AudioWorkspace = forwardRef<
                   waveform={audio.waveform}
                   sample={audio.playingSample}
                   requestedPosition={audio.requestedPosition}
-                  selected={batch || clipBatch ? "" : selected}
-                  disabled={blocked || !!draft || !visible}
+                  selected={batch || clipBatch || loopBatch ? "" : selected}
+                  disabled={blocked || !!draft || !visible || loopGroup.pending}
                   onSeek={seek}
                   onSelect={(id) => {
                     setSelected(id);
@@ -363,45 +397,7 @@ export const AudioWorkspace = forwardRef<
                     cancel();
                   }}
                   onMove={moveMarker}
-                  markerSelection={{
-                    active: batch,
-                    ids: markerSelection.ids,
-                    blocked: markerGroupPending || clipGroupPending,
-                    onMode: () => setMarkerBatch(!batch),
-                    onPick: (id, range) =>
-                      markerSelection.toggle(id, track.markers, range),
-                    onClear: () => markerSelection.replace([]),
-                  }}
-                  clipSelection={{
-                    active: clipBatch,
-                    movementBlocked: clipGroupPending
-                      ? "请先应用或取消右侧目标输入／删除确认"
-                      : "",
-                    ids: clipSelection.ids,
-                    onMode: () => {
-                      if (!clipBatch && !clipSelection.ids.length)
-                        clipSelection.replace([selected]);
-                      setBatchKey(clipBatch ? "" : `${trackIdentity}:clips`);
-                    },
-                    onPick: (id, range) =>
-                      clipSelection.toggle(
-                        id,
-                        track.lightingClips ?? [],
-                        range,
-                      ),
-                    onRange: (start, end, append) =>
-                      clipSelection.replace([
-                        ...(append ? clipSelection.ids : []),
-                        ...clipsInRange(track.lightingClips ?? [], start, end),
-                      ]),
-                    onClear: () => clipSelection.replace([]),
-                    onMove: (ids, destinationMs) =>
-                      void edit({
-                        kind: "editLightingClips",
-                        ids,
-                        action: { kind: "move", destinationMs },
-                      }),
-                  }}
+                  {...lanes}
                   onClipMove={(clip, mode) =>
                     void edit(clipMotionCommand(clip, mode))
                   }
@@ -410,7 +406,10 @@ export const AudioWorkspace = forwardRef<
             )}
           </section>
         </DockPane>
-        <DockPane region="inspector" visible={visible && !batch && !clipBatch}>
+        <DockPane
+          region="inspector"
+          visible={visible && !batch && !clipBatch && !loopBatch}
+        >
           {track ? (
             <AudioInspector
               loopActions={loops}

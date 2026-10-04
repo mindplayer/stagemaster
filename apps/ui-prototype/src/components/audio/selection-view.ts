@@ -10,7 +10,19 @@ export function selectionViewRange(
   selected: string,
   group?: { active: boolean; ids: string[] },
   markers?: { active: boolean; ids: string[] },
+  loops?: { active: boolean; ids: string[] },
 ): SelectionViewRange | null {
+  if (loops?.active) {
+    const chosen = new Set(loops.ids),
+      items = (track.loopRegions ?? []).filter((r) => chosen.has(r.id));
+    return items.length
+      ? {
+          startMs: items[0].startMs,
+          endMs: items.at(-1)!.endMs,
+          label: `${items.length} 个循环区段`,
+        }
+      : null;
+  }
   if (markers?.active) {
     const chosen = new Set(markers.ids);
     const items = track.markers.filter((m) => chosen.has(m.id));
@@ -33,6 +45,9 @@ export function selectionViewRange(
       label: `${clips.length} 个灯光片段`,
     };
   }
+  const loop = track.loopRegions?.find((r) => r.id === selected);
+  if (loop)
+    return { startMs: loop.startMs, endMs: loop.endMs, label: loop.name };
   const clip = track.lightingClips?.find((c) => c.id === selected);
   if (clip)
     return { startMs: clip.startMs, endMs: clip.endMs, label: clip.name };

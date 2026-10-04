@@ -51,7 +51,7 @@ export function newPerformanceLoop(track: AudioTimeline, position: number): Perf
 export function loopPlaysLabel(plays: AudioLoopPlays) {
   return plays.kind === "untilExit" ? "持续循环" : `共播放 ${plays.count} 次`;
 }
-function sameRegion(a: AudioLoopRegion, b: AudioLoopRegion) {
+export function sameLoopRegion(a: AudioLoopRegion, b: AudioLoopRegion) {
   return (
     a.id === b.id && a.name === b.name &&
     a.startMs === b.startMs && a.endMs === b.endMs &&
@@ -69,7 +69,7 @@ export function collectPerformanceLoop(draft: PerformanceLoopDraft, track: Audio
     );
     if (draft.original && !source) throw new Error("循环区段已删除，请重新选择");
     if (source?.locked) throw new Error("循环区段已锁定，请先取消输入并解锁");
-    if (source && draft.original && !sameRegion(source, draft.original))
+    if (source && draft.original && !sameLoopRegion(source, draft.original))
       throw new Error("循环区段已变化，请取消输入后重新编辑");
     if (!draft.name.trim()) throw new Error("循环区段名称不能为空");
     if (!source && (track.loopRegions?.length ?? 0) >= 128)

@@ -1,6 +1,8 @@
 import type { MarkerLaneSelection } from "./marker-selection";
 import type { ClipLaneSelection } from "./clip-selection";
 import { AudioClipLane } from "./AudioClipLane";
+import { PerformanceLoopLane } from "./PerformanceLoopLane";
+import type { LoopLaneSelection } from "./loop-lane-selection";
 import type { SceneView } from "../../application-host";
 import { AudioLightingLane } from "./AudioLightingLane";
 import { useWaveMarkerDrag } from "./useWaveMarkerDrag";
@@ -27,6 +29,7 @@ export function WaveformMarkers({
   onClipMove,
   clipSelection,
   markerSelection,
+  loopSelection,
   onSeek,
   onSelect,
   onZoom,
@@ -45,6 +48,7 @@ export function WaveformMarkers({
   onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
   markerSelection?: MarkerLaneSelection;
+  loopSelection?: LoopLaneSelection;
   onSeek(time: number): void;
   onSelect(id: string): void;
   onZoom(factor: number, x: number): void;
@@ -103,6 +107,7 @@ export function WaveformMarkers({
       ref={surface}
       className="audio-wave-interaction"
       data-lighting={!!scenes}
+      data-loops={!!track.loopRegions?.length && !!loopSelection}
       tabIndex={0}
       aria-label="音乐波形：点击定位，左右键微调，Esc 取消拖动"
       onKeyDown={(e) => {
@@ -137,7 +142,11 @@ export function WaveformMarkers({
       }}
       onPointerMove={(e) => {
         gesture.move(e);
-        if ((e.target as HTMLElement).closest(".audio-lighting-lane")) {
+        if (
+          (e.target as HTMLElement).closest(
+            ".audio-lighting-lane,.performance-loop-lane",
+          )
+        ) {
           setHover(null);
           return;
         }
@@ -214,6 +223,20 @@ export function WaveformMarkers({
           </button>
         );
       })}
+      {!!track.loopRegions?.length && loopSelection && (
+        <PerformanceLoopLane
+          track={track}
+          viewport={viewport}
+          selection={loopSelection}
+          selected={selected}
+          disabled={disabled || !!group || !!clipSelection?.active}
+          snap={snap}
+          lighting={!!scenes}
+          onSelect={onSelect}
+          onSeek={onSeek}
+          onPan={onPan}
+        />
+      )}
       {scenes && track.lightingClips && onClipMove ? (
         <AudioClipLane
           onPan={onPan}
@@ -222,7 +245,7 @@ export function WaveformMarkers({
           scenes={scenes}
           viewport={viewport}
           selected={selected}
-          disabled={disabled || !!group}
+          disabled={disabled || !!group || !!loopSelection?.active}
           snap={snap}
           cursor={laneCursor}
           onSelect={onSelect}
@@ -247,7 +270,7 @@ export function WaveformMarkers({
             scenes={scenes}
             viewport={viewport}
             selected={selected}
-            disabled={disabled || !!group}
+            disabled={disabled || !!group || !!loopSelection?.active}
             cursor={laneCursor}
             onSelect={onSelect}
             onSeek={onSeek}

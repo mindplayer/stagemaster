@@ -2,6 +2,7 @@ import type { MarkerLaneSelection } from "./marker-selection";
 import { WaveformToolbar } from "./WaveformToolbar";
 import { selectionViewRange } from "./selection-view";
 import type { ClipLaneSelection } from "./clip-selection";
+import type { LoopLaneSelection } from "./loop-lane-selection";
 import type { SceneView } from "../../application-host";
 import { useMemo, useState, type RefObject } from "react";
 import type {
@@ -33,6 +34,7 @@ export function AudioWaveform({
   onClipMove,
   clipSelection,
   markerSelection,
+  loopSelection,
 }: {
   track: AudioTimeline;
   scenes?: SceneView[];
@@ -49,6 +51,7 @@ export function AudioWaveform({
   onClipMove?(clip: AudioLightingClip, mode: "move" | "start" | "end"): void;
   clipSelection?: ClipLaneSelection;
   markerSelection?: MarkerLaneSelection;
+  loopSelection?: LoopLaneSelection;
 }) {
   const duration = track.outMs - track.inMs;
   const prepared = useMemo(() => {
@@ -85,6 +88,7 @@ export function AudioWaveform({
     selected,
     clipSelection,
     markerSelection,
+    loopSelection,
   );
   const canFit = !blocked && wave.ready && !!range;
   function fitSelected() {
@@ -138,7 +142,7 @@ export function AudioWaveform({
         fitTitle={
           range
             ? `显示“${range.label}”的完整范围，保持播放位置（⌘E / Ctrl+E）`
-            : "先选择灯光片段或卡点"
+            : "先选择循环区段、灯光片段或卡点"
         }
         onFollow={(value) => {
           setFollow(value);
@@ -157,7 +161,13 @@ export function AudioWaveform({
       )}
       <div
         className="audio-wave-body"
-        style={{ minHeight: 28 + channels * channelHeight + (scenes ? 98 : 0) }}
+        style={{
+          minHeight:
+            28 +
+            channels * channelHeight +
+            (scenes ? 98 : 0) +
+            (track.loopRegions?.length && loopSelection ? 76 : 0),
+        }}
       >
         <div ref={wave.ruler} className="audio-wave-ruler" aria-hidden="true" />
         <div
@@ -190,6 +200,7 @@ export function AudioWaveform({
         <WaveformMarkers
           clipSelection={clipSelection}
           markerSelection={markerSelection}
+          loopSelection={loopSelection}
           track={track}
           scenes={scenes}
           laneCursor={wave.laneCursor}

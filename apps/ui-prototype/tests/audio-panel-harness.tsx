@@ -44,12 +44,28 @@ const track: AudioTimeline = {
       sceneId: "chase",
     },
   ],
-  loopRegions: new URLSearchParams(location.search).has("loops") ? [
-    { id: "hold", name: "对话等待", startMs: 2000, endMs: 4000,
-      plays: { kind: "untilExit" }, enabled: true, locked: false },
-    { id: "repeat", name: "返场三遍", startMs: 8000, endMs: 10000,
-      plays: { kind: "count", count: 3 }, enabled: false, locked: false },
-  ] : [],
+  loopRegions: new URLSearchParams(location.search).has("loops")
+    ? [
+        {
+          id: "hold",
+          name: "对话等待",
+          startMs: 2000,
+          endMs: 4000,
+          plays: { kind: "untilExit" },
+          enabled: true,
+          locked: false,
+        },
+        {
+          id: "repeat",
+          name: "返场三遍",
+          startMs: 8000,
+          endMs: 10000,
+          plays: { kind: "count", count: 3 },
+          enabled: false,
+          locked: false,
+        },
+      ]
+    : [],
 };
 let position: AudioPosition = {
   volumePercent: 100,
@@ -163,31 +179,71 @@ function Harness() {
           next.audio.outMs = a.outMs;
         }
         if (a.kind === "loopRegions") {
-          const list = next.audio.loopRegions ??= [];
+          const list = (next.audio.loopRegions ??= []);
           const command = a.command;
-          if (command.kind === "add") list.push({
-            id: crypto.randomUUID(),
-            name: command.name,
-            startMs: command.startMs,
-            endMs: command.endMs,
-            plays: command.plays,
-            enabled: true,
-            locked: false,
-          });
+          if (command.kind === "add")
+            list.push({
+              id: crypto.randomUUID(),
+              name: command.name,
+              startMs: command.startMs,
+              endMs: command.endMs,
+              plays: command.plays,
+              enabled: true,
+              locked: false,
+            });
           if (command.kind === "put") {
             const index = list.findIndex((r) => r.id === command.region.id);
             list[index] = command.region;
           }
           if (command.kind === "edit") {
             const action = command.action;
+            const source = list.filter((r) => command.ids.includes(r.id));
+            if (source.length !== command.ids.length)
+              throw new Error("区段选择已变化");
+            if (
+              source.some((r) => r.locked) &&
+              action.kind !== "copy" &&
+              action.kind !== "locked"
+            )
+              throw new Error("区段已锁定，整组未修改");
+            if (action.kind === "move" || action.kind === "copy") {
+              const delta = action.destinationMs - source[0].startMs;
+              for (const r of source) {
+                if (action.kind === "copy")
+                  list.push({
+                    ...r,
+                    id: crypto.randomUUID(),
+                    locked: false,
+                    startMs: r.startMs + delta,
+                    endMs: r.endMs + delta,
+                  });
+                else {
+                  r.startMs += delta;
+                  r.endMs += delta;
+                }
+              }
+            }
             for (const id of command.ids) {
               const index = list.findIndex((r) => r.id === id);
               if (action.kind === "remove") list.splice(index, 1);
               if (action.kind === "locked") list[index].locked = action.locked;
-              if (action.kind === "enabled") list[index].enabled = action.enabled;
+              if (action.kind === "enabled")
+                list[index].enabled = action.enabled;
+              if (action.kind === "plays") list[index].plays = action.plays;
             }
           }
           list.sort((a, b) => a.startMs - b.startMs);
+          if (
+            list.length > 128 ||
+            list.some(
+              (r, i) =>
+                r.startMs < 0 ||
+                r.endMs <= r.startMs ||
+                r.endMs > next.audio!.outMs - next.audio!.inMs ||
+                (i > 0 && list[i - 1].endMs > r.startMs),
+            )
+          )
+            throw new Error("区段组目标越界或与现有区段重叠，整组未修改");
         }
       }
     }
@@ -204,7 +260,9 @@ function Harness() {
       if (delay.current) {
         delay.current = false;
         setWaiting(true);
-        await new Promise<void>((resolve) => { release.current = resolve; });
+        await new Promise<void>((resolve) => {
+          release.current = resolve;
+        });
         setWaiting(false);
         release.current = null;
       }
@@ -235,9 +293,19 @@ function Harness() {
           撤销验收操作
         </button>
         <button onClick={() => setVisible(!visible)}>隐藏／显示工作区</button>
-        <button onClick={() => { delay.current = true; }}>延迟下一次操作</button>
-        <button disabled={!waiting} onClick={() => release.current?.()}>释放延迟操作</button>
-        <output aria-label="验收历史">历史 {history.length} · 区段 {project.audio?.loopRegions?.length ?? 0}</output>
+        <button
+          onClick={() => {
+            delay.current = true;
+          }}
+        >
+          延迟下一次操作
+        </button>
+        <button disabled={!waiting} onClick={() => release.current?.()}>
+          释放延迟操作
+        </button>
+        <output aria-label="验收历史">
+          历史 {history.length} · 区段 {project.audio?.loopRegions?.length ?? 0}
+        </output>
       </header>
       {error && <p role="alert">{error}</p>}
       <PerformanceLayout

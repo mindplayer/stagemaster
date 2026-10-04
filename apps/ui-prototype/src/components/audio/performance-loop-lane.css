@@ -1,0 +1,135 @@
+.performance-loop-lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 76px;
+  background: #132420;
+  border-top: 1px solid #456057;
+  cursor: default;
+}
+.performance-loop-lane > header {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px;
+  font-size: 10px;
+  color: var(--wb-muted);
+}
+.performance-loop-lane > header strong {
+  color: #c5decb;
+  font-size: 11px;
+}
+.performance-loop-lane > header button {
+  min-height: 20px;
+  padding: 1px 5px;
+  margin-left: auto;
+  font-size: 10px;
+}
+.performance-loop-track {
+  position: relative;
+  height: 48px;
+  overflow: hidden;
+  touch-action: none;
+}
+.performance-loop-block {
+  position: absolute;
+  inset-block: 0;
+  border: 1px solid #658877;
+  border-radius: 4px;
+  background: #234535;
+  overflow: hidden;
+}
+.performance-loop-block.selected {
+  border-color: #f2d290;
+  background: #385241;
+}
+.performance-loop-block.inactive {
+  opacity: 0.65;
+  background: repeating-linear-gradient(
+    135deg,
+    #23352d,
+    #23352d 6px,
+    #1b2923 6px,
+    #1b2923 12px
+  );
+}
+.performance-loop-block.locked {
+  border-style: dashed;
+}
+.performance-loop-block.invalid {
+  border-color: #f68c89;
+  background: #653131;
+}
+.workbench .performance-loop-grip {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 3px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+.performance-loop-grip strong,
+.performance-loop-grip small {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.performance-loop-grip strong {
+  font-size: 11px;
+}
+.performance-loop-grip small {
+  font-size: 10px;
+  color: #a6c9b4;
+}
+.workbench .performance-loop-boundary {
+  position: absolute;
+  inset-block: 0;
+  width: 8px;
+  min-width: 8px;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: #96b7a455;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.performance-loop-boundary.start {
+  left: 0;
+}
+.performance-loop-boundary.end {
+  right: 0;
+}
+.performance-loop-motion-error {
+  position: absolute;
+  left: 8px;
+  bottom: 4px;
+  padding: 3px;
+  background: #451f22;
+  color: #ffd4d4;
+  pointer-events: none;
+}
+.audio-wave-interaction[data-loops="true"] .audio-wave-marker {
+  bottom: 76px;
+}
+.audio-wave-interaction[data-loops="true"][data-lighting="true"]
+  .audio-wave-marker {
+  bottom: 160px;
+}
+.audio-wave-interaction[data-loops="true"] .audio-wave-tooltip {
+  bottom: 80px;
+}
+.audio-wave-interaction[data-loops="true"][data-lighting="true"]
+  .audio-wave-tooltip {
+  bottom: 164px;
+}
