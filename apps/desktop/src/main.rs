@@ -59,6 +59,10 @@ enum Request {
         generation: u32,
         token: String,
     },
+    MergeManualScene {
+        generation: u32,
+        token: String,
+    },
     RecordManualScene {
         generation: u32,
         token: String,
@@ -164,6 +168,12 @@ fn dispatch(
                 .state::<effect_template::Service>()
                 .take(generation, &token)?;
             session.apply_effect_template(generation, review)?;
+        }
+        Request::MergeManualScene { generation, token } => {
+            app.state::<manual_capture::Service>()
+                .apply_merge(generation, &token, |merge| {
+                    session.merge_manual_scene(generation, merge)
+                })?;
         }
         Request::RecordManualScene {
             generation,

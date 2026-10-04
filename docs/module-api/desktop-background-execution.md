@@ -84,7 +84,22 @@ ApplicationHost.project({ kind: "recordManualScene", generation, token, name })
 
 捕获器读取后台固定工程，核对布局摘要；共享 Rust `Document::capture_manual_scene` 生成不可变 `ManualSceneCapture`，最大 512 项。记录绑定工程 ID、所涉灯具／档案语义／校准／配适，允许不影响这些内容的其他场景或名称变化。功能原始值不能精确反解时拒绝，不猜测。
 
-宿主只存一个 5 分钟的随机票据；前端仅审阅冻结值，确认不提交自构造数值。捕获后现场继续变化不改变记录；取消、隐藏、换工程与旧异步回复清理各自票据。失败可改名重试，成功消费票据，经原工程队列和历史一次创建稀疏场景，可撤销重做与保存重开。录入不清除手动层、不停止后台，不新增设备或工程文件格式。当前仅新建，完整输出录入／合并更新既有场景另行定义。
+宿主只存一个 5 分钟的随机票据；前端仅审阅冻结值，确认不提交自构造数值。捕获后现场继续变化不改变记录；取消、隐藏、换工程与旧异步回复清理各自票据。失败可改名重试，成功消费票据，经原工程队列和历史一次创建稀疏场景，可撤销重做与保存重开。录入不清除手动层、不停止后台，不新增设备或工程文件格式。完整输出录入仍未实现；既有场景合并见下节。
+
+## 手动值合并既有场景
+
+[EXEC-011](../development/tasks/EXEC-011-manual-scene-merge.md)／[ADR-155](../development/decisions/PRODUCT-ADR-155-manual-scene-merge.md)：采集前明确选择目标，新建与合并使用互不通用的票据。
+
+```text
+ApplicationHost.manualCapture({
+  kind: "capture", generation, hostId, source, selected, sceneId
+}) -> { generation, token, readings, fixtures, merge }
+ApplicationHost.project({ kind: "mergeManualScene", generation, token })
+```
+
+Rust `Document::prepare_manual_scene_merge` 冻结目标及新增／替换／相同、原值／预设、保留效果审阅；`merge_manual_scene` 仅替换对应灯具属性，未提及项、场景身份、效果及使用位置保持。被替换的预设引用变为独立值，不改共享预设；启用的动态效果继续存在，审阅须说明它仍可能控制输出。UI 的使用位置导航复用现有工程引用读取。
+
+提交重新核对工程语义、目标场景和审阅所依赖的预设内容，失败原子保留票据以便处理，目标变化须重新采集。成功消费票据，一次撤销／重做；完全相同不产生历史或修订。已有后台继续运行载入时的不可变版本，合并不隐式重新载入或改变手动层。取消返回采集按钮焦点、保留选择，搜索不丢失已选目标。
 
 ## 连续亮度电平
 

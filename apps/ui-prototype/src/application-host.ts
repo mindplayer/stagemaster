@@ -133,6 +133,7 @@ export type ProjectRequest =
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
   | { kind: "applyEffectTemplate"; generation: number; token: string }
+  | { kind: "mergeManualScene"; generation: number; token: string }
   | {
       kind: "recordManualScene";
       generation: number;

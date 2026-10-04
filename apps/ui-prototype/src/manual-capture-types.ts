@@ -7,6 +7,7 @@ export interface ManualCapture {
   revision: string;
   readings: { fixtureId: string; attribute: string; value: number }[];
   fixtures: ManualFixture[];
+  merge?: ManualMergeSummary | null;
 }
 export type ManualCapturePort = (
   request:
@@ -16,6 +17,7 @@ export type ManualCapturePort = (
         hostId: string;
         source: string;
         selected: string[] | null;
+        sceneId?: string | null;
       }
     | { kind: "cancel"; token: string },
 ) => Promise<ManualCapture | null>;
@@ -26,4 +28,24 @@ export interface ManualRecordingContext {
   busy: boolean;
   beforeCapture(): Promise<number | null>;
   onRecord(generation: number, token: string, name: string): Promise<void>;
+  onMerge(generation: number, token: string, changed: boolean): Promise<void>;
+}
+
+export interface ManualMergeSummary {
+  sceneId: string;
+  sceneName: string;
+  added: number;
+  replaced: number;
+  unchanged: number;
+  preserved: number;
+  effects: number;
+  rows: {
+    fixtureId: string;
+    attribute: string;
+    change: "added" | "replaced" | "unchanged";
+    previousMode: string;
+    previousValue: number | null;
+    previousPreset: string | null;
+    effectNames: string[];
+  }[];
 }

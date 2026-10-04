@@ -9,6 +9,10 @@ export function ManualCaptureValues({ capture }: { capture: ManualCapture }) {
     const a = f?.attributes.find((a) => a.key === r.attribute);
     return {
       ...r,
+      change: capture.merge?.rows.find(
+        (m) => m.fixtureId === r.fixtureId && m.attribute === r.attribute,
+      ),
+      attributeDefinition: a,
       fixture: f?.name ?? r.fixtureId,
       label: a?.label ?? r.attribute,
       reading: a ? manualReading(a, r.value)?.label : undefined,
@@ -46,6 +50,35 @@ export function ManualCaptureValues({ capture }: { capture: ManualCapture }) {
             <span>
               <b>{r.reading ?? "数值无法显示"}</b>
               <small>原始值 {r.value}</small>
+              {r.change && (
+                <>
+                  <small>
+                    {
+                      { added: "新增", replaced: "更新", unchanged: "相同" }[
+                        r.change.change
+                      ]
+                    }{" "}
+                    · 原：
+                    {r.change.previousMode === "absent"
+                      ? "未记录"
+                      : r.change.previousMode === "release"
+                        ? "释放"
+                        : r.change.previousValue !== null &&
+                            r.attributeDefinition
+                          ? (manualReading(
+                              r.attributeDefinition,
+                              r.change.previousValue,
+                            )?.label ?? "数值无法显示")
+                          : "数值无法显示"}
+                  </small>
+                  {r.change.previousPreset && (
+                    <small>脱离预设：{r.change.previousPreset}</small>
+                  )}
+                  {r.change.effectNames.length > 0 && (
+                    <small>保留效果：{r.change.effectNames.join("、")}</small>
+                  )}
+                </>
+              )}
             </span>
           </li>
         ))}

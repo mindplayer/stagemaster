@@ -5,7 +5,8 @@ import type {
   ManualRecordingContext,
 } from "../../manual-capture-types";
 import { uniqueName } from "../../editor-tools";
-import { ManualCaptureValues } from "./ManualCaptureValues";
+import { ManualSceneReview } from "./ManualSceneReview";
+import { ManualSceneDestination } from "./ManualSceneDestination";
 import "./manual-scene-recorder.css";
 
 export function ManualSceneRecorder({
@@ -27,11 +28,19 @@ export function ManualSceneRecorder({
 }) {
   const [capture, setCapture] = useState<ManualCapture | null>(null);
   const [scope, setScope] = useState<"all" | "selected">("all");
+  const [mode, setMode] = useState<"new" | "merge">("new");
+  const [sceneId, setSceneId] = useState("");
   const [name, setName] = useState("");
   const [problem, setProblem] = useState("");
   const [notice, setNotice] = useState("");
   const [working, setWorking] = useState(false);
   const requestId = useRef(0);
+  const collectButton = useRef<HTMLButtonElement>(null);
+  const hadReview = useRef(false);
+  useEffect(() => {
+    if (!capture && hadReview.current && active) collectButton.current?.focus();
+    hadReview.current = !!capture;
+  }, [capture, active]);
   const ticket = useRef<ManualCapture | null>(null);
   const current = useRef({ context, runtime, active });
   current.current = { context, runtime, active };
@@ -54,7 +63,8 @@ export function ManualSceneRecorder({
     runtime.pending ||
     working ||
     context.busy ||
-    !count;
+    !count ||
+    (mode === "merge" && !context.project.scenes.some((s) => s.id === sceneId));
   function discard() {
     requestId.current++;
     const old = ticket.current;
@@ -103,6 +113,7 @@ export function ManualSceneRecorder({
         hostId,
         source: source.id,
         selected: scope === "all" ? null : [...selected],
+        sceneId: mode === "merge" ? sceneId : null,
       });
       if (!result) throw Error("后台未返回手动记录");
       if (
@@ -133,14 +144,18 @@ export function ManualSceneRecorder({
     if (!capture || working || context.busy || !active) return;
     const trimmed = name.trim();
     if (
-      !trimmed ||
-      [...trimmed].length > 256 ||
-      /[\u0000-\u001f\u007f]/.test(trimmed)
+      !capture.merge &&
+      (!trimmed ||
+        [...trimmed].length > 256 ||
+        /[\u0000-\u001f\u007f]/.test(trimmed))
     ) {
       setProblem("场景名称需要 1–256 个有效字符");
       return;
     }
-    if (context.project.scenes.some((s) => s.name === trimmed)) {
+    if (
+      !capture.merge &&
+      context.project.scenes.some((s) => s.name === trimmed)
+    ) {
       setProblem("已有同名场景，请换一个名称");
       return;
     }
@@ -148,12 +163,24 @@ export function ManualSceneRecorder({
     setWorking(true);
     setProblem("");
     try {
-      await context.onRecord(capture.generation, capture.token, trimmed);
+      if (capture.merge)
+        await context.onMerge(
+          capture.generation,
+          capture.token,
+          capture.merge.added + capture.merge.replaced > 0,
+        );
+      else await context.onRecord(capture.generation, capture.token, trimmed);
       // A successful project update advances generation and clears the review independently.
       ticket.current = null;
       setCapture(null);
       setProblem("");
-      setNotice(`已录入“${trimmed}”，手动层保持，可撤销恢复。`);
+      setNotice(
+        capture.merge
+          ? capture.merge.added + capture.merge.replaced > 0
+            ? `已合并到“${capture.merge.sceneName}”，后台运行版本保持，可撤销恢复。`
+            : "记录值相同，场景未修改。"
+          : `已录入“${trimmed}”，手动层保持，可撤销恢复。`,
+      );
     } catch (e) {
       if (id === requestId.current)
         setProblem(e instanceof Error ? e.message : String(e));
@@ -164,70 +191,61 @@ export function ManualSceneRecorder({
   return (
     <section className="manual-scene-recorder" aria-label="录入手动场景">
       {!capture ? (
-        <div className="execution-buttons">
-          <label>
-            录入范围
-            <select
-              aria-label="手动录入范围"
-              disabled={working}
-              value={scope}
-              onChange={(e) => setScope(e.target.value as typeof scope)}
-            >
-              <option value="all">全部持有属性</option>
-              <option value="selected">所选灯具的持有属性</option>
-            </select>
-          </label>
-          <button disabled={disabled} onClick={() => void collect()}>
-            {working ? "正在采集" : `录入新场景（${count} 项）`}
-          </button>
-        </div>
-      ) : (
-        <div className="manual-scene-review" aria-label="确认录入场景">
-          <strong>
-            录入新场景 · {capture.fixtures.length} 台灯／
-            {capture.readings.length} 项属性
-          </strong>
-          <p>
-            已冻结“{capture.sourceName}
-            ”的电平前设定值。现场继续变化不会改变本次记录。
-          </p>
-          <label>
-            场景名称
-            <input
-              aria-label="录入场景名称"
-              value={name}
-              disabled={working}
-              onChange={(e) => {
-                setName(e.target.value);
-                setProblem("");
-              }}
-            />
-          </label>
-          <ManualCaptureValues capture={capture} />
+        <div className="manual-scene-setup">
+          <ManualSceneDestination
+            mode={mode}
+            sceneId={sceneId}
+            scenes={context.project.scenes}
+            disabled={working}
+            onMode={setMode}
+            onScene={setSceneId}
+          />
           <div className="execution-buttons">
+            <label>
+              录入范围
+              <select
+                aria-label="手动录入范围"
+                disabled={working}
+                value={scope}
+                onChange={(e) => setScope(e.target.value as typeof scope)}
+              >
+                <option value="all">全部持有属性</option>
+                <option value="selected">所选灯具的持有属性</option>
+              </select>
+            </label>
             <button
-              className="wb-primary"
-              disabled={
-                working ||
-                context.busy ||
-                !active ||
-                context.generation !== capture.generation
-              }
-              onClick={() => void record()}
+              ref={collectButton}
+              disabled={disabled}
+              onClick={() => void collect()}
             >
-              确认录入
-            </button>
-            <button
-              disabled={working}
-              onClick={() => {
-                discard();
-                setProblem("");
-              }}
-            >
-              取消录入
+              {working
+                ? "正在采集"
+                : `${mode === "merge" ? "审阅合并" : "录入新场景"}（${count} 项）`}
             </button>
           </div>
         </div>
+      ) : (
+        <ManualSceneReview
+          capture={capture}
+          project={context.project}
+          name={name}
+          working={working}
+          disabled={
+            working ||
+            context.busy ||
+            !active ||
+            context.generation !== capture.generation
+          }
+          onName={(value) => {
+            setName(value);
+            setProblem("");
+          }}
+          onConfirm={() => void record()}
+          onCancel={() => {
+            discard();
+            setProblem("");
+          }}
+        />
       )}
       {pending && !capture && (
         <p>有未应用输入，请先应用或取消，再录入实际手动值。</p>

@@ -36,7 +36,11 @@ mod live_output;
 mod live_player;
 mod live_scene;
 mod manual_scene;
+mod manual_scene_merge;
 pub use manual_scene::{ManualSceneCapture, ManualSceneReading};
+pub use manual_scene_merge::{
+    ManualMergeChange, ManualMergeRow, ManualMergeSummary, ManualSceneMerge,
+};
 mod live_sequence;
 pub use live_output::LiveOutput;
 pub use live_player::LiveScenePlayer;

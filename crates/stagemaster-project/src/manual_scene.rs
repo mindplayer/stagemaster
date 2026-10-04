@@ -21,6 +21,9 @@ pub struct ManualSceneCapture {
     assignments: Vec<Value>,
 }
 impl ManualSceneCapture {
+    pub(crate) fn assignments(&self) -> &[Value] {
+        &self.assignments
+    }
     #[must_use]
     pub fn readings(&self) -> &[ManualSceneReading] {
         &self.readings

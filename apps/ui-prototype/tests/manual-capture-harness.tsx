@@ -43,6 +43,26 @@ const port: ManualCapturePort = async (request) => {
     sourceName: "手动层",
     revision: "4",
     readings,
+    merge: request.sceneId
+      ? {
+          sceneId: request.sceneId,
+          sceneName: "已有呼吸场景",
+          added: 0,
+          replaced: readings.length,
+          unchanged: 0,
+          preserved: 8,
+          effects: 1,
+          rows: readings.map((r, i) => ({
+            fixtureId: r.fixtureId,
+            attribute: r.attribute,
+            change: "replaced",
+            previousMode: i === 0 ? "preset" : "literal",
+            previousValue: i === 0 ? 65535 : 0,
+            previousPreset: i === 0 ? "共享亮度" : null,
+            effectNames: i === 0 ? ["呼吸"] : [],
+          })),
+        }
+      : null,
     fixtures: runtime.catalog.fixtures!.filter((f) =>
       readings.some((r) => r.fixtureId === f.id),
     ),
@@ -55,6 +75,9 @@ function Harness() {
   const [project, setProject] = useState(() => ({
     ...stageProject(),
     id: runtime.catalog.projectId,
+    scenes: [
+      { id: "merge-scene", name: "已有呼吸场景", values: [], effects: [] },
+    ],
   }));
   const [generation, setGeneration] = useState(1);
   const [active, setActive] = useState(true);
@@ -152,6 +175,14 @@ function Harness() {
             generation,
             busy: false,
             beforeCapture: async () => generation,
+            onMerge: async (g, t) => {
+              if (reject) throw Error("测试：工程容量不足，记录保留");
+              if (g !== generation || ticket?.token !== t || !ticket.merge)
+                throw Error("测试：记录过期");
+              setRecorded(structuredClone(ticket));
+              ticket = null;
+              setGeneration(generation + 1);
+            },
             onRecord: async (g, t, name) => {
               if (reject) throw Error("测试：工程容量不足，记录保留");
               if (g !== generation || ticket?.token !== t)

@@ -23,3 +23,16 @@
 .manual-scene-review p {
   margin: 0;
 }
+.manual-scene-destination {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.manual-merge-usages {
+  max-height: 180px;
+  overflow: auto;
+}
+.manual-scene-review .execution-manual-readings li {
+  align-items: start;
+}

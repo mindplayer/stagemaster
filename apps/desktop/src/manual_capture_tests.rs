@@ -55,7 +55,7 @@ fn tickets_are_exact_expiring_retryable_and_consumed_only_on_success() {
     let (mut document, collected) = setup();
     let capture = collected.capture.clone();
     let original = document.clone();
-    let first = service.prepare(1, collected).unwrap();
+    let first = service.prepare(1, collected, None).unwrap();
     assert!(
         service
             .apply(2, &first.token, |_| panic!("wrong generation"))
@@ -90,6 +90,7 @@ fn tickets_are_exact_expiring_retryable_and_consumed_only_on_success() {
                 source_name: "手动".into(),
                 revision: "5".into(),
             },
+            None,
         )
         .unwrap();
     service.cancel(&first.token).unwrap();
@@ -112,12 +113,55 @@ fn tickets_are_exact_expiring_retryable_and_consumed_only_on_success() {
                 source_name: "手动".into(),
                 revision: "5".into(),
             },
+            None,
         )
         .unwrap();
     service.cancel(&third.token).unwrap();
     assert!(
         service
             .apply(2, &third.token, |_| panic!("cancelled"))
+            .is_err()
+    );
+}
+
+#[test]
+fn merge_ticket_cannot_be_used_for_new_scene_or_retargeted() {
+    let service = Service::default();
+    let (mut document, collected) = setup();
+    let id = document.view().scenes[0].id.clone();
+    let merge = document
+        .prepare_manual_scene_merge(&collected.capture, &id)
+        .unwrap();
+    let ticket = service.prepare(3, collected, Some(merge)).unwrap();
+    assert_eq!(ticket.merge.as_ref().unwrap().scene_id, id);
+    assert!(
+        service
+            .apply(3, &ticket.token, |_| panic!("wrong action"))
+            .is_err()
+    );
+    assert!(
+        service
+            .apply_merge(2, &ticket.token, |_| panic!("wrong generation"))
+            .is_err()
+    );
+    assert!(
+        service
+            .apply_merge(3, &ticket.token, |_| Err("temporary failure".into()))
+            .is_err()
+    );
+    service
+        .apply_merge(3, &ticket.token, |m| document.merge_manual_scene(m))
+        .unwrap();
+    assert!(
+        service
+            .apply_merge(3, &ticket.token, |_| panic!("replayed"))
+            .is_err()
+    );
+    let (_, collected) = setup();
+    let ticket = service.prepare(4, collected, None).unwrap();
+    assert!(
+        service
+            .apply_merge(4, &ticket.token, |_| panic!("wrong action"))
             .is_err()
     );
 }
