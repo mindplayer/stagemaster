@@ -28,6 +28,7 @@ fn valid_key(key: &str) -> bool {
             .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 fn linear_set(mut keys: Vec<&str>) -> bool {
+    keys.retain(|key| !["shutter", "color-wheel", "gobo-wheel"].contains(key));
     keys.sort_unstable();
     [
         vec!["dimmer"],
@@ -117,7 +118,16 @@ pub(super) fn validate_definition(definition: &ProfileDefinition) -> Result<(), 
             .collect::<Vec<_>>(),
     )?;
     for channel in &definition.channels {
-        if channel.attribute.starts_with("emitter.")
+        if crate::fixture_emitter_function::supported(&channel.attribute) {
+            let functions = channel
+                .functions
+                .as_deref()
+                .ok_or("独立光源功能需要区间定义")?;
+            crate::fixture_emitter_function::validate_channel(&channel.attribute, functions)?;
+            if !matches!(channel.default_value, crate::ProfileDefault::Function(_)) {
+                return Err("独立光源功能需要明确功能选择，不能使用普通百分比".into());
+            }
+        } else if channel.attribute.starts_with("emitter.")
             && (channel.functions.is_some()
                 || !matches!(channel.default_value, crate::ProfileDefault::Normalized(_)))
         {
@@ -129,6 +139,7 @@ pub(super) fn validate_definition(definition: &ProfileDefinition) -> Result<(), 
     Ok(())
 }
 pub(super) fn require(root: &mut Value, definition: &ProfileDefinition) {
+    crate::fixture_emitter_function::require(root, definition);
     if definition.emitters.is_some()
         && !array(root, "requires")
             .iter()
@@ -141,6 +152,7 @@ pub(super) fn require(root: &mut Value, definition: &ProfileDefinition) {
     }
 }
 pub(super) fn validate(root: &Value) -> Result<(), String> {
+    crate::fixture_emitter_function::validate(root)?;
     let declared = array(root, "requires")
         .iter()
         .any(|r| r["key"] == CAPABILITY && r["version"] == 1);
@@ -179,7 +191,11 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
                 .iter()
                 .find(|c| c["attribute"] == key)
                 .ok_or("光源属性缺少通道")?;
-            if attribute["valueType"]["kind"] != "normalized"
+            if crate::fixture_emitter_function::supported(key) {
+                if attribute["valueType"]["kind"] != "function" || attribute["mix"] != "ltp" {
+                    return Err("独立光源功能需要功能值并采用后值优先".into());
+                }
+            } else if attribute["valueType"]["kind"] != "normalized"
                 || channel.get("functions").is_some()
                 || attribute["mix"] != if base(key) == "dimmer" { "htp" } else { "ltp" }
             {

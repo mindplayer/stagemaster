@@ -1,4 +1,9 @@
 import { checkedAppearance } from "./wheel-appearance.ts";
+import { isEmitterFunction } from "./fixture-emitter-keys.ts";
+import {
+  newControlledFunction,
+  validateEmitterFunctions,
+} from "./fixture-emitter-functions.ts";
 import type {
   FunctionDefinition,
   FunctionSelection,
@@ -127,6 +132,7 @@ export function functionDefinition(
     "默认区间位置",
   );
   const defaultValue = { functionKey: chosen.key, position };
+  validateEmitterFunctions(c.attribute, functions, prefix);
   if (c.attribute === programKey)
     validateProgramDefinition(functions, defaultValue, i);
   return { functions, defaultValue };
@@ -168,13 +174,15 @@ export function addFunctionChannel(
   attribute: string,
 ): ProfileDraft {
   if (
-    !(attribute in functionLabels) ||
+    (!(attribute in functionLabels) && !isEmitterFunction(attribute)) ||
     attribute === programKey ||
     draft.channels.some((c) => c.attribute === attribute)
   )
     return draft;
   const coarse = nextChannel(draft),
-    first = newFunction();
+    first = isEmitterFunction(attribute)
+      ? newControlledFunction(attribute, "open")
+      : newFunction();
   return {
     ...draft,
     footprint: String(Math.max(Number(draft.footprint) || 0, coarse)),

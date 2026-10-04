@@ -1,4 +1,5 @@
 import { FixtureFieldError } from "./fixture-field-error.ts";
+import { attributeBase } from "./fixture-emitter-keys.ts";
 export type WheelAppearance =
   { kind: "open" } | { kind: "color"; colors: string[] };
 export const validWheelColor = (color: string) =>
@@ -10,7 +11,7 @@ export function checkedAppearance(
   field: string,
 ): WheelAppearance | undefined {
   if (!value) return undefined;
-  if (attribute !== "color-wheel" || mode !== "slot")
+  if (attributeBase(attribute) !== "color-wheel" || mode !== "slot")
     throw new FixtureFieldError(
       `${field}-mode`,
       "外观只能用于色盘固定档位，请先清除标记",

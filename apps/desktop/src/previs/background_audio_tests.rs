@@ -69,7 +69,7 @@ async fn audio_only_background_projects_use_the_same_readonly_stage_and_lighting
         .unwrap();
     let end = Instant::now() + Duration::from_secs(5);
     loop {
-        let view = controller.refresh().await.unwrap();
+        let view = observed(&mut controller, end).await;
         if view.observation.snapshot.unwrap().state.media[0]
             .control
             .as_ref()

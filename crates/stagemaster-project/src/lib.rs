@@ -68,6 +68,7 @@ mod effects;
 mod encoding;
 mod fixture;
 mod fixture_emitter;
+mod fixture_emitter_function;
 pub use fixture_emitter::EmitterDefinition;
 mod fixture_axis_speed;
 mod fixture_optics;

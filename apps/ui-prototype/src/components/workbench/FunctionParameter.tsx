@@ -92,7 +92,7 @@ export function FunctionParameter({
           声控、内置自走等自主档位已屏蔽，不能用于编排或播放。仅允许外部通道控制；释放遵循下层／默认，不是复位或机械急停。
         </p>
       )}
-      {attribute.key === "color-wheel" && (
+      {attributeBase(attribute.key) === "color-wheel" && (
         <WheelSlotChoices
           functions={spec.functions}
           selected={mixed ? undefined : selection.functionKey}
@@ -158,3 +158,4 @@ export function FunctionParameter({
     </div>
   );
 }
+import { attributeBase } from "../../fixture-emitter-keys";

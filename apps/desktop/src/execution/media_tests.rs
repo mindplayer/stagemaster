@@ -47,7 +47,7 @@ pub(super) fn music(root: &Path) -> (Document, AudioInput) {
 pub(super) async fn operation(manager: &mut Manager, action: MediaAction) -> View {
     let view = connected(manager).await.runtime.unwrap();
     let state = view.observation.snapshot.unwrap().state;
-    manager
+    let submitted = manager
         .apply_media(
             &view.host_id,
             &state.revision,
@@ -55,22 +55,21 @@ pub(super) async fn operation(manager: &mut Manager, action: MediaAction) -> Vie
             &state.media[0].generation,
             action,
         )
-        .await
-        .unwrap();
+        .await;
+    if let Err(error) = submitted {
+        assert_eq!(error, "后台请求未成功（503），请核对连接与原回执");
+        // send() may already have admitted the command before its final read is busy.
+        // Do not submit again: the loop must resolve that same receipt and applied request.
+    }
+    let serial = manager.status().runtime.unwrap().record.unwrap().serial;
     let end = Instant::now() + Duration::from_secs(6);
     loop {
         let view = connected(manager).await.runtime.unwrap();
-        let requested = view
-            .record
-            .as_ref()
-            .unwrap()
-            .outcome
-            .as_ref()
-            .unwrap()
-            .state
-            .as_ref()
-            .unwrap()
-            .media[0]
+        let receipt = view.record.as_ref().unwrap();
+        assert_eq!(receipt.serial, serial);
+        let outcome = receipt.outcome.as_ref().unwrap();
+        assert_eq!(outcome.kind, "accepted", "{outcome:?}");
+        let requested = outcome.state.as_ref().unwrap().media[0]
             .control
             .as_ref()
             .unwrap();

@@ -17,12 +17,40 @@ impl Drop for Process {
 async fn settled(client: &mut Client) -> View {
     let end = Instant::now() + Duration::from_secs(5);
     loop {
-        let view = client.refresh().await.unwrap();
+        let view = observed(client, end).await;
         if !view.pending {
             return view;
         }
         assert!(Instant::now() < end);
         tokio::time::sleep(Duration::from_millis(10)).await;
+    }
+}
+fn transient_observation(error: &str, before_deadline: bool) -> bool {
+    before_deadline && error == "后台请求未成功（503），请核对连接与原回执"
+}
+async fn observed(client: &mut Client, end: Instant) -> View {
+    loop {
+        match client.refresh().await {
+            Ok(view) => return view,
+            Err(error) if transient_observation(&error, Instant::now() < end) => {
+                // Only repeat this read-only observation, not any control command.
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+            Err(error) => panic!("{error}"),
+        }
+    }
+}
+#[test]
+fn observation_wait_is_bounded_and_only_accepts_explicit_busy() {
+    let busy = "后台请求未成功（503），请核对连接与原回执";
+    assert!(transient_observation(busy, true));
+    assert!(!transient_observation(busy, false));
+    for error in [
+        "后台请求未成功（409），请核对连接与原回执",
+        "后台连接未响应；已发送操作须核对原回执",
+        "后台响应格式无效",
+    ] {
+        assert!(!transient_observation(error, true));
     }
 }
 async fn launch(document: &Document, root: &std::path::Path) -> (Process, PathBuf) {

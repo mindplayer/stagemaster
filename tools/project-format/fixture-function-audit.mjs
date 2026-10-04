@@ -1,5 +1,6 @@
 // Offline authoring-contract checks only. Runtime mapping belongs to Rust.
 import { auditFixtureProgram } from './fixture-program-audit.mjs';
+import { auditEmitterFunction, baseAttribute, isEmitterFunction } from './fixture-emitter-function-audit.mjs';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const keys = new Set(['color-wheel', 'gobo-wheel', 'shutter', 'prism', 'fixture-program']);
 export function auditFixtureFunctions(project) {
@@ -21,13 +22,14 @@ export function auditFixtureFunctions(project) {
     for (const c of profile.channels) {
       const a = profile.attributes.find(a => a.key === c.attribute);
       if (a?.valueType.kind !== 'function') { assert(!c.functions, '线性属性不能带功能区间'); continue; }
-      assert(declared && keys.has(a.key) && a.mix === 'ltp', '功能属性需要支持的种类、LTP 和能力声明');
+      assert(declared && (keys.has(a.key)||isEmitterFunction(a.key)) && a.mix === 'ltp', '功能属性需要支持的种类、LTP 和能力声明');
+      auditEmitterFunction(project,a,c);
       assert(c.functions?.length > 0, '功能通道缺少区间');
       const maximum = c.encoding === 'u8' ? 255 : 65535, seen = new Set();
       c.functions.forEach((f, i) => {
         if (f.appearance) {
           assert(project.requires.some(c => c.key === 'lighting.fixture-wheel-appearance' && c.version === 1), '色盘外观缺少能力声明');
-          assert(c.attribute === 'color-wheel' && f.mode === 'slot', '外观只能用于色盘固定档位');
+          assert(baseAttribute(c.attribute) === 'color-wheel' && f.mode === 'slot', '外观只能用于色盘固定档位');
         }
         assert(!seen.has(f.key), '功能标识重复'); seen.add(f.key);
         assert(f.name.trim().length > 0 && !/[\u0000-\u001f\u007f]/.test(f.name), '功能名称无效');

@@ -157,3 +157,4 @@ test("空、重复、过期选择拒绝；替换必须保留相同属性集合",
   p.channels.pop();
   assert.equal(compatibleProfile(project.fixtures, p), false);
 });
+import "./fixture-emitter-functions.test.ts";

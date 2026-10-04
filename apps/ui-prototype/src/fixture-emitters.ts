@@ -1,6 +1,15 @@
 import type { ProfileDraft } from "./fixture-tools";
 import { nextChannel } from "./fixture-function-draft.ts";
 import { FixtureFieldError } from "./fixture-field-error.ts";
+import {
+  attributeBase,
+  isEmitterFunction,
+  splitEmitterAttribute,
+} from "./fixture-emitter-keys.ts";
+export {
+  attributeBase,
+  splitEmitterAttribute,
+} from "./fixture-emitter-keys.ts";
 
 export const emitterFamilies = [
   { id: "dimmer", name: "独立调光", keys: ["dimmer"] },
@@ -17,16 +26,13 @@ export const emitterFamilies = [
     keys: ["dimmer", "red", "green", "blue", "white"],
   },
 ] as const;
-export function splitEmitterAttribute(key: string) {
-  const match = /^emitter\.([a-z][a-z0-9-]{0,31})\.([a-z-]+)$/.exec(key);
-  return match ? { owner: match[1], attribute: match[2] } : null;
-}
-export function attributeBase(key: string) {
-  return splitEmitterAttribute(key)?.attribute ?? key;
-}
 export function emitterFamily(draft: ProfileDraft, owner: string) {
   const keys = draft.channels
-    .filter((c) => splitEmitterAttribute(c.attribute)?.owner === owner)
+    .filter(
+      (c) =>
+        splitEmitterAttribute(c.attribute)?.owner === owner &&
+        !isEmitterFunction(c.attribute),
+    )
     .map((c) => attributeBase(c.attribute))
     .sort()
     .join(",");
@@ -67,10 +73,14 @@ export function validateEmitters(draft: ProfileDraft) {
   });
   for (const c of scoped) {
     const split = splitEmitterAttribute(c.attribute);
-    if (!split || !keys.has(split.owner) || c.functions)
+    if (
+      !split ||
+      !keys.has(split.owner) ||
+      (c.functions && !isEmitterFunction(c.attribute))
+    )
       throw new FixtureFieldError(
         "emitter-add",
-        "光源归属无效；不支持单元功能、声控、自走或复位宏",
+        "光源归属无效；声控、自走或复位宏不可用",
       );
   }
   if (
@@ -94,6 +104,7 @@ export function withEmitterFamily(
   const channels = draft.channels.filter(
     (c) =>
       splitEmitterAttribute(c.attribute)?.owner !== owner ||
+      isEmitterFunction(c.attribute) ||
       keys.includes(c.attribute),
   );
   for (const attribute of keys)

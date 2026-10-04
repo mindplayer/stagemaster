@@ -33,7 +33,9 @@ pub(super) fn validate_channel(
 ) -> Result<(), String> {
     for function in functions {
         if let Some(appearance) = &function.appearance {
-            if attribute != "color-wheel" || function.mode != FunctionMode::Slot {
+            if crate::fixture_emitter::base(attribute) != "color-wheel"
+                || function.mode != FunctionMode::Slot
+            {
                 return Err(format!("“{}”的外观只能用于色盘固定档位", function.name));
             }
             appearance.validate()?;

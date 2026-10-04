@@ -104,6 +104,11 @@ fn supported(root: &Value) -> Result<(), String> {
             return Err(format!("当前版本尚不支持此工程中的 {key} 模块，工程未打开"));
         }
     }
+    let capabilities = supported_capabilities(root)?;
+    required_capabilities(root, &capabilities)
+}
+
+fn supported_capabilities(root: &Value) -> Result<BTreeSet<&str>, String> {
     let mut capabilities = BTreeSet::new();
     for capability in array(root, "requires") {
         if ![
@@ -119,6 +124,7 @@ fn supported(root: &Value) -> Result<(), String> {
             crate::fixture_value::CAPABILITY,
             crate::fixture_program::CAPABILITY,
             crate::fixture_emitter::CAPABILITY,
+            crate::fixture_emitter_function::CAPABILITY,
             crate::fixture_appearance::CAPABILITY,
             crate::sequence_script::CAPABILITY,
             "lighting.positioning",
@@ -148,6 +154,10 @@ fn supported(root: &Value) -> Result<(), String> {
             return Err("工程能力声明重复".into());
         }
     }
+    Ok(capabilities)
+}
+
+fn required_capabilities(root: &Value, capabilities: &BTreeSet<&str>) -> Result<(), String> {
     if root.get("lighting").is_some() && !capabilities.contains("lighting.basic") {
         return Err("灯光工程缺少灯光能力声明".into());
     }

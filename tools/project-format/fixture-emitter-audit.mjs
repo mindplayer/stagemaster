@@ -1,4 +1,5 @@
 // Offline contract checks only; no lighting evaluator or runtime authority.
+import { auditEmitterFunction, isEmitterFunction } from './fixture-emitter-function-audit.mjs';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const families = new Set(['dimmer','blue,green,red','blue,green,red,white','blue,dimmer,green,red','blue,dimmer,green,red,white']);
 export function auditFixtureEmitters(project) {
@@ -16,6 +17,10 @@ export function auditFixtureEmitters(project) {
       const match = /^emitter\.([a-z][a-z0-9-]{0,31})\.([a-z-]+)$/.exec(a.key);
       assert(match && owners.has(match[1]), '光源属性归属无效');
       const base = match[2];
+      if (isEmitterFunction(a.key)) {
+        auditEmitterFunction(project,a,profile.channels.find(c=>c.attribute===a.key));
+        continue;
+      }
       assert(a.valueType.kind === 'normalized' && a.default.kind === 'normalized' && a.mix === (base === 'dimmer' ? 'htp' : 'ltp'), '独立光源只支持连续属性及明确混合方式');
       assert(!profile.channels.find(c => c.attribute === a.key)?.functions, '独立光源不能承载功能或自主程序');
       owners.get(match[1]).push(base);

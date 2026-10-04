@@ -85,6 +85,8 @@ requires 的本草案能力键为 lighting.basic、lighting.positioning、lighti
 
 profiles 固定灯具模式及其修订，记录属性类型、默认值、HTP／LTP 混合规则和 DMX 通道映射。本草案编码支持归一化属性的 u8 与粗细双通道 u16-be，offsets 从 0 起；粗细顺序不能凭相邻地址猜测。POSITION-001 增加可选 positioning 两轴模型及实例 zeroCorrection，使用 `lighting.positioning@1` 能力门控；字段、静态目标烘焙和量化语义见[位置接口](../module-api/positioning.md)。现有复杂灯具功能范围、子灯、条件模式和效果器未在此简化档案中完整建模，后续由独立能力／版本扩展；不能声称已实现 GDTF 导入。
 
+FIXTURE-011／012 的当前有限单层光源扩展见[灯具建档契约](../module-api/fixture-authoring.md#独立光源受控功能fixture-012)：可选 emitters 和准确 `emitter.<key>.<属性>` 归属，必须声明 `lighting.fixture-emitters@1`；单元快门／色盘／图案盘还需 `lighting.fixture-emitter-functions@1` 与既有功能能力。仅明确开闭、受控频闪、固定轮盘和单图案抖动，非法自主功能键／控制方式、缺能力、空单元／空隙及数值伪装严格拒绝。复用现有 function 值及执行语义 2，不新增播放器或将完整工程下放 ESP32；旧无单元工程保持不变。
+
 2026-09-24 的 [ADR-009](../development/decisions/PRODUCT-ADR-009-fixture-definition.md) 与[灯具定义设计](../ui-design/fixture-definition-design.md)补充了可复用能力、硬件变体、功能区间、轮盘档位、虚拟属性及个人灯库的方向。它们是后续契约扩展依据，尚未改变本草案、Schema 或 Rust 支持范围；实施需明确版本、迁移和编码行为，不能仅取消现有重复映射校验。
 
 patches 的逻辑线路号和地址从 1 起，线路号不是物理串口。每只灯具一次配适，足迹不得越过 512 通道，同一输出域／线路不得重叠；不支持共享地址合并。现场绑定再把逻辑线路映射到物理口或网络端点。

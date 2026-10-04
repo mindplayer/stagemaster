@@ -53,8 +53,9 @@ export function ProfileExchangeReview({
                 </thead>
                 <tbody>
                   {group.changes.map((change) => (
-                    <tr key={change.before.key}>
+                    <tr key={`${change.attribute}:${change.before.key}`}>
                       <td>
+                        <span>{change.label}</span>
                         <Slot value={change.before} />
                       </td>
                       <td>

@@ -87,7 +87,7 @@ export function ManualReadings({
                     <span
                       title={`原始值 ${r.reading.raw} / 65535${r.reading.native === undefined ? "" : `；通道值 ${r.reading.native}`}`}
                     >
-                      {r.attribute.key === "color-wheel" &&
+                      {attributeBase(r.attribute.key) === "color-wheel" &&
                         r.reading.appearance && (
                           <WheelSwatch value={r.reading.appearance} />
                         )}
@@ -125,3 +125,4 @@ export function ManualReadings({
     </section>
   );
 }
+import { attributeBase } from "../../fixture-emitter-keys";

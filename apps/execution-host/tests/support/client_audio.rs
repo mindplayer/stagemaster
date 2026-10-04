@@ -41,7 +41,7 @@ pub async fn apply(client: &mut Client, action: MediaAction) -> View {
         .unwrap();
     let accepted = settled(client).await;
     let outcome = accepted.record.as_ref().unwrap().outcome.as_ref().unwrap();
-    assert_eq!(outcome.kind, "accepted");
+    assert_eq!(outcome.kind, "accepted", "{outcome:?}");
     let expected = outcome.state.as_ref().unwrap().media[0]
         .control
         .as_ref()

@@ -8,6 +8,8 @@ import {
   withEmitterFamily,
 } from "../../fixture-emitters";
 import { ProfileChannelFields } from "./ProfileChannelFields";
+import { isEmitterFunction } from "../../fixture-emitter-keys";
+import { ProfileEmitterFunctions } from "./ProfileEmitterFunctions";
 
 export function ProfileEmitterChannels({
   value,
@@ -24,7 +26,7 @@ export function ProfileEmitterChannels({
       <h3>独立光源</h3>
       <p className="wb-dim">
         同一灯具内分别编排调光与
-        RGBW，不创建第二台灯或地址。先将基础功能组合改为调光再添加；没有真实总调光时选择“无独立总调光通道”。白光独立控制，三维暂不模拟这些光源。
+        RGBW，不创建第二台灯或地址。先将基础功能组合改为调光再添加；没有真实总调光时选择“无独立总调光通道”。白光及受控快门／轮盘分别编排，三维暂不模拟这些光源。
       </p>
       <button
         type="button"
@@ -98,7 +100,8 @@ export function ProfileEmitterChannels({
           <div className="profile-channels">
             {value.channels.map(
               (c, i) =>
-                splitEmitterAttribute(c.attribute)?.owner === unit.key && (
+                splitEmitterAttribute(c.attribute)?.owner === unit.key &&
+                !isEmitterFunction(c.attribute) && (
                   <ProfileChannelFields
                     key={c.attribute}
                     channel={c}
@@ -116,6 +119,11 @@ export function ProfileEmitterChannels({
                 ),
             )}
           </div>
+          <ProfileEmitterFunctions
+            value={value}
+            setDraft={setDraft}
+            owner={unit.key}
+          />
         </section>
       ))}
     </section>

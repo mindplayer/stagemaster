@@ -57,7 +57,9 @@ pub(super) fn apply(
                 (Some(a), Some(b)) => crate::fixture_function_mapping::compatible(
                     a,
                     b,
-                    allow_color_slot_remap && channel["attribute"] == "color-wheel",
+                    allow_color_slot_remap
+                        && crate::fixture_emitter::base(text(channel, "attribute"))
+                            == "color-wheel",
                 ),
                 _ => false,
             };

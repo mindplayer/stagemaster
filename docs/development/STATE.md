@@ -4,14 +4,21 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
+- **[FIXTURE-012 独立光源受控频闪与轮盘](tasks/FIXTURE-012-independent-emitter-functions.md)有限软件增量完成，自审通过**，基线 main `8d27e28`，计划／[ADR-161](decisions/PRODUCT-ADR-161-independent-emitter-functions.md)先提交 `a29b376`；结果为本次 `feat(fixtures): control independent shutters and wheel slots` 提交。明确开闭／受控频闪、固定轮盘及单图案抖动接入原功能模型／播放器；新增有限能力门控，无新持久字段／固件。声控、自走、复位、自动轮盘与未知混合宏仍屏蔽，三维不虚构多光源光束。
+- 最终实际 **1261 Rust＋2 文档、434 UI、230 格式**、类型、严格 Clippy／fmt／相关 Prettier、引用／严格 JSON、差异和正式 `.app` 构建通过。3 个既有子进程入口由父测试调用。全量先暴露只读 503，测试按原期限等待并查询同一 accepted／Applied 回执、不重发控制；随后旧循环 rejected 原因仍未知，增强诊断而未放宽断言，最终通过不能证明历史根因修复。失败与证据保留 `logs/fixture-012-*`／`data/FIXTURE-012/verification.json`。
+- 正式 Rust 宿主拒绝声控副本；模式导出导入新身份、两灯 **17／35** 配适、两独立快门／固定色片／单图案抖动稀疏记录、一次撤销重做和明确色片 **23→20** 重映射／取消／两灯一次交换历史通过。原 1 灯／3 项保持，最终 3 灯／6 模式／11 项，保存退出同实例最近重开字节相同。来源与默认最近目录哈希保持，用户 output/ 未触碰；自有原生／组件页／Vite 退出，无音乐、UE、后台或设备输出。
+- 下一项 **[EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md) ready**：先确定性诊断提交前拒绝／已接纳但观测繁忙／最终拒绝，复用有界只读和原回执，不猜根因或重发写操作；公开语义需改时先 ADR。之后回到 H3／FIXTURE-006。完整实际 11／18CH、30W 未知范围、多光源几何／光学、听音／GPU、物理差分／实灯／长期及客户无 UE 编辑器包仍未完成，完整 goal active。
+
+## 上一增量记录：独立光源连续控制 2026-10-05
+
+以下保留 `8d27e28` 的实际交付，接续以上方入口为准。
+
 - **[FIXTURE-011 独立光源调光与 RGBW](tasks/FIXTURE-011-independent-emitter-controls.md)有限软件增量完成，自审通过**，基线 main `a87402b`，计划／[ADR-160](decisions/PRODUCT-ADR-160-independent-emitter-controls.md)先提交 `a5e9399`；结果为本次 `feat(fixtures): author independent continuous light sources` 提交。显式单元归属、准确属性目标、可选真实总调光、白光及能力读入校验接入，不添加虚拟灯或第二播放器。无根级总调光时逐单元衰减；有总调光只作用一次，零值／释放与控制属性保持。
 - 本次最终实际 **1253 Rust＋2 文档、428 UI、220 格式测试**、设计样例／原生工程格式与引用、UI／契约类型、严格 Clippy、Rust／相关 UI 格式及正式 `.app` 构建通过；3 项既有子进程入口由父测试实际调用。红灯、测试前提／临时组件问题和一次契约命令路径错误保留，不用首轮结果替代最终源码出口。证据 `data/FIXTURE-011/verification.json`，日志 `logs/fixture-011-*`。
 - 正式包两灯 17／25 配适、独立图案调光 25%／白光 62.5%、稀疏记录／一次撤销重做、模式文件导出导入独立身份、整组换模式和保存退出最近重开通过。原 1 灯／3 项保持，最终 3 灯／7 项；原生重开前后字节一致，来源及默认最近目录哈希不变、用户 output/ 保持。自有应用／组件页／Vite 退出，无音乐、UE、执行后台或设备输出。
 - 接续 **H3 [FIXTURE-006](tasks/FIXTURE-006-real-fixture-intake.md) 的独立单元功能频闪／轮盘有限已知边界**：先核对资料和既有功能模型，再限定契约／ADR。声控／自走仍全部屏蔽，未知混合宏／复位不作滑块；30W 频闪关闭／常亮和图案子范围待资料。当前软件子集不是完整 18CH；光源几何／白光三维、完整实际 11／18CH、听音／GPU、物理差分／实灯／长期及客户无 UE 编辑器包仍未完成，完整 goal active。
 
 ## 上一增量记录：内置程序安全屏蔽 2026-10-05
-
-当前接续 [FIXTURE-012 独立光源受控频闪与轮盘](tasks/FIXTURE-012-independent-emitter-functions.md)，基线 `8d27e28`，先提交 [ADR-161](decisions/PRODUCT-ADR-161-independent-emitter-functions.md)／限定计划。只增加明确开闭／受控频闪、固定轮盘及单图案抖动，自动来回切换和未知混合宏不开放；尚未实施或验收。
 
 以下保留 `a87402b` 的实际交付，接续以上方入口为准。
 

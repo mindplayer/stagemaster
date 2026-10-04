@@ -6,6 +6,7 @@ export { FixtureFieldError } from "./fixture-field-error.ts";
 export { withMotion } from "./profile-motion.ts";
 import { opticsLabels } from "./fixture-optics.ts";
 import { splitEmitterAttribute, validateEmitters } from "./fixture-emitters.ts";
+import { attributeBase, isEmitterFunction } from "./fixture-emitter-keys.ts";
 import {
   axisSpeedKey,
   axisSpeedLabel,
@@ -177,7 +178,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     };
     const coarse = slot(c.coarse, "coarse"),
       fine = c.bits === "16" ? slot(c.fine, "fine") : null;
-    if (c.attribute in functionLabels)
+    if (c.attribute in functionLabels || isEmitterFunction(c.attribute))
       return {
         attribute: c.attribute,
         coarse,
@@ -231,7 +232,7 @@ export function compatibleProfile(
         sameFunctionMapping(
           a.function?.functions,
           p.channels.find((c) => c.attribute === a.key)?.functions,
-          allowColorSlotRemap && a.key === "color-wheel",
+          allowColorSlotRemap && attributeBase(a.key) === "color-wheel",
         ),
       ) &&
       Boolean(f.positioning) === Boolean(p.positioning) &&

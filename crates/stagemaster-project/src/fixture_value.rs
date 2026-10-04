@@ -12,6 +12,7 @@ pub(super) fn is_function_key(key: &str) -> bool {
         crate::fixture_program::KEY,
     ]
     .contains(&key)
+        || crate::fixture_emitter_function::supported(key)
 }
 pub(super) fn require(root: &mut Value) {
     if !array(root, "requires")
@@ -88,6 +89,7 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
             return Err("功能属性必须为受支持类型，并采用后值优先".into());
         }
         let functions = functions(channel)?.ok_or("功能属性缺少区间定义")?;
+        crate::fixture_emitter_function::validate_channel(key, &functions)?;
         crate::fixture_appearance::validate_channel(key, &functions)?;
         if key == crate::fixture_program::KEY {
             crate::fixture_program::validate_functions(&functions)?;

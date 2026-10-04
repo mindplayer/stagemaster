@@ -8,6 +8,7 @@ export function ProfileFunctionRows({
   max,
   onChange,
   fixedOnly = false,
+  lockedMode = false,
   preserveKey,
   kindLabel,
 }: {
@@ -18,6 +19,7 @@ export function ProfileFunctionRows({
   max: number;
   onChange(functions: FunctionDraft[]): void;
   fixedOnly?: boolean;
+  lockedMode?: boolean;
   preserveKey?: string;
   kindLabel?(key: string): string;
 }) {
@@ -48,7 +50,7 @@ export function ProfileFunctionRows({
               控制方式
               <select
                 name={`${field}-mode`}
-                disabled={fixedOnly}
+                disabled={fixedOnly || lockedMode}
                 value={f.mode}
                 aria-label={`${channelLabel}功能 ${j + 1} 控制方式`}
                 onChange={(e) =>

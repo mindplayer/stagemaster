@@ -1,5 +1,6 @@
 import { FixtureFieldError, fixtureInteger } from "./fixture-field-error.ts";
 import type { ChannelDraft, FunctionDraft } from "./fixture-function-draft";
+import { isEmitterFunction } from "./fixture-emitter-keys.ts";
 export interface SlotBatchDraft {
   start: string;
   width: string;
@@ -106,7 +107,7 @@ export function addSlotBatch(
     key:
       replaceEmpty && i === 0
         ? channel.functions![0].key
-        : `function-${crypto.randomUUID()}`,
+        : `${isEmitterFunction(channel.attribute) ? "slot" : "function"}-${crypto.randomUUID()}`,
     name: s.name,
     mode: "slot",
     dmxFrom: String(s.from),

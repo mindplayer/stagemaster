@@ -45,7 +45,7 @@ export function ManualValueEditor({
               ))}
             </select>
           </label>
-          {attribute.key === "color-wheel" && (
+          {attributeBase(attribute.key) === "color-wheel" && (
             <WheelSlotChoices
               functions={functions}
               selected={draft.functionKey}
@@ -72,3 +72,4 @@ export function ManualValueEditor({
     </fieldset>
   );
 }
+import { attributeBase } from "../../fixture-emitter-keys";
