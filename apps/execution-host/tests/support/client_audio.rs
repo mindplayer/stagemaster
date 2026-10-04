@@ -4,7 +4,18 @@ use std::time::{Duration, Instant};
 pub async fn wait(client: &mut Client, predicate: impl Fn(&View) -> bool) -> View {
     let end = Instant::now() + Duration::from_secs(6);
     loop {
-        let view = client.refresh().await.unwrap();
+        let view = match client.refresh().await {
+            Ok(view) => view,
+            // Observation uses a non-blocking slot. Retry only its explicit busy response,
+            // under the original deadline; never resend a control command.
+            Err(error) if error == "后台请求未成功（503），请核对连接与原回执" =>
+            {
+                assert!(Instant::now() < end, "{error}");
+                tokio::time::sleep(Duration::from_millis(10)).await;
+                continue;
+            }
+            Err(error) => panic!("{error}"),
+        };
         if predicate(&view) {
             return view;
         }

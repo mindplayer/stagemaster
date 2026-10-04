@@ -20,6 +20,12 @@ async fn run() {
         AudioOutput::Software
     );
     reader.project().await.unwrap();
+    group::until(&h, |s| {
+        s["frame"]["slots"]
+            .as_array()
+            .is_some_and(|v| v.len() == 512)
+    })
+    .await;
     let idle = reader.sample().await.unwrap().slots;
     assert!(h.state().await["owner"].is_null());
     assert!(!client.view().controlling);

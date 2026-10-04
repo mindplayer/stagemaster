@@ -35,6 +35,27 @@ fn functions() -> Vec<F> {
     ]
 }
 #[test]
+fn decoding_reconstructs_every_valid_native_value_exactly() {
+    for fine in [false, true] {
+        let mut fs = functions();
+        if fine {
+            fs[2].dmx_to = u16::MAX;
+        }
+        let table = FunctionTable::new(&fs, fine).unwrap();
+        for native in fs[2].dmx_from..=fs[2].dmx_to {
+            let raw = if fine { native } else { native * 257 };
+            assert_eq!(table.encode(&table.decode(raw).unwrap()).unwrap(), raw);
+        }
+        let scale = if fine { 1 } else { 257 };
+        assert_eq!(table.decode(10 * scale).unwrap().function_key, "open");
+        assert!(table.decode(9 * scale).is_err());
+        assert!(table.decode(25 * scale).is_err());
+        if !fine {
+            assert!(table.decode(33).is_err());
+        }
+    }
+}
+#[test]
 fn slots_are_exact_and_ranges_never_escape_to_adjacent_or_reserved_functions() {
     for fine in [false, true] {
         let fs = functions();

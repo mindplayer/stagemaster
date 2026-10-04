@@ -47,6 +47,7 @@ export const SequenceWorkspace = forwardRef<
     onExecution(value: boolean): void;
     onEdit(command: EditCommand): Promise<ProjectView | null>;
     beforeChange(): Promise<boolean>;
+    recording?: import("../../manual-capture-types").ManualRecordingContext;
     onPending(value: boolean): void;
   }
 >(function SequenceWorkspace(
@@ -61,6 +62,7 @@ export const SequenceWorkspace = forwardRef<
     onExecution,
     onEdit,
     beforeChange,
+    recording,
     onPending,
   },
   ref,
@@ -380,6 +382,7 @@ export const SequenceWorkspace = forwardRef<
               </SequenceStepBrowser>
             ))}
           <SequenceExecutionPanel
+            recording={recording}
             project={project}
             background={background}
             onBackgroundChange={setBackground}

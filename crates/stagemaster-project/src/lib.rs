@@ -35,6 +35,8 @@ mod compilation;
 mod live_output;
 mod live_player;
 mod live_scene;
+mod manual_scene;
+pub use manual_scene::{ManualSceneCapture, ManualSceneReading};
 mod live_sequence;
 pub use live_output::LiveOutput;
 pub use live_player::LiveScenePlayer;

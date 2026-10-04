@@ -1,4 +1,6 @@
+mod capture;
 mod files;
+pub(crate) use capture::Collected;
 mod manager;
 mod media;
 mod preparing;

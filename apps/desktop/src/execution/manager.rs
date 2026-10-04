@@ -14,7 +14,7 @@ pub(crate) struct Status {
 pub(crate) struct Manager {
     pub(super) root: PathBuf,
     binary: PathBuf,
-    run: Option<PathBuf>,
+    pub(super) run: Option<PathBuf>,
     child: Option<Child>,
     pub(super) client: Option<Client>,
     problem: Option<String>,
@@ -209,6 +209,9 @@ impl Manager {
     }
 }
 
+#[cfg(test)]
+#[path = "capture_tests.rs"]
+mod capture_tests;
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;

@@ -149,6 +149,38 @@ impl<'a> FunctionTable<'a> {
         })
     }
 
+    /// Recover a semantic selection whose re-encoding preserves the exact observed value.
+    /// # Errors
+    /// Reject gaps, non-representative fixed slots and invalid 8-bit expansion.
+    pub fn decode(&self, value: u16) -> Result<FunctionSelection, String> {
+        if !self.fine && !value.is_multiple_of(257) {
+            return Err("功能值不符合灯具通道精度".into());
+        }
+        let native = if self.fine { value } else { value / 257 };
+        let f = self
+            .functions
+            .iter()
+            .find(|f| (f.dmx_from..=f.dmx_to).contains(&native))
+            .ok_or("功能值不在已定义区间中")?;
+        let position = match f.mode {
+            FunctionMode::Slot if native == f.dmx_default => 0,
+            FunctionMode::Slot => return Err("固定功能值不是档位代表值".into()),
+            FunctionMode::Range => {
+                let span = u32::from(f.dmx_to - f.dmx_from);
+                u16::try_from((u32::from(native - f.dmx_from) * 65535 + span / 2) / span)
+                    .map_err(|_| "功能位置超出范围")?
+            }
+        };
+        let selection = FunctionSelection {
+            function_key: f.key.clone(),
+            position,
+        };
+        if self.encode(&selection)? != value {
+            return Err("无法精确还原功能值".into());
+        }
+        Ok(selection)
+    }
+
     fn function(&self, key: &str) -> Result<&FunctionDefinition, String> {
         self.functions
             .iter()

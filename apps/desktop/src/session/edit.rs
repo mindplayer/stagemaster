@@ -1,6 +1,17 @@
 //! Shared edit installation, history and playback invalidation for all authoring adapters.
 use super::{Document, EditCommand, Session};
 impl Session {
+    pub(crate) fn record_manual_scene(
+        &mut self,
+        generation: u32,
+        capture: &stagemaster_project::ManualSceneCapture,
+        name: &str,
+    ) -> Result<(), String> {
+        self.guard(generation)?;
+        let mut next = self.document.clone().ok_or("请先新建或打开工程")?;
+        next.record_manual_scene(capture, name)?;
+        self.install_edit(next)
+    }
     pub(crate) fn edit(&mut self, generation: u32, command: EditCommand) -> Result<(), String> {
         self.guard(generation)?;
         let mut next = self.document.clone().ok_or("请先新建或打开工程")?;

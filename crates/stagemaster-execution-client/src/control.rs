@@ -57,6 +57,13 @@ impl Client {
         self.send(json!({"kind":"submit","expectedRevision":revision,"action":{"kind":"source","source":source,"action":action}})).await
     }
     pub(super) async fn send(&mut self, command: Value) -> Result<View, String> {
+        self.send_internal(command, true).await
+    }
+    pub(super) async fn send_internal(
+        &mut self,
+        command: Value,
+        explicit: bool,
+    ) -> Result<View, String> {
         if self.pending {
             return Err("上一操作尚未确认，请先查询回执或明确重新连接".into());
         }
@@ -79,6 +86,9 @@ impl Client {
             status: "pending".into(),
             outcome: None,
         });
+        if explicit {
+            self.operation_record.clone_from(&self.record);
+        }
         let record = self
             .transport
             .request(Method::POST, &suffix, Some(body))
@@ -115,6 +125,15 @@ impl Client {
             if !self.pending {
                 self.next = self.next.checked_add(1).ok_or("控制序号已耗尽")?;
             }
+        }
+        // Heartbeats may complete between UI polls. They must not erase the explicit operation
+        // being awaited by a manual or media editor; wire sequencing remains unchanged.
+        if self
+            .operation_record
+            .as_ref()
+            .is_some_and(|r| r.serial == record.serial)
+        {
+            self.operation_record = Some(record.clone());
         }
         self.record = Some(record);
         Ok(())

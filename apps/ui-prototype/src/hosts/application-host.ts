@@ -4,6 +4,7 @@ import type { ApplicationHost } from "../application-host";
 export const applicationHost: ApplicationHost = isTauri()
   ? {
       kind: "desktop",
+      manualCapture: (request) => invoke("manual_capture", { request }),
       riggingPreview: (generation, command) =>
         invoke("rigging_preview", { request: { generation, command } }),
       deviceRuntime: (request) => invoke("device_runtime_request", { request }),
@@ -46,7 +47,9 @@ export const applicationHost: ApplicationHost = isTauri()
     }
   : {
       kind: "browser",
-      execution: async () => { throw new Error("请使用桌面应用管理本机后台执行"); },
+      execution: async () => {
+        throw new Error("请使用桌面应用管理本机后台执行");
+      },
       importEffectTemplate: async () => {
         throw new Error("请使用桌面应用导入灯效模板");
       },

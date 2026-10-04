@@ -15,6 +15,7 @@ import {
 import { ManualFixturePicker } from "./ManualFixturePicker";
 import { ManualValueEditor } from "./ManualValueEditor";
 import { ManualReadings } from "./ManualReadings";
+import { ManualSceneRecorder } from "./ManualSceneRecorder";
 import { SourceControls } from "./SourceControls";
 import "./manual-controls.css";
 export function ManualControls({
@@ -25,6 +26,7 @@ export function ManualControls({
   observed,
   onDraftChange,
   onAction,
+  recording,
 }: {
   source: ExecutionSource;
   runtime: ExecutionView;
@@ -33,6 +35,7 @@ export function ManualControls({
   observed: boolean;
   onDraftChange(id: string, dirty: boolean): void;
   onAction(action: ExecutionAction): Promise<ExecutionStatus | undefined>;
+  recording?: import("../../manual-capture-types").ManualRecordingContext;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
@@ -130,6 +133,17 @@ export function ManualControls({
         onAction={(a) => void onAction(a)}
       />
       <div className="execution-manual-body">
+        {recording && (
+          <ManualSceneRecorder
+            context={recording}
+            runtime={runtime}
+            source={source}
+            active={active}
+            observed={observed}
+            pending={!!draft || levelDirty || working || !!submitted}
+            selected={selected}
+          />
+        )}
         <div className="execution-buttons">
           <span>
             {observed ? "实际持有" : "最后已知持有"} {held?.length ?? "—"}{" "}

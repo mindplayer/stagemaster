@@ -12,7 +12,17 @@ fn source(view: &View) -> &stagemaster_execution_client::SourceState {
 async fn until(client: &mut Client, condition: impl Fn(&View) -> bool) -> View {
     let end = Instant::now() + Duration::from_secs(7);
     loop {
-        let view = client.refresh().await.unwrap();
+        let view = match client.refresh().await {
+            Ok(view) => view,
+            // Busy observation is explicitly transient; keep the same deadline and receipt.
+            Err(error) if error == "后台请求未成功（503），请核对连接与原回执" =>
+            {
+                assert!(Instant::now() < end, "{error}");
+                tokio::time::sleep(Duration::from_millis(10)).await;
+                continue;
+            }
+            Err(error) => panic!("{error}"),
+        };
         if !view.pending && condition(&view) {
             return view;
         }

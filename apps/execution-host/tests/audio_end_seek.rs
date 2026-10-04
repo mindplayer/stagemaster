@@ -34,7 +34,13 @@ async fn stable_end(h: &Harness, state: &Value) {
 fn exact_end_from_ready_running_and_paused_releases_only_music_and_can_replay() {
     runtime().block_on(async {
         let mut h = Harness::prepared(|p| Some(audio::write(p)));
-        let idle = h.snapshot().await["frame"]["slots"].clone();
+        let idle = until(&h, |s| {
+            s["frame"]["slots"]
+                .as_array()
+                .is_some_and(|v| v.len() == 512)
+        })
+        .await["frame"]["slots"]
+            .clone();
         assert_eq!(ok(h.get("/source")).await["audio"]["seekIncludesEnd"], true);
         let session = h.session().await;
         let acquired = h.acquire(&session, false).await;

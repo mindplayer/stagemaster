@@ -133,12 +133,19 @@ export type ProjectRequest =
   | { kind: "save"; generation: number; saveAs: boolean }
   | { kind: "edit"; generation: number; command: EditCommand }
   | { kind: "applyEffectTemplate"; generation: number; token: string }
+  | {
+      kind: "recordManualScene";
+      generation: number;
+      token: string;
+      name: string;
+    }
   | ({ kind: "previsPlacement" } & PrevisPlacement)
   | ({ kind: "previsTranslation" } & PrevisTranslation)
   | ({ kind: "previsObjectTranslation" } & PrevisObjectTranslation)
   | ({ kind: "previsTransform" } & PrevisTransform)
   | { kind: "history"; generation: number; redo: boolean };
 export interface ApplicationHost {
+  manualCapture?: import("./manual-capture-types").ManualCapturePort;
   riggingPreview?: import("./rigging-preview-types").RiggingPreviewPort;
   deviceRuntime?: import("./device-runtime-types").DeviceRunPort;
   execution: import("./execution-types").ExecutionPort;

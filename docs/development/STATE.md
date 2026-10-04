@@ -1,5 +1,7 @@
 # 当前开发状态
 
+EXEC-009 完成（2026-10-04，基线 `37ed889`，main；结果为本次 `feat(execution): record authoritative manual values as scenes` 提交）：真实后台手动电平前值可按全部／所选冻结审阅并录入稀疏新场景，零值／功能精确重放、随机票据与代次保护、一次历史及保存重开通过。原生发现并修复自动续约覆盖操作回执；439 Rust、359 UI、最终严格检查／类型／格式／打包及组件／原生验收通过，见[工单](tasks/EXEC-009-manual-scene-recording.md)。两处旧测试首帧前提与观察暂忙循环已修正，旧写锁／音频保留锁偶发失败未宣称修复，详见工单。独立副本只增两项亮度场景和修订，来源哈希未改；后台明确关闭，桌面保留已保存 data/EXEC-009，音乐／UE／设备未启用，组件页／Vite 已关闭，用户 output/ 保持。ESP32 仅复核既有实板证据，受限独立播放器职责结论保持；完整 AUDIT-001／goal active，接续现场连续手势、其余编排和工程管理。
+
 EXEC-008 完成（2026-10-04，基线 `f3bc19f`，main；结果为本次 `feat(execution): observe authoritative manual held values` 提交）：后台手动层新增真实电平前数值、功能区间量化、所选一致／不同／未持有、搜索分页与最后已知状态；Rust 不可变共享快照只在手动内容变化时更新。417 Rust、359 UI、严格检查、类型／格式、正式打包、组件及原生零电平／退出重开只读／零值与逐项释放通过，见[工单](tasks/EXEC-008-manual-value-observation.md)。独立副本及来源哈希相同；最后停止并明确关闭软件后台，桌面保留已保存 data/EXEC-008。音乐／UE／设备未启用，组件页／Vite 已关闭，用户 output/ 保持。上一回合仅 ESP32 结论复核为 no progress，本回合恢复产品增量。完整 AUDIT-001／goal active，接续手动录入场景、现场手势及剩余时间线与工程体验。
 
 EXEC-007 完成（2026-10-04，基线 `cd48397`，main；结果为本次 `feat(execution): control typed manual attributes in live shows` 提交）：后台固定灯具目录选灯、连续／功能属性原子应用、实际持有目标和逐属性／整层释放已接通。394 Rust、356 UI、严格检查／类型／格式、最终打包、组件和正式原生重开恢复通过，见[工单](tasks/EXEC-007-live-manual-programmer.md)。原生零电平仍持有、重开只读恢复、逐项归还原节目及工程哈希未改通过；修复输入框样式覆盖，失败输入保持。最后停止并明确关闭软件后台，桌面保留已保存 data/EXEC-007 副本；音乐／UE／设备未启用，用户 output/ 保持。ESP32 仅复核 MEMORY-003 原始证据及官方规格，受限自主播放器定位保持，无需降为纯网桥；实际差分线路、最坏资源与长期仍为交付门槛。完整 AUDIT-001／goal active，接续现场手势／录入场景和剩余编排、工程管理体验。

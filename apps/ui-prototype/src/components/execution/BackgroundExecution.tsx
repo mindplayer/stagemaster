@@ -14,6 +14,7 @@ export function BackgroundExecution({
   visible,
   busy,
   beforeAction,
+  recording,
 }: {
   host: ApplicationHost;
   project: ProjectView;
@@ -21,6 +22,7 @@ export function BackgroundExecution({
   visible: boolean;
   busy: boolean;
   beforeAction(): Promise<boolean>;
+  recording?: import("../../manual-capture-types").ManualRecordingContext;
 }) {
   const { status, error, working, fresh, request } = useExecution(
     host.execution,
@@ -197,6 +199,7 @@ export function BackgroundExecution({
             </p>
           )}
           <ExecutionBoard
+            recording={recording}
             key={`${runtime.hostId}:${runtime.catalog.layout}`}
             runtime={runtime}
             disabled={disabled}

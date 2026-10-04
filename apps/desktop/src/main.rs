@@ -6,6 +6,7 @@ mod effect_template;
 mod execution;
 mod installation;
 mod lifecycle;
+mod manual_capture;
 mod output_control;
 mod package;
 mod patch_report;
@@ -57,6 +58,11 @@ enum Request {
     ApplyEffectTemplate {
         generation: u32,
         token: String,
+    },
+    RecordManualScene {
+        generation: u32,
+        token: String,
+        name: String,
     },
     PrevisTransform {
         generation: u32,
@@ -159,6 +165,16 @@ fn dispatch(
                 .take(generation, &token)?;
             session.apply_effect_template(generation, review)?;
         }
+        Request::RecordManualScene {
+            generation,
+            token,
+            name,
+        } => {
+            app.state::<manual_capture::Service>()
+                .apply(generation, &token, |capture| {
+                    session.record_manual_scene(generation, capture, &name)
+                })?;
+        }
         Request::PrevisTransform {
             generation,
             version,
@@ -251,6 +267,7 @@ fn main() {
         .manage(rigging_preview::Service::default())
         .manage(profile_file::Service::default())
         .manage(effect_template::Service::default())
+        .manage(manual_capture::Service::default())
         .manage(devices)
         .manage(runtime_access)
         .manage(installation)
@@ -305,6 +322,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             project_request,
+            manual_capture::manual_capture,
             rigging_preview::rigging_preview,
             execution::execution_request,
             audio::audio_request,

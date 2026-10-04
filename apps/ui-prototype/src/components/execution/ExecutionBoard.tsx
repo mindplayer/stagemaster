@@ -26,6 +26,7 @@ export function ExecutionBoard({
   active,
   onAction,
   onMedia,
+  recording,
 }: {
   runtime: ExecutionView;
   disabled: boolean;
@@ -36,6 +37,7 @@ export function ExecutionBoard({
     action: ExecutionAction,
   ): Promise<ExecutionStatus | undefined>;
   onMedia(action: ExecutionMediaAction): Promise<MediaRequestIdentity | null>;
+  recording?: import("../../manual-capture-types").ManualRecordingContext;
 }) {
   const [filter, setFilter] = useState({ ...allSources });
   const [drafts, setDrafts] = useState<ReadonlySet<string>>(new Set());
@@ -144,6 +146,7 @@ export function ExecutionBoard({
                 />
               ) : source.selection.kind === "manual" ? (
                 <ManualControls
+                  recording={recording}
                   source={source}
                   runtime={runtime}
                   disabled={disabled || !enabled}

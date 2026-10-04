@@ -3,6 +3,8 @@ use stagemaster_project::{Document, EditCommand, ProjectView};
 mod edit;
 #[cfg(test)]
 mod effect_template_tests;
+#[cfg(test)]
+mod manual_scene_tests;
 use stagemaster_project_store::DiskFile;
 use tauri::Manager;
 mod audio;

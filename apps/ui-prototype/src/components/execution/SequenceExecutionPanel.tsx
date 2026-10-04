@@ -7,11 +7,13 @@ export function SequenceExecutionPanel({
   project,
   background,
   onBackgroundChange,
+  recording,
   ...props
 }: ComponentProps<typeof PreviewPanel> & {
   project: ProjectView;
   background: boolean;
   onBackgroundChange(value: boolean): void;
+  recording?: import("../../manual-capture-types").ManualRecordingContext;
 }) {
   const showBackground = !!props.execution && background;
   const [opened, setOpened] = useState(showBackground);
@@ -49,6 +51,7 @@ export function SequenceExecutionPanel({
       <div className="execution-retained" hidden={!showBackground}>
         {(opened || showBackground) && (
           <BackgroundExecution
+            recording={recording}
             {...props}
             project={project}
             visible={props.visible && showBackground}

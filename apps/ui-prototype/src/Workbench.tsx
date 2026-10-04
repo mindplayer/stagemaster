@@ -1024,6 +1024,34 @@ export function Workbench({ host }: { host: ApplicationHost }) {
               busy={busy}
               visible={page === "sequences"}
               beforeChange={() => run(async () => {})}
+              recording={{
+                host,
+                project,
+                generation: snapshot.generation,
+                busy,
+                beforeCapture: captureCheck,
+                onRecord: async (generation, token, name) => {
+                  let failure = "工程操作未完成，请重试";
+                  const ok = await run(async () => {
+                    try {
+                      await request({
+                        kind: "recordManualScene",
+                        generation,
+                        token,
+                        name,
+                      });
+                      setNotice(`已录入场景“${name}”，可撤销恢复；手动层保持`);
+                    } catch (reason) {
+                      failure =
+                        reason instanceof Error
+                          ? reason.message
+                          : String(reason);
+                      throw reason;
+                    }
+                  });
+                  if (!ok) throw new Error(failure);
+                },
+              }}
               onPending={(value) => {
                 setSequencePending(value);
                 if (!value) setError("");

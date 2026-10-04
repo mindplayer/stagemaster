@@ -29,6 +29,7 @@ pub struct Client {
     session: Option<String>,
     next: u64,
     record: Option<Record>,
+    operation_record: Option<Record>,
     pending: bool,
 }
 impl Client {
@@ -44,6 +45,7 @@ impl Client {
             session: None,
             next: 1,
             record: None,
+            operation_record: None,
             pending: false,
         };
         client.validate(&client.observation)?;
@@ -112,7 +114,7 @@ impl Client {
             session_id: self.session.clone(),
             controlling: self.controlling(),
             pending: self.pending,
-            record: self.record.clone(),
+            record: self.operation_record.clone(),
         }
     }
     fn controlling(&self) -> bool {
@@ -139,8 +141,11 @@ impl Client {
                 })
             })
         {
-            self.send(serde_json::json!({"kind":"renew","durationMs":60000}))
-                .await?;
+            self.send_internal(
+                serde_json::json!({"kind":"renew","durationMs":60000}),
+                false,
+            )
+            .await?;
         }
         Ok(self.view())
     }
