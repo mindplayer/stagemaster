@@ -97,6 +97,7 @@ impl Session {
             clock: stagemaster_time::Clock::new(boot, 0).map_err(|e| e.to_string())?,
             mixer,
             output,
+            output_master: crate::OutputMaster::default(),
             sources,
             claims: Vec::with_capacity(count * specs.len()),
             now_ms,

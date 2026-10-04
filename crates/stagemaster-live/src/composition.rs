@@ -87,7 +87,9 @@ impl Session {
             .checked_add(1)
             .ok_or("合成帧序号已耗尽，须重新准备")?;
         let mut slots = [0; 512];
-        let universe = self.output.render(&self.mixer, &mut slots)?;
+        let universe =
+            self.output
+                .render_with_master(&self.mixer, &mut slots, self.output_master)?;
         for entry in &mut self.sources {
             entry.times.fill(None);
             entry.reassert_at_ms = None;

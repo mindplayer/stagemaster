@@ -4,7 +4,11 @@ import { useState } from "react";
 import { BackgroundExecution } from "../src/components/execution/BackgroundExecution";
 import { applicationHost } from "../src/hosts/application-host";
 import type { ApplicationHost } from "../src/application-host";
-import type { ExecutionRequest, ExecutionAction } from "../src/execution-types";
+import type {
+  ExecutionRequest,
+  ExecutionAction,
+  ExecutionOutputAction,
+} from "../src/execution-types";
 import { stageProject } from "./stage-organization-fixture";
 import { levelFixture } from "./execution-level-fixture";
 import "../src/base.css";
@@ -13,6 +17,9 @@ import "../src/workbench.css";
 const status = levelFixture();
 const runtime = status.runtime!,
   state = runtime.observation.snapshot!.state;
+runtime.catalog.capabilities!.push("outputMaster");
+runtime.catalog.output = { uncontrolledFixtures: 0 };
+state.output = { percent: 100, blackout: false };
 const project = stageProject();
 project.id = runtime.catalog.projectId;
 const history: unknown[] = [];
@@ -20,8 +27,11 @@ let failed = false,
   rejected = false,
   delay = 300,
   serial = 0;
-let pending: { at: number; source: string; action: ExecutionAction } | null =
-  null;
+let pending: {
+  at: number;
+  source?: string;
+  action: ExecutionAction | ExecutionOutputAction;
+} | null = null;
 const host: ApplicationHost = {
   ...applicationHost,
   execution: async (request: ExecutionRequest) => {
@@ -30,7 +40,12 @@ const host: ApplicationHost = {
     if (pending && performance.now() >= pending.at) {
       const source = state.sources.find((s) => s.id === pending!.source)!;
       const action = pending.action;
-      if (!rejected && action.kind === "level") source.level = action.value;
+      if (!rejected && action.kind === "level") {
+        if ("percent" in action) state.output!.percent = action.percent;
+        else source.level = action.value;
+      }
+      if (!rejected && action.kind === "blackout")
+        state.output!.blackout = action.enabled;
       if (!rejected && action.kind === "patch") {
         for (const change of action.changes) {
           const index = source.held!.findIndex(
@@ -72,7 +87,7 @@ const host: ApplicationHost = {
     }
     if (request.kind !== "snapshot")
       history.push({ at: Math.round(performance.now()), ...request });
-    if (request.kind === "apply") {
+    if (request.kind === "apply" || request.kind === "output") {
       if (
         pending ||
         !runtime.controlling ||
@@ -81,7 +96,7 @@ const host: ApplicationHost = {
         throw new Error("测试发现命令交叉或旧修订");
       pending = {
         at: performance.now() + delay,
-        source: request.source,
+        source: request.kind === "apply" ? request.source : undefined,
         action: request.action,
       };
       runtime.pending = true;
@@ -102,6 +117,7 @@ const host: ApplicationHost = {
     document.querySelector("#test-record")!.textContent = JSON.stringify({
       history,
       sources: state.sources,
+      output: state.output,
       pending: runtime.pending,
     });
     return structuredClone(status);
@@ -121,6 +137,17 @@ function Harness() {
       }}
     >
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <label>
+          <input
+            type="checkbox"
+            onChange={(e) => {
+              runtime.catalog.output!.uncontrolledFixtures = e.target.checked
+                ? 1
+                : 0;
+            }}
+          />
+          未识别亮度（测试）
+        </label>
         <button onClick={() => setVisible((v) => !v)}>切换显示（测试）</button>
         <button onClick={() => setNarrow((v) => !v)}>切换窄栏（测试）</button>
         <label>
@@ -173,4 +200,6 @@ function Harness() {
     </main>
   );
 }
-createRoot(document.getElementById("root")!).render(<Harness />);
+const root = createRoot(document.getElementById("root")!);
+root.render(<Harness />);
+if (import.meta.hot) import.meta.hot.dispose(() => root.unmount());

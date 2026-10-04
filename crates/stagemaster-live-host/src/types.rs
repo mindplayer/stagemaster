@@ -28,6 +28,9 @@ impl Patch {
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
+    Output {
+        command: stagemaster_live::OutputCommand,
+    },
     Control {
         source: Key,
         command: Command,
@@ -61,6 +64,7 @@ pub struct State {
     pub sources: [Option<SourceInfo>; 64],
     /// Pre-level held values; slot order matches sources. Clones share immutable storage.
     pub manual_values: crate::ManualValues,
+    pub output_master: stagemaster_live::OutputMaster,
     pub media: [Option<crate::media::MediaState>; 64],
     pub fault: bool,
 }

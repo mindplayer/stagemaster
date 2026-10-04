@@ -40,6 +40,8 @@ pub struct Catalog {
     pub capabilities: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audio: Option<crate::AudioCatalog>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<crate::OutputCatalog>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,6 +77,8 @@ pub struct State {
     pub media: Vec<crate::MediaState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audio: Option<crate::AudioState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<crate::OutputState>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

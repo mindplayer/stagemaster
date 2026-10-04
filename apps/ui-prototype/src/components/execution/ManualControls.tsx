@@ -150,7 +150,7 @@ export function ManualControls({
               levelDirty ||
               working ||
               !!submitted ||
-              !!live?.view.source
+              !!live?.view.key
             }
             selected={selected}
           />
@@ -195,9 +195,7 @@ export function ManualControls({
               fixtures={fixtures}
               selected={selected}
               held={held}
-              disabled={
-                !!draft || working || !!submitted || !!live?.view.source
-              }
+              disabled={!!draft || working || !!submitted || !!live?.view.key}
               onSelect={(ids) => {
                 setSelected(ids);
                 setAttribute("");
@@ -227,7 +225,7 @@ export function ManualControls({
                       aria-label="手动共同属性"
                       value={attr.key}
                       disabled={
-                        !!draft || working || !!submitted || !!live?.view.source
+                        !!draft || working || !!submitted || !!live?.view.key
                       }
                       onChange={(e) => {
                         setAttribute(e.target.value);

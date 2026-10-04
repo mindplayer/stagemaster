@@ -7,7 +7,7 @@ mod preparing;
 mod process;
 use manager::{Manager, Status};
 use serde::Deserialize;
-use stagemaster_execution_client::{Action, AudioOutput, MediaAction, Selection};
+use stagemaster_execution_client::{Action, AudioOutput, MediaAction, OutputAction, Selection};
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tauri::Manager as _;
 use tokio::sync::Mutex;
@@ -80,6 +80,11 @@ pub(crate) enum Request {
         source: String,
         action: Action,
     },
+    Output {
+        host_id: String,
+        revision: String,
+        action: OutputAction,
+    },
     Media {
         host_id: String,
         revision: String,
@@ -118,6 +123,11 @@ pub(crate) async fn execution_request(
             source,
             action,
         } => manager.apply(&host_id, &revision, &source, action).await,
+        Request::Output {
+            host_id,
+            revision,
+            action,
+        } => manager.output(&host_id, &revision, action).await,
         Request::Media {
             host_id,
             revision,

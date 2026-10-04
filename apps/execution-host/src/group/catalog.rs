@@ -52,7 +52,8 @@ pub(super) fn build(
     let source = json!({"mode":"softwareOutput","physicalOutput":false,"execution":"sourceGroup","protocol":2,
         "layout":layout,"projectId":view.id,"sources":description,"fixtures":view.fixtures,
         "limits":{"sources":64,"manualChanges":512,"requestBytes":8192,"commandTtlMs":5000,"outputUniverses":1},
-        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress","manualOwnership","manualValues"]});
+        "output":{"uncontrolledFixtures":document.uncontrolled_intensity_fixtures()},
+        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress","manualOwnership","manualValues","outputMaster"]});
     Ok((
         Catalog {
             entries,

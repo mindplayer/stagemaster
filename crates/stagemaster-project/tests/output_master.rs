@@ -1,4 +1,5 @@
 use serde_json::json;
+use stagemaster_engine::live::{Frame, Kind, LiveMixer, Source};
 use stagemaster_playback::OutputMaster;
 use stagemaster_project::Document;
 fn setup(keys: &[&str]) -> (Document, String) {
@@ -47,6 +48,85 @@ fn setup(keys: &[&str]) -> (Document, String) {
     let id = doc.view().scenes[0].id.clone();
     (doc, id)
 }
+#[test]
+fn live_output_uses_the_same_conservative_intensity_mask_once_after_mixing() {
+    for (keys, scaled) in [
+        (
+            vec!["dimmer", "red", "green", "blue", "pan", "tilt"],
+            vec!["dimmer"],
+        ),
+        (
+            vec!["red", "green", "blue", "pan", "tilt"],
+            vec!["red", "green", "blue"],
+        ),
+        (vec!["pan", "tilt"], vec![]),
+        (vec!["red", "green"], vec![]),
+    ] {
+        let (doc, scene) = setup(&keys);
+        let compiled = doc.compile_scene(&scene).unwrap();
+        let indices: Vec<_> = scaled
+            .iter()
+            .map(|key| {
+                compiled
+                    .output
+                    .manual_value(&doc.view().fixtures[0].id, key, None)
+                    .unwrap()
+                    .0
+            })
+            .collect();
+        let player = doc.compile_live_scene(&scene, 0).unwrap();
+        let mut output = player.prepare_output().unwrap();
+        let mut mixer = LiveMixer::new([1; 16], player.layout().clone(), 1).unwrap();
+        let layout = mixer.layout().id();
+        let source = mixer
+            .open(
+                Source {
+                    id: [2; 16],
+                    kind: Kind::Programmer,
+                },
+                0,
+                layout,
+            )
+            .unwrap();
+        mixer
+            .publish(
+                source,
+                Frame {
+                    layout,
+                    serial: 1,
+                    values: &vec![Some(65535); keys.len()],
+                    assert: &vec![false; keys.len()],
+                },
+            )
+            .unwrap();
+        let mut slots = [0; 512];
+        let mut master = OutputMaster::default();
+        for (percent, black, expected) in [
+            (50, false, 32768),
+            (37, true, 0),
+            (37, false, 24248),
+            (100, false, 65535),
+        ] {
+            master.set_percent(percent).unwrap();
+            master.set_blackout(black);
+            output
+                .render_with_master(&mixer, &mut slots, master)
+                .unwrap();
+            for (i, attribute) in mixer.layout().attributes().iter().enumerate() {
+                let encoded = if indices.contains(&i) {
+                    expected
+                } else {
+                    65535
+                };
+                assert_eq!(output.values()[i], encoded, "{keys:?} {attribute:?}");
+                assert_eq!(output.winners()[i], Some(source));
+            }
+        }
+        output.render(&mixer, &mut slots).unwrap();
+        assert!(output.values().iter().all(|v| *v == 65535));
+    }
+}
+
 #[test]
 fn master_changes_one_intensity_path_before_encoding_and_never_mutates_plan() {
     for (keys, scaled, unsupported) in [

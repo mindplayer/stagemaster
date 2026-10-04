@@ -10,7 +10,7 @@ mod types;
 
 use source::Entry;
 use stagemaster_engine::live::LiveMixer;
-pub use stagemaster_playback::Command;
+pub use stagemaster_playback::{Command, OutputMaster};
 pub use stagemaster_playback::{Phase, Progress};
 use stagemaster_project::LiveOutput;
 pub use types::{Change, Frame, Key, PlaybackSelection, SourceInfo, SourceSpec};
@@ -20,6 +20,7 @@ pub struct Session {
     clock: stagemaster_time::Clock,
     mixer: LiveMixer,
     output: LiveOutput,
+    output_master: OutputMaster,
     sources: Vec<Entry>,
     claims: Vec<composition::Claim>,
     now_ms: u64,
@@ -29,6 +30,10 @@ pub struct Session {
     media: Vec<media::Group>,
 }
 impl Session {
+    #[must_use]
+    pub const fn output_master(&self) -> OutputMaster {
+        self.output_master
+    }
     #[must_use]
     pub const fn boot(&self) -> [u8; 16] {
         self.boot
@@ -108,7 +113,7 @@ impl Session {
         let source = self.sources.get(key.index)?;
         source.player.is_none().then_some(source.values.as_slice())
     }
-    /// Semantic values and ownership from the last complete software composition.
+    /// Final post-master semantic values from the last complete software composition.
     #[must_use]
     pub fn values(&self) -> Option<&[u16]> {
         self.frame.as_ref().map(|_| self.output.values())
@@ -147,6 +152,12 @@ impl Session {
         }
         result
     }
+}
+/// Independent fields prevent an old level intent from overwriting a newer blackout latch.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OutputCommand {
+    Level { percent: u8 },
+    Blackout { enabled: bool },
 }
 #[cfg(test)]
 mod tests;

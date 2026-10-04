@@ -121,7 +121,7 @@ export class LevelGestureController {
       this.cancel(source, "电平超出范围，已停止连续调整");
       return;
     }
-    gesture.target = value;
+    gesture.target = gesture.operation.normalize?.(value) ?? value;
     gesture.changed = true;
     this.publish();
     this.kick(gesture);
@@ -246,13 +246,13 @@ export class LevelGestureController {
       this.lastSent = this.deps.now();
       current = this.check(
         gesture,
-        await this.deps.request({
-          kind: "apply",
-          hostId: gesture.host,
-          revision: current.observation.snapshot!.state.revision,
-          source: gesture.source,
-          action: gesture.operation.action(target),
-        }),
+        await this.deps.request(
+          gesture.operation.request(
+            gesture.host,
+            current.observation.snapshot!.state.revision,
+            target,
+          ),
+        ),
       );
       const serial = current.record?.serial;
       if (!newLevelSerial(serial, previous))

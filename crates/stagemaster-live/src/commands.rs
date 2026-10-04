@@ -2,6 +2,25 @@ use crate::{Change, Command, Key, Session};
 use stagemaster_engine::live::MAX_ATTRIBUTES;
 
 impl Session {
+    /// Set group output intensity without stopping sources or releasing held values.
+    /// # Errors
+    /// Reject invalid intensity or backwards time before mutation; execution faults retract output.
+    pub fn control_output(
+        &mut self,
+        command: crate::OutputCommand,
+        now_ms: u64,
+    ) -> Result<(), String> {
+        self.ready(now_ms)?;
+        let mut next = self.output_master;
+        match command {
+            crate::OutputCommand::Level { percent } => next.set_percent(percent)?,
+            crate::OutputCommand::Blackout { enabled } => next.set_blackout(enabled),
+        }
+        self.tick(now_ms)?;
+        self.output_master = next;
+        let result = self.compose(now_ms);
+        self.finish(result)
+    }
     /// Apply a playback command after advancing all automatic boundaries to the same time.
     /// Stop also clears a manual layer. Pause/finish hold ownership; stop releases only this source.
     /// # Errors

@@ -1,14 +1,15 @@
-import type { ExecutionAction, ExecutionView } from "./execution-types";
+import type { ExecutionRequest, ExecutionView } from "./execution-types";
 
 /** Frozen command target; the shared controller still owns scheduling and receipts. */
 export interface ExecutionGestureTarget {
   key: string;
-  source: string;
+  source?: string;
   label: string;
   initial?: number;
+  normalize?(value: number): number;
   valid(runtime: ExecutionView): boolean;
   value(runtime: ExecutionView): number | undefined;
-  action(value: number): ExecutionAction;
+  request(hostId: string, revision: string, value: number): ExecutionRequest;
 }
 
 export function sourceLevelTarget(source: string): ExecutionGestureTarget {
@@ -20,6 +21,12 @@ export function sourceLevelTarget(source: string): ExecutionGestureTarget {
     value: (runtime) =>
       runtime.observation.snapshot?.state.sources.find((s) => s.id === source)
         ?.level,
-    action: (value) => ({ kind: "level", value }),
+    request: (hostId, revision, value) => ({
+      kind: "apply",
+      hostId,
+      revision,
+      source,
+      action: { kind: "level", value },
+    }),
   };
 }

@@ -6,6 +6,8 @@ mod freshness;
 mod http;
 mod manual;
 mod manual_validation;
+mod output;
+pub use output::{OutputAction, OutputCatalog, OutputState};
 mod media;
 pub use manual::*;
 mod media_control;
@@ -74,6 +76,7 @@ impl Client {
         }
         progress::validate(&self.catalog, state)?;
         manual_validation::state(&self.catalog, state)?;
+        output::state(&self.catalog, state)?;
         validation::media_state(&self.catalog, state)
     }
     fn accept_observation(&mut self, mut observation: Observation) -> Result<(), String> {

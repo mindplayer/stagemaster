@@ -76,12 +76,18 @@ export function manualBrightnessTarget(
       const reading = manualBrightnessReading(value, source, targets);
       return reading?.unheld === 0 ? reading.raw : undefined;
     },
-    action: (value) => ({
-      kind: "patch",
-      changes: changes.map((change) => ({
-        ...change,
-        value: { kind: "normalized", value },
-      })),
+    request: (hostId, revision, value) => ({
+      kind: "apply",
+      hostId,
+      revision,
+      source,
+      action: {
+        kind: "patch",
+        changes: changes.map((change) => ({
+          ...change,
+          value: { kind: "normalized", value },
+        })),
+      },
     }),
   };
 }

@@ -2,6 +2,7 @@ use crate::{Catalog, Selection, State};
 
 pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
     crate::manual_validation::catalog(catalog)?;
+    crate::output::catalog(catalog)?;
     if catalog.protocol != 2
         || catalog.execution != "sourceGroup"
         || catalog.mode != "softwareOutput"

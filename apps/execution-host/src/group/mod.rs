@@ -2,6 +2,7 @@
 mod audio;
 mod catalog;
 mod manifest;
+pub(crate) mod output;
 mod prepare;
 mod projection;
 pub(crate) mod wire;
@@ -34,6 +35,11 @@ impl Application for Live {
     const PROTOCOL: u8 = 2;
     type Context = Catalog;
     fn action(operation: &Operation, catalog: &Catalog) -> Result<Action, Failure> {
+        if let Operation::Output { action } = operation {
+            return Ok(Action::Output {
+                command: action.command()?,
+            });
+        }
         #[cfg(feature = "audio")]
         if let Operation::Media {
             group,

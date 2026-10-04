@@ -80,7 +80,7 @@ export function SourceLevelControls({
               !active ||
               !observed ||
               draft !== null ||
-              (!editable && (disabled || !!live.view.source))
+              (!editable && (disabled || !!live.view.key))
             }
           />
           <div className="source-level-feedback">

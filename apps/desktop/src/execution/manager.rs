@@ -183,6 +183,22 @@ impl Manager {
             .await?;
         Ok(self.status())
     }
+    pub async fn output(
+        &mut self,
+        host: &str,
+        revision: &str,
+        action: stagemaster_execution_client::OutputAction,
+    ) -> Result<Status, String> {
+        if self.closing {
+            return Err("后台正在关闭".into());
+        }
+        self.client
+            .as_mut()
+            .ok_or("请先连接后台")?
+            .output(host, revision, action)
+            .await?;
+        Ok(self.status())
+    }
     pub async fn shutdown(&mut self, host: &str) -> Result<Status, String> {
         let client = self.client.as_ref().ok_or("请先连接后台并核对状态")?;
         if client.view().host_id != host {

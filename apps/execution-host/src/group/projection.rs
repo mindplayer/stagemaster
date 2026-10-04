@@ -29,6 +29,7 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
         .collect();
     let value = json!({"boot":Uuid::from_bytes(s.boot).to_string(),"layout":identity(s.layout),
         "revision":s.revision.to_string(),"observedMs":s.observed_ms.to_string(),"sources":sources,"fault":s.fault,
+        "output":{"percent":s.output_master.percent(),"blackout":s.output_master.blackout()},
         "owner":s.owner.map(|o|json!({"sessionId":Uuid::from_bytes(o.principal).to_string(),"expiresMs":o.expires_ms.to_string()}))});
     #[cfg(feature = "audio")]
     {

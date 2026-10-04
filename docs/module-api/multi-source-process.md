@@ -72,6 +72,12 @@ EXEC-008 增加可选 `manualValues`（依赖 manualOwnership），每个手动�
 
 ## 输出与生命周期
 
+EXEC-013／[ADR-156](../development/decisions/PRODUCT-ADR-156-background-output-master.md)增加可选 `outputMaster` 能力：`GET /source` 同时给出 `output: { uncontrolledFixtures }`，数量来自固定工程的既有强度识别；状态与每条运行回执提供 `output: { percent, blackout }`。已声明必须完整且一致，旧能力缺省时不提供总控。
+
+组级 `submit.action` 为 `{ "kind":"output", "action": { "kind":"level", "percent":50 } }` 或 `{ "kind":"output", "action": { "kind":"blackout", "enabled":true } }`。百分比须为整数 0–100，布尔值必须为 JSON 布尔值，额外字段拒绝；v1 不接组级总控。它们复用原控制权／版本／序号／回执链，各自只改一个字段，不停止来源、不释放手动贡献或影响音频。
+
+Rust 在原语义合成后、编码前复用 OutputMaster，仅作用于既有连续强度掩码，无逐帧分配。总控后值进入原完整软件帧；后台观察和渲染不再自行缩放。归还输入权限、租约到期或客户端退出保留设定，明确重新准备才恢复默认 100%／非熄灯；不改工程持久化格式。不能识别亮度的灯具仍按原值输出，目录必须明示限制，不能声称全场物理黑场。
+
 软件帧包含启动身份、布局身份、修订、合成版本、实际采样时间、逻辑域及完整 512 槽。合成版本不是网络包计数，采样不是物理发送完成。内部租约、来源 Key 不序列化；输入权到期或客户端退出不会停止节目，明确接管后旧会话不能控制新持有者的运行。宿主故障／关闭撤回有效观察。
 
-Application 仅定义模式到操作／状态／回执／帧的映射；Service、Registry、命令工作器、HTTP 认证和后台 Host 使用同一份实现。组模式和旧模式都保留真实子进程验收。桌面尚未迁移，后续在此边界接入目录、控制权和回执；物理输出、跨设备远程认证、节目热替换、音视频多时钟和生产商业保护另行实施。
+Application 仅定义模式到操作／状态／回执／帧的映射；Service、Registry、命令工作器、HTTP 认证和后台 Host 使用同一份实现。组模式和旧模式都保留真实子进程验收。桌面已沿此边界接入目录、控制权和回执，见[桌面后台执行](desktop-background-execution.md)；物理输出、跨设备远程认证、节目热替换、音视频多时钟和生产商业保护另行实施。

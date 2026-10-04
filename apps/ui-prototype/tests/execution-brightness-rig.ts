@@ -52,31 +52,37 @@ export function brightnessRig() {
       maxActive = Math.max(maxActive, active);
       commands.push({ request, at: now });
       try {
-        if (request.kind === "apply") {
+        if (request.kind === "apply" || request.kind === "output") {
           if (gate) await gate.promise;
           const state = status.runtime!.observation.snapshot!.state;
           assert.equal(request.revision, state.revision);
-          const source = state.sources.find((s) => s.id === request.source)!;
-          if (request.action.kind === "level")
-            source.level = request.action.value;
-          else if (request.action.kind === "patch") {
-            for (const change of request.action.changes) {
-              assert.equal(change.value.kind, "normalized");
-              if (change.value.kind !== "normalized") continue;
-              const index = source.held!.findIndex(
-                (t) =>
-                  t.fixtureId === change.fixtureId &&
-                  t.attribute === change.attribute,
-              );
-              if (index < 0) {
-                source.held!.push({
-                  fixtureId: change.fixtureId,
-                  attribute: change.attribute,
-                });
-                source.heldValues!.push(change.value.value);
-              } else source.heldValues![index] = change.value.value;
-            }
-          } else assert.fail("unexpected control action");
+          if (request.kind === "output") {
+            if (request.action.kind === "level")
+              state.output!.percent = request.action.percent;
+            else state.output!.blackout = request.action.enabled;
+          } else {
+            const source = state.sources.find((s) => s.id === request.source)!;
+            if (request.action.kind === "level")
+              source.level = request.action.value;
+            else if (request.action.kind === "patch") {
+              for (const change of request.action.changes) {
+                assert.equal(change.value.kind, "normalized");
+                if (change.value.kind !== "normalized") continue;
+                const index = source.held!.findIndex(
+                  (t) =>
+                    t.fixtureId === change.fixtureId &&
+                    t.attribute === change.attribute,
+                );
+                if (index < 0) {
+                  source.held!.push({
+                    fixtureId: change.fixtureId,
+                    attribute: change.attribute,
+                  });
+                  source.heldValues!.push(change.value.value);
+                } else source.heldValues![index] = change.value.value;
+              }
+            } else assert.fail("unexpected control action");
+          }
           state.revision = String(BigInt(state.revision) + 1n);
           status.runtime!.record = {
             serial: String(++serial),
@@ -119,7 +125,9 @@ export function brightnessRig() {
       afterSnapshot = value;
     },
     get mutations() {
-      return commands.filter((c) => c.request.kind === "apply");
+      return commands.filter(
+        (c) => c.request.kind === "apply" || c.request.kind === "output",
+      );
     },
     get values() {
       return commands.flatMap(({ request }) =>

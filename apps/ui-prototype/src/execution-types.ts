@@ -25,6 +25,8 @@ export type ExecutionAction =
   | { kind: "pause" | "resume" | "next" | "stop" }
   | { kind: "level"; value: number }
   | { kind: "patch"; changes: ManualEdit[] };
+export type ExecutionOutputAction =
+  { kind: "level"; percent: number } | { kind: "blackout"; enabled: boolean };
 export interface ExecutionView {
   hostId: string;
   catalog: {
@@ -36,6 +38,7 @@ export interface ExecutionView {
     fixtures?: ManualFixture[];
     limits?: ManualLimits;
     audio?: ExecutionAudioCatalog;
+    output?: { uncontrolledFixtures: number };
   };
   observation: {
     phase: string;
@@ -45,6 +48,7 @@ export interface ExecutionView {
       missedPeriods: string;
       state: {
         revision: string;
+        output?: { percent: number; blackout: boolean };
         audio?: ExecutionAudioState;
         media?: ExecutionMediaState[];
         sources: ExecutionSourceState[];
@@ -86,6 +90,12 @@ export type ExecutionRequest =
       revision: string;
       source: string;
       action: ExecutionAction;
+    }
+  | {
+      kind: "output";
+      hostId: string;
+      revision: string;
+      action: ExecutionOutputAction;
     }
   | {
       kind: "media";

@@ -6,6 +6,7 @@ import { useLiveLevels } from "./useLiveLevels";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
 import { ExecutionBoard } from "./ExecutionBoard";
+import { OutputMasterControls } from "./OutputMasterControls";
 import "./execution.css";
 
 export function BackgroundExecution({
@@ -35,7 +36,7 @@ export function BackgroundExecution({
     working,
     request,
   );
-  const interacting = live.view.source !== null;
+  const interacting = live.view.key !== null;
   const [confirm, setConfirm] = useState<{
     kind: "takeover" | "shutdown" | "reconnect";
     hostId: string | null;
@@ -219,6 +220,31 @@ export function BackgroundExecution({
               后台运行的是另一工程；当前编辑不会改变后台节目。
             </p>
           )}
+          <OutputMasterControls
+            key={`output:${runtime.hostId}:${runtime.catalog.layout}`}
+            runtime={runtime}
+            live={live}
+            disabled={disabled}
+            active={visible}
+            observed={
+              fresh &&
+              !error &&
+              !status?.problem &&
+              status?.phase === "connected" &&
+              runtime.observation.phase === "running" &&
+              !runtime.observation.fault &&
+              !state?.fault
+            }
+            onAction={(action) => {
+              if (!state || disabled || live.isBusy()) return;
+              void request({
+                kind: "output",
+                hostId: runtime.hostId,
+                revision: state.revision,
+                action,
+              });
+            }}
+          />
           <ExecutionBoard
             live={live}
             recording={recording}

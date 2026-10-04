@@ -9,7 +9,7 @@ export interface LevelIdentity {
   host: string;
   layout: string;
   session: string;
-  source: string;
+  source?: string;
 }
 export function levelRuntime(status: ExecutionStatus | null | undefined) {
   const runtime = status?.runtime;
@@ -35,9 +35,10 @@ export function sameLevelSession(
     runtime.hostId === identity.host &&
     runtime.catalog.layout === identity.layout &&
     runtime.sessionId === identity.session &&
-    runtime.catalog.sources.some(
-      (s) => s.id === identity.source && s.selection.kind !== "audioTimeline",
-    )
+    (identity.source === undefined ||
+      runtime.catalog.sources.some(
+        (s) => s.id === identity.source && s.selection.kind !== "audioTimeline",
+      ))
   );
 }
 export function sourceLevel(runtime: ExecutionView, source: string) {

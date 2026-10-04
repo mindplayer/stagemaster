@@ -11,12 +11,13 @@ Client::open(discovery_path) -> Client          // 仅观察，不创建控制�
 client.refresh() -> View                       // 核对原回执，再读取状态
 client.acquire(takeover) -> View               // 首次创建会话；接管须明确
 client.apply(host_id, revision, source, action) // 执行、暂停、继续、下一步、停止、电平、语义手动批量
+client.output(host_id, revision, action)        // 组级总亮度／熄灯；同一控制权与回执
 client.release() -> View                       // 归还输入权，不停演
 client.maintain() -> View                      // 观察、必要时续约；不驱动播放器
 client.shutdown()                             // 明确结束整个后台
 ```
 
-这些方法均为异步调用；`View.pending` 表示结果仍待确认，成功返回 HTTP 不等于节目动作已生效。界面请求：`snapshot`、`prepare { generation, selection }`、`reconnect`、`acquire { takeover }`、`release`、`apply { hostId, revision, source, action }`、`shutdown { hostId }`。
+这些方法均为异步调用；`View.pending` 表示结果仍待确认，成功返回 HTTP 不等于节目动作已生效。界面请求：`snapshot`、`prepare { generation, selection }`、`reconnect`、`acquire { takeover }`、`release`、`apply { hostId, revision, source, action }`、`output { hostId, revision, action }`、`shutdown { hostId }`。
 
 准备选择 1–63 个真实场景／列表，另加一个较高优先级的手动层，仍受来源组累计预算限制。生成固定快照再启动同一后台二进制；载入不自动播放。手动层已按 EXEC-007 接入选灯、连续属性／已定义功能的原子应用、指定属性释放和整层确认释放，保留原电平控制。
 
@@ -116,3 +117,15 @@ UI 分别显示目标和权威实际值；精确输入草稿优先，有草稿�
 额外冻结工程、完整所选灯组、属性和容量；选择、定义、布局、会话或控制状态变化取消后续发送。整组数量／请求字节预算开工前核对，超限整组拒绝，不悄悄拆批。每次 Patch 后须自己的 applied 回执且整组权威持有值完全一致，才能确认或发送下一个目标；零值仍持有。
 
 不同／部分或全部未持有时明确显示实际状态，滑块暂置中点不是实际值或默认提交。按下松手但不移动不发命令；首次移动才以绝对亮度设置整组。精确草稿优先，手势期间锁定灯组和属性；取消不回滚已应用值、不释放、不修改工程历史。搜索外已选灯仍包含在原子目标中。
+
+## 后台输出总控
+
+[EXEC-013](../development/tasks/EXEC-013-background-output-master.md)／[ADR-156](../development/decisions/PRODUCT-ADR-156-background-output-master.md)：`outputMaster` 能力配合目录 `output.uncontrolledFixtures` 与权威状态 `output { percent, blackout }`。未声明能力的旧后台仍可观察原节目，但不能操作总控；声明却缺字段、数值越界或数量超过固定灯具目录则整条观察拒绝。
+
+`Client::output`／`ApplicationHost.execution({ kind:"output", hostId, revision, action })` 的 `action` 分为 `level { percent }`（整数 0–100）和 `blackout { enabled }`。通过相同控制租约、修订、序号、截止时间和 applied 回执，不伪造来源。不同时发送两字段，避免旧亮度快照覆盖当前熄灯锁存。
+
+每组 Rust Session 在语义合成后、通道编码前，复用 OutputMaster 仅衰减已识别连续强度一次；有调光不再缩放 RGB，无调光只对完整连续 RGB 回退，功能／控制通道不动。手动贡献、赢家、节目进度和音频不变；软件帧和语义诊断为总控后值，UE 观察最终帧，不再乘编辑预演总控。
+
+总控不存工程或撤销历史。0%／熄灯／归还控制权／退出编辑器不释放或停止节目，重新连接／接管保留当前值；明确关闭并重新准备恢复 100%、非熄灯。解除熄灯显示此刻合成，不重放黑场前的帧。未识别亮度灯具明确提示，熄灯不是机械急停、完整安全措施或物理完成反馈。
+
+组级推子复用同一个连续调度器，无来源目标仍冻结后台／布局／会话／工程／能力；所有来源与手动连续手势用 key 全局互斥。整数精确草稿优先；取消、隐藏、失联／抢占停止后续发送、不回滚在途已应用值；读取失败标最后已知。总控常驻后台区，不被节目搜索／筛选隐藏。

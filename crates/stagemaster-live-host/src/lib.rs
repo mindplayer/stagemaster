@@ -49,6 +49,15 @@ impl LiveBackend {
     }
     fn apply(&mut self, action: &Action, now: u64) -> Result<(), Code> {
         let (source, result) = match action {
+            Action::Output { command } => {
+                return self.session.control_output(*command, now).map_err(|_| {
+                    if self.session.fault().is_some() {
+                        Code::Playback
+                    } else {
+                        Code::State
+                    }
+                });
+            }
             Action::RequestMedia { group, command } => {
                 return self.request_media(*group, *command, now);
             }
@@ -106,6 +115,7 @@ impl Backend for LiveBackend {
             owner: self.control.owner(),
             sources,
             manual_values: self.manual.snapshot(),
+            output_master: self.session.output_master(),
             media: self.media_state(),
             fault: self.session.fault().is_some(),
         }

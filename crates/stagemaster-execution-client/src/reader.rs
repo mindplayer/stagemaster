@@ -79,6 +79,7 @@ impl Reader {
         let state = snapshot.state;
         crate::progress::validate(&self.catalog, &state)?;
         crate::manual_validation::state(&self.catalog, &state)?;
+        crate::output::state(&self.catalog, &state)?;
         crate::validation::media_state(&self.catalog, &state)?;
         let sampled = decimal(&frame.sampled_ms)?;
         let observed = decimal(&state.observed_ms)?;

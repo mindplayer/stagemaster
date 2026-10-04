@@ -175,3 +175,6 @@ async fn real_background_scene_is_frozen_readonly_and_survives_renderer_bridge_r
 
 #[path = "background_audio_tests.rs"]
 mod audio;
+
+#[path = "background_master_tests.rs"]
+mod master;
