@@ -4,6 +4,8 @@
 
 2026-10-02 当前优先级：先扎实共享工程、执行与同步、控制权、渲染、设备适配和云端商业化的框架边界，再按可用增量丰满具体操作。各端共享语义和接口，按设备能力适配交互、宿主及渲染。见 [ADR-097](docs/development/decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 与 [PLAN-003](docs/development/tasks/PLAN-003-platform-framework.md)。
 
+2026-10-04 接续：框架审查已按原范围完成，现按[开发交接路线](docs/development/sol-handoff/roadmap.md)完善单机编排和一路 DMX 交付闭环，再扩展专业能力、云端及其他终端；不重复技术选型或已完成的框架评估。
+
 本大轮按软件开发的基本方法小步推进：限定问题、最小实现、相关验证、集成与记录；保持现有能力可用，优先修复明显缺陷，具体细节以后迭代，不一次铺开全部产品能力。
 
 设备按同一产品家族管理、按能力组合：ESP32／ARM 播放盒、纯输出节点、推子扩展面和一体化控台共享适用模块与契约。当前桌面版是长期软件基座的一种产品组装；主机实时计算与设备自主播放分别建模，不因同属设备而要求安装完整桌面系统。见 [ADR-100](docs/development/decisions/PRODUCT-ADR-100-composable-device-family.md)。
@@ -108,7 +110,7 @@
 
 ## 新会话第一步
 
-日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 和当前工单；按需获取模块资料，避免每次重新加载整套研究。首次理解产品方向时再读本说明及最终技术评估。用户已明确：由当前 Astra 会话直接负责架构、日常开发、验证和集成；不再委派给 Sol 或 Qwen。
+日常开发会话先按根 `AGENTS.md` 读取 `docs/development/STATE.md` 顶部和当前工单，按需读模块资料。2026-10-04 用户调整分工：Astra 确定方向和方案，由用户指定的 6.1 Sol 会话接续实现、验证、集成与状态维护，见 [DEV-ADR-003](docs/development/decisions/DEV-ADR-003-sol-implementation.md) 和[完整交接方案](docs/development/sol-handoff/README.md)。Qwen 与旧 5.6 工具路线不恢复。
 
 首次接手产品时阅读本说明与最终技术评估，长期对标 MA3／老虎控台，当前优先完成软件＋独立播放盒的首次交付；后续日常任务按上述最小上下文入口续接。技术框架已经确认。用户曾要求使用持续模式详细整理 grandMA3 与老虎控台的功能／模块；[控台功能研究资料库](docs/console-research/README.md)已完成 22 个模块、304 条对照记录、51 组术语及 16 个建议验收场景。
 

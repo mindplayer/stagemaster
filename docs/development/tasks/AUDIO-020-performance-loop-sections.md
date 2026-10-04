@@ -1,5 +1,7 @@
 # AUDIO-020：演出循环区段
 
+2026-10-04 接续入口：按 [6.1 Sol 交接路线 H1](../sol-handoff/roadmap.md#h1-完成已有正式演出循环)恢复本工单的未完成部分。核心／工程、有界音源和桌面运行增量保留；先完成可见区段目录／精确编辑，再时间线／成组操作和完整原生验收，不依据下文早期记录重新实现已有模块。
+
 状态：实施中；基线 `c8df526`；main 主工作区；当前会话单写者；保留用户 `output/`。接续 AUDIO-019 与 AUDIT-001 U06，依据 [ADR-096](../decisions/PRODUCT-ADR-096-performance-loop-sections.md)。
 
 2026-10-02 优先级调整：用户要求当前先扎实整体平台框架，见 [ADR-097](../decisions/PRODUCT-ADR-097-integrated-stage-platform.md)／[PLAN-003](PLAN-003-platform-framework.md)。已提交到 `f0e5d9b` 的核心、原生音源和运行控制保持；可见区段编辑及完整原生验收尚未完成，列为待接续。此次新写但未接通／未验证的 UI 草稿已移除，不留半接线组件，也不计作交付。下文历史“下一步”不覆盖最新执行计划，持续目标仍 active。
