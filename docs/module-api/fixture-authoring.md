@@ -8,9 +8,10 @@ FIXTURE-002／FIXTURE-003B，依据 [ADR-024](../development/decisions/PRODUCT-A
 interface ProfileDefinition {
   name: string; manufacturer: string; model: string; mode: string;
   positioning?: PositionModel; // 见位置求解契约；有轴但缺省时表示未定义物理模型
+  emitters?: { key: string; name: string }[]; // FIXTURE-011，稳定单层光源身份
   footprint: number; // 1–512，包含空余通道
   channels: {
-    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "pan-tilt-speed" | "fixture-program" | "zoom" | "focus" | "iris" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
+    attribute: string; // 既有属性，或 emitter.<稳定标识>.<连续属性>，严格集合见下文
     coarse: number; // 从 1 起
     fine: number | null; // 从 1 起，非相邻和细调在前均可
     defaultValue: number | { functionKey: string; position: number }; // 连续值或功能选择
@@ -101,3 +102,13 @@ UI `planSlotBatch` 预检原生起点／宽度／数量、64 功能上限和重�
 界面独立程序建档区禁止删除外部控制档位、禁止切换成动态区间；未知原生区间留空。登记自走／声控禁用区间只是档案资料，场景选择器不显示这些档位，TS 命令预检也拒绝。场景归入“控制”，“仅内置程序”预设只可记录外部控制且独立于亮度／位置／速度；复制与基础组合保持定义。多灯只提供共同定义，换模式需控制表相容，整批错误无部分写入；不按中文名称猜测跨厂商语义。
 
 总亮度／熄灯不改合法外部程序控制值，也不是机械急停。释放／清除遵循既有下层与默认规则，不能当作复位。三维按既有未建模功能边界保留灯体、隐藏不能准确模拟的光，不生成内置自动／声控轨迹。30W 第 10 通道已知九档仅作软件资料／拒绝验收；第 11 通道复位持时、18CH 混合控制／锁存、多发光单元及物理测量仍未实施，复位不列为普通场景功能。当前保护依赖明确分类的工程／档案，不能从无完整语义的历史裸播放包逆推厂家控制模式；不声称已检查或改写它们，也不把软件保护当作实灯验证。
+
+## 独立光源连续控制（FIXTURE-011）
+
+依 [ADR-160](../development/decisions/PRODUCT-ADR-160-independent-emitter-controls.md)，Profile／建档定义的可选 emitters 声明 1–32 个单层光源，各 key 唯一且长度 1–32，符合 `[a-z][a-z0-9]*(-[a-z0-9]+)*`；name 为 1–64 个字符。每个单元必须有准确 `emitter.<key>.<属性>` 通道；支持 dimmer、完整 RGB 或 RGBW，后两者可另带单元 dimmer。白光只允许完整 RGB 的单元额外声明，不是根级或虚拟混色值。本增量所有单元属性为 normalized 全范围 0–65535；dimmer 用 HTP、RGBW 用 LTP，不支持单元功能通道、轴、自动程序或控制宏。未声明／未知单元、空单元和属性／通道冲突原子拒绝。
+
+带单元模式根级可有真实 dimmer 和既有位置／控制／功能／镜头属性，不允许根级 RGB 混用；没有实际总调光可省略根级 dimmer。工程必须声明 `lighting.fixture-emitters@1`，自动建档和严格读入共用规则。旧无字段工程不变；旧读取器拒绝新字段／能力。ProfileView 保留可选 emitters，FixtureView.attributes[].label 包含中文光源名，所有原目标／编辑／预设／手动仍携带准确完整属性键。
+
+OutputMaster 有根级调光只缩放该通道一次；没有根级调光时分别缩放单元 dimmer，否则该单元 RGBW。没有白光模拟或虚构总调光。数值播放包、既有强度掩码、执行器预算与版本保持；不将完整工程交给 ESP32。准确属性集合／类型／混合和原功能条件不一致时禁止批量换模式，光源显示改名不改归属，稳定 key 改动不能迁移旧编排。模式文件及复制保留定义／生成新模式身份。
+
+界面独立建档区自动生成只读稳定 key，名称可改，增删和组合只改草稿，新属性默认必填；粗细／默认精确值、取消、错误定位、历史和保存复用原入口。参数按基础属性分类，稀疏预设保留所选准确单元键，不扩大为全部属性。三维保留灯体／姿态，`unmodeled-emitters` 且编辑／播放光束强度为 0，提示未模拟，不影响实际 DMX。**有限连续单元已接入，独立频闪／轮盘、联动和物理光学未接入**；上文历史无多单元边界以此段为当前接续，不代表完整 18CH 实灯模式。

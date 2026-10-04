@@ -67,6 +67,8 @@ pub use effect_template::{
 mod effects;
 mod encoding;
 mod fixture;
+mod fixture_emitter;
+pub use fixture_emitter::EmitterDefinition;
 mod fixture_axis_speed;
 mod fixture_optics;
 mod fixture_program;

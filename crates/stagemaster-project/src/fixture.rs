@@ -18,6 +18,8 @@ pub struct ProfileChannel {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProfileDefinition {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub emitters: Option<Vec<crate::EmitterDefinition>>,
     pub positioning: Option<crate::PositionModel>,
     pub name: String,
     pub manufacturer: String,
@@ -62,6 +64,9 @@ pub enum FixtureEdit {
 }
 
 pub(super) fn supported_keys<'a>(keys: impl Iterator<Item = &'a str>) -> bool {
+    crate::fixture_emitter::supported(keys)
+}
+pub(super) fn supported_root_keys<'a>(keys: impl Iterator<Item = &'a str>) -> bool {
     let mut keys = keys.collect::<Vec<_>>();
     keys.sort_unstable();
     if keys.windows(2).any(|p| p[0] == p[1]) {
@@ -104,6 +109,7 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     if !(1..=512).contains(&def.footprint) {
         return Err("模式占用应在 1–512 通道之间".into());
     }
+    crate::fixture_emitter::validate_definition(def)?;
     if !supported_keys(def.channels.iter().map(|c| c.attribute.as_str())) {
         return Err("当前模式编辑支持调光、完整 RGB 或调光加 RGB；不能重复属性".into());
     }
@@ -145,7 +151,7 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
         }
     }
     let mut profile = json!({"id":profile_id,"revision":id(),"name":def.name.trim(),"manufacturer":def.manufacturer.trim(),"model":def.model.trim(),"mode":def.mode.trim(),"footprint":def.footprint,
-        "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":if c.functions.is_some() {"function"} else {"normalized"}},"default":crate::fixture_value::stored_default(&c.default_value),"mix":if c.attribute=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
+        "attributes":def.channels.iter().map(|c|json!({"key":c.attribute,"valueType":{"kind":if c.functions.is_some() {"function"} else {"normalized"}},"default":crate::fixture_value::stored_default(&c.default_value),"mix":if crate::fixture_emitter::base(&c.attribute)=="dimmer" {"htp"} else {"ltp"}})).collect::<Vec<_>>(),
         "channels":def.channels.iter().map(|c|json!({"attribute":c.attribute,"encoding":if c.fine.is_some(){"u16-be"}else{"u8"},"offsets":std::iter::once(c.coarse).chain(c.fine).map(|n|n-1).collect::<Vec<_>>()})).collect::<Vec<_>>()
     });
     for (i, channel) in def.channels.iter().enumerate() {
@@ -155,6 +161,9 @@ fn build(def: &ProfileDefinition, profile_id: &str) -> Result<Value, String> {
     }
     if let Some(m) = &def.positioning {
         profile["positioning"] = json!(m);
+    }
+    if let Some(emitters) = &def.emitters {
+        profile["emitters"] = json!(emitters);
     }
     Ok(profile)
 }
@@ -228,6 +237,7 @@ pub(super) fn apply(root: &mut Value, command: FixtureEdit) -> Result<(), String
             id: existing,
             definition,
         } => {
+            crate::fixture_emitter::require(root, &definition);
             crate::fixture_appearance::require(root, &definition);
             crate::fixture_program::require(root, &definition);
             if definition.channels.iter().any(|c| c.functions.is_some()) {

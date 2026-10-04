@@ -81,6 +81,7 @@ impl Document {
             return Err("此模式包含当前编辑器尚未支持的定义，暂不能导出".into());
         }
         let definition = ProfileDefinition {
+            emitters: p.emitters,
             name: p.name,
             manufacturer: p.manufacturer,
             model: p.model,

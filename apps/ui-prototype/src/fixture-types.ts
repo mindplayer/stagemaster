@@ -7,6 +7,7 @@ export interface ProfileChannel {
   functions?: import("./fixture-function-types").FunctionDefinition[];
 }
 export interface ProfileDefinition {
+  emitters?: { key: string; name: string }[];
   positioning?: PositionModel | null;
   name: string;
   manufacturer: string;

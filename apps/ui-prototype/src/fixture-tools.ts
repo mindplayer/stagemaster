@@ -5,6 +5,7 @@ import {
 export { FixtureFieldError } from "./fixture-field-error.ts";
 export { withMotion } from "./profile-motion.ts";
 import { opticsLabels } from "./fixture-optics.ts";
+import { splitEmitterAttribute, validateEmitters } from "./fixture-emitters.ts";
 import {
   axisSpeedKey,
   axisSpeedLabel,
@@ -31,7 +32,16 @@ export const channelLabels: Record<string, string> = {
   red: "红色",
   green: "绿色",
   blue: "蓝色",
+  white: "白光",
 };
+export function profileChannelLabel(draft: ProfileDraft, key: string) {
+  const split = splitEmitterAttribute(key);
+  if (split)
+    return `${draft.emitters?.find((e) => e.key === split.owner)?.name || "光源"} · ${channelLabels[split.attribute] ?? "未支持属性"}`;
+  return key === "dimmer" && draft.emitters?.length
+    ? "总亮度"
+    : channelLabels[key];
+}
 export type ProfileDraft = Omit<ProfileDefinition, "footprint" | "channels"> & {
   footprint: string;
   channels: ChannelDraft[];
@@ -51,6 +61,7 @@ export function profileDraft(profile?: ProfileDefinition): ProfileDraft {
     })),
   };
   return {
+    ...(p.emitters ? { emitters: structuredClone(p.emitters) } : {}),
     ...(p.positioning ? { positioning: structuredClone(p.positioning) } : {}),
     name: p.name,
     manufacturer: p.manufacturer,
@@ -98,10 +109,12 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     meta[key] = value;
   }
   const footprint = integer(draft.footprint, 1, 512, "footprint", "模式占用");
+  validateEmitters(draft);
   const keys = draft.channels
     .map((c) => c.attribute)
     .filter(
       (k) =>
+        !k.startsWith("emitter.") &&
         !(k in functionLabels) &&
         !Object.hasOwn(opticsLabels, k) &&
         k !== axisSpeedKey,
@@ -109,7 +122,10 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     .filter((k) => k !== "pan" && k !== "tilt")
     .sort()
     .join(",");
-  if (!["dimmer", "blue,green,red", "blue,dimmer,green,red"].includes(keys))
+  if (
+    !(keys === "" && draft.emitters?.length) &&
+    !["dimmer", "blue,green,red", "blue,dimmer,green,red"].includes(keys)
+  )
     throw new FixtureFieldError("family", "请选择调光、RGB 或调光加 RGB");
   validateAxisSpeedDraft(draft);
   if (
@@ -152,7 +168,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const channels = draft.channels.map((c, i) => {
     const slot = (raw: string, part: "coarse" | "fine") => {
       const field = `channel-${i}-${part}`,
-        label = `${channelLabels[c.attribute]}${part === "coarse" ? "粗调" : "细调"}通道`;
+        label = `${profileChannelLabel(draft, c.attribute)}${part === "coarse" ? "粗调" : "细调"}通道`;
       const n = integer(raw, 1, footprint, field, label);
       if (occupied.has(n))
         throw new FixtureFieldError(field, `通道 ${n} 重复，请修改${label}`);
@@ -176,7 +192,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     if (!/^\d+(\.\d+)?$/.test(c.percent.trim()) || Number(c.percent) > 100)
       throw new FixtureFieldError(
         `channel-${i}-percent`,
-        `${channelLabels[c.attribute]}默认值应为 0–100%`,
+        `${profileChannelLabel(draft, c.attribute)}默认值应为 0–100%`,
       );
     return {
       attribute: c.attribute,
@@ -189,6 +205,7 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
     ...meta,
     footprint,
     channels,
+    ...(draft.emitters ? { emitters: structuredClone(draft.emitters) } : {}),
     ...(draft.positioning
       ? { positioning: structuredClone(draft.positioning) }
       : {}),

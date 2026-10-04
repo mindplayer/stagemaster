@@ -4,12 +4,19 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-- **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)软件增量完成，自审通过**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`，用户屏蔽政策先提交 `ca11ff6`；结果为本次 `fix(fixtures): block autonomous fixture program selections` 提交。用户要求覆盖原允许式方案，[ADR-159 顶部](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)明确仅外部控制可执行，声控／自走只保留禁用资料。Rust 编辑／整批／预设／读入／编译、手动输出和手动记录统一拒绝，UI 仅外部菜单；未知复位／混合宏不开放。复用原功能／播放器／有界包，无新计时器或固件变更。
+- **[FIXTURE-011 独立光源调光与 RGBW](tasks/FIXTURE-011-independent-emitter-controls.md)有限软件增量完成，自审通过**，基线 main `a87402b`，计划／[ADR-160](decisions/PRODUCT-ADR-160-independent-emitter-controls.md)先提交 `a5e9399`；结果为本次 `feat(fixtures): author independent continuous light sources` 提交。显式单元归属、准确属性目标、可选真实总调光、白光及能力读入校验接入，不添加虚拟灯或第二播放器。无根级总调光时逐单元衰减；有总调光只作用一次，零值／释放与控制属性保持。
+- 本次最终实际 **1253 Rust＋2 文档、428 UI、220 格式测试**、设计样例／原生工程格式与引用、UI／契约类型、严格 Clippy、Rust／相关 UI 格式及正式 `.app` 构建通过；3 项既有子进程入口由父测试实际调用。红灯、测试前提／临时组件问题和一次契约命令路径错误保留，不用首轮结果替代最终源码出口。证据 `data/FIXTURE-011/verification.json`，日志 `logs/fixture-011-*`。
+- 正式包两灯 17／25 配适、独立图案调光 25%／白光 62.5%、稀疏记录／一次撤销重做、模式文件导出导入独立身份、整组换模式和保存退出最近重开通过。原 1 灯／3 项保持，最终 3 灯／7 项；原生重开前后字节一致，来源及默认最近目录哈希不变、用户 output/ 保持。自有应用／组件页／Vite 退出，无音乐、UE、执行后台或设备输出。
+- 接续 **H3 [FIXTURE-006](tasks/FIXTURE-006-real-fixture-intake.md) 的独立单元功能频闪／轮盘有限已知边界**：先核对资料和既有功能模型，再限定契约／ADR。声控／自走仍全部屏蔽，未知混合宏／复位不作滑块；30W 频闪关闭／常亮和图案子范围待资料。当前软件子集不是完整 18CH；光源几何／白光三维、完整实际 11／18CH、听音／GPU、物理差分／实灯／长期及客户无 UE 编辑器包仍未完成，完整 goal active。
+
+## 上一增量记录：内置程序安全屏蔽 2026-10-05
+
+以下保留 `a87402b` 的实际交付，接续以上方入口为准。
+
+- **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)软件增量完成，自审通过**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`，用户屏蔽政策先提交 `ca11ff6`；结果 `a87402b`。用户要求覆盖原允许式方案，[ADR-159 顶部](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)明确仅外部控制可执行，声控／自走只保留禁用资料。Rust 编辑／整批／预设／读入／编译、手动输出和手动记录统一拒绝，UI 仅外部菜单；未知复位／混合宏不开放。复用原功能／播放器／有界包，无新计时器或固件变更。
 - 本次最终实际 **1241 Rust＋2 文档、423 UI、210 格式检查**、UI／契约类型、严格 Clippy、Rust／相关 UI 格式、JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试实际调用。最初自主选择与手动绕过先失败后修复，失败／前期允许式历史证据保留，不冒作最终禁止验收。证据 `data/FIXTURE-010/verification.json`，日志 `logs/fixture-010-*`。
 - 最终正式包两灯仅外部选择、成组释放／一次历史、禁用资料／非法代表值定位、独立模式文件导出导入、原子两灯换模式及保存退出重开通过。禁止声控副本读入原子拒绝并保持当前安全工程；两独立九档模式、5 灯／7 属性与 external/0 保持。来源和默认最近目录哈希未改，用户 output/ 保持；拥有的验收窗口／组件页／Vite 关闭，音乐／UE／后台／设备未启用。
 - 接续 **H3 [FIXTURE-006](tasks/FIXTURE-006-real-fixture-intake.md)**：先核对独立发光单元等依赖，限定下一软件增量并记录契约／ADR；不把旧裸包／未确认厂家宏当作已经审查安全，不恢复声控／自走。完整实际 11／18CH、听音／GPU、物理差分／实灯／长期及客户无 UE 编辑器包未完成，完整 goal active。
-
-当前接续 **[FIXTURE-011 独立光源调光与 RGBW](tasks/FIXTURE-011-independent-emitter-controls.md)**，基线 `a87402b`，先提交限定计划／[ADR-160](decisions/PRODUCT-ADR-160-independent-emitter-controls.md)后实现。一个灯具内显式区分单元、总调光与白光，不把软件子集称为完整 18CH；独立功能通道／物理光学另续。只读现状核对通过，尚未写本增量代码或声称验收通过。
 
 ## 上一增量记录：后台管理锁生命周期 2026-10-04
 

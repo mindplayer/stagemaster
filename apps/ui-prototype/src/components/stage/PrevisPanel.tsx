@@ -194,7 +194,7 @@ export function PrevisPanel({
       {!!unmodeled.length && (
         <details className="previs-limitations">
           <summary>
-            {unmodeled.length} 台灯具仅显示灯位与朝向，功能光束暂未模拟
+            {unmodeled.length} 台灯具仅显示灯位与朝向，光源／功能光束暂未模拟
           </summary>
           <p>{unmodeled.join("、")}</p>
           <p>

@@ -1,9 +1,14 @@
 import type { FixtureView } from "./application-host";
+import { attributeBase } from "./fixture-emitters.ts";
 
 type Attribute = FixtureView["attributes"][number];
 export const parameterCategories = [
   { id: "intensity", label: "亮度", keys: ["dimmer", "shutter"] },
-  { id: "color", label: "颜色", keys: ["red", "green", "blue", "color-wheel"] },
+  {
+    id: "color",
+    label: "颜色",
+    keys: ["red", "green", "blue", "white", "color-wheel"],
+  },
   { id: "beam", label: "图案", keys: ["gobo-wheel", "prism"] },
   { id: "optics", label: "镜头", keys: ["zoom", "focus", "iris"] },
   { id: "control", label: "控制", keys: ["pan-tilt-speed", "fixture-program"] },
@@ -17,8 +22,9 @@ export function parameterCategoryKeys(
 }
 export function parameterCategory(key: string): ParameterCategory {
   return (
-    parameterCategories.find((c) => (c.keys as readonly string[]).includes(key))
-      ?.id ?? "other"
+    parameterCategories.find((c) =>
+      (c.keys as readonly string[]).includes(attributeBase(key)),
+    )?.id ?? "other"
   );
 }
 export function availableParameterCategories(attributes: Attribute[]) {
@@ -38,7 +44,9 @@ export function visibleParameterAttributes(
     ...c.keys,
   ]);
   const rank = (key: string) =>
-    keys.includes(key) ? keys.indexOf(key) : keys.length;
+    keys.includes(attributeBase(key))
+      ? keys.indexOf(attributeBase(key))
+      : keys.length;
   return attributes
     .filter((a) => category === "all" || parameterCategory(a.key) === category)
     .sort((a, b) => rank(a.key) - rank(b.key));

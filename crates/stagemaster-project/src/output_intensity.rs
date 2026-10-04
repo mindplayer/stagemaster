@@ -21,6 +21,36 @@ pub(crate) fn keys(profile: &Value) -> Vec<&str> {
             vec![]
         };
     }
+    if profile.get("emitters").is_some() {
+        let mut result = Vec::new();
+        for emitter in array(profile, "emitters") {
+            let owner = text(emitter, "key");
+            let keys = array(profile, "attributes")
+                .iter()
+                .map(|a| text(a, "key"))
+                .filter(|key| {
+                    crate::fixture_emitter::split(key).is_some_and(|(unit, _)| unit == owner)
+                })
+                .collect::<Vec<_>>();
+            if let Some(dimmer) = keys
+                .iter()
+                .find(|key| crate::fixture_emitter::base(key) == "dimmer")
+            {
+                if numeric(dimmer) {
+                    result.push(*dimmer);
+                }
+            } else if ["red", "green", "blue"].iter().all(|base| {
+                keys.iter()
+                    .any(|key| crate::fixture_emitter::base(key) == *base && numeric(key))
+            }) {
+                result.extend(keys.into_iter().filter(|key| {
+                    ["red", "green", "blue", "white"].contains(&crate::fixture_emitter::base(key))
+                        && numeric(key)
+                }));
+            }
+        }
+        return result;
+    }
     if ["red", "green", "blue"].iter().all(|key| numeric(key)) {
         vec!["red", "green", "blue"]
     } else {

@@ -1,6 +1,6 @@
 import { opticsLabels } from "../../fixture-optics";
 import { axisSpeedKey } from "../../fixture-axis-speed";
-import type { ProfileDraft } from "../../fixture-tools";
+import { profileChannelLabel, type ProfileDraft } from "../../fixture-tools";
 import { functionLabels } from "../../fixture-function-types";
 import { ProfileChannelFields } from "./ProfileChannelFields";
 export function ProfileLinearChannels({
@@ -15,6 +15,7 @@ export function ProfileLinearChannels({
       <h3>线性属性与物理通道</h3>
       <div className="profile-channels">
         {value.channels.map((c, i) =>
+          c.attribute.startsWith("emitter.") ||
           c.attribute in functionLabels ||
           c.attribute === axisSpeedKey ||
           Object.hasOwn(opticsLabels, c.attribute) ? null : (
@@ -22,6 +23,7 @@ export function ProfileLinearChannels({
               key={c.attribute}
               channel={c}
               index={i}
+              label={profileChannelLabel(value, c.attribute)}
               change={(patch) =>
                 setDraft({
                   ...value,

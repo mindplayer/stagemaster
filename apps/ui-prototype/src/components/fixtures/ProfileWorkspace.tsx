@@ -9,6 +9,7 @@ import { ProfileAxisSpeedChannel } from "./ProfileAxisSpeedChannel";
 import { ProfileProgramChannel } from "./ProfileProgramChannel";
 import { ProfileOpticsChannels } from "./ProfileOpticsChannels";
 import { ProfileLinearChannels } from "./ProfileLinearChannels";
+import { ProfileEmitterChannels } from "./ProfileEmitterChannels";
 import { ProfileFunctionChannels } from "./ProfileFunctionChannels";
 import { ChannelStrip } from "./ProfileChannelStrip";
 import { WorkspaceSurface } from "../workbench/WorkspaceSurface";
@@ -249,6 +250,7 @@ export const ProfileWorkspace = forwardRef<
                       setDraft={setDraft}
                     />
                     <ProfileLinearChannels value={value} setDraft={setDraft} />
+                    <ProfileEmitterChannels value={value} setDraft={setDraft} />
                     <ProfileProgramChannel value={value} setDraft={setDraft} />
                     <ProfileOpticsChannels value={value} setDraft={setDraft} />
                     <ProfileFunctionChannels

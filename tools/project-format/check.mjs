@@ -5,6 +5,7 @@ import { auditSeating } from './seating-audit.mjs';
 import { auditStageLocks } from "./stage-lock-audit.mjs";
 import { auditSequenceScripts } from "./sequence-script-audit.mjs";
 import { auditFixtureFunctions } from "./fixture-function-audit.mjs";
+import { auditFixtureEmitters } from "./fixture-emitter-audit.mjs";
 import { auditAudioEditing } from './audio-audit.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -116,6 +117,7 @@ function acyclic(items, edges, label) {
 
 export function auditProject(p) {
   validateStructure(p);
+  auditFixtureEmitters(p);
   auditFixtureFunctions(p);
   auditSequenceScripts(p);
   auditStageLocks(p);

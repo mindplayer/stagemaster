@@ -115,7 +115,12 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 attributes.retain(|&k| k != "pan" && k != "tilt");
             }
             attributes.sort_unstable();
-            if attributes != ["dimmer"]
+            let emitters = fixture
+                .attributes
+                .iter()
+                .any(|a| a.key.starts_with("emitter."));
+            if !emitters
+                && attributes != ["dimmer"]
                 && attributes != ["blue", "dimmer", "green", "red"]
                 && attributes != ["blue", "green", "red"]
             {
@@ -135,7 +140,9 @@ fn fixtures(view: &ProjectView) -> Result<Vec<Fixture>, String> {
                 direction: ray.direction,
                 full_beam_angle_degrees: 25.0,
                 optics: "generic-illustrative",
-                light_simulation: if fixture
+                light_simulation: if emitters {
+                    "unmodeled-emitters"
+                } else if fixture
                     .attributes
                     .iter()
                     .any(|a| stagemaster_project::is_continuous_optics_attribute(&a.key))
@@ -163,6 +170,8 @@ fn points(values: &[[String; 2]]) -> Result<Vec<[f64; 2]>, String> {
 
 fn has_unmodeled_optics(fixture: &stagemaster_project::FixtureView) -> bool {
     fixture.attributes.iter().any(|a| {
-        a.function.is_some() || stagemaster_project::is_continuous_optics_attribute(&a.key)
+        a.key.starts_with("emitter.")
+            || a.function.is_some()
+            || stagemaster_project::is_continuous_optics_attribute(&a.key)
     })
 }

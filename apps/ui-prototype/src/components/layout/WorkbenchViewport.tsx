@@ -99,7 +99,10 @@ export const WorkbenchViewport = forwardRef<
           limitedFixtures={project.fixtures.filter(
             (f) =>
               f.attributes.some(
-                (a) => a.function || Object.hasOwn(opticsLabels, a.key),
+                (a) =>
+                  a.key.startsWith("emitter.") ||
+                  a.function ||
+                  Object.hasOwn(opticsLabels, a.key),
               ) && project.stage.placements.some((p) => p.fixtureId === f.id),
           )}
           ref={ref}

@@ -1,4 +1,5 @@
 import { parameterCategoryKeys } from "./parameter-categories.ts";
+import { attributeBase } from "./fixture-emitters.ts";
 
 export const presetAttributeScopes = [
   { id: "light", name: "仅亮度", keys: ["dimmer"] },
@@ -17,7 +18,7 @@ export function presetScopeOptions(available: { key: string }[]) {
     ...presetAttributeScopes.map((scope) => ({
       ...scope,
       keys: keys.filter((key) =>
-        (scope.keys as readonly string[]).includes(key),
+        (scope.keys as readonly string[]).includes(attributeBase(key)),
       ),
     })),
   ];

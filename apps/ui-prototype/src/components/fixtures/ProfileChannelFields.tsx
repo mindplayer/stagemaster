@@ -7,13 +7,15 @@ export function ProfileChannelFields({
   index: i,
   change,
   children,
+  label: suppliedLabel,
 }: {
   channel: ChannelDraft;
   index: number;
   change(patch: Partial<ChannelDraft>): void;
   children?: ReactNode;
+  label?: string;
 }) {
-  const label = channelLabels[c.attribute];
+  const label = suppliedLabel ?? channelLabels[c.attribute];
   return (
     <div className="profile-channel">
       <strong>{label}</strong>

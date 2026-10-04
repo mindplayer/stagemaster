@@ -1,14 +1,14 @@
-import { channelLabels, type ProfileDraft } from "../../fixture-tools";
+import { profileChannelLabel, type ProfileDraft } from "../../fixture-tools";
 export function ChannelStrip({ draft }: { draft: ProfileDraft }) {
   const width = Number(draft.footprint);
   if (!Number.isInteger(width) || width < 1 || width > 512) return null;
   const slots = Array.from({ length: width }, (_, i) =>
     draft.channels.flatMap((c) => [
       ...(Number(c.coarse) === i + 1
-        ? [`${channelLabels[c.attribute]}粗调`]
+        ? [`${profileChannelLabel(draft, c.attribute)}粗调`]
         : []),
       ...(c.bits === "16" && Number(c.fine) === i + 1
-        ? [`${channelLabels[c.attribute]}细调`]
+        ? [`${profileChannelLabel(draft, c.attribute)}细调`]
         : []),
     ]),
   );

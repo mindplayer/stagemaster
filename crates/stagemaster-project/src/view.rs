@@ -41,6 +41,8 @@ pub struct PresetView {
 }
 #[derive(Serialize)]
 pub struct ProfileView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub emitters: Option<Vec<crate::EmitterDefinition>>,
     pub positioning: Option<crate::PositionModel>,
     pub revision: String,
     pub manufacturer: String,
@@ -235,7 +237,7 @@ fn fixture(root: &Value, fixture: &Value) -> FixtureView {
             .iter()
             .map(|a| AttributeView {
                 key: text(a, "key").into(),
-                label: attribute_label(text(a, "key")).into(),
+                label: crate::fixture_emitter::label(profile, text(a, "key")),
                 default_value: u64::from(
                     crate::fixture_value::encode(profile, text(a, "key"), &a["default"])
                         .expect("validated default"),
@@ -287,6 +289,7 @@ pub(super) fn attribute_label(key: &str) -> &str {
         "red" => "红色",
         "green" => "绿色",
         "blue" => "蓝色",
+        "white" => "白光",
         "color-wheel" => "色盘",
         "gobo-wheel" => "图案盘",
         "shutter" => "快门与频闪",

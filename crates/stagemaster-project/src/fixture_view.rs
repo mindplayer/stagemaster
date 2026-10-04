@@ -5,6 +5,9 @@ use serde_json::Value;
 
 pub(super) fn profile(p: &Value) -> ProfileView {
     ProfileView {
+        emitters: p
+            .get("emitters")
+            .map(|v| serde_json::from_value(v.clone()).expect("validated emitters")),
         positioning: crate::position::model(p).expect("validated model"),
         revision: text(p, "revision").into(),
         manufacturer: text(p, "manufacturer").into(),
@@ -14,9 +17,14 @@ pub(super) fn profile(p: &Value) -> ProfileView {
             array(p, "attributes").iter().map(|a| text(a, "key")),
         ) && (p.get("positioning").is_none()
             || array(p, "attributes").iter().any(|a| a["key"] == "pan"))
-            && array(p, "attributes")
-                .iter()
-                .all(|a| a["mix"] == if a["key"] == "dimmer" { "htp" } else { "ltp" }),
+            && array(p, "attributes").iter().all(|a| {
+                a["mix"]
+                    == if crate::fixture_emitter::base(text(a, "key")) == "dimmer" {
+                        "htp"
+                    } else {
+                        "ltp"
+                    }
+            }),
         channels: array(p, "channels")
             .iter()
             .map(|c| crate::ProfileChannel {

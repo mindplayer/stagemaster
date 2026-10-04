@@ -43,13 +43,24 @@ export function ProfileMetadata({
               ? value.channels.some((c) => c.attribute === "dimmer")
                 ? "rgbd"
                 : "rgb"
-              : "dimmer"
+              : value.channels.some((c) => c.attribute === "dimmer")
+                ? "dimmer"
+                : "none"
           }
           onChange={(e) => setDraft(withLinearFamily(value, e.target.value))}
         >
-          <option value="dimmer">调光</option>
-          <option value="rgb">RGB 三原色</option>
-          <option value="rgbd">调光与 RGB</option>
+          {value.emitters?.length && (
+            <option value="none">无独立总调光通道</option>
+          )}
+          <option value="dimmer">
+            {value.emitters?.length ? "总调光" : "调光"}
+          </option>
+          <option value="rgb" disabled={!!value.emitters?.length}>
+            RGB 三原色
+          </option>
+          <option value="rgbd" disabled={!!value.emitters?.length}>
+            调光与 RGB
+          </option>
         </select>
       </label>
     </div>

@@ -28,6 +28,7 @@ pub(super) fn validate(root: &Value) -> Result<(), String> {
         lookup(&domains, text(fixture, "domainId"), "灯光输出域")?;
     }
     crate::fixture_value::validate(root)?;
+    crate::fixture_emitter::validate(root)?;
     validate_patches(lighting, &fixtures, &profiles)?;
     for group in array(lighting, "groups") {
         for id in array(group, "fixtureIds") {
@@ -117,6 +118,7 @@ fn supported(root: &Value) -> Result<(), String> {
             "lighting.basic",
             crate::fixture_value::CAPABILITY,
             crate::fixture_program::CAPABILITY,
+            crate::fixture_emitter::CAPABILITY,
             crate::fixture_appearance::CAPABILITY,
             crate::sequence_script::CAPABILITY,
             "lighting.positioning",

@@ -197,11 +197,13 @@ export function withLinearFamily(
   family: string,
 ): ProfileDraft {
   const keys =
-    family === "dimmer"
-      ? ["dimmer"]
-      : family === "rgb"
-        ? ["red", "green", "blue"]
-        : ["dimmer", "red", "green", "blue"];
+    family === "none"
+      ? []
+      : family === "dimmer"
+        ? ["dimmer"]
+        : family === "rgb"
+          ? ["red", "green", "blue"]
+          : ["dimmer", "red", "green", "blue"];
   const preserved = draft.channels.filter(
     (c) => !["dimmer", "red", "green", "blue"].includes(c.attribute),
   );
