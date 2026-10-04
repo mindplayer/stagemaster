@@ -11,6 +11,8 @@
 
 ## 上一增量记录：内置程序安全屏蔽 2026-10-05
 
+当前接续 [FIXTURE-012 独立光源受控频闪与轮盘](tasks/FIXTURE-012-independent-emitter-functions.md)，基线 `8d27e28`，先提交 [ADR-161](decisions/PRODUCT-ADR-161-independent-emitter-functions.md)／限定计划。只增加明确开闭／受控频闪、固定轮盘及单图案抖动，自动来回切换和未知混合宏不开放；尚未实施或验收。
+
 以下保留 `a87402b` 的实际交付，接续以上方入口为准。
 
 - **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)软件增量完成，自审通过**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`，用户屏蔽政策先提交 `ca11ff6`；结果 `a87402b`。用户要求覆盖原允许式方案，[ADR-159 顶部](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)明确仅外部控制可执行，声控／自走只保留禁用资料。Rust 编辑／整批／预设／读入／编译、手动输出和手动记录统一拒绝，UI 仅外部菜单；未知复位／混合宏不开放。复用原功能／播放器／有界包，无新计时器或固件变更。
