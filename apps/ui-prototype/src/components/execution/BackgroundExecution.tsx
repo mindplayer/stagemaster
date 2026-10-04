@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
-import type { ExecutionAction } from "../../execution-types";
-import { mediaRequestIdentity } from "../../media-seek-receipt";
+import { executionCommands } from "./executionCommands";
 import { useLiveLevels } from "./useLiveLevels";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
@@ -58,16 +57,7 @@ export function BackgroundExecution({
     runtime.observation.phase !== "running" ||
     runtime.pending ||
     !!state?.fault;
-  async function action(source: string, action: ExecutionAction) {
-    if (!runtime || !state || disabled || live.isBusy()) return;
-    return request({
-      kind: "apply",
-      hostId: runtime.hostId,
-      revision: state.revision,
-      source,
-      action,
-    });
-  }
+  const commands = executionCommands(runtime, disabled, live.isBusy, request);
   const outcome = runtime?.record?.outcome;
   const operationProblem =
     live.view.problem || (!interacting ? outcome?.message : null);
@@ -236,13 +226,7 @@ export function BackgroundExecution({
               !state?.fault
             }
             onAction={(action) => {
-              if (!state || disabled || live.isBusy()) return;
-              void request({
-                kind: "output",
-                hostId: runtime.hostId,
-                revision: state.revision,
-                action,
-              });
+              void commands.output(action);
             }}
           />
           <ExecutionBoard
@@ -261,22 +245,9 @@ export function BackgroundExecution({
               !runtime.observation.fault &&
               !state?.fault
             }
-            onAction={action}
-            onMedia={async (action) => {
-              const group = state?.media?.find(
-                (m) => m.id === runtime.catalog.audio?.group,
-              );
-              if (!state || !group || disabled || live.isBusy()) return null;
-              const value = await request({
-                kind: "media",
-                hostId: runtime.hostId,
-                revision: state.revision,
-                group: group.id,
-                generation: group.generation,
-                action,
-              });
-              return mediaRequestIdentity(value?.runtime);
-            }}
+            onAction={commands.source}
+            onMedia={commands.media}
+            onBatch={commands.batch}
           />
         </>
       ) : (

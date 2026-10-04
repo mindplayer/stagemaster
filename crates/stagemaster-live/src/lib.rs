@@ -1,5 +1,7 @@
 //! Prepared host-side source group. Caller owns scheduling, permissions and physical output.
 //! No threads, clocks, transport, storage or UI are created here.
+mod batch;
+pub use batch::BatchCommand;
 mod commands;
 mod composition;
 pub mod media;

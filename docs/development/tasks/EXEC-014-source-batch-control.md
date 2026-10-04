@@ -1,6 +1,6 @@
 # EXEC-014 普通节目批量操作与保护
 
-状态：实施中。2026-10-04，main 基线 `e09ebd1053a4398428edd727860dfcdd4d423cba`，主工作区干净、仅用户 `output/` 未跟踪；当前 6.1 Sol 单写者。上一 goal 回合属于 progress，PROJECT-003 已完成且完整回归恢复。
+状态：本轮限定增量实现、自审、完整回归与正式桌面验收完成。2026-10-04，main 基线 `e09ebd1053a4398428edd727860dfcdd4d423cba`，先提交计划／ADR `9482272`，结果为本次 `feat(execution): control reviewed program selections atomically` 提交。主工作区开始干净、仅用户 `output/` 未跟踪；当前 6.1 Sol 单写者。PROJECT-003 已完成，不重复实施。
 
 依据：[路线 H2](../sol-handoff/roadmap.md#h2-补齐必要现场操作)、[ADR-157](../decisions/PRODUCT-ADR-157-source-batch-control.md)。先纳入限定计划和公共扩展决定，再实现。现有 EXEC-005／006 浏览／进度、007～013 手动／共同亮度／总控不重做。
 
@@ -22,4 +22,51 @@
 
 ## 实际记录
 
-尚未实施和验证，不提前写通过。听音、历史音频预留原因、GPU 首帧、H3 指定灯型、H4 物理差分／实灯／长期及 H5 客户 UE 打包仍开放，完整 goal active。
+### 实现与自审
+
+- 核心普通节目批量命令先校验 1–64 唯一目标、实例／类型／时间，再同刻推进，沿原 Player 暂停／继续／停止，最终合成完整组。待执行／已结束不隐式启动；停止只归还所选贡献。故障沿原组故障锁存撤回帧，不承诺故障状态回滚。
+- 宿主不可变有界 Batch 在接纳前分配；唯一队列复用原租约／修订／序号／期限／回执，v2 可选 sourceBatch；v1、非法动作、空／重复／超量／外来／手动／音乐拒绝，无前端逐条 fallback。共享客户端和正式桌面仅一次 batch 请求，未知只查询原回执。
+- 执行台跨筛选保留有序选择，筛选外数量与完整名单明确显示，音乐／手动层不勾选；全选当前结果仅增选可见普通节目。审阅冻结后台／布局／工程／会话／修订／目标，取消、Escape、隐藏／失焦、选择／筛选／身份／控制或修订变化使旧确认失效。按钮取消与 Escape 恢复启动按钮焦点；确认立即消费冻结值，旧后台迟到回复隔离。
+- 核心、载荷、协议、桌面桥、纯选择／回执、界面状态／组件和测试按职责分文件。BackgroundExecution 原 302 行收敛至 273 行，请求组装单独 68 行；新增文件均低于 300 行。桌面测试辅助可见性仅扩大到 execution 测试范围，取子进程方法仅 cfg(test)，不改变生产进程所有权。
+- 不改工程／包／媒体格式、设备固件、UE 或依赖；不增加时钟、播放器、自动重试、热路径载荷分配。选择与运行控制不写工程历史；零值／停止／释放／熄灯保持原边界。
+
+### 实际检查
+
+项目命令使用根 tmp/；Rust 缓存为 tmp/cargo-home、tmp/framework-001-light-target，npm 缓存为 tmp/npm-cache。证据在 data/EXEC-014/，原始日志保留并忽略，不加入源码仓库。
+
+| 实际检查 | 结果／日志 |
+| --- | --- |
+| 核心／宿主／真实进程／桌面新增保护 | 新增 16 项 Rust：核心 7、宿主 3、真实进程 4、桌面 2；纳入下方原全量 |
+| 最终 `cargo test --workspace --locked --offline` | 1218 Rust＋2 文档，0 失败；`logs/exec-014-workspace-final.log`。另 2 ignored 为既有子进程入口，均由父测试调用 |
+| `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | 通过，`logs/exec-014-clippy-final.log` |
+| `cargo fmt --all -- --check` | 通过，`logs/exec-014-rust-format-check.log` |
+| 原 `npm run check`／`npm test` | 类型及 414 UI 通过，无跳过；`logs/exec-014-types-delivery.log`、`logs/exec-014-ui-delivery.log` |
+| 所有变更 TS／CSS／HTML 的 Prettier check | 通过，`logs/exec-014-ui-format-check.log`；复用项目已有缓存，不安装新依赖 |
+| `node tools/desktop/run.mjs build` | 正式 `.app` 成功，主路径验收包 `logs/exec-014-build.log`；最终会话回执保护源再次构建 `logs/exec-014-build-context-final.log`。原 UI 大 chunk 警告保留，未放宽门槛 |
+| 实际生产 ExecutionBoard 组件 | 64 来源、62 普通节目，跨筛选、完整名单、取消／Escape、修订／筛选／选择保护、只读／隐藏／观察失败、拒绝／未知原回执、迟到身份、单确认与 266px 窄栏；`component-checks.json`／DOM／截图。测试回执不是原生或物理证据 |
+
+初次核心 RED 因批量 API 尚不存在退出 101，随后按原验收实现。真实进程新测试误将既有 422 预检响应断言为 400，按现有 Failure／Axum 实际契约修正后 4 项通过，未改变产品拒绝规则；两次失败保留 `exec-014-rust-first.log`／`rust-second.log`。新类型空值错误、桌面测试辅助可见性和严格检查测试所有权／长函数错误逐项修正后全量重跑；日志 `types-first`、`workspace-first`、`clippy-first`／`second`／`third` 保留。不禁用保护、忽略测试或压缩行数规避检查。
+
+组件实际先发现 Escape 取消后焦点落到页面，修正为回到启动按钮后复测，并重新做类型、414 UI、正式打包和原生键盘验收。原生跨调用的一次审阅已按上下文保护取消，旧目标没有发送；重新核对当前审阅再操作，不用失效的旧按钮继续确认。
+
+最终自审补齐同一后台更换控制会话的回执失效：上下文变化清除旧在途／结果并使其异步 ticket 无效，迟到成功和异常同样隔离。实际组件延迟异常＋换会话后旧错误不显示、不再发送；同会话异常仍显示不可用／不重发，后续正常批量可取得匹配回执，证据 `component-context-checks.json`／DOM／截图。补丁仅 UI 回执状态，Rust 原全量未重复；最终类型、414 UI、相关格式和正式包重建实际重跑。前述三个动态节目原生完整验收来自主路径包；最终包再实际准备两个动态场景，修订 3 运行，窗口失焦取消审阅而修订仍 3；重新审阅一次暂停修订 4、一次停止修订 5，明确关闭后台，不将组件异常注入称为原生异常。
+
+新建后台浏览器标签与一次 Command-Tab 未观察到原生审阅取消，不能用它们代替有效失焦事件；最终让系统访达实际取得焦点后，正式界面旧审阅消失、运行保持，证据 `native-final-blur-ax.txt`／`native-final-after-finder-state.json`。未绕过界面直接派发 blur，不修改用户文件或系统设置。
+
+### 正式桌面与保护证据
+
+使用正式 `tmp/framework-001-light-target/debug/bundle/macos/舞台大师.app`，既有 debug acceptance instance `exec-014-tytooq` 隔离导航／后台，未改变产品代码来制造验收。通过原生文件选择器打开 `data/EXEC-014/source-batch.project.json`，加载真实 80 灯工程的三个动态场景，不载入音乐、不启用 UE、不连接设备。所有控制均由真实界面提交；只读 GET /state 保存真实宿主观察，没有外部写请求。
+
+1. 三节目逐项启动，两台灯具精确手动亮度 80%，修订 5。选择前两节目，搜索隐藏第二项；审阅完整列出两名称／原始序号／状态，默认聚焦取消。按钮取消和 Escape 均恢复焦点，不提交；修订仍 5、三个节目运行、手动仍 52428／52428。
+2. 一次暂停所选，修订 6：前两项同时 Paused，第三项 Running。两份间隔观察中前两 progress 完全相同、第三 elapsed 增加；手动值、总控 100%／未熄灯未改。正式截图 `native-paused.png`，原观察 `native-paused-state.json`／`native-paused-later-state.json`。
+3. 一次继续所选，修订 7，三节目 Running。界面实际短暂显示待确认，再查询原回执确认，没有重发。停止审阅期间改选目标使旧审阅取消；重新核对两项后一次停止，修订 8：前两 Idle，第三 Running，手动与总控保持。相关原生 AX 和原观察均保留。
+4. 退出正式编辑应用后后台继续；同一隔离实例重启，通过最近工程重开后仍同 boot／修订 8、第三运行、两项手动值保留。执行台只读，不自动取得控制／重放，批量选择从 0 开始，旧审阅不恢复；`native-reopened-readonly-ax.txt`／截图／观察。
+5. 明确取得控制后全选普通节目，停止对照节目，修订 10、三项 Idle，手动保持；单独确认释放手动层，修订 11、持有 0。再明确确认关闭后台；正式 UI 显示“尚未载入”，current／discovery 撤回、本轮宿主已退出。临时组件页和自有 5186 Vite 已退出，未操作用户 5173。最后保留已保存的独立工程，设备未连接。
+
+来源与验收副本 SHA-256 均保持 `a27abb8b90de6bf80884d6bb61d6b3e0cff243144660c8f54f29d515e123b097`，默认用户最近目录仍 `69d620946c1bc483de120ab9570ede44ca50e663e4e93a3fd09071f5405dc637`。未改变用户 output/、工程或撤销历史。原生静止最终 AX、宿主退出／哈希检查和准确提交版本统一归档 `verification.json`。
+
+### 结果与下一项
+
+按相关文件逐项暂存提交，差异与引用检查后核对 HEAD／工作区，准确结果版本写入 data/EXEC-014/verification.json。本工单限定普通节目批量增量完成，不将其写成完整专业控台、硬件或全部 H2 能力完成。接续路线 H3 先读 FIXTURE-006 当前真实灯型交接，核对 30W 11 通道与 18 通道原证据／已有实现，只推进可独立的软件任务；不发布测试档案为真实灯型。
+
+听音、历史音频预留原因、GPU 首帧、H3 指定灯型完整适配、H4 物理差分／实灯／长期及 H5 客户无编辑器 UE 打包仍开放，完整 goal active。没有硬件／刷机／部署／实灯操作，不假报物理通过。

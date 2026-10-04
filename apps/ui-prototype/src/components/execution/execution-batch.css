@@ -1,0 +1,30 @@
+.execution-batch {
+  padding: 12px 0;
+  border-block: 1px solid #324452;
+  margin-bottom: 14px;
+}
+.execution-batch p {
+  color: #adbfca;
+  font-size: 12px;
+}
+.execution-batch .execution-confirm {
+  margin-top: 12px;
+}
+.execution-batch ul {
+  max-height: 180px;
+  overflow: auto;
+  padding-left: 24px;
+  overflow-wrap: anywhere;
+}
+.execution-board-slot-tools .execution-program-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+}
+.execution-board-slot-tools .execution-program-select input {
+  width: auto;
+}
+.execution-board-slot:has(.execution-program-select input:checked) {
+  border-color: #6dcab5;
+}

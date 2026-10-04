@@ -1,21 +1,21 @@
 use super::*;
 use stagemaster_execution_client::Action;
 use std::{fs, process::Child, time::Instant};
-pub(super) struct Cleanup(pub(super) Child);
+pub(in crate::execution) struct Cleanup(pub(in crate::execution) Child);
 impl Drop for Cleanup {
     fn drop(&mut self) {
         let _ = self.0.kill();
         let _ = self.0.wait();
     }
 }
-pub(super) fn runtime() -> tokio::runtime::Runtime {
+pub(in crate::execution) fn runtime() -> tokio::runtime::Runtime {
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
         .enable_all()
         .build()
         .unwrap()
 }
-pub(super) fn binary() -> PathBuf {
+pub(in crate::execution) fn binary() -> PathBuf {
     std::env::current_exe()
         .unwrap()
         .parent()
@@ -24,7 +24,7 @@ pub(super) fn binary() -> PathBuf {
         .unwrap()
         .join("stagemaster-execution-host")
 }
-pub(super) fn document() -> Document {
+pub(in crate::execution) fn document() -> Document {
     let mut value: serde_json::Value = serde_json::from_slice(include_bytes!(
         "../../../../docs/project-format/examples/lighting-basic.project.json"
     ))
@@ -34,7 +34,7 @@ pub(super) fn document() -> Document {
     Document::decode(&serde_json::to_vec(&value).unwrap()).unwrap()
 }
 
-pub(super) async fn connected(manager: &mut Manager) -> Status {
+pub(in crate::execution) async fn connected(manager: &mut Manager) -> Status {
     let end = Instant::now() + Duration::from_secs(8);
     loop {
         let status = manager.poll().await;

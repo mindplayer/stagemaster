@@ -1,3 +1,4 @@
+mod batch;
 mod capture;
 mod files;
 pub(crate) use capture::Collected;
@@ -80,6 +81,12 @@ pub(crate) enum Request {
         source: String,
         action: Action,
     },
+    Batch {
+        host_id: String,
+        revision: String,
+        sources: Vec<String>,
+        action: stagemaster_execution_client::BatchAction,
+    },
     Output {
         host_id: String,
         revision: String,
@@ -123,6 +130,12 @@ pub(crate) async fn execution_request(
             source,
             action,
         } => manager.apply(&host_id, &revision, &source, action).await,
+        Request::Batch {
+            host_id,
+            revision,
+            sources,
+            action,
+        } => manager.batch(&host_id, &revision, &sources, action).await,
         Request::Output {
             host_id,
             revision,

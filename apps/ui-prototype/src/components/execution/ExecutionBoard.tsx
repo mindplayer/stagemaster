@@ -14,6 +14,9 @@ import {
   sourcePinKey,
 } from "../../execution-board";
 import { ExecutionBoardToolbar } from "./ExecutionBoardToolbar";
+import { ExecutionBatchControls } from "./ExecutionBatchControls";
+import { selectPrograms, ordinaryProgram } from "../../execution-batch";
+import type { ExecutionBatchRequest } from "../../execution-types";
 import { SourceControls } from "./SourceControls";
 import { ManualControls } from "./ManualControls";
 import { MediaControls } from "./MediaControls";
@@ -27,6 +30,7 @@ export function ExecutionBoard({
   active,
   onAction,
   onMedia,
+  onBatch,
   recording,
   live,
 }: {
@@ -40,9 +44,11 @@ export function ExecutionBoard({
     action: ExecutionAction,
   ): Promise<ExecutionStatus | undefined>;
   onMedia(action: ExecutionMediaAction): Promise<MediaRequestIdentity | null>;
+  onBatch(request: ExecutionBatchRequest): Promise<ExecutionStatus | undefined>;
   recording?: import("../../manual-capture-types").ManualRecordingContext;
 }) {
   const [filter, setFilter] = useState({ ...allSources });
+  const [selected, setSelected] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<ReadonlySet<string>>(new Set());
   const onDraftChange = useCallback((id: string, dirty: boolean) => {
     setDrafts((old) => {
@@ -81,6 +87,27 @@ export function ExecutionBoard({
         }
       />
       {pins.problem && <p role="alert">{pins.problem}</p>}
+      <ExecutionBatchControls
+        runtime={runtime}
+        selected={selected}
+        visibleIds={rows.filter((r) => r.shown).map((r) => r.source.id)}
+        disabled={disabled}
+        active={active}
+        observed={observed}
+        filterKey={JSON.stringify(filter)}
+        onSelectVisible={() =>
+          setSelected((old) =>
+            selectPrograms(
+              old,
+              runtime.catalog.sources,
+              rows.filter((r) => r.shown).map((r) => r.source.id),
+              "add",
+            ),
+          )
+        }
+        onClear={() => setSelected([])}
+        onBatch={onBatch}
+      />
       {shown === 0 && (
         <div className="execution-board-empty" role="status">
           <p>
@@ -92,7 +119,7 @@ export function ExecutionBoard({
         </div>
       )}
       <div className="execution-sources">
-        {rows.map(({ source, shown, pinned }) => {
+        {rows.map(({ source, shown, pinned, index }) => {
           const key = sourcePinKey(source);
           const enabled = active && shown;
           return (
@@ -103,6 +130,27 @@ export function ExecutionBoard({
               hidden={!shown}
             >
               <div className="execution-board-slot-tools">
+                {ordinaryProgram(source) && (
+                  <label className="execution-program-select">
+                    <input
+                      type="checkbox"
+                      aria-label={`选择节目${index + 1} · ${source.name}`}
+                      checked={selected.includes(source.id)}
+                      disabled={!active}
+                      onChange={() =>
+                        setSelected((old) =>
+                          selectPrograms(
+                            old,
+                            runtime.catalog.sources,
+                            [source.id],
+                            "toggle",
+                          ),
+                        )
+                      }
+                    />
+                    选择 {index + 1}
+                  </label>
+                )}
                 <span>{sourceKinds[source.selection.kind]}</span>
                 {drafts.has(source.id) && (
                   <span className="execution-board-draft">未应用输入</span>

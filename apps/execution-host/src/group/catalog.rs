@@ -53,7 +53,7 @@ pub(super) fn build(
         "layout":layout,"projectId":view.id,"sources":description,"fixtures":view.fixtures,
         "limits":{"sources":64,"manualChanges":512,"requestBytes":8192,"commandTtlMs":5000,"outputUniverses":1},
         "output":{"uncontrolledFixtures":document.uncontrolled_intensity_fixtures()},
-        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress","manualOwnership","manualValues","outputMaster"]});
+        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress","manualOwnership","manualValues","outputMaster","sourceBatch"]});
     Ok((
         Catalog {
             entries,

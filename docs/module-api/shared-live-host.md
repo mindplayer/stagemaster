@@ -33,6 +33,8 @@ HOST-004 将接纳期限扩展为 `impl Into<Deadline>`：原 `Duration` 调用�
 
 ## 多来源调用与观察
 
+- EXEC-014 的 `Action::Batch { batch: Batch, command: BatchCommand }`：`Batch::new(&[Key])` 接纳前构造 1–64 项唯一不可变 Arc 切片，worker 克隆共享存储。核心 `Session::control_batch` 全组身份／类型预检，沿同一单调时间和原 Player 应用 Pause／Resume／Stop；只支持普通独立节目，一次最终合成。不新分配每帧载荷，不改变媒体、手动或设备默认 Action。单操作权限／修订／序号／期限／重放与内部故障规则不变，整组一个回执；不能把 UI 多次单来源请求称为原子批量。
+
 - `Action::Control { source, command }` 操作某个已准备场景／列表，停止也可清空手动层。
 - `Action::Patch { source, patch }` 只操作手动层。`Patch::new` 在入队前准备最多 512 个不重复属性，后端继续检查实际布局；上游灯具语义层负责具体功能值有效性。
 - `Action::Level { source, level }` 调整普通亮度电平，不隐式释放位置或其他属性。

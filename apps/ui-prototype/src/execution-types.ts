@@ -27,6 +27,14 @@ export type ExecutionAction =
   | { kind: "patch"; changes: ManualEdit[] };
 export type ExecutionOutputAction =
   { kind: "level"; percent: number } | { kind: "blackout"; enabled: boolean };
+export type ExecutionBatchAction = { kind: "pause" | "resume" | "stop" };
+export interface ExecutionBatchRequest {
+  kind: "batch";
+  hostId: string;
+  revision: string;
+  sources: string[];
+  action: ExecutionBatchAction;
+}
 export interface ExecutionView {
   hostId: string;
   catalog: {
@@ -76,6 +84,7 @@ export interface ExecutionStatus {
   runtime: ExecutionView | null;
 }
 export type ExecutionRequest =
+  | ExecutionBatchRequest
   | { kind: "snapshot" | "reconnect" | "release" }
   | {
       kind: "prepare";

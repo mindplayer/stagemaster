@@ -1,5 +1,6 @@
 #[cfg(feature = "audio")]
 mod audio;
+pub(crate) mod batch;
 mod catalog;
 mod manifest;
 pub(crate) mod output;
@@ -35,6 +36,9 @@ impl Application for Live {
     const PROTOCOL: u8 = 2;
     type Context = Catalog;
     fn action(operation: &Operation, catalog: &Catalog) -> Result<Action, Failure> {
+        if let Operation::Batch { sources, action } = operation {
+            return batch::action(catalog, sources, action);
+        }
         if let Operation::Output { action } = operation {
             return Ok(Action::Output {
                 command: action.command()?,

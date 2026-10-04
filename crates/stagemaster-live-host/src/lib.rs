@@ -1,4 +1,6 @@
 //! Multi-source execution adapter for the existing independent host, with shared input authority.
+mod batch;
+pub use batch::Batch;
 mod commands;
 mod manual;
 pub mod media;
@@ -49,6 +51,18 @@ impl LiveBackend {
     }
     fn apply(&mut self, action: &Action, now: u64) -> Result<(), Code> {
         let (source, result) = match action {
+            Action::Batch { batch, command } => {
+                return self
+                    .session
+                    .control_batch(batch.keys(), *command, now)
+                    .map_err(|_| {
+                        if self.session.fault().is_some() {
+                            Code::Playback
+                        } else {
+                            Code::State
+                        }
+                    });
+            }
             Action::Output { command } => {
                 return self.session.control_output(*command, now).map_err(|_| {
                     if self.session.fault().is_some() {

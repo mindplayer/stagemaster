@@ -72,6 +72,8 @@ EXEC-008 增加可选 `manualValues`（依赖 manualOwnership），每个手动�
 
 ## 输出与生命周期
 
+EXEC-014／[ADR-157](../development/decisions/PRODUCT-ADR-157-source-batch-control.md)：可选 `sourceBatch` 对应 `submit.action={kind:"batch",sources:[普通节目 UUID...],action:{kind:"pause|resume|stop"}}`。非空、至多 64 项唯一标准 UUID，未知字段和其他动作拒绝，8 KiB 限额不变。全组应用侧解析和核心类型预检后，以同一时间操作普通来源、一次最终合成／修订／回执；手动、音乐和媒体跟随来源整组拒绝，不发布部分成功。v1 不接受，旧 v2 无此能力不 fallback 逐条发送。预检拒绝不施加部分控制；自动时间仍按原 worker 推进，内部故障沿原整组锁存／撤回语义，不能声称状态回滚。暂停／继续对非对应状态 no-op，不隐式启动；停止仅归还所选来源。
+
 EXEC-013／[ADR-156](../development/decisions/PRODUCT-ADR-156-background-output-master.md)增加可选 `outputMaster` 能力：`GET /source` 同时给出 `output: { uncontrolledFixtures }`，数量来自固定工程的既有强度识别；状态与每条运行回执提供 `output: { percent, blackout }`。已声明必须完整且一致，旧能力缺省时不提供总控。
 
 组级 `submit.action` 为 `{ "kind":"output", "action": { "kind":"level", "percent":50 } }` 或 `{ "kind":"output", "action": { "kind":"blackout", "enabled":true } }`。百分比须为整数 0–100，布尔值必须为 JSON 布尔值，额外字段拒绝；v1 不接组级总控。它们复用原控制权／版本／序号／回执链，各自只改一个字段，不停止来源、不释放手动贡献或影响音频。

@@ -1,6 +1,8 @@
 //! Bounded local controller for the independently running v2 source group.
 #![allow(clippy::missing_errors_doc)]
+mod batch;
 mod control;
+pub use batch::BatchAction;
 mod discovery;
 mod freshness;
 mod http;

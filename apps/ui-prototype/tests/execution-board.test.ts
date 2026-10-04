@@ -1,4 +1,5 @@
 import test from "node:test";
+import "./execution-batch.test.ts";
 import assert from "node:assert/strict";
 import {
   allSources,

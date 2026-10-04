@@ -28,6 +28,10 @@ impl Patch {
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
+    Batch {
+        batch: crate::Batch,
+        command: stagemaster_live::BatchCommand,
+    },
     Output {
         command: stagemaster_live::OutputCommand,
     },

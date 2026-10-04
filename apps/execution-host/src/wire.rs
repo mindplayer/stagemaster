@@ -60,6 +60,10 @@ pub(crate) enum Command {
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) enum Operation {
+    Batch {
+        sources: Vec<String>,
+        action: crate::group::batch::Operation,
+    },
     Output {
         action: crate::group::output::Operation,
     },
@@ -84,7 +88,9 @@ pub(crate) enum Operation {
 impl Operation {
     pub fn action(&self) -> Result<Action, Failure> {
         Ok(match self {
-            Self::Source { .. } | Self::Output { .. } => return Err(Failure::invalid()),
+            Self::Source { .. } | Self::Output { .. } | Self::Batch { .. } => {
+                return Err(Failure::invalid());
+            }
             #[cfg(feature = "audio")]
             Self::Media { .. } => return Err(Failure::invalid()),
             Self::Start { step } => Action::Start {
@@ -105,6 +111,10 @@ impl Input {
             return Err(Failure::invalid());
         }
         match &self.command {
+            Command::Submit {
+                action: Operation::Batch { sources, .. },
+                ..
+            } => crate::group::batch::validate(sources),
             Command::Acquire { duration_ms, .. } | Command::Renew { duration_ms }
                 if !(1..=60_000).contains(duration_ms) =>
             {

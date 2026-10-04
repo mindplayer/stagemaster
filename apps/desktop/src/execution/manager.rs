@@ -21,6 +21,10 @@ pub(crate) struct Manager {
     pub(super) closing: bool,
 }
 impl Manager {
+    #[cfg(test)]
+    pub(super) fn take_test_child(&mut self) -> Child {
+        self.child.take().unwrap()
+    }
     pub fn new(root: PathBuf, binary: PathBuf) -> Self {
         Self {
             root,
@@ -230,7 +234,7 @@ impl Manager {
 mod capture_tests;
 #[cfg(test)]
 #[path = "tests.rs"]
-mod tests;
+pub(super) mod tests;
 
 #[cfg(test)]
 #[path = "media_tests.rs"]
