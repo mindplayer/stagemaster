@@ -179,6 +179,11 @@ fn missing_configuration_and_damaged_music_do_not_publish_background_records() {
                 .is_err()
         );
         assert!(!root.join("current").exists());
-        assert!(manager.reserve_editor_audio().is_ok());
+        let reservation = manager.reserve_editor_audio();
+        assert!(
+            reservation.is_ok(),
+            "{reservation:?}; root={}",
+            root.display()
+        );
     });
 }

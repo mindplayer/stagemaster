@@ -24,11 +24,14 @@ npm --prefix apps/ui-prototype run desktop:build
 ```sh
 node --test tools/previs/signalling.test.mjs
 env TMPDIR="$PWD/tmp" \
-  "UE-LocalDataCachePath=$PWD/data/previs-derived-cache" \
-  "UE-ZenDataPath=$PWD/data/previs-zen" \
+  "UE_LocalDataCachePath=$PWD/data/previs-derived-cache" \
+  UE_SKIP_UBT_SDK_SETUP=1 \
   '/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd' \
   "$PWD/apps/previs-unreal/StageMasterPreview.uproject" \
   -unattended -NullRHI -NoSound -NoSplash -NoP4 -NoTraceServer \
+  "-UserDir=$PWD/data/previs-user" \
+  "-LocalDataCachePath=$PWD/data/previs-derived-cache" \
+  '-DDC=(ProjectPak,InstalledProjectPak,EnginePak=InstalledEnginePak,Local)' \
   '-ExecCmds=Automation RunTests StageMaster.Previs; Automation Quit' \
   '-TestExit=Automation Test Queue Empty' \
   -ReportExportPath="$PWD/tmp/previs/protocol-tests" \
@@ -36,6 +39,8 @@ env TMPDIR="$PWD/tmp" \
 ```
 
 测试报告 `tmp/previs/protocol-tests/index.json` 中全部 `StageMaster.Previs` 测试必须为 `Success`；引擎进程正常退出本身不代表测试通过。无图形测试不能替代原生画面验收。
+
+Apple／Unix 的 UE 环境读取会把旧变量名中的连字符转换为下划线，故进程必须设置 `UE_LocalDataCachePath`，不能只设置 `UE-LocalDataCachePath`。桌面启动沿用引擎只读缓存包与项目内文件缓存，并明确设置 UserDir／TMPDIR；不启动全局 Zen 服务或修改用户全局设置。已编译适配器的 `-game` 运行／自动化测试使用无人值守模式并跳过后台跨平台 SDK 导出，避免 Turnkey 弹窗及 UBT 写用户级日志；独立构建命令仍执行工具链检查，不因此声称客户打包或未知平台就绪。
 
 原生验收顺序：打开实际工程，开启三维预演，切换灯光来源，检查房间／舞台／灯位、光束、透视／俯视／全场、拾取／聚焦、工作照明、平面往返以及关闭／重新开启。选择“移动灯位”后可在当前高度水平拖动；一次松手形成一次撤销，拖出视窗取消，属性中的精确坐标与工程同步。修改仍由 Rust 校验和保存；无效属性草稿不会被三维选择或拖动覆盖。安装旋转和空间归属在属性中编辑。
 

@@ -87,9 +87,12 @@ impl Renderer {
         let mut command = Command::new(paths.program);
         if let Some(project) = paths.project {
             command.arg(project).arg("-game");
+            super::renderer_local::configure_editor_runtime(&mut command);
         }
+        super::renderer_local::configure(&mut command, &paths.root)?;
         command
             .args([
+                "-unattended",
                 "-RenderOffscreen",
                 "-ForceRes",
                 "-ResX=1280",
@@ -103,11 +106,6 @@ impl Renderer {
                 "-abslog={}",
                 logs.join("previs-renderer.log").display()
             ))
-            .env(
-                "UE-LocalDataCachePath",
-                paths.root.join("data/previs-derived-cache"),
-            )
-            .env("UE-ZenDataPath", paths.root.join("data/previs-zen"))
             .env(
                 "STAGEMASTER_STREAM_URL",
                 format!("ws://127.0.0.1:{}/{}", ports.renderer_port, renderer_token),
