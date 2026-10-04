@@ -67,6 +67,7 @@ pub use effect_template::{
 mod effects;
 mod encoding;
 mod fixture;
+mod fixture_axis_speed;
 mod fixture_optics;
 pub use fixture_optics::is_continuous_optics_attribute;
 mod fixture_appearance;

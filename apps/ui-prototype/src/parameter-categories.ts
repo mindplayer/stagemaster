@@ -6,6 +6,7 @@ export const parameterCategories = [
   { id: "color", label: "颜色", keys: ["red", "green", "blue", "color-wheel"] },
   { id: "beam", label: "图案", keys: ["gobo-wheel", "prism"] },
   { id: "optics", label: "镜头", keys: ["zoom", "focus", "iris"] },
+  { id: "control", label: "控制", keys: ["pan-tilt-speed"] },
   { id: "other", label: "其他", keys: [] },
 ] as const;
 export type ParameterCategory = (typeof parameterCategories)[number]["id"];

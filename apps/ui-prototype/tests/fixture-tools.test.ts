@@ -1,4 +1,5 @@
 import test from "node:test";
+import "./fixture-axis-speed.test.ts";
 import assert from "node:assert/strict";
 import {
   profileDraft,

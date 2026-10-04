@@ -1,4 +1,5 @@
 import type { ProfileDraft } from "./fixture-tools";
+import { axisSpeedKey } from "./fixture-axis-speed.ts";
 
 export function hasMotion(draft: ProfileDraft): boolean {
   return draft.channels.some(
@@ -13,7 +14,10 @@ export function withMotion(
 ): ProfileDraft {
   if (enabled && hasMotion(draft)) return draft;
   const channels = draft.channels.filter(
-    (c) => c.attribute !== "pan" && c.attribute !== "tilt",
+    (c) =>
+      c.attribute !== "pan" &&
+      c.attribute !== "tilt" &&
+      (enabled || c.attribute !== axisSpeedKey),
   );
   if (!enabled) return { ...draft, positioning: null, channels };
   let offset = Math.max(

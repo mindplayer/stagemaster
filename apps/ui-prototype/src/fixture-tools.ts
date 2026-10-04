@@ -6,6 +6,11 @@ export { FixtureFieldError } from "./fixture-field-error.ts";
 export { withMotion } from "./profile-motion.ts";
 import { opticsLabels } from "./fixture-optics.ts";
 import {
+  axisSpeedKey,
+  axisSpeedLabel,
+  validateAxisSpeedDraft,
+} from "./fixture-axis-speed.ts";
+import {
   functionLabels,
   sameFunctionMapping,
 } from "./fixture-function-types.ts";
@@ -22,6 +27,7 @@ export const channelLabels: Record<string, string> = {
   dimmer: "亮度",
   pan: "水平轴",
   tilt: "垂直轴",
+  [axisSpeedKey]: axisSpeedLabel,
   red: "红色",
   green: "绿色",
   blue: "蓝色",
@@ -94,12 +100,18 @@ export function profileDefinition(draft: ProfileDraft): ProfileDefinition {
   const footprint = integer(draft.footprint, 1, 512, "footprint", "模式占用");
   const keys = draft.channels
     .map((c) => c.attribute)
-    .filter((k) => !(k in functionLabels) && !Object.hasOwn(opticsLabels, k))
+    .filter(
+      (k) =>
+        !(k in functionLabels) &&
+        !Object.hasOwn(opticsLabels, k) &&
+        k !== axisSpeedKey,
+    )
     .filter((k) => k !== "pan" && k !== "tilt")
     .sort()
     .join(",");
   if (!["dimmer", "blue,green,red", "blue,dimmer,green,red"].includes(keys))
     throw new FixtureFieldError("family", "请选择调光、RGB 或调光加 RGB");
+  validateAxisSpeedDraft(draft);
   if (
     draft.positioning ||
     draft.channels.some((c) => c.attribute === "pan" || c.attribute === "tilt")

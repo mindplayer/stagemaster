@@ -1,5 +1,6 @@
 import { functionLabels } from "./fixture-function-types.ts";
 import { opticsLabels } from "./fixture-optics.ts";
+import { axisSpeedKey, axisSpeedLabel } from "./fixture-axis-speed.ts";
 import type { FixtureView, SceneView } from "./application-host";
 import type { PresetView } from "./library-types";
 export type RecallMode = "replace" | "add" | "subtract";
@@ -65,6 +66,7 @@ export const attributeName = (key: string) =>
   ({
     ...functionLabels,
     ...opticsLabels,
+    [axisSpeedKey]: axisSpeedLabel,
     dimmer: "亮度",
     red: "红色",
     green: "绿色",

@@ -282,6 +282,7 @@ pub(super) fn attribute_label(key: &str) -> &str {
         "dimmer" => "亮度",
         "pan" => "水平轴",
         "tilt" => "垂直轴",
+        crate::fixture_axis_speed::KEY => crate::fixture_axis_speed::LABEL,
         "red" => "红色",
         "green" => "绿色",
         "blue" => "蓝色",

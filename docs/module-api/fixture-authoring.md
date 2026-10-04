@@ -10,7 +10,7 @@ interface ProfileDefinition {
   positioning?: PositionModel; // 见位置求解契约；有轴但缺省时表示未定义物理模型
   footprint: number; // 1–512，包含空余通道
   channels: {
-    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "zoom" | "focus" | "iris" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
+    attribute: "dimmer" | "red" | "green" | "blue" | "pan" | "tilt" | "pan-tilt-speed" | "zoom" | "focus" | "iris" | "color-wheel" | "gobo-wheel" | "shutter" | "prism";
     coarse: number; // 从 1 起
     fine: number | null; // 从 1 起，非相邻和细调在前均可
     defaultValue: number | { functionKey: string; position: number }; // 连续值或功能选择
@@ -83,3 +83,11 @@ UI `planSlotBatch` 预检原生起点／宽度／数量、64 功能上限和重�
 依 [ADR-089](../development/decisions/PRODUCT-ADR-089-color-slot-remap-review.md)，`allowColorSlotRemap` 缺省 false。true 仅放宽相同功能键、同为固定档位的色盘起止值／代表值差异，允许编译原场景与预设引用时使用新值。自动换色等连续区间、功能键集合／类型、其他属性和物理模型仍须相容；整批只改变目标灯具的模式引用，失败无部分提交。
 
 桌面按源模式列出所选灯及色盘前后差异，需重新编码时必须显式勾选；更换选择／目标／源目标修订会撤销该选择。取消不改工程，一次应用对应一次历史；不隐式重写功能键，不推测实际颜色或自动反转通道。
+
+## 两轴速度控制（FIXTURE-009）
+
+依 [ADR-158](../development/decisions/PRODUCT-ADR-158-pan-tilt-speed-control.md)，建档新增 `pan-tilt-speed`，中文“两轴速度控制”，须同时具备完整 pan／tilt 位置通道，每模式最多一组共同速度通道。仅接受全范围线性 8／16 位粗细映射、normalized 默认值及 LTP；不接受功能表。通道控制位置并非真实速度、速度方向、角速度或软件渐变时长；不自动推断或反转未知厂家方向。缺物理模型仍可编排通道，原物理位置操作拒绝规则保持。
+
+界面独立速度组件复用线性字段，新增默认值草稿留空，必须明确填写；切换基础组合／几何保持速度，移除两轴一并移除依赖速度草稿并有说明，取消恢复原定义。场景归入“控制”，预设“仅位置”仍只选 pan／tilt，“仅两轴速度控制”只选本属性；原场景、释放、稀疏预设、列表渐变、模式文件／工程保存及批量替换复用，不增加 UI 播放求值器。总亮度／熄灯不衰减此控制值，动态效果白名单不扩展。
+
+既有 `lighting.basic` 和通用 normalized 包完整承载该映射，不改工程结构、能力／执行版本、时钟或输出权限。旧执行读取与旧建档支持不同，旧编辑器可能拒绝新组合；同属性换灯只保证控制值保留／按精度重新编码，不保证实灯真实速度等效。UE 不由此模拟机械延迟。自动／声控、混合宏、复位持时、分轴速度和多发光单元仍未接入，软件测试档案不是完整实际 11／18CH 模式。

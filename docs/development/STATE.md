@@ -4,7 +4,11 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-- **[FIXTURE-009 两轴速度控制](tasks/FIXTURE-009-pan-tilt-speed-control.md)实施中**，产品基线 main `ce0447d`，单工作区写者，先提交限定计划／[ADR-158](decisions/PRODUCT-ADR-158-pan-tilt-speed-control.md)。核对 FIXTURE-006 原始通道证据与现有 FIXTURE-005／007／008：先补 30W 通道 9／18CH 通道 5 的独立建档与编排，不猜方向／物理速度、不混同渐变、自动／声控或复位，不发布完整实灯档案。用户 `output/` 保持。
+- **[FIXTURE-009 两轴速度控制](tasks/FIXTURE-009-pan-tilt-speed-control.md)限定功能与相关验收完成**，基线 main `ce0447d`，计划／[ADR-158](decisions/PRODUCT-ADR-158-pan-tilt-speed-control.md)先提交 `fe04e5b`，结果为本次 `feat(fixtures): author independent pan tilt speed channels` 提交。主工作区单写者，用户 `output/` 保持；完整全量出口仍有旧后台管理锁失败，不能声称通过。
+- Rust 独立共同两轴速度 normalized／LTP 建档；UI 默认必填／错误定位／取消、基础与几何保持、场景“控制”及速度稀疏预设；复用原播放器／包／映射／历史。非零起址、8／16 位、释放／渐变／总控隔离和整批换模式验证；不猜方向／物理速度、不混同时间、自动程序或持时复位，不改结构／版本／依赖，不发布实灯档案。
+- 本次实际相关 **309 Rust、418 UI**、类型／严格 Clippy／相关格式／模式格式／正式构建通过；真实组件 7 项，正式 `.app` 两灯 17／28 配适、62.5% 精确成组输入、撤销重做／草稿取消、模式导出导入独立身份、整组换模式和保存退出／最近重开通过。来源与默认最近目录哈希不变，保存重开字节相同；自有原生／组件进程退出，无音乐、UE、设备或执行后台。证据 `data/FIXTURE-009/verification.json`，日志 `logs/fixture-009-*`。
+- **优先接续 EXEC-015 后台管理锁生命周期**：原全量退出 101，桌面 120 通过／1 旧测试失败，`media_tests.rs:183` 顺序音频预留返回“另一个应用正在管理此后台”。单独诊断通过只是诊断；File 复制／继承机制未作本次确定性证明，现场持有 PID 未知，历史音频预留原因仍未确认。先限定计划、确定性复现及最小修复，再恢复原全量，不删除锁、重试掩盖或放宽保护。
+- 完整 H3／FIXTURE-006、H1 听音、GPU 首帧、H4 物理差分／实灯／长期、H5 客户无编辑器 UE 包仍未关闭；goal active，锁出口恢复后继续 H3 独立语义。
 
 ## 上一增量记录：普通节目批量操作 2026-10-04
 
