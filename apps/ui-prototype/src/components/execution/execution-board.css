@@ -1,0 +1,92 @@
+.execution-board-toolbar {
+  margin-top: 16px;
+}
+.execution-board-overview,
+.execution-board-filters,
+.execution-board-slot-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.execution-board-overview {
+  margin-bottom: 12px;
+}
+.execution-board-overview > span,
+.execution-board-count,
+.execution-board-slot-tools {
+  color: #adbfca;
+  font-size: 12px;
+}
+.execution-board button {
+  padding: 7px 10px;
+}
+.execution-board button[aria-pressed="true"] {
+  border-color: #6dcab5;
+  background: #244f47;
+}
+.execution-board-filters input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.execution-board-filters select {
+  background: #0c151f;
+  color: #e1e9ee;
+  border: 1px solid #405362;
+  border-radius: 6px;
+  padding: 7px;
+  max-width: 100%;
+}
+.execution-board-count {
+  margin: 10px 0;
+}
+.execution-board-slot {
+  min-width: 0;
+  border: 1px solid #324452;
+  border-radius: 8px;
+  background: #14212d;
+}
+.execution-board-slot[hidden],
+.execution-retained[hidden] {
+  display: none !important;
+}
+.execution-board-slot-tools {
+  padding: 8px 10px;
+  border-bottom: 1px solid #293c49;
+}
+.execution-board-slot-tools > span:first-child {
+  margin-right: auto;
+}
+.execution-board-slot-tools button {
+  padding: 4px 7px;
+  font-size: 12px;
+}
+.execution-board-slot-tools .execution-board-draft {
+  color: #f0ca86;
+}
+.execution-board-slot > .execution-source {
+  border: 0;
+  border-radius: 0;
+}
+.execution-board-empty {
+  text-align: center;
+  padding: 24px;
+  color: #adbfca;
+}
+.execution-retained {
+  min-width: 0;
+}
+.execution-retained > .wb-preview {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.background-execution .execution-board-filters > input {
+  width: auto;
+  flex: 1 1 220px;
+}
+.background-execution .execution-board-filters > select {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 130px;
+}

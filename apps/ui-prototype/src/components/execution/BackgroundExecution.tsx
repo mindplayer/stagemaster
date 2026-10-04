@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { ExecutionAction } from "../../execution-types";
 import { mediaRequestIdentity } from "../../media-seek-receipt";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
-import { MediaControls } from "./MediaControls";
-import { SourceControls } from "./SourceControls";
+import { ExecutionBoard } from "./ExecutionBoard";
 import "./execution.css";
 
 export function BackgroundExecution({
@@ -23,7 +22,7 @@ export function BackgroundExecution({
   busy: boolean;
   beforeAction(): Promise<boolean>;
 }) {
-  const { status, error, working, request } = useExecution(
+  const { status, error, working, fresh, request } = useExecution(
     host.execution,
     visible,
   );
@@ -31,10 +30,14 @@ export function BackgroundExecution({
     kind: "takeover" | "shutdown" | "reconnect";
     hostId: string | null;
   } | null>(null);
-  const [query, setQuery] = useState("");
+  useEffect(() => {
+    if (!visible) setConfirm(null);
+  }, [visible]);
   const runtime = status?.runtime;
   const state = runtime?.observation.snapshot?.state;
   const disabled =
+    !visible ||
+    !fresh ||
     working ||
     !!error ||
     !!status?.problem ||
@@ -193,60 +196,37 @@ export function BackgroundExecution({
               后台运行的是另一工程；当前编辑不会改变后台节目。
             </p>
           )}
-          <input
-            aria-label="搜索已准备节目"
-            placeholder="搜索已准备节目"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+          <ExecutionBoard
+            key={`${runtime.hostId}:${runtime.catalog.layout}`}
+            runtime={runtime}
+            disabled={disabled}
+            active={visible}
+            observed={
+              fresh &&
+              !error &&
+              !status?.problem &&
+              status?.phase === "connected" &&
+              runtime.observation.phase === "running" &&
+              !runtime.observation.fault &&
+              !state?.fault
+            }
+            onAction={action}
+            onMedia={async (action) => {
+              const group = state?.media?.find(
+                (m) => m.id === runtime.catalog.audio?.group,
+              );
+              if (!state || !group || disabled) return null;
+              const value = await request({
+                kind: "media",
+                hostId: runtime.hostId,
+                revision: state.revision,
+                group: group.id,
+                generation: group.generation,
+                action,
+              });
+              return mediaRequestIdentity(value?.runtime);
+            }}
           />
-          <div className="execution-sources">
-            {runtime.catalog.sources
-              .filter((s) =>
-                s.name
-                  .toLocaleLowerCase()
-                  .includes(query.trim().toLocaleLowerCase()),
-              )
-              .map((source) =>
-                source.selection.kind === "audioTimeline" ? (
-                  <MediaControls
-                    key={`${runtime.hostId}:${source.id}`}
-                    runtime={runtime}
-                    disabled={disabled}
-                    onAction={async (action) => {
-                      const group = state?.media?.find(
-                        (m) => m.id === runtime.catalog.audio?.group,
-                      );
-                      if (!state || !group || disabled) return null;
-                      const value = await request({
-                        kind: "media",
-                        hostId: runtime.hostId,
-                        revision: state.revision,
-                        group: group.id,
-                        generation: group.generation,
-                        action,
-                      });
-                      return mediaRequestIdentity(value?.runtime);
-                    }}
-                  />
-                ) : (
-                  <SourceControls
-                    key={`${runtime.hostId}:${source.id}`}
-                    source={source}
-                    runtime={runtime}
-                    observed={
-                      !error &&
-                      !status?.problem &&
-                      status?.phase === "connected" &&
-                      runtime.observation.phase === "running" &&
-                      !runtime.observation.fault &&
-                      !state?.fault
-                    }
-                    disabled={disabled}
-                    onAction={(a) => action(source.id, a)}
-                  />
-                ),
-              )}
-          </div>
         </>
       ) : (
         <PrepareSources

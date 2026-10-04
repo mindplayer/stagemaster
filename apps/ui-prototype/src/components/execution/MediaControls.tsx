@@ -19,10 +19,14 @@ const names = {
 export function MediaControls({
   runtime,
   disabled,
+  sourceId,
+  onDraftChange,
   onAction,
 }: {
   runtime: ExecutionView;
   disabled: boolean;
+  sourceId?: string;
+  onDraftChange?(id: string, dirty: boolean): void;
   onAction(action: ExecutionMediaAction): Promise<MediaRequestIdentity | null>;
 }) {
   const [draft, setDraft] = useState<{ text: string } | null>(null);
@@ -44,6 +48,10 @@ export function MediaControls({
       setDraft((current) => (current === submitted.draft ? null : current));
     setSubmitted(null);
   }, [submitted, runtime, config]);
+  const dirty = draft !== null;
+  useEffect(() => {
+    if (sourceId) onDraftChange?.(sourceId, dirty);
+  }, [sourceId, dirty, onDraftChange]);
   if (!config || !media || !audio)
     return <p role="status">正在读取后台音乐状态</p>;
   const failed = audio.status === "failed";
@@ -166,7 +174,11 @@ export function MediaControls({
         </button>
       </div>
       {config.performanceLoops && (
-        <MediaLoopControls audio={audio} disabled={unavailable} onAction={onAction} />
+        <MediaLoopControls
+          audio={audio}
+          disabled={unavailable}
+          onAction={onAction}
+        />
       )}
       <form
         onSubmit={(e) => {

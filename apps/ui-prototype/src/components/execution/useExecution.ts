@@ -10,6 +10,9 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
   const [actionError, setActionError] = useState("");
   const [observationError, setObservationError] = useState("");
   const [working, setWorking] = useState(false);
+  const [fresh, setFresh] = useState(false);
+  const visibleNow = useRef(visible);
+  visibleNow.current = visible;
   const inflight = useRef<Promise<void> | null>(null);
   const changing = useRef(false);
   const mounted = useRef(true);
@@ -36,12 +39,14 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
           result = value;
           if (mounted.current) {
             setStatus(value);
+            setFresh(visibleNow.current);
             setObservationError("");
             if (!polling) setActionError("");
           }
         } catch (e) {
           if (mounted.current) {
             const message = e instanceof Error ? e.message : String(e);
+            setFresh(false);
             if (polling) setObservationError(message);
             else setActionError(message);
           }
@@ -62,7 +67,10 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
     [port],
   );
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      setFresh(false);
+      return;
+    }
     void request({ kind: "snapshot" }, true);
     const timer = window.setInterval(
       () => void request({ kind: "snapshot" }, true),
@@ -70,5 +78,11 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
     );
     return () => window.clearInterval(timer);
   }, [visible, request]);
-  return { status, error: actionError || observationError, working, request };
+  return {
+    status,
+    error: actionError || observationError,
+    working,
+    fresh: fresh && visible,
+    request,
+  };
 }

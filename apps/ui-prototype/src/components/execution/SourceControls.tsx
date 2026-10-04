@@ -17,12 +17,16 @@ export function SourceControls({
   runtime,
   disabled,
   observed = true,
+  active = true,
+  onDraftChange,
   onAction,
 }: {
   source: ExecutionSource;
   runtime: ExecutionView;
   disabled: boolean;
   observed?: boolean;
+  active?: boolean;
+  onDraftChange?(id: string, dirty: boolean): void;
   onAction(action: ExecutionAction): void;
 }) {
   const state = runtime.observation.snapshot?.state.sources.find(
@@ -38,6 +42,13 @@ export function SourceControls({
     if (level !== null && Math.round(Number(level) * 655.35) === state?.level)
       setLevel(null);
   }, [state?.level]);
+  useEffect(() => {
+    if (!active) setConfirm(false);
+  }, [active]);
+  const dirty = level !== null;
+  useEffect(() => {
+    onDraftChange?.(source.id, dirty);
+  }, [source.id, dirty, onDraftChange]);
   const valid =
     value.trim() !== "" &&
     Number.isFinite(Number(value)) &&
