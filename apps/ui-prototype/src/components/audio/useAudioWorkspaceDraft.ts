@@ -15,12 +15,11 @@ export function useAudioWorkspaceDraft(
   const [draft, setDraft] = useState<AudioDraft | null>(null);
   const draftRef = useRef<AudioDraft | null>(null);
   const form = useRef<HTMLFormElement>(null);
-  const created = useRef<string[] | null>(null);
+  const created = useRef<{ kind: "clip" | "loop"; ids: string[] } | null>(null);
   useEffect(() => {
     if (!created.current || draft) return;
-    const next = track?.lightingClips?.find(
-      (c) => !created.current!.includes(c.id),
-    );
+    const items = created.current.kind === "clip" ? track?.lightingClips : track?.loopRegions;
+    const next = items?.find((c) => !created.current!.ids.includes(c.id));
     if (next) onSelect(next.id);
     created.current = null;
   }, [track, draft, onSelect]);
@@ -47,14 +46,22 @@ export function useAudioWorkspaceDraft(
         command.kind === "addLightingClip" ||
         command.kind === "copyLightingClip"
       )
-        created.current = track.lightingClips?.map((c) => c.id) ?? [];
+        created.current = {
+          kind: "clip", ids: track.lightingClips?.map((c) => c.id) ?? [],
+        };
+      if (command.kind === "loopRegions" && command.command.kind === "add")
+        created.current = {
+          kind: "loop", ids: track.loopRegions?.map((r) => r.id) ?? [],
+        };
       return [{ op: "audio", command }];
     } catch (error) {
       onProblem(error instanceof Error ? error.message : String(error));
       const field =
         error instanceof AudioDraftError
           ? error.field
-          : value.kind === "clipGroupFade"
+          : value.kind === "performanceLoop"
+            ? "loopName"
+            : value.kind === "clipGroupFade"
             ? "clipGroupFade"
             : value.kind === "marker"
               ? "markerName"

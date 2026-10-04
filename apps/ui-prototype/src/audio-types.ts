@@ -91,6 +91,7 @@ export type LightingClipGroupAction =
   | { kind: "move" | "copy"; destinationMs: number }
   | { kind: "remove" };
 export type AudioEdit =
+  | { kind: "loopRegions"; command: AudioLoopEdit }
   | {
       kind: "editLightingClips";
       ids: string[];
@@ -122,6 +123,7 @@ export type AudioEdit =
   | { kind: "putMarker"; marker: AudioMarker }
   | { kind: "removeMarker"; id: string };
 import type {
+  AudioLoopEdit,
   AudioLoopRegion,
   AudioPerformancePosition,
 } from "./audio-performance-types";

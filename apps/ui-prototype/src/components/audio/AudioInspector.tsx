@@ -7,6 +7,8 @@ import type { AudioMarker, AudioTimeline } from "../../audio-types";
 import type { SceneView } from "../../application-host";
 import { audioFadeLimit } from "../../audio-transition-tools";
 import { markerDraft, type AudioDraft } from "./audio-inspector-draft";
+import { performanceLoopDraft } from "./performance-loop-draft";
+import { PerformanceLoopProperties, type PerformanceLoopActions } from "./PerformanceLoopProperties";
 export type { AudioDraft } from "./audio-inspector-draft";
 export function AudioInspector({
   track,
@@ -27,7 +29,11 @@ export function AudioInspector({
   ready,
   onPreview,
   onEditScene,
+  loopActions,
+  position = 0,
 }: {
+  loopActions?: PerformanceLoopActions;
+  position?: number;
   ready: boolean;
   onPreview(): void;
   onEditScene(): void;
@@ -49,7 +55,9 @@ export function AudioInspector({
 }) {
   const data =
     draft ??
-    (clip
+    (loopActions?.region
+      ? performanceLoopDraft(loopActions.region)
+      : clip
       ? clipDraft(clip)
       : marker
         ? markerDraft(marker)
@@ -59,6 +67,10 @@ export function AudioInspector({
             end: (track.outMs / 1000).toFixed(3),
           });
   if (data.kind === "clipGroupFade") return null;
+  if (data.kind === "performanceLoop") return (
+    <PerformanceLoopProperties data={data} actions={loopActions} position={position} form={form}
+      dirty={!!draft} busy={busy} onChange={onChange} onApply={onApply} onCancel={onCancel} />
+  );
   if (data.kind === "clip")
     return (
       <AudioClipInspector

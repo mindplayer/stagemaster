@@ -13,6 +13,8 @@
   },
   "include": [
     "src",
+    "tests/performance-loop-draft.test.ts",
+    "tests/audio-panel-harness.tsx",
     "tests/arrangement-session.test.ts",
     "tests/rigging-draft.test.ts",
     "tests/rigging-workspace-harness.tsx",

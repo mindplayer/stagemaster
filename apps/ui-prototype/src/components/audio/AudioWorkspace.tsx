@@ -6,6 +6,8 @@ import { clipMotionCommand } from "./clip-trim-tools";
 import { useClipSelection } from "./useClipSelection";
 import { clipsInRange } from "./clip-selection";
 import { AudioResourceHeader } from "./AudioResourceHeader";
+import { PerformanceLoopList } from "./PerformanceLoopList";
+import { usePerformanceLoopActions } from "./usePerformanceLoopActions";
 import { AudioClipLibrary } from "./AudioClipLibrary";
 import { useAudioClipActions } from "./useAudioClipActions";
 import { AudioWorkspaceTransport } from "./AudioWorkspaceTransport";
@@ -116,7 +118,12 @@ export const AudioWorkspace = forwardRef<
     },
     onProblem: setProblem,
   });
-  const blocked = busy || audio.preparing || markerActions.acting;
+  const loops = usePerformanceLoopActions({
+    track, identity: trackIdentity, selected, visible, position: audio.position.positionMs,
+    beforeChange, edit, onDraft: change,
+    onSelect: (id) => { setSelected(id); setBatchKey(""); }, onProblem: setProblem,
+  });
+  const blocked = busy || audio.preparing || markerActions.acting || loops.acting;
   const revealRoot = useRevealItem(revealRequest, visible, blocked);
   useImperativeHandle(ref, () => ({
     collect,
@@ -240,7 +247,7 @@ export const AudioWorkspace = forwardRef<
             {track && (
               <AudioClipLibrary
                 revealRequest={revealRequest}
-                key={trackIdentity}
+                key={`clips:${trackIdentity}`}
                 selectionState={clipSelection}
                 onGroupPending={setClipGroupPending}
                 groupEditor={{
@@ -289,8 +296,18 @@ export const AudioWorkspace = forwardRef<
               />
             )}
             {track && (
+              <PerformanceLoopList
+                key={`loops:${trackIdentity}`}
+                track={track}
+                selected={selected}
+                busy={blocked || markerGroupPending || clipGroupPending}
+                onSelect={(id) => void choose(id)}
+                onAdd={() => void loops.add()}
+              />
+            )}
+            {track && (
               <AudioMarkerLibrary
-                key={trackIdentity}
+                key={`markers:${trackIdentity}`}
                 batch={batch}
                 onBatch={setMarkerBatch}
                 selectionState={markerSelection}
@@ -396,6 +413,8 @@ export const AudioWorkspace = forwardRef<
         <DockPane region="inspector" visible={visible && !batch && !clipBatch}>
           {track ? (
             <AudioInspector
+              loopActions={loops}
+              position={audio.position.positionMs}
               track={track}
               marker={marker}
               clip={clips.clip}
@@ -439,9 +458,18 @@ export const AudioWorkspace = forwardRef<
             onDelete={() => void clips.remove()}
           />
         )}
+        {loops.removing && (
+          <DeleteDialog
+            name={loops.removing.name}
+            description="只删除循环区段，保留音乐、卡点和灯光片段；可以撤销。"
+            busy={blocked}
+            onCancel={loops.cancelRemove}
+            onDelete={() => void loops.remove()}
+          />
+        )}
         {removeMusic && (
           <DeleteDialog
-            name="音乐、卡点及灯光片段"
+            name="音乐、卡点、灯光片段及循环区段"
             description="灯光场景会保留，此操作可以撤销。"
             busy={blocked}
             onCancel={() => setRemoveMusic(false)}

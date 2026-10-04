@@ -1,0 +1,26 @@
+.audio-performance-library {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 12px;
+  border-top: 1px solid #304651;
+}
+.audio-performance-library > header,
+.performance-loop-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.audio-performance-library h3 { margin: 0; font-size: 13px; }
+.audio-performance-library p, .audio-performance-library small,
+.performance-loop-properties small { color: #a3b6c2; font-size: 12px; line-height: 1.5; }
+.performance-loop-list { max-height: 260px; overflow: auto; }
+.workbench .performance-loop-list > button {
+  width: 100%; display: flex; flex-direction: column; align-items: flex-start;
+  gap: 4px; text-align: left; background: transparent; border-color: transparent;
+  padding: 8px; margin-block: 3px;
+}
+.workbench .performance-loop-list > button.selected { background: #173e43; border-color: #3e8f88; }
+.performance-loop-list time, .performance-loop-list span { color: #9bb5c5; font-size: 11px; }
+.performance-loop-list strong { overflow-wrap: anywhere; }

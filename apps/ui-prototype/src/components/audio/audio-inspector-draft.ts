@@ -4,6 +4,7 @@ import { collectClipDraft, type ClipDraft } from "./audio-clip-draft.ts";
 import type { AudioEdit, AudioMarker, AudioTimeline } from "../../audio-types";
 import { audioMilliseconds, validateMarker } from "../../audio-tools.ts";
 import { validateAudioTransitions } from "../../audio-transition-tools.ts";
+import { collectPerformanceLoop, type PerformanceLoopDraft } from "./performance-loop-draft.ts";
 
 import {
   collectGroupFade,
@@ -11,6 +12,7 @@ import {
 } from "./clip-group-fade.ts";
 
 export type AudioDraft =
+  | PerformanceLoopDraft
   | ClipGroupFadeDraft
   | ClipDraft
   | {
@@ -36,6 +38,7 @@ export function collectAudioDraft(
   value: AudioDraft,
   track: AudioTimeline,
 ): AudioEdit {
+  if (value.kind === "performanceLoop") return collectPerformanceLoop(value, track);
   if (value.kind === "clipGroupFade") return collectGroupFade(value, track);
   if (value.kind === "clip") return collectClipDraft(value, track);
   let field = value.kind === "marker" ? "markerName" : "trimStart";
@@ -70,6 +73,8 @@ export function collectAudioDraft(
       throw new Error("裁切后部分卡点超出音乐，请先移动或删除这些卡点");
     if (track.lightingClips?.some((c) => c.endMs > outMs - inMs))
       throw new Error("裁切后部分灯光片段超出音乐，请先移动或缩短这些片段");
+    if (track.loopRegions?.some((r) => r.endMs > outMs - inMs))
+      throw new Error("裁切后部分循环区段超出音乐，请先移动或缩短这些区段");
     validateAudioTransitions({ ...track, inMs, outMs });
     return { kind: "trim", inMs, outMs };
   } catch (error) {

@@ -44,6 +44,12 @@ const track: AudioTimeline = {
       sceneId: "chase",
     },
   ],
+  loopRegions: new URLSearchParams(location.search).has("loops") ? [
+    { id: "hold", name: "对话等待", startMs: 2000, endMs: 4000,
+      plays: { kind: "untilExit" }, enabled: true, locked: false },
+    { id: "repeat", name: "返场三遍", startMs: 8000, endMs: 10000,
+      plays: { kind: "count", count: 3 }, enabled: false, locked: false },
+  ] : [],
 };
 let position: AudioPosition = {
   volumePercent: 100,
@@ -122,6 +128,10 @@ function Harness() {
   const [project, setProject] = useState(initial);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<ProjectView[]>([]);
+  const [visible, setVisible] = useState(true);
+  const [waiting, setWaiting] = useState(false);
+  const delay = useRef(false);
+  const release = useRef<(() => void) | null>(null);
   const handle = useRef<AudioHandle>(null);
   const current = useRef(project);
   current.current = project;
@@ -152,10 +162,38 @@ function Harness() {
           next.audio.inMs = a.inMs;
           next.audio.outMs = a.outMs;
         }
+        if (a.kind === "loopRegions") {
+          const list = next.audio.loopRegions ??= [];
+          const command = a.command;
+          if (command.kind === "add") list.push({
+            id: crypto.randomUUID(),
+            name: command.name,
+            startMs: command.startMs,
+            endMs: command.endMs,
+            plays: command.plays,
+            enabled: true,
+            locked: false,
+          });
+          if (command.kind === "put") {
+            const index = list.findIndex((r) => r.id === command.region.id);
+            list[index] = command.region;
+          }
+          if (command.kind === "edit") {
+            const action = command.action;
+            for (const id of command.ids) {
+              const index = list.findIndex((r) => r.id === id);
+              if (action.kind === "remove") list.splice(index, 1);
+              if (action.kind === "locked") list[index].locked = action.locked;
+              if (action.kind === "enabled") list[index].enabled = action.enabled;
+            }
+          }
+          list.sort((a, b) => a.startMs - b.startMs);
+        }
       }
     }
     const previous = current.current;
-    setHistory((h) => h.concat(previous));
+    if (JSON.stringify(previous) !== JSON.stringify(next))
+      setHistory((h) => h.concat(previous));
     current.current = next;
     setProject(next);
     setError("");
@@ -163,6 +201,13 @@ function Harness() {
   }
   async function flush() {
     try {
+      if (delay.current) {
+        delay.current = false;
+        setWaiting(true);
+        await new Promise<void>((resolve) => { release.current = resolve; });
+        setWaiting(false);
+        release.current = null;
+      }
       const commands = handle.current?.collect() ?? [];
       if (commands.length) await edit({ op: "batch", commands });
       handle.current?.accept();
@@ -189,6 +234,10 @@ function Harness() {
         >
           撤销验收操作
         </button>
+        <button onClick={() => setVisible(!visible)}>隐藏／显示工作区</button>
+        <button onClick={() => { delay.current = true; }}>延迟下一次操作</button>
+        <button disabled={!waiting} onClick={() => release.current?.()}>释放延迟操作</button>
+        <output aria-label="验收历史">历史 {history.length} · 区段 {project.audio?.loopRegions?.length ?? 0}</output>
       </header>
       {error && <p role="alert">{error}</p>}
       <PerformanceLayout
@@ -211,7 +260,7 @@ function Harness() {
           project={project}
           host={host}
           generation={() => 1}
-          visible
+          visible={visible}
           busy={false}
           onEdit={async (command) => ((await flush()) ? edit(command) : null)}
           beforeChange={flush}
