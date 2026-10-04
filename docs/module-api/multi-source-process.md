@@ -41,6 +41,11 @@ EXEC-005 增加 `sourceProgress` 能力和普通节目来源的可选 `progress`
 
 EXEC-007 增加可选 `manualOwnership` 能力（协议仍为 2），手动来源必须提供 `held: [{fixtureId, attribute}]`，至多 512 项唯一、目录内的目标，空层为空数组；非手动来源不带该字段。它表示持有目标，不表示数值或最终混合获胜者。`SourceInfo.manual_held` 为固定 512 位掩码，在观察投影层经 `CompiledOutput::manual_targets()` 转换，不增加逐帧堆分配。目录继续使用原 fixtures／limits；共享客户端验证新能力与状态一致，旧宿主保持兼容。
 
+EXEC-008 增加可选 `manualValues`（依赖 manualOwnership），每个手动来源新增 `heldValues:u16[]`，严格对应 held 的同序目标。投影从同一不可变快照经 `CompiledOutput::manual_readings()` 同时产生两数组，原固定掩码仍保留；数值为电平前手动贡献，不能表示混合获胜或实际硬件状态。客户端验证能力、配对长度和功能编码；普通来源不得带数值。紧凑数值数组避免重复目标字段，保持原 8 MiB 响应上限。
+
+软件宿主 State 可 Clone；设备 Profile 保持 Copy，Live State 的固定 64 槽 Arc 切片仅在手动内容改变时替换，采样／电平／重复观察共享原存储，旧回执保持不可变。核心借用 `Session::manual_values(Key)` 不推进时钟、不分配；完整快照与来源、修订、观察时刻一致。见 ADR-152。
+
+
 创建会话、取得／续期／释放输入权、查询回执及正常关闭复用 v1 规则：8 个操作会话／工作器、8 KiB 请求体、操作截止时间最多 5 秒、连接预算与存活期限、只读凭据不能写入、拒绝 Origin 和重复认证头。请求的 `serial`、`expectedRevision` 和返回的大整数仍是标准十进制字符串。失败映射及等待未知结果继续保留原票据，不能重新发送另一条执行命令。
 
 组模式的 `submit.action` 为：

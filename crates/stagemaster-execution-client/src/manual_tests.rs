@@ -50,3 +50,52 @@ fn declared_manual_catalog_and_ownership_require_complete_consistent_bounded_dat
     state["sources"][0].as_object_mut().unwrap().remove("held");
     validate::state(&legacy, &serde_json::from_value::<State>(state).unwrap()).unwrap();
 }
+
+#[test]
+fn manual_values_require_capability_matching_targets_and_valid_function_encoding() {
+    let (mut raw, mut state) = fixture();
+    raw["capabilities"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!("manualValues"));
+    let catalog: Catalog = serde_json::from_value(raw.clone()).unwrap();
+    validate::catalog(&catalog).unwrap();
+    for bad in [Value::Null, json!([]), json!([0, 1])] {
+        state["sources"][0]["heldValues"] = bad;
+        assert!(
+            validate::state(&catalog, &serde_json::from_value(state.clone()).unwrap()).is_err()
+        );
+    }
+    for value in [0, 1, 24576, 65535] {
+        state["sources"][0]["heldValues"] = json!([value]);
+        validate::state(&catalog, &serde_json::from_value(state.clone()).unwrap()).unwrap();
+    }
+    let mut legacy = catalog;
+    legacy.capabilities.retain(|c| c != "manualValues");
+    assert!(validate::state(&legacy, &serde_json::from_value(state.clone()).unwrap()).is_err());
+    legacy.capabilities = vec!["manualValues".into()];
+    assert!(validate::catalog(&legacy).is_err());
+    raw["fixtures"][0]["attributes"][0]["function"] = json!({"fine":false,
+        "default":{"functionKey":"red","position":0},"functions":[
+        {"key":"red","name":"红色","mode":"slot","dmxFrom":10,"dmxTo":19,"dmxDefault":15},
+        {"key":"rotate","name":"旋转","mode":"range","dmxFrom":100,"dmxTo":200,"dmxDefault":100}]});
+    for fine in [false, true] {
+        raw["fixtures"][0]["attributes"][0]["function"]["fine"] = json!(fine);
+        let catalog: Catalog = serde_json::from_value(raw.clone()).unwrap();
+        validate::catalog(&catalog).unwrap();
+        let factor = if fine { 1 } else { 257 };
+        for native in [15, 100, 150, 200] {
+            state["sources"][0]["heldValues"] = json!([native * factor]);
+            validate::state(&catalog, &serde_json::from_value(state.clone()).unwrap()).unwrap();
+        }
+        for value in [0, 10 * factor, 50 * factor, 201 * factor, 15 * factor + 1] {
+            state["sources"][0]["heldValues"] = json!([value]);
+            assert!(
+                validate::state(&catalog, &serde_json::from_value(state.clone()).unwrap()).is_err(),
+                "{fine} {value}"
+            );
+        }
+    }
+    state["sources"][0]["heldValues"] = json!([65536]);
+    assert!(serde_json::from_value::<State>(state).is_err());
+}

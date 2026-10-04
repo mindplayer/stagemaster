@@ -7,7 +7,8 @@ use stagemaster_runtime::{
 
 pub trait Profile: Copy + std::fmt::Debug + Eq + Send + Sync + 'static {
     type Action: Clone + std::fmt::Debug + Send + 'static;
-    type State: Copy + std::fmt::Debug + Eq + Send + Sync + 'static;
+    /// Clone must be bounded, nonblocking and must not allocate attribute-sized buffers.
+    type State: Clone + std::fmt::Debug + Eq + Send + Sync + 'static;
     type Receipt: Clone + std::fmt::Debug + Send + 'static;
     type FrameInfo: Copy + std::fmt::Debug + Eq + Send + Sync + 'static;
 }

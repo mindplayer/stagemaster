@@ -51,7 +51,7 @@ pub enum Action {
         command: crate::media::MediaCommand,
     },
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct State {
     pub boot: [u8; 16],
     pub revision: u64,
@@ -59,6 +59,8 @@ pub struct State {
     pub layout: [u8; 32],
     pub owner: Option<Owner>,
     pub sources: [Option<SourceInfo>; 64],
+    /// Pre-level held values; slot order matches sources. Clones share immutable storage.
+    pub manual_values: crate::ManualValues,
     pub media: [Option<crate::media::MediaState>; 64],
     pub fault: bool,
 }

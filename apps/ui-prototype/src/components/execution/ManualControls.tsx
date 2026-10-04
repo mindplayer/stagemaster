@@ -14,6 +14,7 @@ import {
 } from "../../execution-manual";
 import { ManualFixturePicker } from "./ManualFixturePicker";
 import { ManualValueEditor } from "./ManualValueEditor";
+import { ManualReadings } from "./ManualReadings";
 import { SourceControls } from "./SourceControls";
 import "./manual-controls.css";
 export function ManualControls({
@@ -46,9 +47,10 @@ export function ManualControls({
     draft: ManualDraft | null;
   } | null>(null);
   const fixtures = runtime.catalog.fixtures ?? [];
-  const held = runtime.observation.snapshot?.state.sources.find(
+  const sourceState = runtime.observation.snapshot?.state.sources.find(
     (s) => s.id === source.id,
-  )?.held;
+  );
+  const held = sourceState?.held;
   const available = manualAvailable(runtime) && held !== undefined;
   const attrs = commonManualAttributes(fixtures, selected);
   const attr = attrs.find((a) => a.key === attributeKey) ?? attrs[0];
@@ -180,6 +182,16 @@ export function ManualControls({
                 使用后台固定版本的灯具。应用只改变现场手动层，取消输入不影响正在运行的节目。
               </p>
               {draft && <p>有未应用输入；取消或应用后可更换灯具和属性。</p>}
+              <ManualReadings
+                fixtures={fixtures}
+                state={sourceState}
+                selected={selected}
+                attribute={attr?.key}
+                observed={observed}
+                supported={
+                  !!runtime.catalog.capabilities?.includes("manualValues")
+                }
+              />
               {attr ? (
                 <>
                   <label>
@@ -249,20 +261,6 @@ export function ManualControls({
                     : "先选择要手动控制的灯具"}
                 </p>
               )}
-              <details className="execution-manual-held">
-                <summary>持有属性明细（{held.length}）</summary>
-                <ul>
-                  {held.map((t) => (
-                    <li key={`${t.fixtureId}:${t.attribute}`}>
-                      {fixtures.find((f) => f.id === t.fixtureId)?.name} ·{" "}
-                      {fixtures
-                        .find((f) => f.id === t.fixtureId)
-                        ?.attributes.find((a) => a.key === t.attribute)
-                        ?.label ?? t.attribute}
-                    </li>
-                  ))}
-                </ul>
-              </details>
             </section>
           </div>
         )}

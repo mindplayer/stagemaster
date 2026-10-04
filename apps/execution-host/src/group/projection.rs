@@ -9,17 +9,20 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
     let sources: Vec<_> = s
         .sources
         .iter()
-        .flatten()
-        .map(|source| {
+        .enumerate()
+        .filter_map(|(index, source)| source.as_ref().map(|source| (index, source)))
+        .map(|(index, source)| {
             let entry = catalog.entries.iter().find(|e| e.key == source.key);
             let step = source.step.and_then(|i| entry.and_then(|e| e.steps.get(i)));
             let mut value = json!({"id":Uuid::from_bytes(source.id).to_string(),"level":source.level,
             "status":source.status.map(|s|format!("{s:?}")),"step":step.map(|s|&s.id),
             "progress": source.progress.map(|p| progress(p, entry))});
-            if let Some(held) = source.manual_held {
-                value["held"] = catalog.output.manual_targets(&held)
-                    .map(|(fixture, attribute)| json!({"fixtureId":fixture,"attribute":attribute}))
-                    .collect::<Vec<_>>().into();
+            if let Some(values) = &s.manual_values[index] {
+                let (held, readings): (Vec<_>, Vec<_>) = catalog.output.manual_readings(values)
+                    .map(|(fixture, attribute, reading)| (json!({"fixtureId":fixture,"attribute":attribute}), reading))
+                    .unzip();
+                value["held"] = held.into();
+                value["heldValues"] = readings.into();
             }
             value
         })

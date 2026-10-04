@@ -48,6 +48,7 @@ pub struct Owner {
     pub expires_ms: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SourceState {
     pub id: String,
     pub level: u16,
@@ -57,6 +58,8 @@ pub struct SourceState {
     pub progress: Option<crate::Progress>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub held: Option<Vec<crate::ManualTarget>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub held_values: Option<Vec<u16>>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -23,7 +23,7 @@ pub(crate) fn observation<M: Application>(value: &Observation<M>, adapter: &M::C
     json!({
         "phase":match value.phase {Phase::Running=>"running",Phase::Stopping=>"stopping",Phase::Stopped=>"stopped",Phase::Faulted=>"faulted"},
         "fault":value.fault.map(|f|format!("{f:?}")),
-        "snapshot":value.snapshot.map(|s|json!({
+        "snapshot":value.snapshot.as_ref().map(|s|json!({
             "state":M::state(&s.state, adapter),"cycles":s.cycles.to_string(),
             "missedPeriods":s.missed_periods.to_string(),"maxLatenessMs":s.max_lateness_ms.to_string(),
             "skippedPublications":s.skipped_publications.to_string(),

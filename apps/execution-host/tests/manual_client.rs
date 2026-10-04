@@ -18,6 +18,12 @@ fn held(v: &View) -> usize {
         .unwrap()
         .len()
 }
+fn values(v: &View) -> Vec<u16> {
+    v.observation.snapshot.as_ref().unwrap().state.sources[2]
+        .held_values
+        .clone()
+        .unwrap()
+}
 async fn settled(client: &mut Client) -> View {
     let end = std::time::Instant::now() + std::time::Duration::from_secs(6);
     loop {
@@ -48,6 +54,37 @@ async fn apply(client: &mut Client, action: Action) -> View {
         "applied"
     );
     result
+}
+async fn reject_invalid_edits(client: &mut Client, v: &View, fixture: &str) {
+    let edit = |a: &str, value| ManualEdit {
+        fixture_id: fixture.into(),
+        attribute: a.into(),
+        value,
+    };
+    for changes in [
+        vec![edit("color-wheel", ManualValue::Normalized { value: 0 })],
+        vec![edit(
+            "color-wheel",
+            ManualValue::Function {
+                function_key: "red".into(),
+                position: 1,
+            },
+        )],
+        vec![edit("missing", ManualValue::Release {})],
+        vec![
+            edit("dimmer", ManualValue::Release {}),
+            edit("dimmer", ManualValue::Release {}),
+        ],
+    ] {
+        assert!(
+            client
+                .apply(&v.host_id, &revision(v), &id(3), Action::Patch { changes })
+                .await
+                .is_err()
+        );
+        assert!(!client.view().pending);
+        assert_eq!(held(&client.refresh().await.unwrap()), 2);
+    }
 }
 #[test]
 fn typed_manual_controls_hold_zero_release_individually_and_survive_client_reopen() {
@@ -94,38 +131,17 @@ fn typed_manual_controls_hold_zero_release_individually_and_survive_client_reope
         )
         .await;
         assert_eq!(held(&v), 2);
+        assert_eq!(values(&v), vec![0, 20 * 257]);
         until(&h, |s| {
             s["frame"]["slots"][0] == 0 && s["frame"]["slots"][1] == 20
         })
         .await;
         let mut reader = Reader::open(&path).await.unwrap();
         assert_eq!(reader.sample().await.unwrap().slots[1], 20);
-        for changes in [
-            vec![edit("color-wheel", ManualValue::Normalized { value: 0 })],
-            vec![edit(
-                "color-wheel",
-                ManualValue::Function {
-                    function_key: "red".into(),
-                    position: 1,
-                },
-            )],
-            vec![edit("missing", ManualValue::Release {})],
-            vec![
-                edit("dimmer", ManualValue::Release {}),
-                edit("dimmer", ManualValue::Release {}),
-            ],
-        ] {
-            assert!(
-                client
-                    .apply(&v.host_id, &revision(&v), &id(3), Action::Patch { changes })
-                    .await
-                    .is_err()
-            );
-            assert!(!client.view().pending);
-            assert_eq!(held(&client.refresh().await.unwrap()), 2);
-        }
+        reject_invalid_edits(&mut client, &v, fixture).await;
         let v = apply(&mut client, Action::Level { value: 0 }).await;
         assert_eq!(held(&v), 2); // fader zero keeps wheel and ownership
+        assert_eq!(values(&v), vec![0, 20 * 257]);
         let v = apply(
             &mut client,
             Action::Patch {
@@ -139,9 +155,11 @@ fn typed_manual_controls_hold_zero_release_individually_and_survive_client_reope
         let mut client = Client::open(&path).await.unwrap();
         assert!(!client.view().controlling);
         assert_eq!(held(&client.view()), 1);
+        assert_eq!(values(&client.view()), vec![0]);
         client.acquire(true).await.unwrap();
         let v = apply(&mut client, Action::Stop {}).await;
         assert_eq!(held(&v), 0);
+        assert!(values(&v).is_empty());
         assert_eq!(
             v.observation.snapshot.as_ref().unwrap().state.sources[1]
                 .status
@@ -212,6 +230,7 @@ fn oversized_manual_batch_refuses_before_sequence_admission_and_next_small_edit_
         )
         .await;
         assert_eq!(held(&v), 1);
+        assert_eq!(values(&v), vec![0]);
         assert_eq!(
             v.observation.snapshot.as_ref().unwrap().state.sources[2]
                 .held

@@ -15,6 +15,7 @@ export interface ExecutionSourceState {
   step: string | null;
   progress?: SourceProgress | null;
   held?: import("./execution-manual").ManualTarget[];
+  heldValues?: number[];
 }
 function milliseconds(value: string): bigint | null {
   if (!/^(0|[1-9]\d{0,19})$/.test(value)) return null;

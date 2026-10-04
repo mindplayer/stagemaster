@@ -6,7 +6,11 @@ export function manualFixture() {
     (s) => s.id === "source-0" || s.id === "manual",
   );
   delete runtime.catalog.audio;
-  runtime.catalog.capabilities = ["manualOwnership", "semanticManualPatch"];
+  runtime.catalog.capabilities = [
+    "manualOwnership",
+    "semanticManualPatch",
+    "manualValues",
+  ];
   runtime.catalog.limits = { manualChanges: 512, requestBytes: 8192 };
   runtime.catalog.fixtures = Array.from(
     { length: 35 },
@@ -61,6 +65,7 @@ export function manualFixture() {
     (s) => s.id === "source-0" || s.id === "manual",
   );
   state.sources.find((s) => s.id === "manual")!.held = [];
+  state.sources.find((s) => s.id === "manual")!.heldValues = [];
   delete state.audio;
   delete state.media;
   return runtime;

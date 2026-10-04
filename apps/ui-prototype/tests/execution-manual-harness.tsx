@@ -12,12 +12,15 @@ const project = stageProject();
 let runtime = manualFixture();
 project.id = runtime.catalog.projectId;
 let readonly = false,
-  reject = false;
+  reject = false,
+  unavailable = false;
 const history: ExecutionRequest[] = [];
 const host: ApplicationHost = {
   ...applicationHost,
   preview: async () => ({ epoch: 0, controlSerial: 0, loaded: null }),
   execution: async (request) => {
+    if (request.kind === "snapshot" && unavailable)
+      throw Error("测试：后台暂时不可读");
     if (request.kind !== "snapshot") history.push(request);
     if (request.kind === "apply") {
       const state = runtime.observation.snapshot!.state;
@@ -25,19 +28,50 @@ const host: ApplicationHost = {
         const source = state.sources.find((s) => s.id === request.source)!;
         if (request.action.kind === "level")
           source.level = request.action.value;
-        if (request.action.kind === "stop") source.held = [];
+        if (request.action.kind === "stop") {
+          source.held = [];
+          source.heldValues = [];
+        }
         if (request.action.kind === "patch")
           for (const change of request.action.changes) {
-            source.held = source.held!.filter(
+            const index = source.held!.findIndex(
               (t) =>
-                t.fixtureId !== change.fixtureId ||
-                t.attribute !== change.attribute,
+                t.fixtureId === change.fixtureId &&
+                t.attribute === change.attribute,
             );
-            if (change.value.kind !== "release")
-              source.held.push({
+            if (index >= 0) {
+              source.held!.splice(index, 1);
+              source.heldValues!.splice(index, 1);
+            }
+            if (change.value.kind !== "release") {
+              let value: number;
+              if (change.value.kind === "normalized")
+                value = change.value.value;
+              else {
+                const selected = change.value;
+                const table = runtime.catalog
+                  .fixtures!.find((f) => f.id === change.fixtureId)!
+                  .attributes.find(
+                    (a) => a.key === change.attribute,
+                  )!.function!;
+                const f = table.functions.find(
+                  (f) => f.key === selected.functionKey,
+                )!;
+                const native =
+                  f.mode === "slot"
+                    ? f.dmxDefault
+                    : f.dmxFrom +
+                      Math.round(
+                        ((f.dmxTo - f.dmxFrom) * selected.position) / 65535,
+                      );
+                value = native * (table.fine ? 1 : 257);
+              }
+              source.held!.push({
                 fixtureId: change.fixtureId,
                 attribute: change.attribute,
               });
+              source.heldValues!.push(value);
+            }
           }
       }
       state.revision = String(Number(state.revision) + 1);
@@ -93,6 +127,29 @@ function Harness() {
         <input type="checkbox" onChange={(e) => setNarrow(e.target.checked)} />
         窄栏（测试）
       </label>
+      <label>
+        <input
+          type="checkbox"
+          onChange={(e) => {
+            unavailable = e.target.checked;
+          }}
+        />
+        暂停读取（测试）
+      </label>
+      <button
+        onClick={() => {
+          const state = runtime.observation.snapshot!.state.sources.find(
+            (s) => s.id === "manual",
+          )!;
+          state.held = runtime.catalog.fixtures!.map((f) => ({
+            fixtureId: f.id,
+            attribute: "dimmer",
+          }));
+          state.heldValues = state.held.map((_, i) => (i % 2 ? 0 : 24576));
+        }}
+      >
+        外部填入不同值（测试）
+      </button>
       <button
         onClick={() => {
           runtime = { ...manualFixture(), hostId: `${runtime.hostId}-new` };

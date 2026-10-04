@@ -35,13 +35,14 @@ pub struct Snapshot<M: Profile = Device> {
     pub max_lateness_ms: u64,
     pub missed_periods: u64,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Observation<M: Profile = Device> {
     pub phase: Phase,
     pub fault: Option<Fault>,
     /// Terminal/stopping hosts never expose a still-valid frame or runtime snapshot.
     pub snapshot: Option<Snapshot<M>>,
 }
+impl<M: Profile> Copy for Observation<M> where M::State: Copy {}
 #[derive(Debug)]
 pub(crate) struct Shared<M: Profile = Device> {
     pub stop: AtomicBool,
@@ -119,11 +120,12 @@ impl<M: Profile> Observer<M> {
                 snapshot: None,
             });
         }
-        let snapshot = *self
+        let snapshot = self
             .shared
             .snapshot
             .try_lock()
-            .map_err(|_| Error::ObservationBusy)?;
+            .map_err(|_| Error::ObservationBusy)?
+            .clone();
         let phase = self.phase();
         Ok(Observation {
             phase,

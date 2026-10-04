@@ -1,7 +1,9 @@
 //! Multi-source execution adapter for the existing independent host, with shared input authority.
 mod commands;
+mod manual;
 pub mod media;
 mod types;
+pub use manual::ManualValues;
 use stagemaster_live::Session;
 use stagemaster_runtime::{Code, Grant, Lease, Receipt, Request, authority::Authority};
 use stagemaster_runtime_host::Backend;
@@ -12,6 +14,7 @@ pub struct LiveBackend {
     control: Authority<Action, State>,
     revision: u64,
     media: Vec<media::Worker>,
+    manual: manual::ManualSnapshots,
 }
 impl LiveBackend {
     /// Transfer a pristine prepared group; no other object retains mutable execution access.
@@ -35,11 +38,13 @@ impl LiveBackend {
             return Err(Code::State);
         }
         let control = Authority::new(session.boot(), session.observed_ms())?;
+        let manual = manual::ManualSnapshots::new(&session);
         Ok(Self {
             session,
             control,
             revision: 0,
             media,
+            manual,
         })
     }
     fn apply(&mut self, action: &Action, now: u64) -> Result<(), Code> {
@@ -68,6 +73,7 @@ impl LiveBackend {
                 (*source, self.session.set_level(*source, *level, now))
             }
         };
+        self.manual.refresh(&self.session, source);
         result.map_err(|_| {
             if self.session.fault().is_some() {
                 Code::Playback
@@ -99,6 +105,7 @@ impl Backend for LiveBackend {
             layout: self.session.layout_id(),
             owner: self.control.owner(),
             sources,
+            manual_values: self.manual.snapshot(),
             media: self.media_state(),
             fault: self.session.fault().is_some(),
         }

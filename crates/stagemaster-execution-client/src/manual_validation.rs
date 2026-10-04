@@ -18,6 +18,9 @@ fn attribute<'a>(catalog: &'a Catalog, fixture: &str, key: &str) -> Option<&'a M
         .find(|a| a.key == key)
 }
 pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
+    if catalog.capabilities.iter().any(|c| c == "manualValues") && !declared(catalog) {
+        return Err("后台手动数值能力缺少持有信息".into());
+    }
     if !declared(catalog) {
         return Ok(());
     }
@@ -133,6 +136,7 @@ pub(crate) fn edits(catalog: &Catalog, source: &str, changes: &[ManualEdit]) -> 
     Ok(())
 }
 pub(crate) fn state(catalog: &Catalog, state: &State) -> Result<(), String> {
+    let readings = catalog.capabilities.iter().any(|c| c == "manualValues");
     for source in &state.sources {
         let manual = catalog
             .sources
@@ -142,6 +146,31 @@ pub(crate) fn state(catalog: &Catalog, state: &State) -> Result<(), String> {
             (None, false) => {}
             (Some(held), true) => targets(catalog, held)?,
             _ => return Err("后台手动持有状态与能力不一致".into()),
+        }
+        match (&source.held_values, manual && readings) {
+            (None, false) => {}
+            (Some(values), true) => {
+                let held = source.held.as_ref().ok_or("后台数值缺少持有目标")?;
+                if values.len() != held.len() {
+                    return Err("后台手动数值与目标数量不一致".into());
+                }
+                for (target, value) in held.iter().zip(values) {
+                    let a = attribute(catalog, &target.fixture_id, &target.attribute)
+                        .ok_or("后台手动数值目标无效")?;
+                    if let Some(table) = &a.function {
+                        let native = if table.fine { *value } else { *value / 257 };
+                        if (!table.fine && value % 257 != 0)
+                            || !table.functions.iter().any(|f| {
+                                (f.dmx_from..=f.dmx_to).contains(&native)
+                                    && (f.mode == "range" || native == f.dmx_default)
+                            })
+                        {
+                            return Err("后台手动功能数值与档案不一致".into());
+                        }
+                    }
+                }
+            }
+            _ => return Err("后台手动数值与能力不一致".into()),
         }
     }
     Ok(())

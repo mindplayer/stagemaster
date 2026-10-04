@@ -2,6 +2,20 @@ use super::CompiledOutput;
 use crate::{FunctionTable, ProfileDefault};
 
 impl CompiledOutput {
+    /// Pair actual pre-level manual values with the same prepared target mapping.
+    pub fn manual_readings<'a>(
+        &'a self,
+        values: &'a [Option<u16>],
+    ) -> impl Iterator<Item = (&'a str, &'a str, u16)> + 'a {
+        self.attribute_bindings()
+            .filter_map(move |(fixture, attribute, index, _)| {
+                values
+                    .get(index)
+                    .copied()
+                    .flatten()
+                    .map(|value| (fixture, attribute, value))
+            })
+    }
     /// Project a bounded manual ownership mask through this immutable fixture mapping.
     /// Reads only; never changes ownership or claims final mixed values.
     pub fn manual_targets<'a>(

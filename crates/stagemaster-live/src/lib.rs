@@ -98,6 +98,16 @@ impl Session {
                     .flatten(),
             })
     }
+    /// Borrow the manual contribution before source level and mixing. No clock advance or allocation.
+    /// Playback sources and foreign keys have no manual contribution.
+    #[must_use]
+    pub fn manual_values(&self, key: Key) -> Option<&[Option<u16>]> {
+        if key.boot != self.boot {
+            return None;
+        }
+        let source = self.sources.get(key.index)?;
+        source.player.is_none().then_some(source.values.as_slice())
+    }
     /// Semantic values and ownership from the last complete software composition.
     #[must_use]
     pub fn values(&self) -> Option<&[u16]> {

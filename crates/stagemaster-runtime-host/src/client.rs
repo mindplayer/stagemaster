@@ -131,8 +131,8 @@ impl<M: Profile> Client<M> {
     /// Historical acquisition result, independent of delayed observer publication.
     /// Use its revision for the first command; later commands use their own receipts.
     #[must_use]
-    pub const fn acquired_state(&self) -> M::State {
-        self.acquisition
+    pub fn acquired_state(&self) -> M::State {
+        self.acquisition.clone()
     }
     #[must_use]
     pub fn observer(&self) -> Observer<M> {
