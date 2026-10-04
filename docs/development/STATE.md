@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[FIXTURE-013 根级功能安全](tasks/FIXTURE-013-root-function-safety.md)实施中**，基线 main `fc5d4a6`，单写者、用户 output/ 保持。发现旧根级 automatic 色盘仍可输出 140／255，先提交限定计划与 [ADR-164](decisions/PRODUCT-ADR-164-root-function-safety.md)，补齐默认／场景／预设／读入／编译／手动的统一屏蔽，不猜未知厂家范围或恢复声控自走。完整 goal active；下文 AUDIO-021 是上一实际交付。
+
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
 **[AUDIO-021 复杂音乐准备与消费连续性](tasks/AUDIO-021-complex-preparation-continuity.md)有限软件增量完成，自审通过**，基线 main `36149b5`，计划已发布、基线 `c270d64`／[ADR-163](decisions/PRODUCT-ADR-163-software-audio-consumer.md) `587d655`／恢复顺序 `0e07d61` 先提交；结果为本次 `fix(audio): keep software callbacks alive during preparation` 提交。独立所属线程消费原软件 Mixer，媒体所有者仍掌握准备／控制；零位恢复复用刚载入的新暂停源。原 500 ms、5 秒、代次／callback／回执、声音占用不放宽，无新播放器／节目时钟或协议格式。
