@@ -68,19 +68,8 @@ pub(super) fn record(root: &Path, name: &str) -> Result<(), String> {
         .and_then(|f| f.sync_all())
         .map_err(|e| e.to_string())
 }
-pub(super) fn lock(root: &Path) -> Result<File, String> {
-    let mut options = OpenOptions::new();
-    options.create(true).truncate(false).write(true);
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::OpenOptionsExt;
-        options.mode(0o600);
-    }
-    let file = options
-        .open(root.join("manager.lock"))
-        .map_err(|e| e.to_string())?;
-    file.try_lock().map_err(|_| "另一个应用正在管理此后台")?;
-    Ok(file)
+pub(super) fn lock(root: &Path) -> Result<super::manager_lock::ManagerLock, String> {
+    super::manager_lock::ManagerLock::acquire(root)
 }
 pub(super) fn ended(run: &Path) -> bool {
     let Ok(file) = OpenOptions::new()

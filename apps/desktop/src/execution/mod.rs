@@ -3,6 +3,7 @@ mod capture;
 mod files;
 pub(crate) use capture::Collected;
 mod manager;
+mod manager_lock;
 mod media;
 mod preparing;
 mod process;
@@ -16,7 +17,7 @@ use tokio::sync::Mutex;
 pub(crate) struct Service(Arc<Mutex<Manager>>);
 pub(crate) struct EditorAudioGuard {
     _manager: tokio::sync::OwnedMutexGuard<Manager>,
-    _file: std::fs::File,
+    _file: manager_lock::ManagerLock,
 }
 impl Service {
     pub fn editor_audio(&self) -> Result<EditorAudioGuard, String> {

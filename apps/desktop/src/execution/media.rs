@@ -46,7 +46,9 @@ pub(super) fn copy(document: &Document, run: &Path, audio: &AudioInput) -> Resul
 }
 impl Manager {
     /// Keep this file lock through the editor operation, including slow native preparation.
-    pub(super) fn reserve_editor_audio(&mut self) -> Result<File, String> {
+    pub(super) fn reserve_editor_audio(
+        &mut self,
+    ) -> Result<super::manager_lock::ManagerLock, String> {
         files::private_directory(&self.root)?;
         let lock = files::lock(&self.root)?;
         if let Some(run) = files::read_run(&self.root)?
