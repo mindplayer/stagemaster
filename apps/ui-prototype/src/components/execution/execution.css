@@ -1,6 +1,16 @@
 .execution-area {
   min-width: 0;
 }
+.execution-operation-status {
+  height: 3em;
+  overflow: auto;
+  line-height: 1.5;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.execution-operation-status[role="alert"] {
+  color: #edbd83;
+}
 .background-execution {
   padding: 20px;
   border: 1px solid var(--line, #293746);

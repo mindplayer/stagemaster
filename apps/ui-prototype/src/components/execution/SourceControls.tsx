@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { SourceLevelControls } from "./SourceLevelControls";
+import type { LiveLevels } from "../../execution-level-gesture";
 import { SourceProgress } from "./SourceProgress";
 import { sourceProgress } from "../../execution-source-progress";
 import type {
@@ -19,6 +21,7 @@ export function SourceControls({
   observed = true,
   active = true,
   hideManualRelease = false,
+  live,
   onDraftChange,
   onAction,
 }: {
@@ -28,6 +31,7 @@ export function SourceControls({
   observed?: boolean;
   active?: boolean;
   hideManualRelease?: boolean;
+  live?: LiveLevels;
   onDraftChange?(id: string, dirty: boolean): void;
   onAction(action: ExecutionAction): void;
 }) {
@@ -35,27 +39,11 @@ export function SourceControls({
     (s) => s.id === source.id,
   );
   const [step, setStep] = useState(source.steps[0]?.id ?? "");
-  const [level, setLevel] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
   const progress = sourceProgress(source, state);
-  const value =
-    level ?? String(Math.round((state?.level ?? 65535) / 65.535) / 10);
-  useEffect(() => {
-    if (level !== null && Math.round(Number(level) * 655.35) === state?.level)
-      setLevel(null);
-  }, [state?.level]);
   useEffect(() => {
     if (!active) setConfirm(false);
   }, [active]);
-  const dirty = level !== null;
-  useEffect(() => {
-    onDraftChange?.(source.id, dirty);
-  }, [source.id, dirty, onDraftChange]);
-  const valid =
-    value.trim() !== "" &&
-    Number.isFinite(Number(value)) &&
-    Number(value) >= 0 &&
-    Number(value) <= 100;
   return (
     <article className="execution-source" aria-label={source.name}>
       <header>
@@ -157,38 +145,17 @@ export function SourceControls({
           )}
         </>
       )}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (valid && !disabled) {
-            onAction({
-              kind: "level",
-              value: Math.round(Number(value) * 655.35),
-            });
-          }
-        }}
-      >
-        <label>
-          亮度电平{" "}
-          <input
-            aria-label={`${source.name}亮度电平`}
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            value={value}
-            disabled={disabled}
-            onChange={(e) => setLevel(e.target.value)}
-          />{" "}
-          %
-        </label>
-        <button disabled={disabled || level === null || !valid}>应用</button>
-        {level !== null && (
-          <button type="button" onClick={() => setLevel(null)}>
-            取消
-          </button>
-        )}
-      </form>
+      <SourceLevelControls
+        id={source.id}
+        name={source.name}
+        level={state?.level}
+        disabled={disabled}
+        active={active}
+        observed={observed}
+        live={live}
+        onDraftChange={onDraftChange}
+        onAction={onAction}
+      />
       {source.selection.kind === "manual" && !hideManualRelease && (
         <button disabled={disabled} onClick={() => onAction({ kind: "stop" })}>
           释放手动层

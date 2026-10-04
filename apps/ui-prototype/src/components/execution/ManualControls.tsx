@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { LiveLevels } from "../../execution-level-gesture";
 import type {
   ExecutionAction,
   ExecutionSource,
@@ -27,7 +28,9 @@ export function ManualControls({
   onDraftChange,
   onAction,
   recording,
+  live,
 }: {
+  live?: LiveLevels;
   source: ExecutionSource;
   runtime: ExecutionView;
   disabled: boolean;
@@ -123,6 +126,7 @@ export function ManualControls({
   return (
     <div className="execution-manual">
       <SourceControls
+        live={live}
         source={source}
         runtime={runtime}
         disabled={disabled || working || !!submitted}
@@ -140,7 +144,13 @@ export function ManualControls({
             source={source}
             active={active}
             observed={observed}
-            pending={!!draft || levelDirty || working || !!submitted}
+            pending={
+              !!draft ||
+              levelDirty ||
+              working ||
+              !!submitted ||
+              !!live?.view.source
+            }
             selected={selected}
           />
         )}

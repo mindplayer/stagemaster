@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import type { LiveLevels } from "../../execution-level-gesture";
 import type {
   ExecutionAction,
   ExecutionView,
@@ -27,7 +28,9 @@ export function ExecutionBoard({
   onAction,
   onMedia,
   recording,
+  live,
 }: {
+  live?: LiveLevels;
   runtime: ExecutionView;
   disabled: boolean;
   observed: boolean;
@@ -146,6 +149,7 @@ export function ExecutionBoard({
                 />
               ) : source.selection.kind === "manual" ? (
                 <ManualControls
+                  live={live}
                   recording={recording}
                   source={source}
                   runtime={runtime}
@@ -161,6 +165,7 @@ export function ExecutionBoard({
                 />
               ) : (
                 <SourceControls
+                  live={live}
                   source={source}
                   runtime={runtime}
                   disabled={disabled || !enabled}

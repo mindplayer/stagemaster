@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ApplicationHost, ProjectView } from "../../application-host";
 import type { ExecutionAction } from "../../execution-types";
 import { mediaRequestIdentity } from "../../media-seek-receipt";
+import { useLiveLevels } from "./useLiveLevels";
 import { useExecution } from "./useExecution";
 import { PrepareSources } from "./PrepareSources";
 import { ExecutionBoard } from "./ExecutionBoard";
@@ -28,6 +29,13 @@ export function BackgroundExecution({
     host.execution,
     visible,
   );
+  const live = useLiveLevels(
+    status,
+    visible && fresh && !error,
+    working,
+    request,
+  );
+  const interacting = live.view.source !== null;
   const [confirm, setConfirm] = useState<{
     kind: "takeover" | "shutdown" | "reconnect";
     hostId: string | null;
@@ -41,6 +49,7 @@ export function BackgroundExecution({
     !visible ||
     !fresh ||
     working ||
+    interacting ||
     !!error ||
     !!status?.problem ||
     status?.phase !== "connected" ||
@@ -49,7 +58,7 @@ export function BackgroundExecution({
     runtime.pending ||
     !!state?.fault;
   async function action(source: string, action: ExecutionAction) {
-    if (!runtime || !state || disabled) return;
+    if (!runtime || !state || disabled || live.isBusy()) return;
     return request({
       kind: "apply",
       hostId: runtime.hostId,
@@ -59,6 +68,8 @@ export function BackgroundExecution({
     });
   }
   const outcome = runtime?.record?.outcome;
+  const operationProblem =
+    live.view.problem || (!interacting ? outcome?.message : null);
   return (
     <section className="background-execution" aria-label="后台执行">
       <header className="execution-heading">
@@ -83,14 +94,14 @@ export function BackgroundExecution({
       </p>
       <div className="execution-buttons">
         <button
-          disabled={working}
+          disabled={working || interacting}
           onClick={() => void request({ kind: "snapshot" })}
         >
           刷新状态
         </button>
         {status?.phase !== "empty" && (
           <button
-            disabled={working}
+            disabled={working || interacting}
             onClick={() =>
               setConfirm({ kind: "reconnect", hostId: runtime?.hostId ?? null })
             }
@@ -102,7 +113,11 @@ export function BackgroundExecution({
           <button
             className="wb-primary"
             disabled={
-              working || runtime.pending || !!error || !!status?.problem
+              working ||
+              interacting ||
+              runtime.pending ||
+              !!error ||
+              !!status?.problem
             }
             onClick={() => void request({ kind: "acquire", takeover: false })}
           >
@@ -111,7 +126,7 @@ export function BackgroundExecution({
         )}
         {runtime && !runtime.controlling && state?.owner && (
           <button
-            disabled={working || runtime.pending}
+            disabled={working || interacting || runtime.pending}
             onClick={() =>
               setConfirm({ kind: "takeover", hostId: runtime?.hostId ?? null })
             }
@@ -121,7 +136,7 @@ export function BackgroundExecution({
         )}
         {runtime?.controlling && (
           <button
-            disabled={working || runtime.pending}
+            disabled={working || interacting || runtime.pending}
             onClick={() => void request({ kind: "release" })}
           >
             归还控制权
@@ -129,7 +144,7 @@ export function BackgroundExecution({
         )}
         {runtime && (
           <button
-            disabled={working}
+            disabled={working || interacting}
             onClick={() =>
               setConfirm({ kind: "shutdown", hostId: runtime?.hostId ?? null })
             }
@@ -148,13 +163,16 @@ export function BackgroundExecution({
           后台执行发生故障，请关闭后台后重新载入。
         </p>
       )}
-      {runtime?.pending && (
-        <p role="status">操作结果尚未确认，正在核对原回执。</p>
-      )}
-      {outcome?.message && (
-        <p role="alert" className="wb-preview-warning">
-          {outcome.message}
-        </p>
+      {runtime && (
+        <div
+          className="execution-operation-status"
+          role={operationProblem ? "alert" : "status"}
+        >
+          {operationProblem ||
+            (runtime.pending && !interacting
+              ? "操作结果尚未确认，正在核对原回执。"
+              : "")}
+        </div>
       )}
       {confirm && (
         <div
@@ -170,7 +188,7 @@ export function BackgroundExecution({
                 : "重新连接会重建控制会话，不重复发送未确认操作，也不停止节目。是否继续？"}
           </p>
           <button
-            disabled={working}
+            disabled={working || interacting}
             onClick={() => {
               const value = confirm;
               setConfirm(null);
@@ -186,7 +204,10 @@ export function BackgroundExecution({
           >
             确认
           </button>
-          <button disabled={working} onClick={() => setConfirm(null)}>
+          <button
+            disabled={working || interacting}
+            onClick={() => setConfirm(null)}
+          >
             取消
           </button>
         </div>
@@ -199,6 +220,7 @@ export function BackgroundExecution({
             </p>
           )}
           <ExecutionBoard
+            live={live}
             recording={recording}
             key={`${runtime.hostId}:${runtime.catalog.layout}`}
             runtime={runtime}
@@ -218,7 +240,7 @@ export function BackgroundExecution({
               const group = state?.media?.find(
                 (m) => m.id === runtime.catalog.audio?.group,
               );
-              if (!state || !group || disabled) return null;
+              if (!state || !group || disabled || live.isBusy()) return null;
               const value = await request({
                 kind: "media",
                 hostId: runtime.hostId,
