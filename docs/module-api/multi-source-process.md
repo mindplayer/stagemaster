@@ -37,6 +37,8 @@ HOST-004／[ADR-108](../development/decisions/PRODUCT-ADR-108-multi-source-proce
 
 ## 操作与回执
 
+EXEC-005 增加 `sourceProgress` 能力和普通节目来源的可选 `progress`（协议仍为 2；旧主机可以缺省）。字段：`phase` 为 `idle/delay/fade/wait/hold/finished`；`elapsedMs`、`phaseElapsedMs`、可空 `phaseDurationMs` 是 u64 十进制字符串；可空 `nextStep` 是该目录的稳定步骤身份，`nextWrap` 标记返回首步。Idle／Finished 无下一步，Hold 无总时长，Paused 保留其实际阶段。手动及音频来源没有此投影。已声明能力缺字段、未知步骤、不合法时间或状态组合由共享客户端拒绝。单次状态中的时间、身份与修订保持一致，不混用不同观察或在读取时推进。
+
 创建会话、取得／续期／释放输入权、查询回执及正常关闭复用 v1 规则：8 个操作会话／工作器、8 KiB 请求体、操作截止时间最多 5 秒、连接预算与存活期限、只读凭据不能写入、拒绝 Origin 和重复认证头。请求的 `serial`、`expectedRevision` 和返回的大整数仍是标准十进制字符串。失败映射及等待未知结果继续保留原票据，不能重新发送另一条执行命令。
 
 组模式的 `submit.action` 为：

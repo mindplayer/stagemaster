@@ -14,6 +14,8 @@ mod loop_schedule;
 mod observation;
 mod output_master;
 mod plan;
+mod progress;
+pub use progress::{Phase, Progress};
 mod rate_clock;
 mod render;
 pub use crossfade::{CrossfadeTiming, SceneCrossfade};

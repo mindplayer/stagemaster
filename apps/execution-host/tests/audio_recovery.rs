@@ -117,7 +117,25 @@ async fn verify_recovery(
     let later = h.snapshot().await;
     assert_eq!(later["state"]["audio"]["positionMs"], 2500);
     assert_eq!(later["state"]["audio"]["frames"], "0");
-    assert_ne!(later["frame"]["slots"][0], before["frame"]["slots"][0]);
+    // A triangular wave can have equal samples on opposite sides of its peak.
+    // Require an actual change within one authored 1-second period, while every
+    // observation must still show paused audio and the independent source running.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1);
+    let mut sample = later;
+    loop {
+        assert_eq!(sample["state"]["audio"]["positionMs"], 2500);
+        assert_eq!(sample["state"]["audio"]["frames"], "0");
+        assert_eq!(sample["state"]["sources"][0]["status"], "Running");
+        if sample["frame"]["slots"][0] != before["frame"]["slots"][0] {
+            break;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "独立灯光输出没有继续变化：{sample}"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        sample = h.snapshot().await;
+    }
     let duplicate = control(h, who, 6, failed, recovery).await;
     assert_eq!(duplicate["kind"], "accepted");
     assert_eq!(

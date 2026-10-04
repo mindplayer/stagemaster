@@ -14,7 +14,8 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
             let entry = catalog.entries.iter().find(|e| e.key == source.key);
             let step = source.step.and_then(|i| entry.and_then(|e| e.steps.get(i)));
             json!({"id":Uuid::from_bytes(source.id).to_string(),"level":source.level,
-            "status":source.status.map(|s|format!("{s:?}")),"step":step.map(|s|&s.id)})
+            "status":source.status.map(|s|format!("{s:?}")),"step":step.map(|s|&s.id),
+            "progress": source.progress.map(|p| progress(p, entry))})
         })
         .collect();
     let value = json!({"boot":Uuid::from_bytes(s.boot).to_string(),"layout":identity(s.layout),
@@ -31,6 +32,22 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
     }
     #[cfg(not(feature = "audio"))]
     value
+}
+fn progress(p: stagemaster_live::Progress, entry: Option<&super::Entry>) -> Value {
+    use stagemaster_live::Phase;
+    let phase = match p.phase {
+        Phase::Idle => "idle",
+        Phase::Delay => "delay",
+        Phase::Fade => "fade",
+        Phase::Wait => "wait",
+        Phase::Hold => "hold",
+        Phase::Finished => "finished",
+    };
+    json!({"phase":phase,"elapsedMs":p.elapsed_ms.to_string(),
+        "phaseElapsedMs":p.phase_elapsed_ms.to_string(),
+        "phaseDurationMs":p.phase_duration_ms.map(|v|v.to_string()),
+        "nextStep":p.next_step.and_then(|i|entry.and_then(|e|e.steps.get(i))).map(|s|&s.id),
+        "nextWrap":p.next_wrap})
 }
 pub(super) fn frame(f: &Frame<Live>) -> Value {
     json!({"kind":"softwareSample","boot":Uuid::from_bytes(f.info.boot).to_string(),"layout":identity(f.info.layout),

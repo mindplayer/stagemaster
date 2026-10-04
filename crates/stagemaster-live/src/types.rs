@@ -34,6 +34,7 @@ pub struct SourceInfo {
     pub level: u16,
     pub status: Option<Status>,
     pub step: Option<usize>,
+    pub progress: Option<stagemaster_playback::Progress>,
 }
 
 /// Host preparation choices; device package selections and wire formats remain separate.

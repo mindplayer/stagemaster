@@ -39,6 +39,10 @@ impl LiveSequencePlayer {
     pub fn can_next(&self) -> bool {
         self.player.can_next()
     }
+    #[must_use]
+    pub fn progress(&self) -> stagemaster_playback::Progress {
+        self.player.progress()
+    }
 
     /// Prepare an encoder outside the live path, bound to this exact engineering snapshot.
     /// # Errors

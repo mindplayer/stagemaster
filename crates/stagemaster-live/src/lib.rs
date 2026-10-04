@@ -11,6 +11,7 @@ mod types;
 use source::Entry;
 use stagemaster_engine::live::LiveMixer;
 pub use stagemaster_playback::Command;
+pub use stagemaster_playback::{Phase, Progress};
 use stagemaster_project::LiveOutput;
 pub use types::{Change, Frame, Key, PlaybackSelection, SourceInfo, SourceSpec};
 
@@ -81,6 +82,11 @@ impl Session {
                         .map_or_else(|| p.status(), |g| self.media[g].player_status(p.status()))
                 }),
                 step: s.player.as_ref().and_then(player::Player::index),
+                progress: s
+                    .media_group
+                    .is_none()
+                    .then(|| s.player.as_ref().and_then(player::Player::progress))
+                    .flatten(),
             })
     }
     /// Semantic values and ownership from the last complete software composition.

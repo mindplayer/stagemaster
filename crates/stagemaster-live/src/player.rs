@@ -10,6 +10,12 @@ pub(super) enum Player {
     Audio(LiveAudioTimeline),
 }
 impl Player {
+    pub fn progress(&self) -> Option<stagemaster_playback::Progress> {
+        match self {
+            Self::Program(p) => Some(p.progress()),
+            Self::Audio(_) => None,
+        }
+    }
     pub fn prepare(
         doc: &Document,
         selection: &PlaybackSelection,

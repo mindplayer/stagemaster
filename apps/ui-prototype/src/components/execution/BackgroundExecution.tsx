@@ -233,6 +233,14 @@ export function BackgroundExecution({
                     key={`${runtime.hostId}:${source.id}`}
                     source={source}
                     runtime={runtime}
+                    observed={
+                      !error &&
+                      !status?.problem &&
+                      status?.phase === "connected" &&
+                      runtime.observation.phase === "running" &&
+                      !runtime.observation.fault &&
+                      !state?.fault
+                    }
                     disabled={disabled}
                     onAction={(a) => action(source.id, a)}
                   />

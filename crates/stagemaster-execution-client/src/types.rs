@@ -49,6 +49,8 @@ pub struct SourceState {
     pub level: u16,
     pub status: Option<String>,
     pub step: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<crate::Progress>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -6,8 +6,10 @@ mod freshness;
 mod http;
 mod media;
 mod media_control;
+mod progress;
 mod validation;
 pub use media::*;
+pub use progress::{Phase, Progress};
 mod reader;
 mod types;
 use http::Transport;
@@ -65,6 +67,7 @@ impl Client {
         {
             return Err("后台身份、来源或运行版本不一致，请重新连接".into());
         }
+        progress::validate(&self.catalog, state)?;
         validation::media_state(&self.catalog, state)
     }
     fn accept_observation(&mut self, mut observation: Observation) -> Result<(), String> {

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { SourceProgress } from "./SourceProgress";
+import { sourceProgress } from "../../execution-source-progress";
 import type {
   ExecutionAction,
   ExecutionSource,
@@ -14,11 +16,13 @@ export function SourceControls({
   source,
   runtime,
   disabled,
+  observed = true,
   onAction,
 }: {
   source: ExecutionSource;
   runtime: ExecutionView;
   disabled: boolean;
+  observed?: boolean;
   onAction(action: ExecutionAction): void;
 }) {
   const state = runtime.observation.snapshot?.state.sources.find(
@@ -27,7 +31,7 @@ export function SourceControls({
   const [step, setStep] = useState(source.steps[0]?.id ?? "");
   const [level, setLevel] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
-  const current = source.steps.find((s) => s.id === state?.step);
+  const progress = sourceProgress(source, state);
   const value =
     level ?? String(Math.round((state?.level ?? 65535) / 65.535) / 10);
   useEffect(() => {
@@ -44,14 +48,22 @@ export function SourceControls({
       <header>
         <h3>{source.name}</h3>
         <span>
-          {state?.status ? (names[state.status] ?? "状态未知") : "手动层"}
+          {!observed
+            ? "状态未更新"
+            : state?.status
+              ? (names[state.status] ?? "状态未知")
+              : source.selection.kind === "manual"
+                ? "手动层"
+                : "状态未知"}
         </span>
       </header>
       {source.selection.kind !== "manual" && (
         <>
-          <p className="execution-current">
-            {current ? `${current.number} · ${current.name}` : "尚未执行"}
-          </p>
+          <SourceProgress
+            source={source}
+            runtime={runtime}
+            observed={observed}
+          />
           <label>
             起始步骤
             <select
@@ -97,7 +109,12 @@ export function SourceControls({
             </button>
             {source.selection.kind === "sequence" && (
               <button
-                disabled={disabled || state?.status !== "Running"}
+                disabled={
+                  disabled ||
+                  !observed ||
+                  state?.status !== "Running" ||
+                  (!!state.progress && !progress?.next)
+                }
                 onClick={() => onAction({ kind: "next" })}
               >
                 下一步

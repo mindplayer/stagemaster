@@ -5,6 +5,7 @@ import type {
   ExecutionMediaState,
   ExecutionAudioState,
 } from "./execution-media-types";
+import type { ExecutionSourceState } from "./execution-source-progress";
 export type ExecutionSelection =
   { kind: "scene" | "sequence"; id: string } | { kind: "audioTimeline" };
 export interface ExecutionSource {
@@ -37,12 +38,7 @@ export interface ExecutionView {
         revision: string;
         audio?: ExecutionAudioState;
         media?: ExecutionMediaState[];
-        sources: {
-          id: string;
-          level: number;
-          status: string | null;
-          step: string | null;
-        }[];
+        sources: ExecutionSourceState[];
         owner: { sessionId: string; expiresMs: string } | null;
         fault: boolean;
       };
