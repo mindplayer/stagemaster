@@ -4,7 +4,7 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-- **[FIXTURE-010 内置程序](tasks/FIXTURE-010-discrete-builtin-programs.md)实施中**，基线 main `f9a8ef5`，先提交限定计划／[ADR-159](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)。接续 30W 第 10 通道，明确离散自动／声控／外部控制，默认禁止自走、不穿越档位、不承载复位；复用原功能／包／历史，新增声明能力。主工作区单写者，用户 output/ 保持，goal active。
+- **[FIXTURE-010 内置程序安全屏蔽](tasks/FIXTURE-010-discrete-builtin-programs.md)实施中**，基线 main `f9a8ef5`，计划先提交 `ba2aa43`。用户本轮明确屏蔽声控等影响演出的通道值，[ADR-159 顶部政策](decisions/PRODUCT-ADR-159-discrete-fixture-programs.md)覆盖原可选自动／声控方案：仅外部通道控制可输出，自主档位只保留禁用资料，正常编辑／预设／读入／编译统一拒绝。前期允许式测试保留历史，不冒作新规则交付；最终按禁止规则重跑。复位／未知混合宏仍不支持，用户 output/ 与来源保持，goal active。
 
 ## 上一增量记录：后台管理锁生命周期 2026-10-04
 
