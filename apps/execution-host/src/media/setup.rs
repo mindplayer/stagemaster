@@ -44,7 +44,7 @@ impl Setup {
             Some(&track.asset.digest),
             &cancel,
         )?;
-        let (mut transport, software) = SoftwareOutput::prepare(output);
+        let (mut transport, software) = SoftwareOutput::prepare(output)?;
         let reload = super::recovery::Reload {
             path: path.clone(),
             output,

@@ -66,8 +66,8 @@ impl Runner {
         if self.failed {
             return Ok(());
         }
-        if let Some(output) = &mut self.software {
-            output.pull()?;
+        if let Some(output) = &self.software {
+            output.check()?;
         }
         if let Some(native) = self.native()? {
             let position = self.transport.position();
@@ -179,9 +179,6 @@ impl Runner {
         self.failed = true;
         self.cancel_job();
         self.transport.stop();
-        if let Some(output) = &mut self.software {
-            output.reset_clock();
-        }
         if let Some(request) = self.request.take() {
             let _ = self.port.complete_control(request.ticket, Err(Code::Read));
         }

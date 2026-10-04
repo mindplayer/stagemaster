@@ -82,9 +82,6 @@ impl Owner {
         let thread = thread::Builder::new()
             .name("stage-media".into())
             .spawn(move || {
-                if let Some(output) = &mut runner.software {
-                    output.reset_clock();
-                }
                 while !runner.cancel.load(Ordering::Acquire) {
                     if let Err(message) = runner.tick() {
                         runner.fail(message);

@@ -43,7 +43,7 @@ impl Runner {
             .ok_or_else(|| "工程没有音乐轨道".to_string())?;
         stagemaster_audio::verify(&self.reload.path, &track.asset.digest, &self.cancel)
             .map_err(|_| "后台音乐资源校验失败，请关闭后台后从原工程重新载入".to_string())?;
-        let (mut transport, software) = SoftwareOutput::prepare(self.reload.output);
+        let (mut transport, software) = SoftwareOutput::prepare(self.reload.output)?;
         let prepared = transport
             .load_performance_request(
                 self.reload.path.clone(),
@@ -58,7 +58,12 @@ impl Runner {
         self.software = software;
         self.mapping = mapping;
         self.failed = false;
-        self.prepare_at(request, key, position, Some(provider))?;
+        if position == 0 {
+            // apply_load already prepared a new, paused zero-position voice. Do not decode it twice.
+            self.activate_prepared(request, key, Some(provider))?;
+        } else {
+            self.prepare_at(request, key, position, Some(provider))?;
+        }
         Ok(())
     }
 }

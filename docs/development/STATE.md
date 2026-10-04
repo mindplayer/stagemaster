@@ -4,9 +4,18 @@
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-**[EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md)限定分类增量完成，自审通过**，基线 main `65a9242`，计划 `18d644f`／[ADR-162](decisions/PRODUCT-ADR-162-adapter-refusal-receipts.md) `da1d368` 先提交；结果为本次 `fix(execution): preserve adapter refusal receipts` 提交。适配 busy／closed／invalid 保留真实 code／message，不更改协议、提交、时钟、控制权或添加重试。旧循环 rejected 根因仍未知。
+**[AUDIO-021 复杂音乐准备与消费连续性](tasks/AUDIO-021-complex-preparation-continuity.md)有限软件增量完成，自审通过**，基线 main `36149b5`，计划已发布、基线 `c270d64`／[ADR-163](decisions/PRODUCT-ADR-163-software-audio-consumer.md) `587d655`／恢复顺序 `0e07d61` 先提交；结果为本次 `fix(audio): keep software callbacks alive during preparation` 提交。独立所属线程消费原软件 Mixer，媒体所有者仍掌握准备／控制；零位恢复复用刚载入的新暂停源。原 500 ms、5 秒、代次／callback／回执、声音占用不放宽，无新播放器／节目时钟或协议格式。
 
-当前接续 **[AUDIO-021](tasks/AUDIO-021-complex-preparation-continuity.md) 实施中**，实际基线 main `36149b5`，仅用户 output/；计划已在该版本发布。先测量复杂音乐准备与软件消费，不提前认定同步编译或旧失败根因。
+- 同工程实测灯光编译约 2.8 秒、重复零位解码约 0.64 秒；旧同线程消费 650 ms 红灯确定性失败后修复。最终 **1275 Rust＋2 文档**、严格 Clippy／fmt、引用／严格 JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试调用。新增测试的预算／只读 Busy 前提修正及早期失败保留，没有 UI／UE 源码，不冒记重复 UI。证据 `data/AUDIO-021/verification.json`、日志 `logs/audio-021-*`。
+- 正式同复杂工程停止定位 10 秒／实例 2 循环至第 9 遍／暂停保持通过；第一轮明确恢复仍 TimedOut，证据保留。最终包私有受控故障后单次恢复 request 3 Applied、零位暂停 frames 0、新实例 4／组代次 3；后续明确播放／暂停／停止均 Applied，同音源真实重复，暂停位置及 PCM 消费保持，最后停止归零。**仅静音软件输出，不是听音／声卡／GPU／实灯通过。** 两轮后台明确关闭、所属窗口退出，原文件／默认最近目录／用户 output/ 保持。
+- 接续 **H3 [FIXTURE-006](tasks/FIXTURE-006-real-fixture-intake.md)** 已发布且资料明确的必要软件边界；声控／自走仍统一屏蔽，不猜未知厂家宏。历史循环 rejected 根因、所有最坏工程准备性能、听音／GPU、完整灯型、物理差分／实灯／长期及客户 UE 包仍开放，完整 goal active。
+
+## 上一增量记录：后台繁忙观测与操作回执 2026-10-05
+
+以下保留 `36149b5` 的实际交付及当时原生失败，后继收敛见上方 AUDIO-021。
+
+**[EXEC-016 后台繁忙观测与操作回执](tasks/EXEC-016-observation-receipt-boundaries.md)限定分类增量完成，自审通过**，基线 main `65a9242`，计划 `18d644f`／[ADR-162](decisions/PRODUCT-ADR-162-adapter-refusal-receipts.md) `da1d368` 先提交；结果 `36149b5`。适配 busy／closed／invalid 保留真实 code／message，不更改协议、提交、时钟、控制权或添加重试。旧循环 rejected 根因仍未知。
+
 
 - 4 分类保护先红后绿；4 新真实回环宿主测试明确区分提交前 503／原回执 409、接纳后只读 503、Revision 拒绝和同一媒体 request Failed，不重发或虚构完成。最终原全量 **1269 Rust＋2 文档**、严格 Clippy／fmt、引用／JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试调用。没有 UI／UE 源码改动，不冒记重复 UI 434 项。证据 `data/EXEC-016/verification.json`、日志 `logs/exec-016-*`。
 - **正式桌面复杂音乐定位稳定性未通过**：原工程相同副本、静音预演、定位 10 秒一次先已接纳后 request 1 Failed（软件消费超过 500 毫秒），明确重新准备 request 2 TimedOut。没有故障注入，UI 正确显示失败／保留草稿而非假成功；普通音乐操作仍有真实缺陷。后台明确关闭、所属窗口退出，原工程／MP3／默认最近目录／FIXTURE-012 哈希及用户 output/ 保持，未启用听音／UE／设备。

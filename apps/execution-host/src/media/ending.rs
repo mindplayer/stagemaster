@@ -19,9 +19,6 @@ impl Runner {
             .prepare(&self.cancel)?;
         self.guard(request)?;
         self.transport.apply_seek(source)?;
-        if let Some(output) = &mut self.software {
-            output.reset_clock();
-        }
         // A real prepared EOF source is authoritative without a synthetic render callback.
         self.wait(request, |runner| {
             let Some(native) = runner.native()? else {

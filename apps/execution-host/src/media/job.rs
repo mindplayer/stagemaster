@@ -110,9 +110,15 @@ impl Runner {
             .prepare(&self.cancel)?;
         self.guard(request)?;
         self.transport.apply_seek(source)?;
-        if let Some(output) = &mut self.software {
-            output.reset_clock();
-        }
+        self.activate_prepared(request, key, restarted)
+    }
+    pub(super) fn activate_prepared(
+        &mut self,
+        request: ControlRequest,
+        key: GroupKey,
+        restarted: Option<stagemaster_time::Clock>,
+    ) -> Result<(), Failure> {
+        self.guard(request)?;
         self.transport.prime_performance()?;
         let (actual, _) = self.confirmed_sample(request, 0)?;
         let mut prepared = self.prepare.prepare(
