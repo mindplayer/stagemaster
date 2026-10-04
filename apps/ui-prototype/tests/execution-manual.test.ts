@@ -49,14 +49,15 @@ test("精确百分比和功能输入只产生对应的原子语义修改，零�
     })[0].value,
     { kind: "function", functionKey: "red", position: 0 },
   );
-  assert.deepEqual(
-    manualChanges(r, "manual", {
-      ...d,
-      attribute: "color-wheel",
-      functionKey: "rotate",
-      value: "50",
-    })[0].value,
-    { kind: "function", functionKey: "rotate", position: 32768 },
+  assert.throws(
+    () =>
+      manualChanges(r, "manual", {
+        ...d,
+        attribute: "color-wheel",
+        functionKey: "rotate",
+        value: "50",
+      }),
+    /已屏蔽/,
   );
   assert.deepEqual(
     r.observation.snapshot!.state.sources.find((s) => s.id === "manual")!.held,

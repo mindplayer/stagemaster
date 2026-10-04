@@ -1,6 +1,7 @@
 import type { ManualDraft, ManualFixture } from "../../execution-manual";
 import { initialFunction } from "../../fixture-function-types";
 import { WheelSlotChoices } from "../workbench/WheelSlotChoices";
+import { functionSelectionAllowed } from "../../fixture-function-safety";
 export function ManualValueEditor({
   attribute,
   draft,
@@ -12,7 +13,9 @@ export function ManualValueEditor({
   disabled: boolean;
   onChange(next: ManualDraft): void;
 }) {
-  const functions = attribute.function?.functions;
+  const functions = attribute.function?.functions.filter((f) =>
+    functionSelectionAllowed(attribute.key, f),
+  );
   const selected = functions?.find((f) => f.key === draft.functionKey);
   const choose = (key: string) => {
     const f = functions?.find((f) => f.key === key);

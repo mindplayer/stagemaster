@@ -53,6 +53,11 @@ impl CompiledOutput {
                     if attribute == crate::fixture_program::KEY {
                         crate::fixture_program::validate_selection(selection)?;
                     }
+                    let function = functions
+                        .iter()
+                        .find(|f| f.key == selection.function_key)
+                        .ok_or("手动功能不存在")?;
+                    crate::fixture_function_safety::validate(attribute, function)?;
                     FunctionTable::new(functions, binding.fine)?.encode(selection)
                 }
                 _ => Err("手动属性类型不匹配，功能通道必须明确选择功能".into()),

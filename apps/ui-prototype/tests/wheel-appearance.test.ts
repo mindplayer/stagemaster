@@ -63,6 +63,7 @@ test("批量创建拒绝覆盖已编辑行、重叠、越界、超容量与小�
   ])
     assert.throws(() => planSlotBatch(c, { ...batch, ...patch }, "ch"));
   c.functions![0].name = "已确认通光";
+  Object.assign(c.functions![0], { dmxFrom: "0", dmxTo: "0", dmxDefault: "0" });
   assert.throws(() => planSlotBatch(c, batch, "ch"), /重叠/);
   c.functions = Array.from({ length: 64 }, (_, i) => ({
     ...newFunction(i),

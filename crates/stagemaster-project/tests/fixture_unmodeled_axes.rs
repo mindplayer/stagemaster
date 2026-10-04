@@ -46,13 +46,7 @@ fn raw_axes_and_color_slots_compile_exact_bytes_without_inventing_a_model() {
     for (axis, value) in [("pan", 0x1234), ("tilt", 0xabcd)] {
         edit(&mut doc,json!({"op":"setSceneValue","sceneId":s,"fixtureId":f,"attribute":axis,"mode":"literal","value":value})).unwrap();
     }
-    for (key, position, expected) in (1..=14)
-        .map(|i| (format!("slot-{i}"), 0, (i - 1) * 10 + 4))
-        .chain([
-            ("automatic".into(), 0, 140),
-            ("automatic".into(), 65535, 255),
-        ])
-    {
+    for (key, position, expected) in (1..=14).map(|i| (format!("slot-{i}"), 0, (i - 1) * 10 + 4)) {
         edit(&mut doc,json!({"op":"setSceneFunctionValue","sceneId":s,"fixtureId":f,"attribute":"color-wheel","selection":{"functionKey":key,"position":position}})).unwrap();
         let compiled = doc.compile_scene(s).unwrap();
         let mut player = Player::new(compiled.plan, 0);
@@ -61,6 +55,11 @@ fn raw_axes_and_color_slots_compile_exact_bytes_without_inventing_a_model() {
         assert_eq!(&frame.slots[8..12], &[0x12, 0x34, 0xab, 0xcd]);
         assert_eq!(u32::from(frame.slots[12]), expected);
         assert_eq!(&frame.slots[13..19], &[0; 6]);
+    }
+    let before = doc.clone();
+    for position in [0, 65535] {
+        assert!(edit(&mut doc,json!({"op":"setSceneFunctionValue","sceneId":s,"fixtureId":f,"attribute":"color-wheel","selection":{"functionKey":"automatic","position":position}})).unwrap_err().contains("已屏蔽"));
+        assert_eq!(doc, before);
     }
 }
 

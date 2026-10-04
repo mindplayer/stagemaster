@@ -10,9 +10,9 @@ fn fixture() -> Document {
         {"attribute":"dimmer","coarse":2,"fine":1,"defaultValue":4660},
         {"attribute":"pan","coarse":4,"fine":3,"defaultValue":32767},
         {"attribute":"tilt","coarse":6,"fine":5,"defaultValue":12345},
-        {"attribute":"color-wheel","coarse":7,"fine":8,"defaultValue":{"functionKey":"rainbow","position":23456},"functions":[
-          {"key":"white","name":"白色","mode":"slot","dmxFrom":0,"dmxTo":511,"dmxDefault":257},
-          {"key":"rainbow","name":"彩虹","mode":"range","dmxFrom":1024,"dmxTo":65535,"dmxDefault":32768}]}],
+        {"attribute":"shutter","coarse":7,"fine":8,"defaultValue":{"functionKey":"strobe","position":23456},"functions":[
+          {"key":"open","name":"开光","mode":"slot","dmxFrom":0,"dmxTo":511,"dmxDefault":257},
+          {"key":"strobe","name":"受控频闪","mode":"range","dmxFrom":1024,"dmxTo":65535,"dmxDefault":32768}]}],
       "positioning":{"kind":"intersectingOrthogonal","pan":{"minDegrees":"-270","maxDegrees":"270","reversed":true},"tilt":{"minDegrees":"-135","maxDegrees":"135","reversed":false}}});
     d.edit(serde_json::from_value(json!({"op":"fixture","command":{"op":"saveProfile","id":null,"definition":definition}})).unwrap()).unwrap();
     let p = d.view();

@@ -95,10 +95,16 @@ pub(super) fn encode(profile: &Value, key: &str, value: &Value) -> Result<u16, S
             crate::fixture_program::validate_functions(&functions)?;
             crate::fixture_program::validate_selection(&selection(value)?)?;
         }
-        FunctionTable::new(&functions, channel["encoding"] == "u16-be")?.encode(&selection(value)?)
+        let selected = selection(value)?;
+        let function = functions
+            .iter()
+            .find(|f| f.key == selected.function_key)
+            .ok_or("灯具功能不存在")?;
+        crate::fixture_function_safety::validate(key, function)?;
+        FunctionTable::new(&functions, channel["encoding"] == "u16-be")?.encode(&selected)
     } else {
-        if key == crate::fixture_program::KEY {
-            return Err("内置程序不能使用普通百分比".into());
+        if is_function_key(key) {
+            return Err("功能通道必须使用明确功能选择，旧普通百分比映射已屏蔽".into());
         }
         if channel.get("functions").is_some() {
             return Err("普通属性不能携带功能区间".into());

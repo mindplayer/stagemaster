@@ -12,6 +12,10 @@ import type { ProfileDraft } from "./fixture-tools";
 import { FixtureFieldError, fixtureInteger } from "./fixture-field-error.ts";
 import { functionLabels, initialFunction } from "./fixture-function-types.ts";
 import {
+  functionSelectionAllowed,
+  functionSafetyMessage,
+} from "./fixture-function-safety.ts";
+import {
   programKey,
   validateProgramDefinition,
 } from "./fixture-program-rules.ts";
@@ -135,17 +139,22 @@ export function functionDefinition(
   validateEmitterFunctions(c.attribute, functions, prefix);
   if (c.attribute === programKey)
     validateProgramDefinition(functions, defaultValue, i);
+  if (!functionSelectionAllowed(c.attribute, chosen))
+    throw new FixtureFieldError(
+      `${prefix}-default-function`,
+      functionSafetyMessage,
+    );
   return { functions, defaultValue };
 }
 /** New fields start unassigned semantically: the user must name the function from their manual. */
-export function newFunction(from = 0): FunctionDraft {
+export function newFunction(from?: number): FunctionDraft {
   return {
     key: `function-${crypto.randomUUID()}`,
     name: "",
     mode: "slot",
-    dmxFrom: String(from),
-    dmxTo: String(from),
-    dmxDefault: String(from),
+    dmxFrom: from === undefined ? "" : String(from),
+    dmxTo: from === undefined ? "" : String(from),
+    dmxDefault: from === undefined ? "" : String(from),
   };
 }
 export function draftInitial(f: FunctionDraft) {
@@ -180,9 +189,13 @@ export function addFunctionChannel(
   )
     return draft;
   const coarse = nextChannel(draft),
-    first = isEmitterFunction(attribute)
-      ? newControlledFunction(attribute, "open")
-      : newFunction();
+    first =
+      isEmitterFunction(attribute) || ["shutter", "prism"].includes(attribute)
+        ? newControlledFunction(
+            attribute,
+            attribute === "prism" ? "off" : "open",
+          )
+        : newFunction();
   return {
     ...draft,
     footprint: String(Math.max(Number(draft.footprint) || 0, coarse)),

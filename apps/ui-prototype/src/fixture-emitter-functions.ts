@@ -9,8 +9,13 @@ export const emitterFunctionLabels = {
   "gobo-wheel": "图案盘",
 };
 export function controlledFunctionOptions(attribute: string) {
-  if (!isEmitterFunction(attribute)) return [];
   const base = attributeBase(attribute);
+  if (base === "prism")
+    return [
+      { id: "off", name: "退出", mode: "slot" as const },
+      { id: "on", name: "插入", mode: "slot" as const },
+    ];
+  if (!Object.hasOwn(emitterFunctionLabels, base)) return [];
   return base === "shutter"
     ? [
         { id: "open", name: "开光", mode: "slot" as const },
@@ -30,7 +35,7 @@ export function newControlledFunction(
   kind: string,
 ): FunctionDraft {
   const type = controlledFunctionOptions(attribute).find((o) => o.id === kind);
-  if (!type) throw new Error("不支持此独立光源功能种类");
+  if (!type) throw new Error("不支持此受控功能种类");
   return {
     key:
       kind === "slot" || kind === "shake"

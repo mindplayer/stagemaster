@@ -4,6 +4,10 @@ import {
   programKey,
   programSelectionAllowed,
 } from "./fixture-program-rules.ts";
+import {
+  functionSelectionAllowed,
+  functionSafetyMessage,
+} from "./fixture-function-safety.ts";
 export interface FunctionParameterDraft {
   function: FunctionSelection;
   percent?: string;
@@ -51,6 +55,8 @@ export function functionDraftValue(
     (f) => f.key === draft.function.functionKey,
   );
   if (!f) throw new Error(`${attribute.label}的功能已不存在，请重新选择`);
+  if (!functionSelectionAllowed(attribute.key, f))
+    throw new Error(functionSafetyMessage);
   let position = draft.function.position;
   if (draft.percent !== undefined) {
     const percent = Number(draft.percent);

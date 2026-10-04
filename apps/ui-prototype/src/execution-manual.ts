@@ -1,6 +1,10 @@
 import type { FixtureView } from "./application-host";
 import type { ExecutionView, ExecutionStatus } from "./execution-types";
-import { sameFunctions } from "./fixture-function-types.ts";
+import { sameFunctions, functionLabels } from "./fixture-function-types.ts";
+import {
+  functionSelectionAllowed,
+  functionSafetyMessage,
+} from "./fixture-function-safety.ts";
 export type ManualFixture = Pick<
   FixtureView,
   "id" | "name" | "profileName" | "universe" | "address" | "attributes"
@@ -85,12 +89,18 @@ export function manualChanges(
   else if (attr.function) {
     const f = attr.function.functions.find((f) => f.key === draft.functionKey);
     if (!f) throw Error("请选择后台已定义的功能");
+    if (!functionSelectionAllowed(attr.key, f))
+      throw Error(functionSafetyMessage);
     value = {
       kind: "function",
       functionKey: f.key,
       position: f.mode === "slot" ? 0 : manualPercent(draft.value),
     };
-  } else value = { kind: "normalized", value: manualPercent(draft.value) };
+  } else {
+    if (Object.hasOwn(functionLabels, attr.key))
+      throw Error("功能通道必须明确选择功能，旧普通百分比映射已屏蔽");
+    value = { kind: "normalized", value: manualPercent(draft.value) };
+  }
   const changes = draft.targets.map((fixtureId) => ({
     fixtureId,
     attribute: draft.attribute,

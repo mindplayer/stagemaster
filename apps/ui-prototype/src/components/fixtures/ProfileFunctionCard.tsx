@@ -4,7 +4,7 @@ import {
   newFunction,
   type ChannelDraft,
 } from "../../fixture-function-draft";
-import { attributeBase, isEmitterFunction } from "../../fixture-emitter-keys";
+import { attributeBase } from "../../fixture-emitter-keys";
 import {
   controlledFunctionOptions,
   controlledKind,
@@ -14,6 +14,7 @@ import { ProfileChannelFields } from "./ProfileChannelFields";
 import { ProfileFunctionRows } from "./ProfileFunctionRows";
 import { ProfileSlotBatch } from "./ProfileSlotBatch";
 import "./profile-functions.css";
+import { functionSelectionAllowed } from "../../fixture-function-safety";
 
 export function ProfileFunctionCard({
   channel: c,
@@ -30,7 +31,7 @@ export function ProfileFunctionCard({
 }) {
   const prefix = `channel-${i}`,
     functions = c.functions ?? [],
-    scoped = isEmitterFunction(c.attribute);
+    scoped = controlledFunctionOptions(c.attribute).length > 0;
   const selected = functions.find(
     (f) => f.key === c.defaultFunction?.functionKey,
   );
@@ -68,7 +69,7 @@ export function ProfileFunctionCard({
           Hz。
         </p>
       )}
-      {(!scoped || attributeBase(c.attribute) !== "shutter") && (
+      {["color-wheel", "gobo-wheel"].includes(attributeBase(c.attribute)) && (
         <ProfileSlotBatch
           channel={c}
           prefix={prefix}
@@ -85,10 +86,16 @@ export function ProfileFunctionCard({
         lockedMode={scoped}
         kindLabel={
           scoped
-            ? (key) =>
-                controlledFunctionOptions(c.attribute).find(
-                  (o) => o.id === controlledKind(key),
-                )?.name ?? "不支持的功能"
+            ? (key) => {
+                const f = functions.find((f) => f.key === key)!;
+                if (!functionSelectionAllowed(c.attribute, f))
+                  return "禁用资料";
+                return (
+                  controlledFunctionOptions(c.attribute).find(
+                    (o) => o.id === controlledKind(key),
+                  )?.name ?? (f.mode === "slot" ? "固定档位" : "受控区间")
+                );
+              }
             : undefined
         }
         onChange={(next) => change({ functions: next })}
@@ -157,8 +164,13 @@ export function ProfileFunctionCard({
               请选择默认功能
             </option>
             {functions.map((f, j) => (
-              <option key={f.key} value={f.key}>
+              <option
+                key={f.key}
+                value={f.key}
+                disabled={!functionSelectionAllowed(c.attribute, f)}
+              >
                 {f.name || `未命名功能 ${j + 1}`}
+                {!functionSelectionAllowed(c.attribute, f) ? "（禁用）" : ""}
               </option>
             ))}
           </select>

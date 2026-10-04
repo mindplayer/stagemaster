@@ -2,11 +2,15 @@
 
 ## 当前实施入口 2026-10-05
 
-**[FIXTURE-013 根级功能安全](tasks/FIXTURE-013-root-function-safety.md)实施中**，基线 main `fc5d4a6`，单写者、用户 output/ 保持。发现旧根级 automatic 色盘仍可输出 140／255，先提交限定计划与 [ADR-164](decisions/PRODUCT-ADR-164-root-function-safety.md)，补齐默认／场景／预设／读入／编译／手动的统一屏蔽，不猜未知厂家范围或恢复声控自走。完整 goal active；下文 AUDIO-021 是上一实际交付。
+**[FIXTURE-013 根级功能安全](tasks/FIXTURE-013-root-function-safety.md)有限软件增量完成，自审通过**，基线 main `fc5d4a6`，计划／[ADR-164](decisions/PRODUCT-ADR-164-root-function-safety.md) `242c55e`／旧百分比拒绝决定 `d18f96a` 先提交；结果为本次 `fix(fixtures): block autonomous root function choices` 提交。主工作区单写者，用户 output/ 保持。默认／场景／整批／预设／读入／编译／手动和录入统一拒绝声控、自走、自动轮盘、复位及未知宏；无功能语义的旧百分比映射拒绝。禁用资料保留，受控频闪／固定轮盘／单图案抖动保持，未添加字段、能力、播放器、时钟或固件。
+
+- 本次实际 **1279 Rust＋2 文档、437 UI、232 格式**、UI／契约类型、严格 Clippy／fmt／相关 Prettier、文档引用／严格 JSON／差异及正式 `.app` 构建通过。3 项既有子进程入口仍由父测试实际调用。旧自动选择／默认和普通百分比先红后绿；原 14 固定档／粗细／非代表值断言保持。早期失败与大 chunk 构建警告保留，证据 `data/FIXTURE-013/verification.json`、日志 `logs/fixture-013-*`。
+- 正式包拒绝两份禁止选择／旧百分比坏工程并保持当前合法工程；两灯 **17／23** 频闪精确取消／应用、固定色片／受控抖动、一次撤销重做、模式文件独立身份往返和两灯替换／取消通过。原 3 项保持，最终 3 灯／6 模式／9 项；保存退出，同实例最近重开字节相同。来源／默认最近目录／FIXTURE-012 哈希不变，用户 output/ 保持；所属原生／组件页／Vite 退出，无音乐、UE、后台或设备输出。
+- 接续核对 **H4 [OUTPUT-002](tasks/OUTPUT-002-dmx-transmission.md)／[MEMORY-003](tasks/MEMORY-003-large-package-maintenance.md)** 已发布的剩余容量／故障软件边界，不重复已有 UART／容量短测。H3 的 30W 图案子范围／快门原生边界、18CH 未知宏退出时序与完整厂家资料不能猜测；听音／GPU、完整灯型／光学、物理差分／实灯／8 小时、客户 UE 包仍未完成。完整 goal active，历史工作器缺陷与旧循环 rejected 根因未写成修复。
 
 用户已启用持续 goal，由当前 6.1 Sol 会话按 [交接路线 H1–H5](sol-handoff/roadmap.md)实施、自审、验证和本地集成；不创建其他会话／子代理、不切换模型或恢复旧工具路线。goal active，完整单机／一路 DMX 闭环尚未完成。
 
-**[AUDIO-021 复杂音乐准备与消费连续性](tasks/AUDIO-021-complex-preparation-continuity.md)有限软件增量完成，自审通过**，基线 main `36149b5`，计划已发布、基线 `c270d64`／[ADR-163](decisions/PRODUCT-ADR-163-software-audio-consumer.md) `587d655`／恢复顺序 `0e07d61` 先提交；结果为本次 `fix(audio): keep software callbacks alive during preparation` 提交。独立所属线程消费原软件 Mixer，媒体所有者仍掌握准备／控制；零位恢复复用刚载入的新暂停源。原 500 ms、5 秒、代次／callback／回执、声音占用不放宽，无新播放器／节目时钟或协议格式。
+**[AUDIO-021 复杂音乐准备与消费连续性](tasks/AUDIO-021-complex-preparation-continuity.md)上一有限软件增量完成，自审通过**，基线 main `36149b5`，计划已发布、基线 `c270d64`／[ADR-163](decisions/PRODUCT-ADR-163-software-audio-consumer.md) `587d655`／恢复顺序 `0e07d61` 先提交；结果 `fc5d4a6`。独立所属线程消费原软件 Mixer，媒体所有者仍掌握准备／控制；零位恢复复用刚载入的新暂停源。原 500 ms、5 秒、代次／callback／回执、声音占用不放宽，无新播放器／节目时钟或协议格式。
 
 - 同工程实测灯光编译约 2.8 秒、重复零位解码约 0.64 秒；旧同线程消费 650 ms 红灯确定性失败后修复。最终 **1275 Rust＋2 文档**、严格 Clippy／fmt、引用／严格 JSON／差异与正式 `.app` 构建通过；3 项既有子进程入口由父测试调用。新增测试的预算／只读 Busy 前提修正及早期失败保留，没有 UI／UE 源码，不冒记重复 UI。证据 `data/AUDIO-021/verification.json`、日志 `logs/audio-021-*`。
 - 正式同复杂工程停止定位 10 秒／实例 2 循环至第 9 遍／暂停保持通过；第一轮明确恢复仍 TimedOut，证据保留。最终包私有受控故障后单次恢复 request 3 Applied、零位暂停 frames 0、新实例 4／组代次 3；后续明确播放／暂停／停止均 Applied，同音源真实重复，暂停位置及 PCM 消费保持，最后停止归零。**仅静音软件输出，不是听音／声卡／GPU／实灯通过。** 两轮后台明确关闭、所属窗口退出，原文件／默认最近目录／用户 output/ 保持。

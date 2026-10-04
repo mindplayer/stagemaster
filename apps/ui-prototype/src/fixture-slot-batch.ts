@@ -13,9 +13,8 @@ const untouched = (channel: ChannelDraft) => {
     channel.functions?.length === 1 &&
     f?.name === "" &&
     f.mode === "slot" &&
-    f.dmxFrom === "0" &&
-    f.dmxTo === "0" &&
-    f.dmxDefault === "0" &&
+    ((f.dmxFrom === "0" && f.dmxTo === "0" && f.dmxDefault === "0") ||
+      (f.dmxFrom === "" && f.dmxTo === "" && f.dmxDefault === "")) &&
     !f.appearance &&
     channel.defaultFunction?.functionKey === f.key &&
     channel.defaultFunction.position === "0"

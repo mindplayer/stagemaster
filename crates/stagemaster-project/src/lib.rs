@@ -78,6 +78,7 @@ mod fixture_appearance;
 mod fixture_exchange;
 mod fixture_function;
 mod fixture_function_mapping;
+mod fixture_function_safety;
 pub use fixture_appearance::WheelAppearance;
 mod fixture_value;
 mod fixture_view;
