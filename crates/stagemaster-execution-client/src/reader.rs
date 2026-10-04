@@ -78,6 +78,7 @@ impl Reader {
         let frame = snapshot.frame.ok_or("后台尚无有效输出")?;
         let state = snapshot.state;
         crate::progress::validate(&self.catalog, &state)?;
+        crate::manual_validation::state(&self.catalog, &state)?;
         crate::validation::media_state(&self.catalog, &state)?;
         let sampled = decimal(&frame.sampled_ms)?;
         let observed = decimal(&state.observed_ms)?;

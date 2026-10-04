@@ -18,6 +18,7 @@ export function SourceControls({
   disabled,
   observed = true,
   active = true,
+  hideManualRelease = false,
   onDraftChange,
   onAction,
 }: {
@@ -26,6 +27,7 @@ export function SourceControls({
   disabled: boolean;
   observed?: boolean;
   active?: boolean;
+  hideManualRelease?: boolean;
   onDraftChange?(id: string, dirty: boolean): void;
   onAction(action: ExecutionAction): void;
 }) {
@@ -187,7 +189,7 @@ export function SourceControls({
           </button>
         )}
       </form>
-      {source.selection.kind === "manual" && (
+      {source.selection.kind === "manual" && !hideManualRelease && (
         <button disabled={disabled} onClick={() => onAction({ kind: "stop" })}>
           释放手动层
         </button>

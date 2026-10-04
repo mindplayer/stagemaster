@@ -77,6 +77,15 @@ impl Session {
                 },
                 id: s.id,
                 level: s.level,
+                manual_held: s.player.is_none().then(|| {
+                    let mut held = [0; 8];
+                    for (index, value) in s.values.iter().enumerate() {
+                        if value.is_some() {
+                            held[index / 64] |= 1 << (index % 64);
+                        }
+                    }
+                    held
+                }),
                 status: s.player.as_ref().map(|p| {
                     s.media_group
                         .map_or_else(|| p.status(), |g| self.media[g].player_status(p.status()))

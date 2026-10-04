@@ -35,6 +35,8 @@ pub struct SourceInfo {
     pub status: Option<Status>,
     pub step: Option<usize>,
     pub progress: Option<stagemaster_playback::Progress>,
+    /// Manual contribution ownership, independent of fader level and final mix winners.
+    pub manual_held: Option<[u64; 8]>,
 }
 
 /// Host preparation choices; device package selections and wire formats remain separate.

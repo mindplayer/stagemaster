@@ -1,6 +1,7 @@
 use crate::{Catalog, Selection, State};
 
 pub(crate) fn catalog(catalog: &Catalog) -> Result<(), String> {
+    crate::manual_validation::catalog(catalog)?;
     if catalog.protocol != 2
         || catalog.execution != "sourceGroup"
         || catalog.mode != "softwareOutput"
@@ -101,7 +102,7 @@ fn nonzero(value: &str) -> Result<(), String> {
     }
     Ok(())
 }
-fn identity(value: &str) -> Result<(), String> {
+pub(crate) fn identity(value: &str) -> Result<(), String> {
     let parsed = uuid::Uuid::parse_str(value).map_err(|_| "后台音乐组身份无效")?;
     if parsed.is_nil() || parsed.to_string() != value {
         return Err("后台音乐组身份无效".into());

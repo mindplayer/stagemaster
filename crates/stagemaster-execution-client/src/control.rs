@@ -51,6 +51,9 @@ impl Client {
         {
             return Err("音乐请使用播放、暂停、停止或定位操作".into());
         }
+        if let Action::Patch { changes } = &action {
+            crate::manual_validation::edits(&self.catalog, source, changes)?;
+        }
         self.send(json!({"kind":"submit","expectedRevision":revision,"action":{"kind":"source","source":source,"action":action}})).await
     }
     pub(super) async fn send(&mut self, command: Value) -> Result<View, String> {
@@ -60,6 +63,15 @@ impl Client {
         let id = self.session.as_ref().ok_or("请先取得运行控制权")?;
         let serial = self.next.to_string();
         let suffix = format!("/sessions/{id}/commands");
+        let body = json!({"serial":serial,"ttlMs":5000,"command":command});
+        let limit = self
+            .catalog
+            .limits
+            .as_ref()
+            .map_or(8192, |v| v.request_bytes.min(8192));
+        if serde_json::to_vec(&body).map_err(|e| e.to_string())?.len() > limit {
+            return Err("本次操作超过后台请求容量，请减少目标后重试；未提交任何修改".into());
+        }
         // Retained before awaiting: cancellation and lost HTTP replies cannot free the next serial.
         self.pending = true;
         self.record = Some(Record {
@@ -69,11 +81,7 @@ impl Client {
         });
         let record = self
             .transport
-            .request(
-                Method::POST,
-                &suffix,
-                Some(json!({"serial":serial,"ttlMs":5000,"command":command})),
-            )
+            .request(Method::POST, &suffix, Some(body))
             .await?;
         self.accept(record)?;
         self.refresh().await

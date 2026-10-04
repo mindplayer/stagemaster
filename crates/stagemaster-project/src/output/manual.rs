@@ -2,6 +2,20 @@ use super::CompiledOutput;
 use crate::{FunctionTable, ProfileDefault};
 
 impl CompiledOutput {
+    /// Project a bounded manual ownership mask through this immutable fixture mapping.
+    /// Reads only; never changes ownership or claims final mixed values.
+    pub fn manual_targets<'a>(
+        &'a self,
+        held: &'a [u64; 8],
+    ) -> impl Iterator<Item = (&'a str, &'a str)> + 'a {
+        self.attribute_bindings()
+            .filter_map(move |(fixture, attribute, index, _)| {
+                held.get(index / 64)
+                    .is_some_and(|word| word & (1 << (index % 64)) != 0)
+                    .then_some((fixture, attribute))
+            })
+    }
+
     /// Resolve a semantic manual edit against this prepared output's fixture bindings.
     /// None releases ownership; a numeric zero still owns the attribute. No output is changed.
     /// # Errors

@@ -13,9 +13,15 @@ pub(super) fn state(s: &State, catalog: &Catalog) -> Value {
         .map(|source| {
             let entry = catalog.entries.iter().find(|e| e.key == source.key);
             let step = source.step.and_then(|i| entry.and_then(|e| e.steps.get(i)));
-            json!({"id":Uuid::from_bytes(source.id).to_string(),"level":source.level,
+            let mut value = json!({"id":Uuid::from_bytes(source.id).to_string(),"level":source.level,
             "status":source.status.map(|s|format!("{s:?}")),"step":step.map(|s|&s.id),
-            "progress": source.progress.map(|p| progress(p, entry))})
+            "progress": source.progress.map(|p| progress(p, entry))});
+            if let Some(held) = source.manual_held {
+                value["held"] = catalog.output.manual_targets(&held)
+                    .map(|(fixture, attribute)| json!({"fixtureId":fixture,"attribute":attribute}))
+                    .collect::<Vec<_>>().into();
+            }
+            value
         })
         .collect();
     let value = json!({"boot":Uuid::from_bytes(s.boot).to_string(),"layout":identity(s.layout),

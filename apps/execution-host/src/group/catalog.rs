@@ -52,7 +52,7 @@ pub(super) fn build(
     let source = json!({"mode":"softwareOutput","physicalOutput":false,"execution":"sourceGroup","protocol":2,
         "layout":layout,"projectId":view.id,"sources":description,"fixtures":view.fixtures,
         "limits":{"sources":64,"manualChanges":512,"requestBytes":8192,"commandTtlMs":5000,"outputUniverses":1},
-        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress"]});
+        "capabilities":["sourcePlayback","sourceLevel","semanticManualPatch","preparedProject","sourceProgress","manualOwnership"]});
     Ok((
         Catalog {
             entries,

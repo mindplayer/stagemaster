@@ -1,4 +1,9 @@
 import type {
+  ManualFixture,
+  ManualEdit,
+  ManualLimits,
+} from "./execution-manual";
+import type {
   ExecutionAudioOutput,
   ExecutionMediaAction,
   ExecutionAudioCatalog,
@@ -18,7 +23,8 @@ export interface ExecutionSource {
 export type ExecutionAction =
   | { kind: "start"; step: string }
   | { kind: "pause" | "resume" | "next" | "stop" }
-  | { kind: "level"; value: number };
+  | { kind: "level"; value: number }
+  | { kind: "patch"; changes: ManualEdit[] };
 export interface ExecutionView {
   hostId: string;
   catalog: {
@@ -26,6 +32,9 @@ export interface ExecutionView {
     layout: string;
     sources: ExecutionSource[];
     physicalOutput: false;
+    capabilities?: string[];
+    fixtures?: ManualFixture[];
+    limits?: ManualLimits;
     audio?: ExecutionAudioCatalog;
   };
   observation: {

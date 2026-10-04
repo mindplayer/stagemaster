@@ -46,9 +46,9 @@ export function BackgroundExecution({
     runtime.observation.phase !== "running" ||
     runtime.pending ||
     !!state?.fault;
-  function action(source: string, action: ExecutionAction) {
+  async function action(source: string, action: ExecutionAction) {
     if (!runtime || !state || disabled) return;
-    void request({
+    return request({
       kind: "apply",
       hostId: runtime.hostId,
       revision: state.revision,

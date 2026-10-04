@@ -39,6 +39,8 @@ HOST-004／[ADR-108](../development/decisions/PRODUCT-ADR-108-multi-source-proce
 
 EXEC-005 增加 `sourceProgress` 能力和普通节目来源的可选 `progress`（协议仍为 2；旧主机可以缺省）。字段：`phase` 为 `idle/delay/fade/wait/hold/finished`；`elapsedMs`、`phaseElapsedMs`、可空 `phaseDurationMs` 是 u64 十进制字符串；可空 `nextStep` 是该目录的稳定步骤身份，`nextWrap` 标记返回首步。Idle／Finished 无下一步，Hold 无总时长，Paused 保留其实际阶段。手动及音频来源没有此投影。已声明能力缺字段、未知步骤、不合法时间或状态组合由共享客户端拒绝。单次状态中的时间、身份与修订保持一致，不混用不同观察或在读取时推进。
 
+EXEC-007 增加可选 `manualOwnership` 能力（协议仍为 2），手动来源必须提供 `held: [{fixtureId, attribute}]`，至多 512 项唯一、目录内的目标，空层为空数组；非手动来源不带该字段。它表示持有目标，不表示数值或最终混合获胜者。`SourceInfo.manual_held` 为固定 512 位掩码，在观察投影层经 `CompiledOutput::manual_targets()` 转换，不增加逐帧堆分配。目录继续使用原 fixtures／limits；共享客户端验证新能力与状态一致，旧宿主保持兼容。
+
 创建会话、取得／续期／释放输入权、查询回执及正常关闭复用 v1 规则：8 个操作会话／工作器、8 KiB 请求体、操作截止时间最多 5 秒、连接预算与存活期限、只读凭据不能写入、拒绝 Origin 和重复认证头。请求的 `serial`、`expectedRevision` 和返回的大整数仍是标准十进制字符串。失败映射及等待未知结果继续保留原票据，不能重新发送另一条执行命令。
 
 组模式的 `submit.action` 为：

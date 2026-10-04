@@ -10,7 +10,7 @@
 Client::open(discovery_path) -> Client          // 仅观察，不创建控制会话
 client.refresh() -> View                       // 核对原回执，再读取状态
 client.acquire(takeover) -> View               // 首次创建会话；接管须明确
-client.apply(host_id, revision, source, action) // 执行、暂停、继续、下一步、停止、电平
+client.apply(host_id, revision, source, action) // 执行、暂停、继续、下一步、停止、电平、语义手动批量
 client.release() -> View                       // 归还输入权，不停演
 client.maintain() -> View                      // 观察、必要时续约；不驱动播放器
 client.shutdown()                             // 明确结束整个后台
@@ -18,7 +18,7 @@ client.shutdown()                             // 明确结束整个后台
 
 这些方法均为异步调用；`View.pending` 表示结果仍待确认，成功返回 HTTP 不等于节目动作已生效。界面请求：`snapshot`、`prepare { generation, selection }`、`reconnect`、`acquire { takeover }`、`release`、`apply { hostId, revision, source, action }`、`shutdown { hostId }`。
 
-准备选择 1–63 个真实场景／列表，另加一个较高优先级的手动层，仍受来源组累计预算限制。生成固定快照再启动同一后台二进制；载入不自动播放。当前手动层界面只提供电平和释放，完整语义手动编辑保留 v2 服务能力，后续再接原编程器。
+准备选择 1–63 个真实场景／列表，另加一个较高优先级的手动层，仍受来源组累计预算限制。生成固定快照再启动同一后台二进制；载入不自动播放。手动层已按 EXEC-007 接入选灯、连续属性／已定义功能的原子应用、指定属性释放和整层确认释放，保留原电平控制。
 
 ## 当前步骤与阶段进度
 
@@ -31,6 +31,14 @@ client.shutdown()                             // 明确结束整个后台
 [EXEC-006](../development/tasks/EXEC-006-execution-board-navigation.md)／[ADR-150](../development/decisions/PRODUCT-ADR-150-execution-board-navigation.md)：搜索、类型／状态／常用筛选和显示顺序仅作用于 UI，不提交运行命令或改变混合优先级。筛选保留原卡片与输入，隐藏时禁用执行并取消旧重新执行确认；筛选外运行／暂停及未应用输入有显式入口。切到编辑预演／步骤编排后后台组件保留、停止观察轮询，重新显示先刷新状态；新 hostId／layout 丢弃旧草稿。
 
 常用偏好为本机 `stagemaster.executionPins.v1`，最多 20 工程、各 16 个语义来源键；按后台 projectId 与原场景／列表身份保存，不按随机 sourceId。尚未载入的固定项保留并可显式清理；写入失败仅影响本机持久化，不影响节目运行。状态错误显示最后已知概览，不伪造全部已停止。
+
+## 手动编程与实际持有
+
+[EXEC-007](../development/tasks/EXEC-007-live-manual-programmer.md)／[ADR-151](../development/decisions/PRODUCT-ADR-151-live-manual-programmer.md)：后台固定目录提供灯具、属性与功能定义，客户端验证能力、唯一身份、定义区间与容量。`Action::Patch { changes: Vec<ManualEdit> }` 使用 `Normalized`／`Function`／`Release` 三种明确值；发送前校验目标与完整请求体，超限不接纳序号，也不自动分批。
+
+新的可选 `manualOwnership` 能力要求每个手动来源提供 `held: [{fixtureId, attribute}]`，包括空数组。真实持有来自原混合器的固定 512 位掩码，再由固定配适映射投影；零值和零电平仍可持有。这里不报告手动数值或最终合成数值，界面输入明确为“待设置”，不能把空白当作实际为零。
+
+按共同属性交集批量编辑；完整功能定义不同的定制轮盘不能直接同选。搜索保留筛选外选灯；有未应用输入时锁定目标和属性，取消不提交运行命令，失败保留草稿。确认回执只清除对应提交的输入。整层释放单独确认，隐藏视图取消确认。运行修改不写工程、不进入工程撤销；持有值监看、连续手势、录入场景及释放渐变另行实施。旧宿主可继续普通节目操作，未声明能力时不提供新的手动编辑。
 
 ## 身份、回执与失败
 

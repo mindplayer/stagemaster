@@ -32,6 +32,10 @@ pub struct Catalog {
     pub project_id: String,
     pub layout: String,
     pub sources: Vec<Source>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fixtures: Option<Vec<crate::ManualFixture>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limits: Option<crate::ManualLimits>,
     #[serde(default)]
     pub capabilities: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -51,6 +55,8 @@ pub struct SourceState {
     pub step: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub progress: Option<crate::Progress>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub held: Option<Vec<crate::ManualTarget>>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -102,6 +108,7 @@ pub enum Action {
     Next {},
     Stop {},
     Level { value: u16 },
+    Patch { changes: Vec<crate::ManualEdit> },
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

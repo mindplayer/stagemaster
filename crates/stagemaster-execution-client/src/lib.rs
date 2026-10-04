@@ -4,7 +4,10 @@ mod control;
 mod discovery;
 mod freshness;
 mod http;
+mod manual;
+mod manual_validation;
 mod media;
+pub use manual::*;
 mod media_control;
 mod progress;
 mod validation;
@@ -68,6 +71,7 @@ impl Client {
             return Err("后台身份、来源或运行版本不一致，请重新连接".into());
         }
         progress::validate(&self.catalog, state)?;
+        manual_validation::state(&self.catalog, state)?;
         validation::media_state(&self.catalog, state)
     }
     fn accept_observation(&mut self, mut observation: Observation) -> Result<(), String> {
@@ -148,3 +152,6 @@ impl Client {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod manual_tests;

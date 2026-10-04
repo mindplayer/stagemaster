@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
-import type { ExecutionAction, ExecutionView } from "../../execution-types";
+import type {
+  ExecutionAction,
+  ExecutionView,
+  ExecutionStatus,
+} from "../../execution-types";
 import type { ExecutionMediaAction } from "../../execution-media-types";
 import type { MediaRequestIdentity } from "../../media-seek-receipt";
 import {
@@ -10,6 +14,7 @@ import {
 } from "../../execution-board";
 import { ExecutionBoardToolbar } from "./ExecutionBoardToolbar";
 import { SourceControls } from "./SourceControls";
+import { ManualControls } from "./ManualControls";
 import { MediaControls } from "./MediaControls";
 import { useExecutionPins } from "./useExecutionPins";
 import "./execution-board.css";
@@ -26,7 +31,10 @@ export function ExecutionBoard({
   disabled: boolean;
   observed: boolean;
   active: boolean;
-  onAction(source: string, action: ExecutionAction): void;
+  onAction(
+    source: string,
+    action: ExecutionAction,
+  ): Promise<ExecutionStatus | undefined>;
   onMedia(action: ExecutionMediaAction): Promise<MediaRequestIdentity | null>;
 }) {
   const [filter, setFilter] = useState({ ...allSources });
@@ -86,6 +94,7 @@ export function ExecutionBoard({
             <div
               key={source.id}
               className="execution-board-slot"
+              data-manual={source.selection.kind === "manual"}
               hidden={!shown}
             >
               <div className="execution-board-slot-tools">
@@ -131,6 +140,20 @@ export function ExecutionBoard({
                   onDraftChange={onDraftChange}
                   onAction={(a) =>
                     enabled ? onMedia(a) : Promise.resolve(null)
+                  }
+                />
+              ) : source.selection.kind === "manual" ? (
+                <ManualControls
+                  source={source}
+                  runtime={runtime}
+                  disabled={disabled || !enabled}
+                  active={enabled}
+                  observed={observed}
+                  onDraftChange={onDraftChange}
+                  onAction={(a) =>
+                    enabled
+                      ? onAction(source.id, a)
+                      : Promise.resolve(undefined)
                   }
                 />
               ) : (
