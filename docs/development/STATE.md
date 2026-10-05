@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-006 组件启动完整性与实例隔离](tasks/PREVIS-006-component-launch-isolation.md) ready，本轮接续**，基线 main `842e697`。实际发现 debug 正式桌面可将部分安装悄悄回退到编辑器，完整组件又绕过项目内验收目录。[ADR-166](decisions/PRODUCT-ADR-166-component-launch-isolation.md)与限定工单先纳入版本，再修正选择／目录归属并做当前 Rust／正式桌面拒绝验证；不重建 UE、不启用旧绝对路径资格、不触碰 output/。客户整包／签名／GPU及既有物理／长期门槛仍未通过，完整 goal active。
+
 **[PREVIS-004 Development 副本限定文件资格](tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格)有限增量完成，自审通过**，基线 main `47e24da`，计划／ADR-165 补充先提交 `946d70c`；结果为本次 `fix(previs): qualify sandboxed development reports` 提交。复用原 Game 的新实例副本，保留 App Sandbox／原四项资格，仅添加五个实例运行目录的官方 read-write 资格和原样官方报告模板；**开发副本 JSON／HTML写入门槛已实际通过，客户权限／整包未通过**。
 
 - 最终 **119 Node（87 原保护＋32 文件资格／所属 PID）**、7 文件语法／Prettier、相关引用／严格 JSON／差异检查通过。新副本实际 Game（非编辑器，NullRHI／NoSound）正向及恢复各输出原 RuntimeAssets 用例的 Success JSON和非空 HTML；负探针仍退出 0／文字 Success，但实际拒绝 JSON／HTML写入，哨兵保持，系统拒绝明确关联该 Game PID。自审日志关联保护先 6 项红灯后通过；父目录链接在任何新写入前拒绝。
