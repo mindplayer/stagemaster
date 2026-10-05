@@ -52,6 +52,10 @@
 
 成功提交结果 `kind: accepted` 表示请求已接纳；读取 `state.media[].control` 的同一个 `request` 序号，只有 `status: applied` 才证明提供方确认且 Host 接纳完成。`pending`、`failed`、`timedOut` 分开显示，旧操作完成不能冒充新操作完成。相同会话序号重试返回原回执，不重新播放；跨会话接管仍需显式取得控制权。
 
+按 [ADR-173](../development/decisions/PRODUCT-ADR-173-media-target-refusals.md)，已知音乐组的合法代次不匹配在原适配层返回 `mediaTargetChanged`；合法循环实例／区段／遍次不匹配当前权威目标返回 `loopTargetChanged`，中文说明要求核对当前目标后再明确操作。它们仍是 HTTP 200 的 `complete / rejected` 原回执，消耗网络序号但不创建音乐请求，控制绑定与节目保持；不是 HTTP 409 或 Applied。未知组、零实例／零遍次和区段越界保持 `invalid`，非法十进制格式仍在 HTTP 422 拒绝且未消耗序号。适配后才跨界的请求继续沿原提供方失败路径，不自动替换目标或重发。
+
+音乐控制附近复用原请求关联规则：新拒绝、未知或缺少确认不能借用旧音乐 Applied 显示完成；新接纳与当前音乐请求一致才显示其实际完成／失败，旧观察等待，新请求替代明确提示。只读观察和已完成的非媒体操作可以保留历史音乐状态，输入草稿及原音源不因拒绝清除。
+
 状态分工：
 
 | 状态 | 含义 |

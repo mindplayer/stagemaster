@@ -6,6 +6,7 @@ import {
 } from "../src/media-seek-receipt.ts";
 import type { ExecutionView } from "../src/execution-types.ts";
 import type { ExecutionMediaState } from "../src/execution-media-types.ts";
+import { mediaControlNotice } from "../src/media-control-notice.ts";
 
 function media(
   request: string,
@@ -115,4 +116,58 @@ test("a replaced host or controller cannot reuse the old operation identity", ()
   assert.equal(mediaRequestIdentity(null), null);
   current.sessionId = null;
   assert.equal(mediaRequestIdentity(current), null);
+});
+
+test("new rejected and unknown controls cannot display an older music Applied as new success", () => {
+  for (const kind of ["rejected", "unknown"] as const) {
+    const current = view();
+    current.record!.outcome!.kind = kind;
+    current.observation.snapshot!.state.media = [media("7", "applied")];
+    assert.equal(mediaControlNotice(current, "music"), kind);
+  }
+});
+
+test("new accepted music request waits instead of borrowing an older completion", () => {
+  const current = view();
+  current.observation.snapshot!.state.media = [media("6", "applied")];
+  assert.equal(mediaControlNotice(current, "music"), "pending");
+  current.observation.snapshot!.state.media = [media("8", "applied")];
+  assert.equal(mediaControlNotice(current, "music"), "superseded");
+});
+
+test("missing acknowledgement or accepted media evidence never proves completion", () => {
+  const current = view();
+  current.observation.snapshot!.state.media = [media("7", "applied")];
+  current.record!.outcome = null;
+  assert.equal(mediaControlNotice(current, "music"), "unconfirmed");
+  current.record!.outcome = { kind: "accepted", message: null, state: null };
+  assert.equal(mediaControlNotice(current, "music"), "unconfirmed");
+  current.record!.outcome.state = { media: [media("7", "pending")] };
+  current.sessionId = null;
+  assert.equal(mediaControlNotice(current, "music"), "unconfirmed");
+});
+
+test("only the same music request can expose its actual pending applied or failure state", () => {
+  const current = view();
+  for (const status of ["pending", "applied", "failed", "timedOut"] as const) {
+    current.observation.snapshot!.state.media = [media("7", status)];
+    assert.equal(mediaControlNotice(current, "music"), status);
+  }
+  current.pending = true;
+  assert.equal(mediaControlNotice(current, "music"), null);
+});
+
+test("readonly and non-media completed operations retain the actual historical music status", () => {
+  const current = view();
+  current.record = null;
+  current.sessionId = null;
+  current.observation.snapshot!.state.media = [media("7", "applied")];
+  assert.equal(mediaControlNotice(current, "music"), "applied");
+  assert.equal(mediaControlNotice(current, "other"), null);
+  current.record = {
+    serial: "1",
+    status: "complete",
+    outcome: { kind: "released", message: null },
+  };
+  assert.equal(mediaControlNotice(current, "music"), "applied");
 });

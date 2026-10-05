@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { audioTime } from "../../audio-tools";
 import { MediaLoopControls } from "./MediaLoopControls";
+import { MediaControlStatus } from "./MediaControlStatus";
 import type { ExecutionView } from "../../execution-types";
 import type { ExecutionMediaAction } from "../../execution-media-types";
 import {
@@ -231,21 +232,7 @@ export function MediaControls({
       )}
       {error && <p role="alert">{error}</p>}
       {audio.problem && <p role="alert">{audio.problem}</p>}
-      {!runtime.pending && media.control?.status === "pending" && (
-        <p role="status">音乐操作已接纳，正在准备与确认。</p>
-      )}
-      {!runtime.pending && media.control?.status === "applied" && (
-        <p role="status">最近音乐操作已完成</p>
-      )}
-      {!runtime.pending &&
-        (media.control?.status === "failed" ||
-          media.control?.status === "timedOut") && (
-          <p role="alert">
-            {media.control.status === "timedOut"
-              ? "音乐操作超时，请核对状态后重试。"
-              : "音乐操作未完成，请核对状态后重试。"}
-          </p>
-        )}
+      <MediaControlStatus runtime={runtime} group={config.group} />
     </article>
   );
 }

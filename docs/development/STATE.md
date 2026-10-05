@@ -4,6 +4,8 @@
 
 **[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)实施中**，现场基线main `a7012a0`，主工作区单写者。原真实宿主一秒循环、七探针诊断1项通过：旧遍次／实例／区段／代次与格式错被合并invalid；前者HTTP200已接纳后的complete／rejected，前导零整数HTTP422，音乐／PCM／组保持且每个拒绝只POST一次。已证明分类不足，不证明PREVIS-012或历史rejected原生根因。[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md)先记录再实施，细化诊断／显示，严格目标与原回执不变、不重发。证据`data/AUDIO-022/original-probes.json`、日志`logs/audio-022-*`；同一测试句柄跨OS加载等待后退出0，不改变产品期限。原失败、用户output/与38受保护文件保持；产品修复／全量／新优化原生尚未完成，完整goal active。
 
+**本轮分类修复源码检查点**：按先提交`88c56ba`实现`mediaTargetChanged / loopTargetChanged`中文定位，非法数字／未知组仍invalid；新请求拒绝／未知／缺回执不借旧音乐Applied显示完成。原11探针＋旧两循环用例3通过、共享客户端分类及明确合法退出／取消通过；UI先3红后全442通过，工程格式232／工具254、UI与夹具类型、fmt／Prettier、默认全工作区及两release全目标严格Clippy通过。真实React组件9项、4.125秒草稿保留／取消、总2指令不自动重发，证据`data/AUDIO-022/component-verification.json`／拒绝PNG。测试职责已拆分，最大269行；原严格检查／导入／工具路径失败保留。**全Rust原句柄9013与最终专项20225仍运行，完整原生未通过**；加载采样`_dyld_start / 112KiB`，原因未证实，不缩放期限或重启。先提交源码检查点，接续原测试与新源码绑定的优化桌面／独立三维；旧012 false不回写，听音／物理／客户门槛保持，完整goal active。
+
 **[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)工具实施通过，原生验收为未收敛检查点**，基线 main `428da81`，计划／[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)先提交 `ccf71d0`，实现 `76a605d`。显式构建来源、20源码／配置／锁哈希和完整原包清单通过才保留已编译内部身份，已有runtime拒绝；原debug路径不变。复用原组装、Game、完整告知信令、原后台／播放器和唯一公共视窗，不重建UE、不操作正式证书／客户权限／设备。
 
 - 实际 **254 Node（32新／无跳过）**、六文件语法／相关Prettier通过；旧优化来源与错误新实例先拒绝，原保护保持。新组装`desktop-release-E0F5rq`2313文件，保留原编译身份，严格签名／20来源哈希通过；只有复制Game沿用原四项资格与五目录，原Game／Node／桌面来源不改。Rust／UI／UE产品源码未变，未重复或冒计其编译测试；DESKTOP-005原构建记录仍原样标明未做原生代表验收，本项新实际证据单列。

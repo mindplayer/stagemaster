@@ -53,9 +53,27 @@ pub(crate) fn action(
         .media
         .iter()
         .flatten()
-        .find(|m| m.group.id == *id.as_bytes() && m.group.key.generation() == generation)
+        .find(|m| m.group.id == *id.as_bytes())
         .ok_or_else(Failure::invalid)?
         .group;
+    if let Operation::ExitLoop {
+        instance,
+        region,
+        pass,
+        ..
+    } = operation
+        && (instance.0 == 0
+            || pass.0 == 0
+            || *region >= stagemaster_project::MAX_AUDIO_LOOP_REGIONS)
+    {
+        return Err(Failure::invalid());
+    }
+    if group.key.generation() != generation {
+        return Err(Failure::conflict(
+            "mediaTargetChanged",
+            "音乐运行目标已变化，请核对当前状态后重新操作",
+        ));
+    }
     let command = match operation {
         Operation::Play {} => MediaCommand::Play,
         Operation::Pause {} => MediaCommand::Pause,
@@ -70,20 +88,20 @@ pub(crate) fn action(
             requested,
         } => {
             let view = owner.view();
-            if instance.0 == 0
-                || pass.0 == 0
-                || *region >= stagemaster_project::MAX_AUDIO_LOOP_REGIONS
-                || view["instance"]
-                    .as_str()
-                    .and_then(|v| v.parse::<u64>().ok())
-                    != Some(instance.0)
+            if view["instance"]
+                .as_str()
+                .and_then(|v| v.parse::<u64>().ok())
+                != Some(instance.0)
                 || view["loopState"]["region"].as_u64() != Some(*region as u64)
                 || view["loopState"]["pass"]
                     .as_str()
                     .and_then(|v| v.parse::<u64>().ok())
                     != Some(pass.0)
             {
-                return Err(Failure::invalid());
+                return Err(Failure::conflict(
+                    "loopTargetChanged",
+                    "循环播放目标已变化，请确认当前区段和遍次后重新操作",
+                ));
             }
             MediaCommand::ExitLoop {
                 instance: instance.0,
