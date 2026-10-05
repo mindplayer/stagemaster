@@ -2,6 +2,8 @@
 
 2026-10-04 接续入口：按 [6.1 Sol 交接路线 H1](../sol-handoff/roadmap.md#h1-完成已有正式演出循环)恢复本工单的未完成部分。核心／工程、有界音源和桌面运行增量保留；先完成可见区段目录／精确编辑，再时间线／成组操作和完整原生验收，不依据下文早期记录重新实现已有模块。
 
+2026-10-06 当前接续摘要：[AUDIO-023](AUDIO-023-native-media-command-evidence.md)原请求有界留证已交付，[PREVIS-012当前候选](PREVIS-012-optimized-audio-renderer-acceptance.md#2026-10-06-当前候选剩余原生验收)源码`b0f3a7b`／`desktop-release-qooqnJ`静音软件原生验收矩阵通过。两段固定1／2／3遍、持续退出／取消、定位／停止、同请求确认、唯一三维重开保持音源／PCM、相机／量化帧和保存重开分别有来源绑定的实际证据，不重复已完成可见编排。记录`data/AUDIO-023/verification.json`及`data/PREVIS-012/revalidation-637b422/verification.json`。**整个AUDIO-020仍待现场听音**，历史原拒绝／音频预留偶发不能追认已修复；物理声光／差分／长期及客户资格未完成，完整goal active。
+
 ## Sol 接续增量：迟到渲染连接
 
 2026-10-04，基线 `c98ebac`，main 主工作区单写者，开始时仅用户未跟踪 `output/`。接续本地缓存冷启动后画面未就绪的实际观察；不重做已完成循环编排／运行，不改节目时钟、音频或工程。
