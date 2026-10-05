@@ -2,9 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**PREVIS-004 静态链接依赖资格接续 ready**，基线 main `0cf4668`，计划先纳入版本。新的 Xcode 构建仍待 OS 临时例外答复；本次只读检查既有 Game 的 ARM64 静态动态库闭包、包内解析及最低系统版本，并加入启动前检查。限定 `tools/previs/` 与相关文档，不改变沙盒／签名／Rust／UI／工程。它不替代独立 JSON／客户环境／GPU验收，完整 goal active；上一轮为真实进展，不是无进展或仍运行的等待任务。
+**[PREVIS-004 静态链接依赖资格](tasks/PREVIS-004-packaged-renderer.md)有限软件增量完成，自审通过**，基线 main `0cf4668`，计划先提交 `e0ffd9a`；结果为本次 `feat(previs): verify standalone binary dependencies` 提交。官方 `lipo`／`otool` 只读核对原包和中文空格移位副本：**6 镜像／66 依赖（6 包内、60 系统）**全部有 ARM64，整体最低系统要求 14.0；移走副本 TBB 明确拒绝、归回恢复，原包签名／产物及受保护工程哈希保持，用户 output/ 未动。
 
-**[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)进行中，基础工具／启动修正交付，完整独立验收未通过**，基线 main `0885847`、计划先提交 `b937b1a`；结果为本次 `fix(previs): prepare standalone renderer packaging and safe codec startup` 提交。官方 UAT 两轮实际生成约 598 MiB Mac ARM64 Development Game，修复冗余 H264 CVar 在 UObject 初始化前引发的启动断言，未改引擎、插件／核心依赖、Rust／UI／协议／格式，不碰用户 output/。
+- 最终实际 **62 Node（28 新依赖＋34 原打包／信令）**、11 文件语法／格式、相关引用／严格 JSON／差异通过；自引用去重缺口先红后绿，失败证据保留。入口在 UAT 后、Game 启动前做静态资格并清理 DYLD 覆盖，不修改 UE／Rust／UI／协议／沙盒／签名；本次无新的 Xcode、UAT、Game、编辑器或 GPU 执行，不重复／冒记原 12 编辑器用例。证据 `data/PREVIS-004/dependency-verification.json`，日志 `logs/previs-004-dependencies-*`；所属进程退出，原四份 failed 构建记录保持。
+- 独立 JSON／最小文件资格／报告模板仍未通过，静态闭包不是运行期动态加载或客户环境验收。新的 Xcode 构建仍待 OS 临时例外答复；下一步按 ADR-165 收敛原生报告，然后 Node／信令／Tauri 整包及实际客户／GPU验收。14.0 渲染组件与 12.0 桌面配置的整包要求尚未决定；H3 资料／听音、H4 物理／长期仍开放，完整 goal active，不扩大到 H6。
+
+**[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)上一基础工具／启动修正交付，完整独立验收未通过**，基线 main `0885847`、计划先提交 `b937b1a`；结果 `0cf4668`。官方 UAT 两轮实际生成约 598 MiB Mac ARM64 Development Game，修复冗余 H264 CVar 在 UObject 初始化前引发的启动断言，未改引擎、插件／核心依赖、Rust／UI／协议／格式，不碰用户 output/。
 
 - 最终实际 **34 Node＋12 UE 编辑器**、相关格式／语法、文档引用／严格 JSON／差异检查通过；独立 Game 正常初始化并运行资源／H264 用例，但 App Sandbox 明确拒绝指定日志／JSON 写入且缺报告模板，**不能登记独立自动化通过或客户可用**。[ADR-165](decisions/PRODUCT-ADR-165-packaged-renderer-file-access.md)记录最小文件权限边界，未关闭／重签／绕过沙盒。前期 Zen／Metal／启动／报告失败保留，证据 `data/PREVIS-004/verification.json`、日志 `logs/previs-004-*`／`logs/PREVIS-004/`。受保护工程／默认最近目录哈希、用户 output/ 保持，所属进程退出；无正式桌面／GPU／设备验收。
 - 下一步仍收敛 PREVIS-004 的文件资格与报告，再接 Node／信令／Tauri 整包。Apple Xcode 的系统临时脚本不服从 TMPDIR，已向用户请求 OS 临时文件例外；答复前工具拒绝新 Xcode 构建，只暂停受影响部分，独立软件检查可继续。H3 资料／听音／GPU、H4 物理／8 小时与客户环境仍开放；不扩 H6，完整 goal active，RS485 测量条件也待答复。

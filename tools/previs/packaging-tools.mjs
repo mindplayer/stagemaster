@@ -2,6 +2,12 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 
+export function withoutLoaderOverrides(environment) {
+  return Object.fromEntries(
+    Object.entries(environment).filter(([key]) => !key.startsWith("DYLD_")),
+  );
+}
+
 // This switch records the caller's explicit permission; it is not itself authorization.
 // macOS Foundation/Xcode can ignore TMPDIR for OS-managed temporary script files.
 export function requirePlatformTempPermission(value) {

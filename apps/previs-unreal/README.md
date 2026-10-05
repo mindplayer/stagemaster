@@ -13,12 +13,15 @@
 ~~~sh
 TMPDIR="$PWD/tmp" node --test tools/previs/packaging-plan.test.mjs \
   tools/previs/packaging-process.test.mjs tools/previs/packaging-tools.test.mjs \
+  tools/previs/mac-load-commands.test.mjs tools/previs/mac-bundle-inspection.test.mjs \
   tools/previs/signalling.test.mjs tools/previs/signalling-discovery.test.mjs
 ~~~
 
 **此入口尚未达到完整出口**：实际独立 Game 已烘焙并正常启动，必需资源／H264 检查运行成功，但包的 App Sandbox 拒绝指定项目报告路径写入，且缺编辑器 HTML 报告模板，不能登记自动化报告通过。工具会拒绝空／缺／失败报告。缺省拒绝新的 Xcode 构建，因为已观察到其系统临时脚本不服从 TMPDIR；只有用户允许这一 OS 临时例外后，调用方才能显式传 `STAGEMASTER_ALLOW_PLATFORM_TEMP=1` 执行该工具。该变量不是自动授权。
 
 Node／信令运行依赖、Tauri 整包、子进程目录权限、实际 GPU／内嵌画面与无编辑器客户环境还未验收；不关闭 Sandbox 迁就测试，不把内部 Development 包当作 Shipping／签名公证完成。当前进度及失败日志见 [PREVIS-004](../../docs/development/tasks/PREVIS-004-packaged-renderer.md)。
+
+`tools/previs/inspect-renderer.mjs` 是不需要 Xcode 构建的只读检查入口，唯一参数为项目内 `StageMasterPreview.app/Contents/MacOS/StageMasterPreview` 文件路径；标准输出是实际 `lipo`／`otool` 原文、ARM64 静态链接闭包与最高最低系统要求的 JSON，错误时非零退出。正式打包工具在 UAT 后、Game 启动前执行同一资格；包外 UE 库不得补齐缺项，动态加载环境覆盖不继承。当前原包 6 镜像／66 依赖的包内解析、中文空格移位副本与故意缺库拒绝已实际核对；仍不是运行期 `dlopen`、GPU、沙盒报告或完整客户安装验收。实际最低 macOS 为 14.0，桌面配置 12.0 的整包兼容性差异尚未决定，不在此私改最低版本。
 
 从仓库根目录安装锁定的信令依赖、构建开发适配器：
 

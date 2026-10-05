@@ -63,7 +63,11 @@ function setup(t) {
     directory,
     plan: {
       root,
-      env: { TMPDIR: join(root, "tmp"), UE_SKIP_UBT_SDK_SETUP: "1" },
+      env: {
+        TMPDIR: join(root, "tmp"),
+        UE_SKIP_UBT_SDK_SETUP: "1",
+        DYLD_LIBRARY_PATH: join(root, "tmp/outside-library"),
+      },
     },
     command: {
       program: process.execPath,
@@ -77,7 +81,7 @@ test("真实子进程参数／双输出／日志保留，构建环境不继承 S
   const { plan, command } = setup(t);
   command.args = [
     "-e",
-    'console.log(JSON.stringify({args:process.argv.slice(1),skip:process.env.UE_SKIP_UBT_SDK_SETUP,home:process.env.HOME})); console.error("stderr");',
+    'console.log(JSON.stringify({args:process.argv.slice(1),skip:process.env.UE_SKIP_UBT_SDK_SETUP,loader:process.env.DYLD_LIBRARY_PATH,home:process.env.HOME})); console.error("stderr");',
     "space argument",
   ];
   await runCommand(command, plan);

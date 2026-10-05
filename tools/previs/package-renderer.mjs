@@ -21,13 +21,15 @@ import {
 import {
   metalToolchain,
   requirePlatformTempPermission,
+  withoutLoaderOverrides,
 } from "./packaging-tools.mjs";
+import { inspectMacBundle } from "./mac-bundle-inspection.mjs";
 
 export async function runCommand(command, plan) {
   console.log(`执行：${command.program}\n日志：${command.log}`);
   const descriptor = openSync(command.log, "wx", 0o600);
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, ...plan.env };
+    const env = withoutLoaderOverrides({ ...process.env, ...plan.env });
     // Build-time toolchain verification must not inherit the editor runtime shortcut.
     delete env.UE_SKIP_UBT_SDK_SETUP;
     const child = spawn(command.program, command.args, {
@@ -139,6 +141,7 @@ export async function packageRenderer() {
   try {
     await runCommand(plan.uat, plan);
     const program = packagedProgram(plan.archive);
+    evidence.staticDependencies = inspectMacBundle(root, program);
     const check = runtimeCheck(plan, program);
     evidence.runtimeCheck = check;
     // Packaged Game lacks the editor HTML helper which otherwise creates this directory.

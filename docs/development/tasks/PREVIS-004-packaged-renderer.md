@@ -1,6 +1,6 @@
 # PREVIS-004：独立预演组件的可复现打包
 
-状态：**进行中，基础工具／启动修正已提交，完整独立验收未通过**。基线 main `0885847e3de629ac0ead1eb498b4e84cc30082b7`，计划先提交 `b937b1a`；本轮结果为 `fix(previs): prepare standalone renderer packaging and safe codec startup` 提交。主工作区单写者；用户未跟踪 `output/` 不触碰。属于 H5 客户无 UE 编辑器路径的准备，不关闭 H5 或整个持续 goal。
+状态：**进行中，基础工具／启动修正与静态依赖资格已提交，完整独立验收未通过**。首轮基线 main `0885847e3de629ac0ead1eb498b4e84cc30082b7`，计划先提交 `b937b1a`，基础工具结果 `0cf4668`；静态依赖接续见下方。主工作区单写者；用户未跟踪 `output/` 不触碰。属于 H5 客户无 UE 编辑器路径的准备，不关闭 H5 或整个持续 goal。
 
 ## 本增量范围
 
@@ -47,6 +47,16 @@
 - 这是静态链接闭包资格，不证明运行期 `dlopen`、GPU、沙盒写入、客户整包或未安装 UE 的实际运行；此前独立报告失败仍是未解决事实，不以此检查代替正式出口。
 
 成熟机制参考：Apple [可移动程序的运行路径依赖](https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/RunpathDependentLibraries.html)及本机 `otool`／`lipo` 的真实输出。当前原包的开发机 fallback 路径可见，必须区分“带有 fallback 路径”与“实际缺库而依赖 fallback”，不能仅凭路径出现或本机启动成功判客户包自包含。
+
+### 静态资格交付
+
+计划先提交 `e0ffd9a`；结果为本次 `feat(previs): verify standalone binary dependencies` 提交。本次 5 个新源码／测试文件按 Mach-O 解析、包内解析图、只读 CLI 及测试职责拆分，均不超过 240 行；原入口仅接入检查，生成完整原始工具输出和边清单。UAT 后、Game 前执行资格；日志／错误仍沿原失败路径，不放宽 JSON 门槛，子进程环境去掉 DYLD 覆盖且不改 HOME／SDK 检查。
+
+实际 **62 Node（28 新依赖＋34 原打包／信令）**、11 文件语法／Prettier、相关引用／4 配置严格 JSON及交付证据 JSON／差异检查通过。自审发现主程序自引用可被循环去重放过，新增保护先失败后修复；红／绿日志保留。初始研究路径与一次格式后补丁上下文错误是工具返回摘要，不伪装成原始日志或原生构建失败。没有 UE／Rust／UI／固件源代码改动，不重复这些编译／全量测试，原 12 编辑器用例仍只是上一轮证据。
+
+用原始第四轮 `.app` 实际只读检查 **6 镜像／66 依赖：6 条包内、60 条系统**，全部包含 ARM64，最高最低 macOS 为 14.0。完整应用的中文空格移位副本得到相同镜像和依赖数；仅在所属副本移走 `libtbb.12.dylib` 时明确缺库拒绝，归回后恢复。六镜像副本与原始字节哈希相同，原 Game／Pak、三份受保护工程／最近目录及用户 output/ 保持。原包 `codesign --verify --deep --strict` 实际退出 0，未重签、改权限或运行 Game；四份历史 pipeline 仍 failed。
+
+证据 `data/PREVIS-004/dependency-verification.json`，日志 `logs/previs-004-dependencies-*`，移位副本留项目 tmp 下并忽略。自包含图只是忽略开发机 fallback 的包内静态候选解析，不宣称完整 dyld 运行、运行期 `dlopen`、旧系统兼容、GPU、沙盒或客户整包通过。本次没有新的 Xcode／UAT／Game／编辑器运行；OS 临时例外尚未答复，只暂停相关构建。下一步仍按 ADR-165 处理最小文件资格和独立报告，不为当前绿灯关闭 H5 或完整 goal。
 
 ### 实施中实际发现
 

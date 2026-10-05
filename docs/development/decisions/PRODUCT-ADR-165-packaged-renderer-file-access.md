@@ -23,5 +23,6 @@ UE 5.8 UAT 默认生成的 Mac Game 签名带 `com.apple.security.app-sandbox=tr
 - 新生成包运行实际检查，不缺 AVCodecsCore 二进制；冗余启动 CVar 过早读取反射枚举导致的断言已由独立 Game 正常启动反证收敛，属于原私有配置修正。
 - 默认沙盒组装不能满足当前宿主目录；共享目录／权限是否采用继承、签名应用组或明确受限资格，需真实符合条件的组装验证，不猜用户拥有正式签名团队、App Store 发行需求或授权密钥。
 - Apple Xcode／Foundation 系统自管理临时脚本不服从项目 TMPDIR。已向用户询问 OS 临时文件例外，未获答复前拒绝新的 Xcode 构建；不修改系统临时目录，不因该待定例外停掉独立软件检查。
+- 2026-10-05 接续只读核对了 Apple 的[限定目录临时资格](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/AppSandboxTemporaryExceptionEntitlements.html)及本机 UE 5.8 `XcodeProject.cs` 的 `PremadeMacEntitlements`／Shipping 分支。仅开发验收的实例日志、用户缓存与报告目录可以作为具体方案候选，不能给整个项目根或当成客户通用权限；目录写资格与 Xcode 系统临时文件例外是两件事。尚未生成／启用这些资格或验证签名，不以源码阅读宣布沙盒问题修复，也不提前选择客户签名团队或 App Store 路线。
 
 成熟机制参考：Apple 的 [App Sandbox 数据保护与子程序说明](https://developer.apple.com/documentation/security/protecting-user-data-with-app-sandbox)、[沙盒文件访问](https://developer.apple.com/documentation/security/accessing-files-from-the-macos-app-sandbox)与[子进程继承资格](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/EnablingAppSandbox.html)。这些是可复用条件，不代表本桌面组装已经满足；具体结论仍由实际签名与读写拒绝验证。
