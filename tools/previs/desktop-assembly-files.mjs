@@ -11,6 +11,7 @@ import {
   readJson,
 } from "./signalling-package-files.mjs";
 import { desktopAssemblyPlan } from "./desktop-assembly-plan.mjs";
+import { internalReleaseSource } from "./desktop-internal-release.mjs";
 
 export function plainAncestors(file) {
   for (let path = resolve(file); ; path = dirname(path)) {
@@ -76,7 +77,7 @@ export function executableName(value) {
   return value;
 }
 
-export async function desktopSources(plan) {
+export async function desktopSources(plan, releaseRecord) {
   for (const directory of [plan.desktop, plan.gameBundle, plan.signalling]) {
     plainAncestors(directory);
     if (!lstatSync(directory).isDirectory()) throw new Error("来源不是目录");
@@ -87,10 +88,16 @@ export async function desktopSources(plan) {
   for (const key of ["desktop", "gameBundle", "signalling"])
     files[key] = await fileInventory(plan[key]);
   const info = join(plan.desktop, "Contents/Info.plist");
-  if (
-    plistValue(plan.root, info, "CFBundleIdentifier") !==
-    "cn.stagemaster.desktop"
-  )
+  const identifier = plistValue(plan.root, info, "CFBundleIdentifier");
+  const internalRelease = releaseRecord
+    ? await internalReleaseSource(
+        plan,
+        releaseRecord,
+        files.desktop,
+        identifier,
+      )
+    : undefined;
+  if (!internalRelease && identifier !== "cn.stagemaster.desktop")
     throw new Error("不是原 StageMaster 桌面包");
   const executable = executableName(
     plistValue(plan.root, info, "CFBundleExecutable"),
@@ -120,7 +127,15 @@ export async function desktopSources(plan) {
     readJson(join(plan.signalling, "package-lock.json")),
   );
   const licenses = packageLicenses(plan.signalling, packages);
-  return { executable, desktopImage, hostImage, node, licenses, files };
+  return {
+    executable,
+    desktopImage,
+    hostImage,
+    node,
+    licenses,
+    files,
+    internalRelease,
+  };
 }
 
 export async function unchangedSources(plan, original) {

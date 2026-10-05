@@ -23,7 +23,11 @@ export function desktopAssemblyPlan(
 ) {
   if (platform !== "darwin" || arch !== "arm64")
     throw new Error("仅支持内部 Mac ARM64 Development 组装");
-  if (!/^previs-desktop-[a-zA-Z0-9]+$/.test(id))
+  if (
+    typeof id !== "string" ||
+    id.length > 64 ||
+    !/^(previs-desktop|desktop-release)-[a-zA-Z0-9]+$/.test(id)
+  )
     throw new Error("桌面组装实例名称无效");
   if (
     !Array.isArray(sources) ||

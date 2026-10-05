@@ -31,6 +31,7 @@ import { fileHash, readJson } from "./signalling-package-files.mjs";
 import { inspectMacBundle } from "./mac-bundle-inspection.mjs";
 import { compareMacVersions } from "./mac-load-commands.mjs";
 import { runCommand } from "./package-renderer.mjs";
+import { desktopAssemblyInputs } from "./desktop-internal-release.mjs";
 
 async function verify(plan, bundle, name) {
   const command = {
@@ -41,11 +42,11 @@ async function verify(plan, bundle, name) {
   return { command, completed: await runCommand(command, plan) };
 }
 
-export async function assembleDevelopmentDesktop(sources) {
+export async function assembleDevelopmentDesktop(sources, releaseRecord) {
   const root = realpathSync(fileURLToPath(new URL("../../", import.meta.url)));
   const input = desktopAssemblyPlan(root, sources, "previs-desktop-Check");
   // Read and qualify all sources before any output write, signing or launch.
-  const original = await desktopSources(input);
+  const original = await desktopSources(input, releaseRecord);
   const dependencies = inspectMacBundle(root, input.game);
   for (const image of [
     dependencies,
@@ -73,8 +74,10 @@ export async function assembleDevelopmentDesktop(sources) {
   for (const directory of ["tmp", "data/PREVIS-007", "logs/PREVIS-007"])
     plainAncestors(join(root, directory));
   mkdirSync(join(root, "tmp"), { recursive: true });
-  const temporary = mkdtempSync(join(root, "tmp/previs-desktop-"));
-  const plan = desktopAssemblyPlan(root, sources, basename(temporary));
+  const id =
+    original.internalRelease?.instance ??
+    basename(mkdtempSync(join(root, "tmp/previs-desktop-")));
+  const plan = desktopAssemblyPlan(root, sources, id);
   prepareDesktopFolders(plan);
   const evidence = {
     task: "PREVIS-007",
@@ -208,8 +211,17 @@ export async function assembleDevelopmentDesktop(sources) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
-  assembleDevelopmentDesktop(process.argv.slice(2)).catch((error) => {
-    console.error(error.message);
-    process.exitCode = 1;
-  });
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  Promise.resolve()
+    .then(() => {
+      const input = desktopAssemblyInputs(process.argv.slice(2));
+      return assembleDevelopmentDesktop(input.sources, input.releaseRecord);
+    })
+    .catch((error) => {
+      console.error(error.message);
+      process.exitCode = 1;
+    });
+}
