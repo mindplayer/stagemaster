@@ -7,3 +7,8 @@
 /*.xcodeproj/
 /*.sln
 /*.slnx
+
+# UE generates these vendor templates/sample helpers during Game target builds.
+/Build/Mac/Resources/
+/Build/Mac/*.PackageVersionCounter
+/Samples/PixelStreaming2/

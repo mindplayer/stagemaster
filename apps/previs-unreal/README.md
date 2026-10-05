@@ -6,6 +6,20 @@
 
 当前开发环境已验证 macOS / Apple Silicon、UE 5.8.3、Xcode 26.1.1 和 Metal 工具链 17B54。UE 开发组件在后台离屏运行；客户独立安装包尚未完成。官方灯具资源随已安装引擎加载，不将 Epic 的资源文件复制进 Git。详见[资源清单](../../docs/previsualization-library.md)。
 
+## 独立组件打包进展（PREVIS-004）
+
+工具 `tools/previs/package-renderer.mjs` 使用官方 UAT 生成 Mac ARM64 Development Game 包；实例暂存／日志／归档分别在 `tmp/previs-package-*`、`logs/PREVIS-004/`、`data/PREVIS-004/`。文件 Pak 不用 ZenStore，实际 SDK 和 Metal 编译保留；本机已有 Metal 工具链只读发现后交给所属进程，未安装或升级系统组件。进程级 CoreFoundation 缓存路径不改 HOME。新工具与原信令测试可运行：
+
+~~~sh
+TMPDIR="$PWD/tmp" node --test tools/previs/packaging-plan.test.mjs \
+  tools/previs/packaging-process.test.mjs tools/previs/packaging-tools.test.mjs \
+  tools/previs/signalling.test.mjs tools/previs/signalling-discovery.test.mjs
+~~~
+
+**此入口尚未达到完整出口**：实际独立 Game 已烘焙并正常启动，必需资源／H264 检查运行成功，但包的 App Sandbox 拒绝指定项目报告路径写入，且缺编辑器 HTML 报告模板，不能登记自动化报告通过。工具会拒绝空／缺／失败报告。缺省拒绝新的 Xcode 构建，因为已观察到其系统临时脚本不服从 TMPDIR；只有用户允许这一 OS 临时例外后，调用方才能显式传 `STAGEMASTER_ALLOW_PLATFORM_TEMP=1` 执行该工具。该变量不是自动授权。
+
+Node／信令运行依赖、Tauri 整包、子进程目录权限、实际 GPU／内嵌画面与无编辑器客户环境还未验收；不关闭 Sandbox 迁就测试，不把内部 Development 包当作 Shipping／签名公证完成。当前进度及失败日志见 [PREVIS-004](../../docs/development/tasks/PREVIS-004-packaged-renderer.md)。
+
 从仓库根目录安装锁定的信令依赖、构建开发适配器：
 
 ```sh

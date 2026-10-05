@@ -2,7 +2,10 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)首个有限增量 ready**，基线 main `0885847`，计划先纳入版本。复用已有 Game Target 与官方 UAT，先做 Mac ARM64 Development 组件及非编辑器必需资源验收；无 Rust／UI／协议／格式变化，不碰用户 output/。Node／信令／Tauri 整包、GPU／内嵌画面与客户无编辑器环境验收仍待后续，不提前关闭 H5。完整 goal active，硬件测量条件待用户答复，独立软件工作继续。
+**[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)进行中，基础工具／启动修正交付，完整独立验收未通过**，基线 main `0885847`、计划先提交 `b937b1a`；结果为本次 `fix(previs): prepare standalone renderer packaging and safe codec startup` 提交。官方 UAT 两轮实际生成约 598 MiB Mac ARM64 Development Game，修复冗余 H264 CVar 在 UObject 初始化前引发的启动断言，未改引擎、插件／核心依赖、Rust／UI／协议／格式，不碰用户 output/。
+
+- 最终实际 **34 Node＋12 UE 编辑器**、相关格式／语法、文档引用／严格 JSON／差异检查通过；独立 Game 正常初始化并运行资源／H264 用例，但 App Sandbox 明确拒绝指定日志／JSON 写入且缺报告模板，**不能登记独立自动化通过或客户可用**。[ADR-165](decisions/PRODUCT-ADR-165-packaged-renderer-file-access.md)记录最小文件权限边界，未关闭／重签／绕过沙盒。前期 Zen／Metal／启动／报告失败保留，证据 `data/PREVIS-004/verification.json`、日志 `logs/previs-004-*`／`logs/PREVIS-004/`。受保护工程／默认最近目录哈希、用户 output/ 保持，所属进程退出；无正式桌面／GPU／设备验收。
+- 下一步仍收敛 PREVIS-004 的文件资格与报告，再接 Node／信令／Tauri 整包。Apple Xcode 的系统临时脚本不服从 TMPDIR，已向用户请求 OS 临时文件例外；答复前工具拒绝新 Xcode 构建，只暂停受影响部分，独立软件检查可继续。H3 资料／听音／GPU、H4 物理／8 小时与客户环境仍开放；不扩 H6，完整 goal active，RS485 测量条件也待答复。
 
 **[MEMORY-004 最大畸形包与旧版本保护](tasks/MEMORY-004-maximal-malformed-package.md)有限软件验收增量完成，自审通过**，基线 main `655b8d2`，计划先提交 `c8366f9`；结果为本次 `test(memory): verify maximum malformed packages and cold recovery` 提交。主工作区单写者、用户 output/ 保持；原 Archive／Installer／NorStore 正式保护通过新回归，本轮不是生产缺陷修复，不降容量或放宽期限。
 
