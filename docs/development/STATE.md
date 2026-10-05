@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-06
 
-**[DESKTOP-011](tasks/DESKTOP-011-candidate-notice-handoff.md) 实施中，持续 goal active**：main基线`2cbcb74`，主工作区单写者、output/未读未动；先提交有限范围与[ADR-175](decisions/PRODUCT-ADR-175-candidate-notice-handoff.md)。补准确内部候选副本与固定告知材料的离线交接／来源核验，原包字节／签名权限不变，不启动副本、不冒称最终附包／客户发行／完整许可。历史音频管理锁已有修复和测试，不重做或追认所有旧失败；H1–H5实物／客户门槛保持。
+**[DESKTOP-011](tasks/DESKTOP-011-candidate-notice-handoff.md) 有限材料交接增量完成、自审通过，持续 goal active**：main基线`2cbcb74`、范围／[ADR-175](decisions/PRODUCT-ADR-175-candidate-notice-handoff.md)先提交`d49b782`，结果为本次`feat(release): bind internal candidate and notice handoff materials`提交；主工作区单写者、output/未读未动。复用产品`b0f3a7b`／内部候选`desktop-release-qooqnJ`，不改原包／权限签名，不启动副本，不冒称客户发行／最终附包／完整许可。
+
+- 7新工具／夹具／测试文件最大274行；原来源／组装与六依赖身份、有界读写／目录／链接、独占回执与失败保护。最终312工具全通过（25新增／无跳过）、隔离官方Node24.21，原全局／产品24.17保持；初输入3通过／9失败→12通过、回执导入缺失14／8及真实缺项name/path拒绝／21／2红灯保留，按原schema修正后通过；元数据相似文字11／1红灯后仅排除Executable路径、不隐藏签名字段，不削弱断言。
+- 真正复制最终`data/DESKTOP-011/candidate-notices-d/`，2313文件／2737树项／两个链接与模式一致，四原＋四副本严格签名／资格读取实际0；516包全文3,674,571字节与索引原字节、49可选未安装保留、已安装缺项0，操作来源及中文边界随附。a／b／c前检查点保持，d绑定最终工具哈希；既有目标CLI退出1保护。副本不启动、不转移原生／客户资格，原ad-hoc／调试权／绝对目录及codesign诊断警告保持。
+- data/DESKTOP-011/verification-release-final.json最终，verification／verification-reviewed.json旧检查点、logs/desktop-011-*保留首失败；辅助汇总红灯计数误认纠正，不当产品修复。64保护、006的13／007的58／008的105／009的240／010的104证据、1995原产品来源与Game32／信令2275／组装2313、音频缓存保持，无所属应用或演出进程。相关语法／7源码格式、严格JSON／文档／diff实际核验，不冒计Rust／UI／GPU／听音／物理。用法与容量见[工具说明](../../tools/desktop/notice-handoff.md)。
+- **下一步继续H1–H5剩余出口。** 本次只补内部材料关联，不是客户安装器或最终告知内嵌；听感余段／历史偶发、真实厂家／差分／实灯／完整最坏组合／8小时、客户Shipping／签名权限／最低系统／完整许可和外部三任务仍开放，不扩H6–H8，不重做历史管理锁或冒称首版达标。
 
 **[DESKTOP-010](tasks/DESKTOP-010-native-handoff-exports.md) 有限原生交接增量完成、自审通过，持续 goal active**：main基线`ac08041`、范围先提交`9d22e46`，结果为本次`docs(release): verify native handoff exports and software package replay`提交；主工作区单写者、output/未读未动。复用产品`b0f3a7b`／准确内部候选`desktop-release-qooqnJ`，不改产品源码／原格式／包／签名权限，不开启声音／三维／后台／设备，不重做已交付主功能。
 
