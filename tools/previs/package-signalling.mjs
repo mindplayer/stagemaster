@@ -12,6 +12,7 @@ import {
 import { basename, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { runCommand } from "./package-renderer.mjs";
+import { writeNotices } from "./signalling-notices.mjs";
 import {
   fileHash,
   fileInventory,
@@ -127,6 +128,7 @@ export async function packageSignalling() {
       join(plan.bundle, "licenses/npm-packages.json"),
       `${JSON.stringify(evidence.licenses, null, 2)}\n`,
     );
+    evidence.notices = writeNotices(plan.bundle).report;
     evidence.original = await qualify(plan, plan.bundle, "original");
     const moved = join(plan.temporary, "中文 移位/previs");
     cpSync(plan.bundle, moved, { recursive: true, verbatimSymlinks: true });

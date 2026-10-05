@@ -1,0 +1,33 @@
+[
+  {
+    "name": "@epicgames-ps/lib-pixelstreamingcommon-ue5.8",
+    "version": "0.1.0",
+    "license": "MIT",
+    "integrity": "sha512-Za+1lC0MotucgSRBkCnRx4KSGXJAe2E6AcdJIGsG1SKa51sOIYtvACwIQ31C5SF6fUZiHwBk06JixfHmRkmhxA==",
+    "origin": "pinned-upstream",
+    "file": "epic-LICENSE.md",
+    "sha256": "64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d",
+    "gitHead": "15f96c6fb5bb0cacd3aee333bc618f92ef418612",
+    "sourceUrl": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/15f96c6fb5bb0cacd3aee333bc618f92ef418612/LICENSE.md"
+  },
+  {
+    "name": "@epicgames-ps/lib-pixelstreamingsignalling-ue5.8",
+    "version": "0.2.0",
+    "license": "MIT",
+    "integrity": "sha512-BDRGuNG2HR9Tua2dbkPu1r8pZxsyymKhB17BfD51/npc91GuR7/bqrb23AJbA0Zy14p+L2Hxk9YPerSLIk/zTA==",
+    "origin": "pinned-upstream",
+    "file": "epic-LICENSE.md",
+    "sha256": "64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d",
+    "gitHead": "6872b8a8f57cb83b3f084bf14a66c6b4e4b0d9c3",
+    "sourceUrl": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/6872b8a8f57cb83b3f084bf14a66c6b4e4b0d9c3/LICENSE.md"
+  },
+  {
+    "name": "cookie-signature",
+    "version": "1.0.7",
+    "license": "MIT",
+    "integrity": "sha512-NXdYc3dLr47pBkpUCHtKSwIOQXLVn8dZEuywboCOJY/osA0wFSLlSawr3KN8qXJEyX66FcONTH8EIlVuK0yyFA==",
+    "origin": "embedded-package",
+    "file": "Readme.md",
+    "sha256": "1621ed10d0b2f865eb8608e0474a356cf7a9737a384b6593b61b30a9f6e50366"
+  }
+]
