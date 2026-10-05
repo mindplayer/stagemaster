@@ -1,0 +1,2163 @@
+{
+  "format": "stagemaster.desktop-notice-supplements",
+  "version": 1,
+  "baseReportSha256": "11ee26b0a33a81c990d62915c27ca7221903c78a293b0ba7d10087e7ab3187f5",
+  "baseTextSha256": "13ec26bd9833cb417067ca2584d272c216fde7f946bd6ed1773c2dbf557c7289",
+  "scope": "fixed-publication-originals-only-not-legal-or-binary-approval",
+  "entries": [
+    {
+      "ecosystem": "cargo",
+      "name": "alloc-stdlib",
+      "version": "0.2.4",
+      "license": "BSD-3-Clause",
+      "manifestSha256": "9b65004149aeacdda9e2aa7cc08c36912d26cd51e8d91914fd63ad5bc1893a01",
+      "archiveSha256": "0e76a019e91224d279006ff972f1e984179a6e9feb050adba6ce8274aef23195",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "dropbox/rust-alloc-no-stdlib",
+        "remoteRepository": "dropbox/rust-alloc-no-stdlib",
+        "commit": "ae42d22078b98549e987d2f03d12df7b984fde47",
+        "cratePath": "alloc-stdlib",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "9b65004149aeacdda9e2aa7cc08c36912d26cd51e8d91914fd63ad5bc1893a01"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "77cff698112ee833c7c2e2b42c2b51677502ee04ca4a0c213155e3494a80fec3"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "5d07554db80324e6f09a3074928e6ae0e7cea58248f4c1db3f32d9ce0ec85efb"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/77cff698112ee833c7c2e2b42c2b51677502ee04ca4a0c213155e3494a80fec3.toml",
+          "sha256": "77cff698112ee833c7c2e2b42c2b51677502ee04ca4a0c213155e3494a80fec3",
+          "bytes": 697,
+          "url": "https://raw.githubusercontent.com/dropbox/rust-alloc-no-stdlib/ae42d22078b98549e987d2f03d12df7b984fde47/alloc-stdlib/Cargo.toml"
+        },
+        "upstreamManifestPath": "alloc-stdlib/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae.txt",
+          "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+          "bytes": 1483,
+          "url": "https://raw.githubusercontent.com/dropbox/rust-alloc-no-stdlib/ae42d22078b98549e987d2f03d12df7b984fde47/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "block2",
+      "version": "0.6.2",
+      "license": "MIT",
+      "manifestSha256": "e325c51f01145af3e11f2ee5ce7c47f10697d936c1d90b9ee81a0cf4f700f6d7",
+      "archiveSha256": "cdeb9d870516001442e364c5220d3574d2da8dc765554b4a617230d33fa58ef5",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "b4167b582b2f75f9a1be75495c41b765344fd03c",
+        "cratePath": "crates/block2",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "e325c51f01145af3e11f2ee5ce7c47f10697d936c1d90b9ee81a0cf4f700f6d7"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "d18aec0c39956f1a29b6d157c13ec51ce53d7c2a2982c307528215f8870720ac"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "5b87885cad87999d141e83cc8af4b073192f584b2b92cea77e2d87636621a264"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/d18aec0c39956f1a29b6d157c13ec51ce53d7c2a2982c307528215f8870720ac.toml",
+          "sha256": "d18aec0c39956f1a29b6d157c13ec51ce53d7c2a2982c307528215f8870720ac",
+          "bytes": 2171,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/b4167b582b2f75f9a1be75495c41b765344fd03c/crates/block2/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/block2/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/b4167b582b2f75f9a1be75495c41b765344fd03c/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "dasp_sample",
+      "version": "0.11.0",
+      "license": "MIT OR Apache-2.0",
+      "manifestSha256": "887e72a805d35311dc78020a553e2106cb5ab83e4b37a66d3c1d9fab17831cfd",
+      "archiveSha256": "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "rustaudio/sample",
+        "remoteRepository": "RustAudio/dasp",
+        "commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980",
+        "cratePath": "dasp_sample",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "887e72a805d35311dc78020a553e2106cb5ab83e4b37a66d3c1d9fab17831cfd"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "a9debe8da6eca434f82d04bc9ba0df2b84a5ae18b1981ecc7d0781a3c6d5bab3"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "6087e3e70773558b775694400615f8ffc15ad269b0f7a741c26ef5c1e3696b7a"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/a9debe8da6eca434f82d04bc9ba0df2b84a5ae18b1981ecc7d0781a3c6d5bab3.toml",
+          "sha256": "a9debe8da6eca434f82d04bc9ba0df2b84a5ae18b1981ecc7d0781a3c6d5bab3",
+          "bytes": 531,
+          "url": "https://raw.githubusercontent.com/RustAudio/dasp/97c3bb9b2363c0b46ac1633858bf1054fd02a980/dasp_sample/Cargo.toml"
+        },
+        "upstreamManifestPath": "dasp_sample/Cargo.toml",
+        "repositoryRedirect": {
+          "url": "https://api.github.com/repos/rustaudio/sample/git/trees/97c3bb9b2363c0b46ac1633858bf1054fd02a980?recursive=1",
+          "status": 301,
+          "location": "https://api.github.com/repositories/30742812/git/trees/97c3bb9b2363c0b46ac1633858bf1054fd02a980?recursive=1",
+          "canonical": {
+            "file": "metadata/1ea0382532a8813059e90d9852cdc77a9055058832190bfcf5472464bdee1ec9.json",
+            "sha256": "1ea0382532a8813059e90d9852cdc77a9055058832190bfcf5472464bdee1ec9",
+            "bytes": 6063,
+            "url": "https://api.github.com/repositories/30742812"
+          }
+        }
+      },
+      "notices": [
+        {
+          "file": "texts/756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512.txt",
+          "sha256": "756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512",
+          "bytes": 561,
+          "url": "https://raw.githubusercontent.com/RustAudio/dasp/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0.txt",
+          "sha256": "b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0",
+          "bytes": 1087,
+          "url": "https://raw.githubusercontent.com/RustAudio/dasp/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "defmt-parser",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "manifestSha256": "c4c4df5b09e53450267eacadf1f7f6a0d3d5fc463bc450e199f0d06eba8e6ab3",
+      "archiveSha256": "10d60334b3b2e7c9d91ef8150abfb6fa4c1c39ebbcf4a81c2e346aad939fee3e",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "knurling-rs/defmt",
+        "remoteRepository": "knurling-rs/defmt",
+        "commit": "4a8cdb44891ed57b8ff5a023b6bec7137c48708f",
+        "cratePath": "parser",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "c4c4df5b09e53450267eacadf1f7f6a0d3d5fc463bc450e199f0d06eba8e6ab3"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "5d5c0e139cf4076aad5d1f8b992a7b8c9095f5443dab0f9d1da020101adea245"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "7ab8f01085721143c43db5db2528806f393df2058d03c5b8da20634e14886a05"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/5d5c0e139cf4076aad5d1f8b992a7b8c9095f5443dab0f9d1da020101adea245.toml",
+          "sha256": "5d5c0e139cf4076aad5d1f8b992a7b8c9095f5443dab0f9d1da020101adea245",
+          "bytes": 540,
+          "url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/parser/Cargo.toml"
+        },
+        "upstreamManifestPath": "parser/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90.txt",
+          "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+          "bytes": 10850,
+          "url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/2710a622a896bba67356913d4d0492cab5465f61b2ecce6d880aeb483834fb50.txt",
+          "sha256": "2710a622a896bba67356913d4d0492cab5465f61b2ecce6d880aeb483834fb50",
+          "bytes": 1053,
+          "url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "dispatch2",
+      "version": "0.3.1",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "f246cf8997c346fdcabb8925ad5be967f397fd8b92630ef7bcc9bdce5d33f775",
+      "archiveSha256": "1e0e367e4e7da84520dedcac1901e4da967309406d1e51017ae1abfb97adbd38",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "8852b424193ca41602281b3d7540d7c8ed51e49a",
+        "cratePath": "crates/dispatch2",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "f246cf8997c346fdcabb8925ad5be967f397fd8b92630ef7bcc9bdce5d33f775"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "f6aeef4bfe348b9e65e33db2bfb079be4149f9ab0f4b0b3bf3f5d04c144545af"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "26f5e6d699ba3ce13b8eea253ad7a7f7feb9345e9da3c01bb9b9bd911a6a7dba"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/f6aeef4bfe348b9e65e33db2bfb079be4149f9ab0f4b0b3bf3f5d04c144545af.toml",
+          "sha256": "f6aeef4bfe348b9e65e33db2bfb079be4149f9ab0f4b0b3bf3f5d04c144545af",
+          "bytes": 1516,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/crates/dispatch2/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/dispatch2/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "geo",
+      "version": "0.33.1",
+      "license": "MIT OR Apache-2.0",
+      "manifestSha256": "35f5d653dcf644af8ccb6b32db636d1c34fca058923f18e144784506347b9850",
+      "archiveSha256": "30eb1fdc57c1e5cfd11826fe0caec4b9dc7901f3758263bb506228d88c8d9e9a",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "georust/geo",
+        "remoteRepository": "georust/geo",
+        "commit": "5ab50b072e34a915a33eaa46c80763d51d61295e",
+        "cratePath": "geo",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "35f5d653dcf644af8ccb6b32db636d1c34fca058923f18e144784506347b9850"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "e02c79ddb1d4156f0192fbb6237ea442b75faec0cd5cd28310dc3900746fd8a6"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "37d858a487c616af0197fc1da486cdc2aeb3c785c915b6dbcc8f46200aaa92b7"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/e02c79ddb1d4156f0192fbb6237ea442b75faec0cd5cd28310dc3900746fd8a6.toml",
+          "sha256": "e02c79ddb1d4156f0192fbb6237ea442b75faec0cd5cd28310dc3900746fd8a6",
+          "bytes": 1951,
+          "url": "https://raw.githubusercontent.com/georust/geo/5ab50b072e34a915a33eaa46c80763d51d61295e/geo/Cargo.toml"
+        },
+        "upstreamManifestPath": "geo/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/georust/geo/5ab50b072e34a915a33eaa46c80763d51d61295e/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/2f8267b247fd81e9555a2e196e119a5b341bcae21011cd93985c312f1312f727.txt",
+          "sha256": "2f8267b247fd81e9555a2e196e119a5b341bcae21011cd93985c312f1312f727",
+          "bytes": 1074,
+          "url": "https://raw.githubusercontent.com/georust/geo/5ab50b072e34a915a33eaa46c80763d51d61295e/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "i_key_sort",
+      "version": "0.10.3",
+      "license": "MIT",
+      "manifestSha256": "d6dc11c9d0e8cd03ebf55b1e5df10d777873e05203afe0c31b37f839f017571b",
+      "archiveSha256": "d73d122b937fca067feb0ad74f62388920272b27c356d4df2d0cfdd59e044cf0",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "iShape-Rust/iKeySort",
+        "remoteRepository": "iShape-Rust/iKeySort",
+        "commit": "10a9a72f0cdae785dd2185896eed138b09945515",
+        "cratePath": "iKeySort",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "d6dc11c9d0e8cd03ebf55b1e5df10d777873e05203afe0c31b37f839f017571b"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "649df47ade7cd0f75929e6ddc0e514e13c94a927511377cdb58a7ec531fc58f4"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "5f06e87ee58b80e25f7315361eafe2cafa12e171e59597e1acb1d053e18f4f5b"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/649df47ade7cd0f75929e6ddc0e514e13c94a927511377cdb58a7ec531fc58f4.toml",
+          "sha256": "649df47ade7cd0f75929e6ddc0e514e13c94a927511377cdb58a7ec531fc58f4",
+          "bytes": 474,
+          "url": "https://raw.githubusercontent.com/iShape-Rust/iKeySort/10a9a72f0cdae785dd2185896eed138b09945515/iKeySort/Cargo.toml"
+        },
+        "upstreamManifestPath": "iKeySort/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/47e00f18b265d350a2860d3899f17dd1c7689b966545e929df8ffa7033f5acdc.txt",
+          "sha256": "47e00f18b265d350a2860d3899f17dd1c7689b966545e929df8ffa7033f5acdc",
+          "bytes": 1068,
+          "url": "https://raw.githubusercontent.com/iShape-Rust/iKeySort/10a9a72f0cdae785dd2185896eed138b09945515/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "i_overlay",
+      "version": "4.5.2",
+      "license": "MIT OR Apache-2.0",
+      "manifestSha256": "37132539be2b92ec1325e66242b3890a803f4cf760166f983883e5423ef83dc1",
+      "archiveSha256": "8dd314b4668e2b3a12508f2e125558c82a6c0a8636fa5107a900f79ce414e450",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "iShape-Rust/iOverlay",
+        "remoteRepository": "iShape-Rust/iOverlay",
+        "commit": "9448d8da87e11f5b7aedcf994967b18ff640c734",
+        "cratePath": "iOverlay",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "37132539be2b92ec1325e66242b3890a803f4cf760166f983883e5423ef83dc1"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "bb5dba515eefa527c28676c7e07129a199bbb7cdf2883f4f252b65a82c9fda03"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "29d15b43ca6bf8904985c123c48c485f8c6a3118c4b92b1a66ea485dd9afefda"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/bb5dba515eefa527c28676c7e07129a199bbb7cdf2883f4f252b65a82c9fda03.toml",
+          "sha256": "bb5dba515eefa527c28676c7e07129a199bbb7cdf2883f4f252b65a82c9fda03",
+          "bytes": 1346,
+          "url": "https://raw.githubusercontent.com/iShape-Rust/iOverlay/9448d8da87e11f5b7aedcf994967b18ff640c734/iOverlay/Cargo.toml"
+        },
+        "upstreamManifestPath": "iOverlay/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/59899c6091b540582ed617e8eeaac4919dc985ccfc35459ee9752b699be5205b.txt",
+          "sha256": "59899c6091b540582ed617e8eeaac4919dc985ccfc35459ee9752b699be5205b",
+          "bytes": 10172,
+          "url": "https://raw.githubusercontent.com/iShape-Rust/iOverlay/9448d8da87e11f5b7aedcf994967b18ff640c734/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/260cc580f53a756821a0f35475e2cd6da790f8fed0efc058252fe1bed8f2689e.txt",
+          "sha256": "260cc580f53a756821a0f35475e2cd6da790f8fed0efc058252fe1bed8f2689e",
+          "bytes": 1068,
+          "url": "https://raw.githubusercontent.com/iShape-Rust/iOverlay/9448d8da87e11f5b7aedcf994967b18ff640c734/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "jsonschema-regex",
+      "version": "0.57.0",
+      "license": "MIT",
+      "manifestSha256": "8c32b81a55252c1885f3d8e0d0db8a2542014804b96f1a146e43dd378ab0da6d",
+      "archiveSha256": "48d2120d8466ffcdc1b3be4b88ff0e9191bf5b6b09b1b1af1eef9aff8f465ea3",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "Stranger6667/jsonschema",
+        "remoteRepository": "Stranger6667/jsonschema",
+        "commit": "8a7870f1400e9dcddfe8cfb57e550fbe4013f79a",
+        "cratePath": "crates/jsonschema-regex",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "8c32b81a55252c1885f3d8e0d0db8a2542014804b96f1a146e43dd378ab0da6d"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "7d05362db10333afc709ef7e573c80ef2df478792115b699543fce249185a4f3"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "56a3468fe51de0c3358789c4532ebf0a10b23e68ece85994392347eee9599e26"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/7d05362db10333afc709ef7e573c80ef2df478792115b699543fce249185a4f3.toml",
+          "sha256": "7d05362db10333afc709ef7e573c80ef2df478792115b699543fce249185a4f3",
+          "bytes": 374,
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/8a7870f1400e9dcddfe8cfb57e550fbe4013f79a/crates/jsonschema-regex/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/jsonschema-regex/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038.txt",
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "bytes": 1075,
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/8a7870f1400e9dcddfe8cfb57e550fbe4013f79a/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "jsonschema-value",
+      "version": "0.57.0",
+      "license": "MIT",
+      "manifestSha256": "613751d43c6a01a94aafc1e19c43b2b56fee849f9715ecfe75680ceb270098bd",
+      "archiveSha256": "3fbfa40a42415369d940b3848f3ce08099f1f1ac04d73e8580f4d652617c4f44",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "Stranger6667/jsonschema",
+        "remoteRepository": "Stranger6667/jsonschema",
+        "commit": "8a7870f1400e9dcddfe8cfb57e550fbe4013f79a",
+        "cratePath": "crates/jsonschema-value",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "613751d43c6a01a94aafc1e19c43b2b56fee849f9715ecfe75680ceb270098bd"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "2d9bb129e2d4e172a027e916f384b2a1a3f0592a43cc1835000e6c184804febf"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "838b225b9009ed4eb08294401d130a9a4b1653ac46e64aeccb214140e055e8eb"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/2d9bb129e2d4e172a027e916f384b2a1a3f0592a43cc1835000e6c184804febf.toml",
+          "sha256": "2d9bb129e2d4e172a027e916f384b2a1a3f0592a43cc1835000e6c184804febf",
+          "bytes": 1628,
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/8a7870f1400e9dcddfe8cfb57e550fbe4013f79a/crates/jsonschema-value/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/jsonschema-value/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038.txt",
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "bytes": 1075,
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/8a7870f1400e9dcddfe8cfb57e550fbe4013f79a/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-app-kit",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "11a761a52774ed9738fb854ba3eecb48fa360b6ce43dddc00c338346853717b5",
+      "archiveSha256": "d49e936b501e5c5bf01fda3a9452ff86dc3ea98ad5f283e1455153142d97518c",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-app-kit",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "11a761a52774ed9738fb854ba3eecb48fa360b6ce43dddc00c338346853717b5"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "a15eb82815ce282d59a2f5be179556695ce678790129c30e1d86567c1e2c684e"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "07762c2a438c287ac124300928c9da0f96cefc1932ff8cadac13716fd1e195eb"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/a15eb82815ce282d59a2f5be179556695ce678790129c30e1d86567c1e2c684e.toml",
+          "sha256": "a15eb82815ce282d59a2f5be179556695ce678790129c30e1d86567c1e2c684e",
+          "bytes": 67231,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-app-kit/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-app-kit/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-audio-toolbox",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "1490b8dce5ee70b1b4a953db4109fb5797cefbe9e3973ec9121ee11fc008a012",
+      "archiveSha256": "6948501a91121d6399b79abaa33a8aa4ea7857fe019f341b8c23ad6e81b79b08",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-audio-toolbox",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "1490b8dce5ee70b1b4a953db4109fb5797cefbe9e3973ec9121ee11fc008a012"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "87aa116c2f121808b33f1240073232ce4a645247229a855b25168978b9b85faa"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "82addff899c2a73551f4be851ad296e1b49b6ee7b58c3c253e1b931f60eba66e"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/87aa116c2f121808b33f1240073232ce4a645247229a855b25168978b9b85faa.toml",
+          "sha256": "87aa116c2f121808b33f1240073232ce4a645247229a855b25168978b9b85faa",
+          "bytes": 4162,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-audio-toolbox/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-audio-toolbox/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-core-audio-types",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "f26066fe0a9932213e31793ec1b72578746e3ceb07dd667be2595daaf84760e1",
+      "archiveSha256": "5a89f2ec274a0cf4a32642b2991e8b351a404d290da87bb6a9a9d8632490bd1c",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-core-audio-types",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "f26066fe0a9932213e31793ec1b72578746e3ceb07dd667be2595daaf84760e1"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "475492b74df479e45b8c6a46f35b6cc12e05158334703cb135759ae44db94f48"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "a1214548682de7f2f59ca06fe8a25c610f3dc71255a18c25d2238c1af54d61bb"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/475492b74df479e45b8c6a46f35b6cc12e05158334703cb135759ae44db94f48.toml",
+          "sha256": "475492b74df479e45b8c6a46f35b6cc12e05158334703cb135759ae44db94f48",
+          "bytes": 1220,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-core-audio-types/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-core-audio-types/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-core-audio",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "62763a0b5d7e8d78402f464c83c2d31e69138b00ec1e19361f6359d500a4274c",
+      "archiveSha256": "e1eebcea8b0dbff5f7c8504f3107c68fc061a3eb44932051c8cf8a68d969c3b2",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-core-audio",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "62763a0b5d7e8d78402f464c83c2d31e69138b00ec1e19361f6359d500a4274c"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "be0e8c7f5c53a57f2fcfe86a833d48d10e523e54a3ae865e2d559d67209d06ae"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "e43bc44a09544783b5fd07ede5253ff11cb4df651d3cfb3236968a6684f98d06"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/be0e8c7f5c53a57f2fcfe86a833d48d10e523e54a3ae865e2d559d67209d06ae.toml",
+          "sha256": "be0e8c7f5c53a57f2fcfe86a833d48d10e523e54a3ae865e2d559d67209d06ae",
+          "bytes": 2084,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-core-audio/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-core-audio/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-core-bluetooth",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "1033cf4b6ba6986345615d0f752865b40dade71c709a960f37fbce0f4f08742f",
+      "archiveSha256": "79b30b9eacc37434a61377866f68b27acef9fa5496f25cc9ca8b2549032e0394",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-core-bluetooth",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "1033cf4b6ba6986345615d0f752865b40dade71c709a960f37fbce0f4f08742f"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "8974ca731d19941c4d3b701e3100a0c25e6847e23f667d12bc7bef5763046c5a"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "259b75949f798d570bd34335e7d2ceca72f758735a1bd30e3aaff7eb5ab14c37"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/8974ca731d19941c4d3b701e3100a0c25e6847e23f667d12bc7bef5763046c5a.toml",
+          "sha256": "8974ca731d19941c4d3b701e3100a0c25e6847e23f667d12bc7bef5763046c5a",
+          "bytes": 3251,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-core-bluetooth/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-core-bluetooth/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-core-foundation",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "c0f54260fa1396923f2db4edf1e2d54e8ab09dea214af4b8ce37aaefa7185e60",
+      "archiveSha256": "2a180dd8642fa45cdb7dd721cd4c11b1cadd4929ce112ebd8b9f5803cc79d536",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-core-foundation",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "c0f54260fa1396923f2db4edf1e2d54e8ab09dea214af4b8ce37aaefa7185e60"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "44cd6a4440c3ea1ba85df240ab9b9e7a95da3a5873ce623ac426ac5acfbe507f"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "1c1a87985a2bd25015f5e2413f4041379bea0172b2fce88dae3e6482b50aab26"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/44cd6a4440c3ea1ba85df240ab9b9e7a95da3a5873ce623ac426ac5acfbe507f.toml",
+          "sha256": "44cd6a4440c3ea1ba85df240ab9b9e7a95da3a5873ce623ac426ac5acfbe507f",
+          "bytes": 3362,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-core-foundation/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-core-foundation/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-core-graphics",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "9756d343dc626faf07cdef1cdef29a2b3efed0f6a2fc44ae35fd828e2f482dc1",
+      "archiveSha256": "e022c9d066895efa1345f8e33e584b9f958da2fd4cd116792e15e07e4720a807",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-core-graphics",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "9756d343dc626faf07cdef1cdef29a2b3efed0f6a2fc44ae35fd828e2f482dc1"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "8156455095991b7501f4fa30bdf29c5a541a41e3c479558e757932b07d0b16d1"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "264ea4e6453d508410c33c7e5c05ef71f067cac56efc06603862b36d1fe5dfc3"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/8156455095991b7501f4fa30bdf29c5a541a41e3c479558e757932b07d0b16d1.toml",
+          "sha256": "8156455095991b7501f4fa30bdf29c5a541a41e3c479558e757932b07d0b16d1",
+          "bytes": 6661,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-core-graphics/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-core-graphics/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-encode",
+      "version": "4.1.0",
+      "license": "MIT",
+      "manifestSha256": "cf9a8cc812710344d7fe618a5e615530baeeceae5c2826b9d5bb557dc419f159",
+      "archiveSha256": "ef25abbcd74fb2609453eb695bd2f860d389e457f67dc17cafc8b8cbc89d0c33",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "8d214f5477365ffcbcbb7de058c86ed9a518efb7",
+        "cratePath": "crates/objc2-encode",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "cf9a8cc812710344d7fe618a5e615530baeeceae5c2826b9d5bb557dc419f159"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "12972b1faf213492f9e78226f23642c461284b739f7be5437d9401465a2869a6"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "b23c761215887d90ac44e18b18c8b386f93139c65a4a14f110e22405830cb3f1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/12972b1faf213492f9e78226f23642c461284b739f7be5437d9401465a2869a6.toml",
+          "sha256": "12972b1faf213492f9e78226f23642c461284b739f7be5437d9401465a2869a6",
+          "bytes": 1137,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/crates/objc2-encode/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/objc2-encode/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-exception-helper",
+      "version": "0.1.1",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "11418770c4b19efe4ff9dcbc7a2aebfda1fb1f0eb4291e3225b20aed5c38a515",
+      "archiveSha256": "c7a1c5fbb72d7735b076bb47b578523aedc40f3c439bea6dfd595c089d79d98a",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "8d214f5477365ffcbcbb7de058c86ed9a518efb7",
+        "cratePath": "crates/objc2-exception-helper",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "11418770c4b19efe4ff9dcbc7a2aebfda1fb1f0eb4291e3225b20aed5c38a515"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "b8bf2ffec7fd293d53a316893362ca12e06c3f1fef1fa2d476161e256214ee6e"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "c7e239421c2f7dc6ec239f8d464ca656be3d325c801c780a341dfa99c79a0949"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/b8bf2ffec7fd293d53a316893362ca12e06c3f1fef1fa2d476161e256214ee6e.toml",
+          "sha256": "b8bf2ffec7fd293d53a316893362ca12e06c3f1fef1fa2d476161e256214ee6e",
+          "bytes": 1638,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/crates/objc2-exception-helper/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/objc2-exception-helper/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-foundation",
+      "version": "0.3.2",
+      "license": "MIT",
+      "manifestSha256": "eabbe24e325c7b474c6f5de2e955f4f942ecd385608e4b6609b89a1f68ef39cc",
+      "archiveSha256": "e3e0adef53c21f888deb4fa59fc59f7eb17404926ee8a6f59f5df0fd7f9f3272",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-foundation",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "eabbe24e325c7b474c6f5de2e955f4f942ecd385608e4b6609b89a1f68ef39cc"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "71158540d55a9b5ce073c856347f0ed1e0e71f4210cfb48a82b1f0e505ba6a50"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "de34f3c84d7cb1cafcedb4e83b7efdd64047872566827477b954f8a853536bb1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/71158540d55a9b5ce073c856347f0ed1e0e71f4210cfb48a82b1f0e505ba6a50.toml",
+          "sha256": "71158540d55a9b5ce073c856347f0ed1e0e71f4210cfb48a82b1f0e505ba6a50",
+          "bytes": 10499,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-foundation/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-foundation/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-io-surface",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "b42e1ba685611320fbd2f04586d2c1bda70807f93d127d241c0c5c716b76ec40",
+      "archiveSha256": "180788110936d59bab6bd83b6060ffdfffb3b922ba1396b312ae795e1de9d81d",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-io-surface",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "b42e1ba685611320fbd2f04586d2c1bda70807f93d127d241c0c5c716b76ec40"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "80c0f7bac2add855807e6abadbc220473b982041b99339bacf17e2885b3752c9"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "a68dbb39ef7cfef6062e3d2e49c59539c7a34d70d13c5bdf4a443d2475280011"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/80c0f7bac2add855807e6abadbc220473b982041b99339bacf17e2885b3752c9.toml",
+          "sha256": "80c0f7bac2add855807e6abadbc220473b982041b99339bacf17e2885b3752c9",
+          "bytes": 1799,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-io-surface/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-io-surface/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2-web-kit",
+      "version": "0.3.2",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "manifestSha256": "ea592b63600b5ccb95b557ac0b648d922b6da8a5d00992baa1e9e0c634cb3ab3",
+      "archiveSha256": "b2e5aaab980c433cf470df9d7af96a7b46a9d892d521a2cbbb2f8a4c16751e7f",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b",
+        "cratePath": "framework-crates/objc2-web-kit",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "ea592b63600b5ccb95b557ac0b648d922b6da8a5d00992baa1e9e0c634cb3ab3"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "c18d575811ed67608266557f3c5b673b2430accb55c86c6547a833000dd78a40"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "af77e35da92d2c30dde7cd40ff3723ce9f312cddb639a388ae447979af630a30"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/c18d575811ed67608266557f3c5b673b2430accb55c86c6547a833000dd78a40.toml",
+          "sha256": "c18d575811ed67608266557f3c5b673b2430accb55c86c6547a833000dd78a40",
+          "bytes": 26970,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/framework-crates/objc2-web-kit/Cargo.toml"
+        },
+        "upstreamManifestPath": "framework-crates/objc2-web-kit/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "objc2",
+      "version": "0.6.4",
+      "license": "MIT",
+      "manifestSha256": "74bfa13bee2c7362432f22886f9749743c78d32eed5916e26a06ff56ae84c901",
+      "archiveSha256": "3a12a8ed07aefc768292f076dc3ac8c48f3781c8f2d5851dd3d98950e8c5a89f",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "madsmtm/objc2",
+        "remoteRepository": "madsmtm/objc2",
+        "commit": "8852b424193ca41602281b3d7540d7c8ed51e49a",
+        "cratePath": "crates/objc2",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "74bfa13bee2c7362432f22886f9749743c78d32eed5916e26a06ff56ae84c901"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "edff06609a6f76ba4aa4ead2f6219826f6c4fd82075fa178029085f37f931536"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "45343a7cb8cebbb23c2804f99a14f01f6618ce0956dba62f387fb9ffaf00eff7"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/edff06609a6f76ba4aa4ead2f6219826f6c4fd82075fa178029085f37f931536.toml",
+          "sha256": "edff06609a6f76ba4aa4ead2f6219826f6c4fd82075fa178029085f37f931536",
+          "bytes": 7515,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/crates/objc2/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/objc2/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+          "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+          "bytes": 1339,
+          "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "rstar",
+      "version": "0.12.2",
+      "license": "MIT OR Apache-2.0",
+      "manifestSha256": "025bb74e428ccebfe3598b18318ec1183720521810250b83e9895e13484c591f",
+      "archiveSha256": "421400d13ccfd26dfa5858199c30a5d76f9c54e0dba7575273025b43c5175dbb",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "georust/rstar",
+        "remoteRepository": "georust/rstar",
+        "commit": "c8c5bf9e41468281d030869d409e3f67f1aaf5b7",
+        "cratePath": "rstar",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "025bb74e428ccebfe3598b18318ec1183720521810250b83e9895e13484c591f"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "5fcc9507370e3cc11bb34406c7469b39662cb4a851d7cb098bacac234692cc53"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "c5544a43d973aa7f53ae32efe80a36cc68ebb6a3c512afc9324a61b6c9b41044"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/5fcc9507370e3cc11bb34406c7469b39662cb4a851d7cb098bacac234692cc53.toml",
+          "sha256": "5fcc9507370e3cc11bb34406c7469b39662cb4a851d7cb098bacac234692cc53",
+          "bytes": 1012,
+          "url": "https://raw.githubusercontent.com/georust/rstar/c8c5bf9e41468281d030869d409e3f67f1aaf5b7/rstar/Cargo.toml"
+        },
+        "upstreamManifestPath": "rstar/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/georust/rstar/c8c5bf9e41468281d030869d409e3f67f1aaf5b7/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/9b3a76c27bac8f3e0ff2d1f64f65941c50310ae3ff69318cea230bd4a36822c5.txt",
+          "sha256": "9b3a76c27bac8f3e0ff2d1f64f65941c50310ae3ff69318cea230bd4a36822c5",
+          "bytes": 1072,
+          "url": "https://raw.githubusercontent.com/georust/rstar/c8c5bf9e41468281d030869d409e3f67f1aaf5b7/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "selectors",
+      "version": "0.36.1",
+      "license": "MPL-2.0",
+      "manifestSha256": "c4d292da59a7b7787100f0839b7c18d9a2fa661ab7906d1617137469e1aca2da",
+      "archiveSha256": "c5d9c0c92a92d33f08817311cf3f2c29a3538a8240e94a6a3c622ce652d7e00c",
+      "provenance": {
+        "kind": "cargo-license-pointer",
+        "repository": "servo/stylo",
+        "remoteRepository": "servo/stylo",
+        "commit": "635e1a19d02960588a00e189bd4bd5bdb150ec3d",
+        "cratePath": "selectors",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "c4d292da59a7b7787100f0839b7c18d9a2fa661ab7906d1617137469e1aca2da"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "be6ed6441d04b710178c3b50052672755e15e5cf3780060ca9fdd2c8aba1d392"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "b9b619f8e31f591cd1326578b87ccb14b4f3687af65b505674522513ed4d276d"
+          },
+          {
+            "file": "lib.rs",
+            "sha256": "d54c6e13e9e952dac17d209171df8657e3cae93beaddace4906150cdec8d02e9"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/be6ed6441d04b710178c3b50052672755e15e5cf3780060ca9fdd2c8aba1d392.toml",
+          "sha256": "be6ed6441d04b710178c3b50052672755e15e5cf3780060ca9fdd2c8aba1d392",
+          "bytes": 868,
+          "url": "https://raw.githubusercontent.com/servo/stylo/635e1a19d02960588a00e189bd4bd5bdb150ec3d/selectors/Cargo.toml"
+        },
+        "upstreamManifestPath": "selectors/Cargo.toml",
+        "licensePointer": {
+          "file": "lib.rs",
+          "sha256": "d54c6e13e9e952dac17d209171df8657e3cae93beaddace4906150cdec8d02e9",
+          "headerBytes": 205,
+          "headerSha256": "7523df2468fda84e4df377ee0cfd844a83742f39e0425e7c7819a82e3e25f840",
+          "url": "https://mozilla.org/MPL/2.0/",
+          "upstreamSource": {
+            "file": "sources/d54c6e13e9e952dac17d209171df8657e3cae93beaddace4906150cdec8d02e9.rs",
+            "sha256": "d54c6e13e9e952dac17d209171df8657e3cae93beaddace4906150cdec8d02e9",
+            "bytes": 643,
+            "url": "https://raw.githubusercontent.com/servo/stylo/635e1a19d02960588a00e189bd4bd5bdb150ec3d/selectors/lib.rs"
+          }
+        }
+      },
+      "notices": [
+        {
+          "file": "texts/7523df2468fda84e4df377ee0cfd844a83742f39e0425e7c7819a82e3e25f840.txt",
+          "sha256": "7523df2468fda84e4df377ee0cfd844a83742f39e0425e7c7819a82e3e25f840",
+          "bytes": 205,
+          "url": "https://raw.githubusercontent.com/servo/stylo/635e1a19d02960588a00e189bd4bd5bdb150ec3d/selectors/lib.rs",
+          "sourcePath": "selectors/lib.rs#license-header"
+        },
+        {
+          "file": "texts/3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04.txt",
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+          "bytes": 16726,
+          "url": "https://www.mozilla.org/media/MPL/2.0/index.txt",
+          "sourcePath": "MPL/2.0/index.txt"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-bundle-flac",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "e0e12b74852416311bb878d1d95604517a4a57009664b61b9b81b87164d54d51",
+      "archiveSha256": "c91565e180aea25d9b80a910c546802526ffd0072d0b8974e3ebe59b686c9976",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-bundle-flac",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "e0e12b74852416311bb878d1d95604517a4a57009664b61b9b81b87164d54d51"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "fc9148b26870234c5c8b66185bef751357054a6feeb413740ab10bbac0173d33"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "b4abc387a729dcd7c3a0433eb0e98e7f78240dee1dcbbea0ec343f068d60de23"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/fc9148b26870234c5c8b66185bef751357054a6feeb413740ab10bbac0173d33.toml",
+          "sha256": "fc9148b26870234c5c8b66185bef751357054a6feeb413740ab10bbac0173d33",
+          "bytes": 836,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-bundle-flac/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-bundle-flac/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-bundle-mp3",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "b57cd3f24fa7dcc8a876d7f8f1abd96c94bf5bbb522274ed08a296eab64e22c9",
+      "archiveSha256": "4872dd6bb56bf5eac799e3e957aa1981086c3e613b27e0ac23b176054f7c57ed",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-bundle-mp3",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "b57cd3f24fa7dcc8a876d7f8f1abd96c94bf5bbb522274ed08a296eab64e22c9"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "6feaf01b6ea4eaebfa7c5e9ca5687765b5be84322ef8637801547e7b7bdce7ad"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "98a530384d2a4708e4fecf9ec62e3c53d1537989fa8d4f2c40b36f3e5cc9db26"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/6feaf01b6ea4eaebfa7c5e9ca5687765b5be84322ef8637801547e7b7bdce7ad.toml",
+          "sha256": "6feaf01b6ea4eaebfa7c5e9ca5687765b5be84322ef8637801547e7b7bdce7ad",
+          "bytes": 788,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-bundle-mp3/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-bundle-mp3/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-codec-pcm",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "885d76a6704a4a70a9c387836656d2f03939e2516e9c8e64f60651edb28fcc0b",
+      "archiveSha256": "4e89d716c01541ad3ebe7c91ce4c8d38a7cf266a3f7b2f090b108fb0cb031d95",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-codec-pcm",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "885d76a6704a4a70a9c387836656d2f03939e2516e9c8e64f60651edb28fcc0b"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "1decf0af8942655916bff6bbafb38bf90f7c568c67d6815feb0ce5245578d7f0"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "cf603b5767321f1d71e1220841e7e812d139152322d6e61cf62f09d436ad992d"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/1decf0af8942655916bff6bbafb38bf90f7c568c67d6815feb0ce5245578d7f0.toml",
+          "sha256": "1decf0af8942655916bff6bbafb38bf90f7c568c67d6815feb0ce5245578d7f0",
+          "bytes": 591,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-codec-pcm/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-codec-pcm/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-core",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "3c55fd09f59c46b1dcadfd9da99afc64459b21190dbe8dc20bc1843a54e069a2",
+      "archiveSha256": "ea00cc4f79b7f6bb7ff87eddc065a1066f3a43fe1875979056672c9ef948c2af",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-core",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "3c55fd09f59c46b1dcadfd9da99afc64459b21190dbe8dc20bc1843a54e069a2"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "71257fae3cfb0301afe43ad4a01ad53c8e603c802153728ad2073844a1323e6b"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "b6342c9d7a6abedfb23c93ad3b1a8ce0a43785820a74df9ecb85a74398b53a50"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/71257fae3cfb0301afe43ad4a01ad53c8e603c802153728ad2073844a1323e6b.toml",
+          "sha256": "71257fae3cfb0301afe43ad4a01ad53c8e603c802153728ad2073844a1323e6b",
+          "bytes": 933,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-core/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-core/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-format-riff",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "1f2201173493afd34d67c336bf36f8a438004bb141bd4576ca2491c0626e6610",
+      "archiveSha256": "c2d7c3df0e7d94efb68401d81906eae73c02b40d5ec1a141962c592d0f11a96f",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-format-riff",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "1f2201173493afd34d67c336bf36f8a438004bb141bd4576ca2491c0626e6610"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "e938331d1178b7ca22fc894e9265ca14652bb5c392c07dc2edcf5ac47e55e05b"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "f0cbb62e0173cc0cb6051169ac939dc7840696b1a142d50ebfa0dc41b51a81e6"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/e938331d1178b7ca22fc894e9265ca14652bb5c392c07dc2edcf5ac47e55e05b.toml",
+          "sha256": "e938331d1178b7ca22fc894e9265ca14652bb5c392c07dc2edcf5ac47e55e05b",
+          "bytes": 789,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-format-riff/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-format-riff/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-metadata",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "7692e410100ee8eae8654782e1408532c24889bc041154dd8871ec8fc600a587",
+      "archiveSha256": "36306ff42b9ffe6e5afc99d49e121e0bd62fe79b9db7b9681d48e29fa19e6b16",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-metadata",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "7692e410100ee8eae8654782e1408532c24889bc041154dd8871ec8fc600a587"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "fa1a5d332bae78422f4f1c1e10e686bf9e6b5903fc7f9bb1878f806e509425bf"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "faea11a7f89a1a0bdb497e6d2a6a704d4be8bde5422c81dfe58ae0e2687f1aa3"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/fa1a5d332bae78422f4f1c1e10e686bf9e6b5903fc7f9bb1878f806e509425bf.toml",
+          "sha256": "fa1a5d332bae78422f4f1c1e10e686bf9e6b5903fc7f9bb1878f806e509425bf",
+          "bytes": 648,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-metadata/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-metadata/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia-utils-xiph",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "68298d857ee9601a7aa6c2f735d886631d09ad25aeacb8a5fb1d161de5e9e6d0",
+      "archiveSha256": "ee27c85ab799a338446b68eec77abf42e1a6f1bb490656e121c6e27bfbab9f16",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia-utils-xiph",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "68298d857ee9601a7aa6c2f735d886631d09ad25aeacb8a5fb1d161de5e9e6d0"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "c126be82e3b34d18980f514dfb46770ca9c613b984839f45a9bde9a4754a3eed"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "60c76fee875969f0a471189b44621e3d3cc2a75abe3c78ae1464b204a62cd1cc"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/c126be82e3b34d18980f514dfb46770ca9c613b984839f45a9bde9a4754a3eed.toml",
+          "sha256": "c126be82e3b34d18980f514dfb46770ca9c613b984839f45a9bde9a4754a3eed",
+          "bytes": 657,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia-utils-xiph/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia-utils-xiph/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "symphonia",
+      "version": "0.5.5",
+      "license": "MPL-2.0",
+      "manifestSha256": "285c57698993739930f90be3e661cb4eff8caefdbe64604ae092a41c344557c2",
+      "archiveSha256": "5773a4c030a19d9bfaa090f49746ff35c75dfddfa700df7a5939d5e076a57039",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "pdeljanov/Symphonia",
+        "remoteRepository": "pdeljanov/Symphonia",
+        "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5",
+        "cratePath": "symphonia",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "285c57698993739930f90be3e661cb4eff8caefdbe64604ae092a41c344557c2"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "4b70825a31e1532fc3498e7337ef784d71d509bd6fcc03934d642e033a00796e"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "d28041c120cddc92e161b4d42d5f0917890e414b69449f7b341a0fd5d6418b7e"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/4b70825a31e1532fc3498e7337ef784d71d509bd6fcc03934d642e033a00796e.toml",
+          "sha256": "4b70825a31e1532fc3498e7337ef784d71d509bd6fcc03934d642e033a00796e",
+          "bytes": 3734,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/symphonia/Cargo.toml"
+        },
+        "upstreamManifestPath": "symphonia/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30.txt",
+          "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+          "bytes": 16725,
+          "url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "tauri-plugin",
+      "version": "2.6.3",
+      "license": "Apache-2.0 OR MIT",
+      "manifestSha256": "4e3484456cd8ca73829c3fb45e64bf369e3184cfdaa33375c920c2fee666a569",
+      "archiveSha256": "74be5dd4bed9afbd145e5716b5fa2ec28cbc29c34ffa61c258c9273d896c8020",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "tauri-apps/tauri",
+        "remoteRepository": "tauri-apps/tauri",
+        "commit": "6f6ab1207bb3923c2721fbc67d2fdb1c8deb0c7a",
+        "cratePath": "crates/tauri-plugin",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "4e3484456cd8ca73829c3fb45e64bf369e3184cfdaa33375c920c2fee666a569"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "cb733ae0ff8eae3102f43bbd4f2d7b0dba57de0e9df941685878f6c8f4173d34"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "080e80c84c44a6de683f2ddfa9a7173bd2d5a6732f5c4a3957f832824f578f48"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/cb733ae0ff8eae3102f43bbd4f2d7b0dba57de0e9df941685878f6c8f4173d34.toml",
+          "sha256": "cb733ae0ff8eae3102f43bbd4f2d7b0dba57de0e9df941685878f6c8f4173d34",
+          "bytes": 1079,
+          "url": "https://raw.githubusercontent.com/tauri-apps/tauri/6f6ab1207bb3923c2721fbc67d2fdb1c8deb0c7a/crates/tauri-plugin/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/tauri-plugin/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/5e834fe9788c524210deda859c46a550ffa5aa0cba9ea0572f0d81120e97c008.txt",
+          "sha256": "5e834fe9788c524210deda859c46a550ffa5aa0cba9ea0572f0d81120e97c008",
+          "bytes": 889,
+          "url": "https://raw.githubusercontent.com/tauri-apps/tauri/6f6ab1207bb3923c2721fbc67d2fdb1c8deb0c7a/LICENSE.spdx",
+          "sourcePath": "LICENSE.spdx"
+        },
+        {
+          "file": "texts/0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594.txt",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "bytes": 10174,
+          "url": "https://raw.githubusercontent.com/tauri-apps/tauri/6f6ab1207bb3923c2721fbc67d2fdb1c8deb0c7a/LICENSE_APACHE-2.0",
+          "sourcePath": "LICENSE_APACHE-2.0"
+        },
+        {
+          "file": "texts/9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d.txt",
+          "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d",
+          "bytes": 1090,
+          "url": "https://raw.githubusercontent.com/tauri-apps/tauri/6f6ab1207bb3923c2721fbc67d2fdb1c8deb0c7a/LICENSE_MIT",
+          "sourcePath": "LICENSE_MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "unic-char-property",
+      "version": "0.9.0",
+      "license": "MIT/Apache-2.0",
+      "manifestSha256": "1c21185c9bd84959d197f681719106c1a5f4dface3db421b6660bb9801787929",
+      "archiveSha256": "a8c57a407d9b6fa02b4795eb81c5b6652060a15a7903ea981f3d723e6c0be221",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "open-i18n/rust-unic",
+        "remoteRepository": "open-i18n/rust-unic",
+        "commit": "5878605364af97a3358368a6eaef02104af2e016",
+        "cratePath": "unic/char/property",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "1c21185c9bd84959d197f681719106c1a5f4dface3db421b6660bb9801787929"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "132a2ace33bbc5f54a2c4a4b522f96b7260c9e0fdb7756a753b4017e101e86d0"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "72a0e361aab8e7af18af799a6046b290a930d94b76c551bf0667e0726f9d42d1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/132a2ace33bbc5f54a2c4a4b522f96b7260c9e0fdb7756a753b4017e101e86d0.toml",
+          "sha256": "132a2ace33bbc5f54a2c4a4b522f96b7260c9e0fdb7756a753b4017e101e86d0",
+          "bytes": 921,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/unic/char/property/Cargo.toml"
+        },
+        "upstreamManifestPath": "unic/char/property/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "bytes": 1023,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "unic-char-range",
+      "version": "0.9.0",
+      "license": "MIT/Apache-2.0",
+      "manifestSha256": "36d694fec9b997f5cd86861a5d062d0e69794e051b07d8ebf1b79ab9482c3462",
+      "archiveSha256": "0398022d5f700414f6b899e10b8348231abf9173fa93144cbc1a43b9793c1fbc",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "open-i18n/rust-unic",
+        "remoteRepository": "open-i18n/rust-unic",
+        "commit": "5878605364af97a3358368a6eaef02104af2e016",
+        "cratePath": "unic/char/range",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "36d694fec9b997f5cd86861a5d062d0e69794e051b07d8ebf1b79ab9482c3462"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "d176bfd5d70a75b4b8b27ee24e9a8bdd3138aaa3bf0903a7f58497b4e4490f59"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "72a0e361aab8e7af18af799a6046b290a930d94b76c551bf0667e0726f9d42d1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/d176bfd5d70a75b4b8b27ee24e9a8bdd3138aaa3bf0903a7f58497b4e4490f59.toml",
+          "sha256": "d176bfd5d70a75b4b8b27ee24e9a8bdd3138aaa3bf0903a7f58497b4e4490f59",
+          "bytes": 1037,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/unic/char/range/Cargo.toml"
+        },
+        "upstreamManifestPath": "unic/char/range/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "bytes": 1023,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "unic-common",
+      "version": "0.9.0",
+      "license": "MIT/Apache-2.0",
+      "manifestSha256": "719fc6cbaa72559247169192a041fc1c4dfcec442987b204a7237e22836bbb14",
+      "archiveSha256": "80d7ff825a6a654ee85a63e80f92f054f904f21e7d12da4e22f9834a4aaa35bc",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "open-i18n/rust-unic",
+        "remoteRepository": "open-i18n/rust-unic",
+        "commit": "5878605364af97a3358368a6eaef02104af2e016",
+        "cratePath": "unic/common",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "719fc6cbaa72559247169192a041fc1c4dfcec442987b204a7237e22836bbb14"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "5c74ebf8b8eede95170fbef14b6050735ce8993ce265978f41562386cb0c2bb9"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "72a0e361aab8e7af18af799a6046b290a930d94b76c551bf0667e0726f9d42d1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/5c74ebf8b8eede95170fbef14b6050735ce8993ce265978f41562386cb0c2bb9.toml",
+          "sha256": "5c74ebf8b8eede95170fbef14b6050735ce8993ce265978f41562386cb0c2bb9",
+          "bytes": 805,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/unic/common/Cargo.toml"
+        },
+        "upstreamManifestPath": "unic/common/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "bytes": 1023,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "unic-ucd-ident",
+      "version": "0.9.0",
+      "license": "MIT/Apache-2.0",
+      "manifestSha256": "990a4fc63119a8cbf5118d6dc98b279ea96cf3b7fb90eede1be27107716decfc",
+      "archiveSha256": "e230a37c0381caa9219d67cf063aa3a375ffed5bf541a452db16e744bdab6987",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "open-i18n/rust-unic",
+        "remoteRepository": "open-i18n/rust-unic",
+        "commit": "8a6ce83063d90b91ae2ce59eddb803edd393fca9",
+        "cratePath": "unic/ucd/ident",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "990a4fc63119a8cbf5118d6dc98b279ea96cf3b7fb90eede1be27107716decfc"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "9c1c7cfc028e70f52a6a5bdc126c9348837783e5e3e059429c05fadb9af8ec8d"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "64e154b113a16828624a2baedc6e70e8e6ea8f5c8cf8455d2c255762c0f43a8a"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/9c1c7cfc028e70f52a6a5bdc126c9348837783e5e3e059429c05fadb9af8ec8d.toml",
+          "sha256": "9c1c7cfc028e70f52a6a5bdc126c9348837783e5e3e059429c05fadb9af8ec8d",
+          "bytes": 1175,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/8a6ce83063d90b91ae2ce59eddb803edd393fca9/unic/ucd/ident/Cargo.toml"
+        },
+        "upstreamManifestPath": "unic/ucd/ident/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/8a6ce83063d90b91ae2ce59eddb803edd393fca9/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "bytes": 1023,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/8a6ce83063d90b91ae2ce59eddb803edd393fca9/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "unic-ucd-version",
+      "version": "0.9.0",
+      "license": "MIT/Apache-2.0",
+      "manifestSha256": "75628c37e215f72578113d96f746acba57b8a2f3448675a2f2a807f0930d4ce7",
+      "archiveSha256": "96bd2f2237fe450fcd0a1d2f5f4e91711124f7857ba2e964247776ebeeb7b0c4",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "open-i18n/rust-unic",
+        "remoteRepository": "open-i18n/rust-unic",
+        "commit": "5878605364af97a3358368a6eaef02104af2e016",
+        "cratePath": "unic/ucd/version",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "75628c37e215f72578113d96f746acba57b8a2f3448675a2f2a807f0930d4ce7"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "6411d1d10e5bf720a19366db6ab5f4c84cf1156c7033fafbd941f64729bd027c"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "72a0e361aab8e7af18af799a6046b290a930d94b76c551bf0667e0726f9d42d1"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/6411d1d10e5bf720a19366db6ab5f4c84cf1156c7033fafbd941f64729bd027c.toml",
+          "sha256": "6411d1d10e5bf720a19366db6ab5f4c84cf1156c7033fafbd941f64729bd027c",
+          "bytes": 876,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/unic/ucd/version/Cargo.toml"
+        },
+        "upstreamManifestPath": "unic/ucd/version/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE",
+          "sourcePath": "LICENSE-APACHE"
+        },
+        {
+          "file": "texts/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "bytes": 1023,
+          "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT",
+          "sourcePath": "LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "uuid-simd",
+      "version": "0.8.0",
+      "license": "MIT",
+      "manifestSha256": "ec723e989ff2ceff4e2d51c831093fb3e5f5e69f8496afd01bbf6648e37e2464",
+      "archiveSha256": "23b082222b4f6619906941c17eb2297fff4c2fb96cb60164170522942a200bd8",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "Nugine/simd",
+        "remoteRepository": "Nugine/simd",
+        "commit": "d74c030d9dc4f3cae02146d1f497ff62726ef09a",
+        "cratePath": "crates/uuid-simd",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "ec723e989ff2ceff4e2d51c831093fb3e5f5e69f8496afd01bbf6648e37e2464"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "c403470724eee7edf65a6596ffb86f12814724cd67d4d34423b77e91a9a148e4"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "9235ab068fdb6b50a2b0fdad57df40ed34461ea3a81e7d3a1584962f3f84e5a9"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/c403470724eee7edf65a6596ffb86f12814724cd67d4d34423b77e91a9a148e4.toml",
+          "sha256": "c403470724eee7edf65a6596ffb86f12814724cd67d4d34423b77e91a9a148e4",
+          "bytes": 852,
+          "url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/crates/uuid-simd/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/uuid-simd/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d.txt",
+          "sha256": "71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d",
+          "bytes": 1062,
+          "url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "cargo",
+      "name": "vsimd",
+      "version": "0.8.0",
+      "license": "MIT",
+      "manifestSha256": "7a3defd1f3b642bc229a518351f3feb23a69ddaf0349414562edbeeca40d60ad",
+      "archiveSha256": "5c3082ca00d5a5ef149bb8b555a72ae84c9c59f7250f013ac822ac2e49b19c64",
+      "provenance": {
+        "kind": "cargo-fixed-commit",
+        "repository": "Nugine/simd",
+        "remoteRepository": "Nugine/simd",
+        "commit": "d74c030d9dc4f3cae02146d1f497ff62726ef09a",
+        "cratePath": "crates/vsimd",
+        "sourceFiles": [
+          {
+            "file": "Cargo.toml",
+            "sha256": "7a3defd1f3b642bc229a518351f3feb23a69ddaf0349414562edbeeca40d60ad"
+          },
+          {
+            "file": "Cargo.toml.orig",
+            "sha256": "cc626a72f9f89509460429bc40702d4b1d65118392790dea3e2cbf852884843d"
+          },
+          {
+            "file": ".cargo_vcs_info.json",
+            "sha256": "b6a479e65704d09745d31e0d86d23ca44ba673b01ddd0da81cc8ba619a92b2aa"
+          }
+        ],
+        "upstreamManifest": {
+          "file": "manifests/cc626a72f9f89509460429bc40702d4b1d65118392790dea3e2cbf852884843d.toml",
+          "sha256": "cc626a72f9f89509460429bc40702d4b1d65118392790dea3e2cbf852884843d",
+          "bytes": 585,
+          "url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/crates/vsimd/Cargo.toml"
+        },
+        "upstreamManifestPath": "crates/vsimd/Cargo.toml"
+      },
+      "notices": [
+        {
+          "file": "texts/71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d.txt",
+          "sha256": "71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d",
+          "bytes": 1062,
+          "url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE",
+          "sourcePath": "LICENSE"
+        }
+      ]
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@epicgames-ps/lib-pixelstreamingcommon-ue5.8",
+      "version": "0.1.0",
+      "license": "MIT",
+      "manifestSha256": "bdbf5e4731723e20659334714cde1b1a46086920109dccf7a4e6d0cac2fd6cbc",
+      "integrity": "sha512-Za+1lC0MotucgSRBkCnRx4KSGXJAe2E6AcdJIGsG1SKa51sOIYtvACwIQ31C5SF6fUZiHwBk06JixfHmRkmhxA==",
+      "provenance": {
+        "kind": "npm-fixed-commit",
+        "metadata": {
+          "file": "metadata/c4f2defebb2dea3dfb64504739591700db5964032a2e27b4cbceae4c1cf31a46.json",
+          "sha256": "c4f2defebb2dea3dfb64504739591700db5964032a2e27b4cbceae4c1cf31a46",
+          "bytes": 3194,
+          "url": "https://registry.npmjs.org/%40epicgames-ps%2Flib-pixelstreamingcommon-ue5.8/0.1.0"
+        },
+        "releaseManifest": {
+          "file": "manifests/bdbf5e4731723e20659334714cde1b1a46086920109dccf7a4e6d0cac2fd6cbc.json",
+          "sha256": "bdbf5e4731723e20659334714cde1b1a46086920109dccf7a4e6d0cac2fd6cbc",
+          "bytes": 2415
+        },
+        "targetArchiveSha512": "65afb5942d0ca2db9c8124419029d1c782921972407b613a01c749206b06d5229ae75b0e218b6f002c08437d42e5217a7d46621f0064d3a262c5f1e64649a1c4",
+        "archiveIntegrityVerifiedAtAcquisition": true,
+        "repository": "EpicGames/PixelStreamingInfrastructure",
+        "commit": "15f96c6fb5bb0cacd3aee333bc618f92ef418612",
+        "upstreamManifest": {
+          "file": "manifests/bdbf5e4731723e20659334714cde1b1a46086920109dccf7a4e6d0cac2fd6cbc.json",
+          "sha256": "bdbf5e4731723e20659334714cde1b1a46086920109dccf7a4e6d0cac2fd6cbc",
+          "bytes": 2415,
+          "url": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/15f96c6fb5bb0cacd3aee333bc618f92ef418612/Common/package.json"
+        },
+        "upstreamManifestPath": "Common/package.json"
+      },
+      "notices": [
+        {
+          "file": "texts/64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d.txt",
+          "sha256": "64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d",
+          "bytes": 1051,
+          "url": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/15f96c6fb5bb0cacd3aee333bc618f92ef418612/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@epicgames-ps/lib-pixelstreamingfrontend-ue5.8",
+      "version": "0.1.2",
+      "license": "MIT",
+      "manifestSha256": "1e031abda9a7b4a8f821cad91f406f9060ffcc7d9c354da9a836120db30339f4",
+      "integrity": "sha512-Ii/dGs/LHzdkD4iT2Az5trvswha8dQvvtJxfpnfvZKMtbg7VFpiBNlZORmhQodeYeKCPWbKpACHBB+MBop06HA==",
+      "provenance": {
+        "kind": "npm-fixed-commit",
+        "metadata": {
+          "file": "metadata/a687f1215cc730d9afa96a22b11187eb6ca281973ae06b6b8ba66ad6397cddae.json",
+          "sha256": "a687f1215cc730d9afa96a22b11187eb6ca281973ae06b6b8ba66ad6397cddae",
+          "bytes": 3030,
+          "url": "https://registry.npmjs.org/%40epicgames-ps%2Flib-pixelstreamingfrontend-ue5.8/0.1.2"
+        },
+        "releaseManifest": {
+          "file": "manifests/1e031abda9a7b4a8f821cad91f406f9060ffcc7d9c354da9a836120db30339f4.json",
+          "sha256": "1e031abda9a7b4a8f821cad91f406f9060ffcc7d9c354da9a836120db30339f4",
+          "bytes": 1731
+        },
+        "targetArchiveSha512": "222fdd1acfcb1f37640f8893d80cf9b6bbecc216bc750befb49c5fa677ef64a32d6e0ed516988136564e466850a1d79878a08f59b2a90021c107e301a29d3a1c",
+        "archiveIntegrityVerifiedAtAcquisition": true,
+        "repository": "EpicGames/PixelStreamingInfrastructure",
+        "commit": "946450de5250fc7ae219dcdec5a6bdee8ecd2005",
+        "upstreamManifest": {
+          "file": "manifests/1e031abda9a7b4a8f821cad91f406f9060ffcc7d9c354da9a836120db30339f4.json",
+          "sha256": "1e031abda9a7b4a8f821cad91f406f9060ffcc7d9c354da9a836120db30339f4",
+          "bytes": 1731,
+          "url": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/946450de5250fc7ae219dcdec5a6bdee8ecd2005/Frontend/library/package.json"
+        },
+        "upstreamManifestPath": "Frontend/library/package.json"
+      },
+      "notices": [
+        {
+          "file": "texts/64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d.txt",
+          "sha256": "64cc3c15c799a5a75c92931a65ae253429b642563384797aa3ca9f2d3f1de26d",
+          "bytes": 1051,
+          "url": "https://raw.githubusercontent.com/EpicGames/PixelStreamingInfrastructure/946450de5250fc7ae219dcdec5a6bdee8ecd2005/LICENSE.md",
+          "sourcePath": "LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@esbuild/darwin-arm64",
+      "version": "0.25.12",
+      "license": "MIT",
+      "manifestSha256": "79a69873b3ae6dbc47d8c3c8027b9563630f65e8fe58690183c5398a52410e7f",
+      "integrity": "sha512-N3zl+lxHCifgIlcMUP5016ESkeQjLj/959RxxNYIthIg+CQHInujFuXeWbWMgnTo4cp5XVHqFPmpyu9J65C1Yg==",
+      "provenance": {
+        "kind": "npm-parent-release",
+        "metadata": {
+          "file": "metadata/d2892c9fb6513d8c36969f0b800acd47b993cc2d3dc30358837bbef3fb9e8dab.json",
+          "sha256": "d2892c9fb6513d8c36969f0b800acd47b993cc2d3dc30358837bbef3fb9e8dab",
+          "bytes": 1393,
+          "url": "https://registry.npmjs.org/%40esbuild%2Fdarwin-arm64/0.25.12"
+        },
+        "releaseManifest": {
+          "file": "manifests/79a69873b3ae6dbc47d8c3c8027b9563630f65e8fe58690183c5398a52410e7f.json",
+          "sha256": "79a69873b3ae6dbc47d8c3c8027b9563630f65e8fe58690183c5398a52410e7f",
+          "bytes": 383
+        },
+        "targetArchiveSha512": "377ce5fa5c470a27e022570c50fe74d7a11291e4232e3ffde7d471c4d608b61220f82407227ba316e5de59b58c8274e8e1ca795d51ea14f9a9caef49eb90b562",
+        "archiveIntegrityVerifiedAtAcquisition": true,
+        "parent": {
+          "name": "esbuild",
+          "version": "0.25.12",
+          "license": "MIT",
+          "path": "node_modules/esbuild",
+          "integrity": "sha512-bbPBYYrtZbkt6Os6FiTLCTFxvq4tt3JKall1vRwshA3fdVztsLAatFaZobhkBC8/BrPetoa0oksYoKXoG4ryJg==",
+          "manifestSha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935",
+          "metadata": {
+            "file": "metadata/2d519a80bfd174247d8c092d170227cb3a48674f066809580332d27abf0c2a5e.json",
+            "sha256": "2d519a80bfd174247d8c092d170227cb3a48674f066809580332d27abf0c2a5e",
+            "bytes": 2292,
+            "url": "https://registry.npmjs.org/esbuild/0.25.12"
+          },
+          "releaseManifest": {
+            "file": "manifests/cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935.json",
+            "sha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935",
+            "bytes": 1490
+          },
+          "archiveSha512": "6db3c1618aed65b92de8eb3a1624cb093171beae2db7724a6a5975bd1c2c840ddf755cedb0b01ab45699a1b864042f3f06b3deb686b4a24b18a0a5e81b8af226"
+        }
+      },
+      "notices": [
+        {
+          "file": "texts/b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681.txt",
+          "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681",
+          "bytes": 1069,
+          "url": "https://registry.npmjs.org/esbuild/-/esbuild-0.25.12.tgz#package/LICENSE.md",
+          "sourcePath": "package/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "ecosystem": "npm",
+      "name": "@rollup/rollup-darwin-arm64",
+      "version": "4.62.2",
+      "license": "MIT",
+      "manifestSha256": "c346f9386b10e7c2f3ac9d19083221cd2629ca125aa90644b3115ea8743c066a",
+      "integrity": "sha512-v39RCCvj4He82I9sFmk+M1VZ0PLM9sfsLVikjfx2hYBNALhrrOR2D3JjQA6AhlaSOgcR+RzrKY7e1+bT6SUO/A==",
+      "provenance": {
+        "kind": "npm-parent-release",
+        "metadata": {
+          "file": "metadata/71fc6f34bb04cd1e1d3d5985f90ae4d7e6f3ead5b29e3dcaf407880d5e417ee2.json",
+          "sha256": "71fc6f34bb04cd1e1d3d5985f90ae4d7e6f3ead5b29e3dcaf407880d5e417ee2",
+          "bytes": 1812,
+          "url": "https://registry.npmjs.org/%40rollup%2Frollup-darwin-arm64/4.62.2"
+        },
+        "releaseManifest": {
+          "file": "manifests/c346f9386b10e7c2f3ac9d19083221cd2629ca125aa90644b3115ea8743c066a.json",
+          "sha256": "c346f9386b10e7c2f3ac9d19083221cd2629ca125aa90644b3115ea8743c066a",
+          "bytes": 451
+        },
+        "targetArchiveSha512": "bf7f51082be3e077bcd88f6c16693e335559d0f2ccf6c7ec2d58a48dfc7685804d00b86bace4760f7263400e808656923a0711f91ceb298eded7e6d3e9250efc",
+        "archiveIntegrityVerifiedAtAcquisition": true,
+        "parent": {
+          "name": "rollup",
+          "version": "4.62.2",
+          "license": "MIT",
+          "path": "node_modules/rollup",
+          "integrity": "sha512-RFnrW4lhXA3s3eqHDZvN654g8OTjzRfqpIRJYczCGB6HzphckVAi/Qh4tbPUbRuDi7s1Llv8g/NspLkttY3gTA==",
+          "manifestSha256": "f4c43bde641711b4e7cda761bf681dd6b694e58e10cb02bc8a4f691f39f2a8a4",
+          "metadata": {
+            "file": "metadata/be8151f89c8c7a1e420b80f80fc69b300d214f4397602c5054f95eb11f399118.json",
+            "sha256": "be8151f89c8c7a1e420b80f80fc69b300d214f4397602c5054f95eb11f399118",
+            "bytes": 12017,
+            "url": "https://registry.npmjs.org/rollup/4.62.2"
+          },
+          "releaseManifest": {
+            "file": "manifests/f4c43bde641711b4e7cda761bf681dd6b694e58e10cb02bc8a4f691f39f2a8a4.json",
+            "sha256": "f4c43bde641711b4e7cda761bf681dd6b694e58e10cb02bc8a4f691f39f2a8a4",
+            "bytes": 12427
+          },
+          "archiveSha512": "4459eb5b89615c0decddea870d9bcdeb9e20f0e4e3cd17eaa4844961ccc2181e87ce985c915022fd0878b5b3d46d1b838bbb352e5bfc83f36ca4b92db58de04c"
+        }
+      },
+      "notices": [
+        {
+          "file": "texts/fa1bd040c5bdeefe65b3821cebf474f2733ce65df13089bd151dda1778e62fe8.txt",
+          "sha256": "fa1bd040c5bdeefe65b3821cebf474f2733ce65df13089bd151dda1778e62fe8",
+          "bytes": 35231,
+          "url": "https://registry.npmjs.org/rollup/-/rollup-4.62.2.tgz#package/LICENSE.md",
+          "sourcePath": "package/LICENSE.md"
+        }
+      ]
+    }
+  ]
+}

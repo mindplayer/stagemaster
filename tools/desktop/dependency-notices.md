@@ -17,3 +17,5 @@ collected只表示找到原文；missing表示已安装但缺独立原文；not-
 固定边界：1024包／节点、单包16份原文、单文本512KiB、收集及合并16MiB；原包64MiB、展开读取128MiB／16384成员，核对单进程60秒期限。违规、篡改、重复、未知来源、路径／链接、非UTF-8或旧目标明确拒绝；写入失败不登记成功，可能留下未完成新目录，旧目标不被覆盖。
 
 相关验证：`TMPDIR="$PWD/tmp" node --test tools/desktop/*.test.mjs tools/previs/*.test.mjs`。实际版本、结果与未完成项见[DESKTOP-006](../../docs/development/tasks/DESKTOP-006-dependency-notice-materials.md)。
+
+后继[DESKTOP-009固定补充](notices/README.md)另对已安装的45个缺项核对原包／固定提交／发布关系，离线生成新材料；本入口及旧索引的missing事实保持，不自动改写或附加到旧.app。补充不等于全产品许可、最终链接清单或发行批准。
