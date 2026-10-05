@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**[DESKTOP-010](tasks/DESKTOP-010-native-handoff-exports.md) 实施中，持续goal active**：main基线`ac08041`，主工作区单写者、output/未读未动。复用已有配灯表／节目单／播放包及当前内部候选，补首版无音乐副本的软件交接导出与独立读包／重放；先提交范围再操作。软件范例策略与实际设备权限／物理输出分开，不改原格式、包、签名或权限，不开启声音／三维／后台／设备，不重做已完成主功能或扩H6。
+
 **[DESKTOP-009](tasks/DESKTOP-009-pinned-notice-supplements.md) 有限材料增量完成、自审通过，持续 goal active**：main基线`99c1983`、范围`fbc8f4f`／追加隔离诊断`b85c200`，结果为本次`feat(release): collect pinned desktop notice supplements`提交；主工作区单写者、output/未读未动，不改原包／安装缓存或重做已通过原生流程。
 
 - 41个Rust锁定原包／固定清单、4目标npm＋2父包实际归档与原文核对，79份固定原资料344,278字节纳入Git。新516包保守报告补齐45个已安装原文缺项，旧missing保留、49个可选未安装另列，仍非最终二进制清单或商业批准。四份离线索引／全文相同，原文3,674,571字节；[使用与边界](../../tools/desktop/notices/README.md)。
