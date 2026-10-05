@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)ready**，基线 main `cfda937`，限定原生验收计划先纳入版本。复用已有严格签名内部包及固定权限实例，对独立的 AUDIO-021 工程／MP3副本做 software静音真实PCM／正式循环／后台只读灯值与实际 GPU组合验证；不重做已交付的循环编排，不启用系统音乐播放、实灯或编辑器，不改当前 Rust产物。PREVIS-007 原全量仍由下方同一会话运行，必须独立核实，不用本项替代；客户发行改造暂不展开，完整 goal active。
+
 **[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)实现／原生已交付，完整软件出口验证中，工单未结项**，基线 main `20d2476`，限定计划／[ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)先提交 `0fc97db`，实现结果为本次 `feat(previs): assemble scoped development desktop` 提交。复用原 Game／Node／正式桌面的唯一内部副本，Rust 明确设置 Game 子进程平台用户目录、清理加载覆盖；原四项沙盒资格＋准确五目录、内部身份／macOS 14.0，原包不改、不重建 UE，官方信令无薄层。
 
 - 最终 **135 Node（16 新保护）、桌面142 Rust（含36相关）**、全目标严格 Clippy／fmt、五工具语法／格式及正式 `.app` 构建通过；当前全工作区仍执行，不记为通过。两轮正式桌面真实包内 Game／Node／GPU，8×6×5米空间／墙体地板、透视／俯视、跨页唯一公共视窗、保存退出／最近重开及明确停止／运行中退出后的进程／端口回收通过。未知灯具未摆放，无音乐／后台／设备／输出，不称灯效／权威时间／性能通过。
