@@ -1,6 +1,6 @@
 # PRODUCT-ADR-170：告知材料、来源核对与发行批准分开
 
-状态：2026-10-05有限决定待实施。关联[PREVIS-011](../tasks/PREVIS-011-signalling-notices.md)、[PREVIS-005](../tasks/PREVIS-005-signalling-component.md)、[PREVIS-010](../tasks/PREVIS-010-macos-distribution-preflight.md)。只是现行组件的私有构建交付，不改产品持久格式、模块依赖、运行权限或商业政策。
+状态：2026-10-05有限决定已实施并实际验证，结果 `e48d8c0`。关联[PREVIS-011](../tasks/PREVIS-011-signalling-notices.md)、[PREVIS-005](../tasks/PREVIS-005-signalling-component.md)、[PREVIS-010](../tasks/PREVIS-010-macos-distribution-preflight.md)。只是现行组件的私有构建交付，不改产品持久格式、模块依赖、运行权限或商业政策。
 
 ## 实际依据与成熟机制
 
@@ -16,3 +16,9 @@
 4. 仅原组装接入小模块，按职责分文件；原七项连接／隔离／EOF退出用例不改，实际新实例和移位重复验证。旧证据不写成当时已有这些材料，新包仍非客户资格，不重签官方Node或处理调试资格。
 
 最终客户文件权限、Developer ID身份、Shipping／公证、UE与素材许可仍开放。Xcode系统临时例外和物理测量条件缺失只影响相应部分；本轮软件工作不扩大权限、操作真实设备或自动召回Astra，完整goal active。
+
+## 实际有限结论
+
+195 Node（28新增）、相关语法／格式通过，初始24项和自审2项真实失败保留后修复，未弱化原断言。原锁离线新组件与中文空格移位各原7项实际连接／EOF退出通过；只新增告知全文和索引两文件，其他2273文件等于原组件。Node原完整告知与124项依赖材料均有散列；cookie原README全文、两项Epic固定npm gitHead对应的原清单／许可字节实际匹配，旧三项待审标记保持。
+
+同名其他版本不会借固定文本解除缺项，空白／畸形／超预算／来源篡改和覆盖明确拒绝。证据 `data/PREVIS-011/verification.json`及工单；材料缺项0仅为已核对组件的技术交付结论，**商业／全产品许可批准仍false**。实际Node证书／runtime／时间戳与get-task-allow=true均保持，本决定没有处置其调试资格或签名，也不解除PREVIS-010阻止报告、客户权限／Shipping／原生环境和其他产品出口。

@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-011 信令组件第三方告知](tasks/PREVIS-011-signalling-notices.md)已限定计划，待实施**，基线 main `c8ea5eb`，关联[ADR-170](decisions/PRODUCT-ADR-170-signalling-notices.md)，先提交再实现。H5独立补可追溯的许可交付：原独立许可、cookie准确版本原README嵌入文本、两项Epic固定发布提交许可分别记录；原124包／锁／Node签名／旧needsLicenseReview和历史证据保持。只补材料与真实离线组装／移位验收，不授予法律／商业发行批准，不重签、扩权或启动UE；客户权限／Shipping等受影响部分仍开放，完整goal active。
+**[PREVIS-011 信令组件第三方告知](tasks/PREVIS-011-signalling-notices.md)有限增量完成，自审通过**，基线 main `c8ea5eb`，计划／[ADR-170](decisions/PRODUCT-ADR-170-signalling-notices.md)先提交 `d6401d4`，实现结果 `e48d8c0`。复用原组装／锁和文件工具，124依赖原独立许可／cookie准确版本原README嵌入文本／两项Epic固定发布提交许可分别定位，Node完整告知保持；材料准备与法律／商业发行批准分开。
+
+- 最终实际 **195 Node（28新保护）**、六JS语法／相关Prettier与差异通过。26项旧行为接缝先2通过／24断言失败，再原26项通过；自审同名嵌套不同版本借告知、纯空白文本两项实际失败后修复，最终全195无跳过。文本固定512KiB／合并8MiB／单包16份／256锁包，读取不因文件增长无限分配；入口仅两行接线，文件最大178行。第一次npm探索URL编码错误405及汇总脚本错导出名退出1保留，后继准确来源／实际汇总完成，不改保护或回写旧记录。
+- 全新 `previs-signalling-sVNMaV` 实际按原锁离线安装124包，原目录／中文空格移位各原7项真实连接／EOF／两端口退出通过，**2275文件仅新增告知全文与索引两份，其他2273文件逐项等于原资格组件**，移位清单／告知字节一致。314482字节全文有Node及124项依赖的可追溯文本；cookie保留原1490字节README全文，两项Epic分别绑定npm发布gitHead、锁完整性、对应上游清单原字节及1051字节许可哈希。旧索引三项needsLicenseReview仍为true，不写成原来有独立文件或全产品许可已批准。
+- 证据 `data/PREVIS-011/verification.json`／`assembly-ref.json`／`source-observations.json`／`red-result.json`，日志 `logs/previs-011-*`及`logs/PREVIS-005/previs-signalling-sVNMaV/`。原共用组装器仍用005命名空间，新记录由011明确引用；旧实例／证据不改名。源依赖树2267文件、原Game／Node、007／009资格包、受保护工程／默认最近目录及009修复源码保持；用户output/未动。实际Node严格签名／Developer ID／runtime／时间戳保持，但调试资格仍true；所属Node已退出，无Game／音乐／设备／签名／权限变更。
+- **下一步仍为客户可移动目录／最终权限与签名／Shipping的限定决定和实际资格**，本次不补写整个产品许可已通过。Xcode系统临时例外／正式签名条件仍未满足，不执行受影响构建或自动选择证书；可独立软件继续，H1听音、H3厂家／完整光学、H4差分／完整最坏组合／8小时、H5客户GPU／公证／全产品许可／未参与开发者任务保持，完整goal active，不扩H6。
 
 **[PREVIS-010 Mac发行前只读静态检查](tasks/PREVIS-010-macos-distribution-preflight.md)有限增量完成，自审通过**，基线 main `cb224a8`，计划／[ADR-169](decisions/PRODUCT-ADR-169-macos-distribution-preflight.md)先提交 `bdcfd4a`，实现结果 `64e2a6a`。四入口严格封套、独立 Developer ID 证书要求、资格和最低系统分别采集；只读诊断不授予客户发行资格，不改变运行时、既有组装、签名或权限。
 
