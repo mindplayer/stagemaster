@@ -1,6 +1,6 @@
 # PRODUCT-ADR-168：后台三维读取的繁忙分类
 
-状态：2026-10-05 已有限实施，红绿／桌面／严格检查通过，完整软件及原生复验中。关联 [PREVIS-008](../tasks/PREVIS-008-native-audio-loop-observation.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)、[后台只读三维](../../module-api/background-previsualization.md)。
+状态：2026-10-05 已有限实施并实际验证，自审通过，源码`03dec8a`。1303 Rust＋2文档、全目标严格Clippy／fmt、正式桌面构建及两轮原生200／503／音乐只读GPU／回收通过；不是客户发行或听音／物理验收。关联 [PREVIS-008](../tasks/PREVIS-008-native-audio-loop-observation.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)、[后台只读三维](../../module-api/background-previsualization.md)。
 
 ## 实际证据
 
@@ -17,3 +17,5 @@ PREVIS-008 正式内部桌面复用现有音乐消费者与独立 Game，固定�
 5. 先保护分类红灯／真实争用，再相关Rust、当前全量、严格检查和正式桌面构建。按ADR-167复用原Game／Node生成新的独立内部副本，原PREVIS-007／008包与证据保持；再验收真实200／503争用、音乐回执及只读GPU，008完整出口只在实际复验后收敛。
 
 采用现有 Rust非阻塞锁、HTTP暂时繁忙和EFFECT-004保持机制，不自建观测服务或第二渲染入口。修复是实现对既有繁忙边界的对齐，不授予控制／编辑／硬件资格，也不把首轮未知409根因写成已证明或已修复。现场听音、厂家光学、客户发行和物理／长期门槛不因此关闭。
+
+实际交付见`data/PREVIS-009/verification.json`及`combination-reverification.json`；旧008的false检查点及未知首轮409保持。两组真实并发均200／503，80灯暂停量化与同一后台／音源重开隔离通过；原UE源码／2秒期限未改，没有新增签名权限范围。共用组装工具仍输出007历史任务标签，由009独立引用新唯一实例；旧资格包和原Game／Node清单保持，不冒认客户Shipping资格。

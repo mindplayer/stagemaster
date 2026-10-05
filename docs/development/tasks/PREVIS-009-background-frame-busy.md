@@ -1,6 +1,6 @@
 # PREVIS-009：后台三维读取繁忙的明确分类
 
-状态：实现／验证中，2026-10-05，工单未结项。基线 main `b66169024f90963b5a5347ef8f9b7577e6c56f29`，主工作区单写者；限定计划／[ADR-168](../decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa01106c6ce8c728b3a39ed37aff1dd63ce5`。基线产品来源代码 `cfda937`，PREVIS-007已全量结项；PREVIS-008原生检查点未完整结项，用户output/保持。
+状态：有限修复完成，2026-10-05，自审通过。基线 main `b66169024f90963b5a5347ef8f9b7577e6c56f29`，主工作区单写者；限定计划／[ADR-168](../decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa01106c6ce8c728b3a39ed37aff1dd63ce5`，实现结果 `03dec8a26cfd85993626d6ebd256029ea111aebf`。基线产品来源代码 `cfda937`，PREVIS-007已全量结项；PREVIS-008原检查点保留，在本修复版本有限复验收敛，用户output/保持。
 
 ## 一个问题
 
@@ -23,6 +23,15 @@
 五个桌面Rust文件：后台适配、内部失败类型、失败分类测试、模块组装和HTTP出口。局部锁直接Busy，核心字符串只准确503可Busy；输出映射／样本完整性／身份／期限／故障默认Refused。503保留原中文原因，既有activity.seen／UE有效帧期限不延长，没有队列或写请求。新分类20行／测试45行；原server修改后340行，已评估保留其HTTP边界，独立规则与测试不继续堆入它。
 
 - 先保持原409出口引入测试接缝，原命令实际编译后退出101，**1通过／2失败**（局部409≠503、准确上游503未分类）；随后原3项断言不变，原命令退出0、**3通过**。不是编译错误红灯。日志 `logs/previs-009-classification-{red,green}.log`；基线与红灯源码摘要 `data/PREVIS-009/baseline.json`。
-- 当前全量内桌面**145通过、2个既有子进程入口由父测试调用**，全目标严格Clippy与fmt通过；全部工作区仍执行，工具会话83024／Cargo PID21826，`logs/previs-009-workspace.log`。继续同一命令核对退出，不重复或用145冒充完整汇总。未改UI／UE／核心／执行宿主／锁文件，不累加旧UI或编辑器测试。
-- 正式构建会话34649／`logs/previs-009-desktop-final.log`仍执行。首条错误调用未安装cargo-tauri的失败保留 `logs/previs-009-desktop.log`，改用已存在`npm --prefix apps/ui-prototype run desktop:build`，没有新安装／升级或跳过构建。
-- 新原生尚未执行，完整验证与008收敛均未完成。现行共用组装工具仍生成`data/PREVIS-007/<全新实例>`及对应日志／原工具标签；009以独立`assembly-ref.json`记录用途、源码与引用，原记录标签不改。原007／008内部包与失败证据保持，不把本地ad-hoc副本叫客户发行。
+- 最终当前全量**1303 Rust＋2文档**通过，3个既有子进程入口由父测试调用；桌面145项包含在全量、不是额外累加。原会话83024／Cargo PID21826等待后退出0，实际完成证据 `data/PREVIS-009/workspace-result.json`，日志 `logs/previs-009-workspace.log`。全目标严格Clippy／fmt通过；未改UI／UE／核心／执行宿主／锁文件，不累加旧UI或编辑器测试。
+- 正式构建会话34649退出0／`logs/previs-009-desktop-final.log`，生成正式`.app`。首条错误调用未安装cargo-tauri的失败保留 `logs/previs-009-desktop.log`，使用既有`npm --prefix apps/ui-prototype run desktop:build`，没有新安装／升级或跳过构建；资源大块警告保持。
+- 共用工具原样生成唯一`previs-desktop-Q7O6hY`、`data/PREVIS-007/<全新实例>`及原标签；009独立`assembly-ref.json`记录用途／五源码哈希与引用。没有改签原Game或旧资格包，没有新Xcode／UAT。原Game32文件、Node2273文件、本轮桌面来源4文件、新复制包清单以及旧007／008包与受保护工程／素材／默认最近目录保持，三份严格签名通过。
+
+## 最终原生验收与审查
+
+- 正式界面只选音乐，确认静音预演后载入；播放与暂停界面状态确认，独立实际回执request1播放、3精确十秒定位、4继续、5停止均Applied，播放消费真实PCM。80灯／20场景／4正式循环和30秒MP3副本原样；后台灯光软件输出，无系统声音或设备。
+- 原生两轮Game／Node离屏GPU，无编辑器／NullRHI。实际并发只读帧每轮200／503，繁忙正文准确“后台观察正在读取”，不提交控制。十秒暂停点80台RGB／亮度与实际512槽u8量化逐项相等、10台非零；背景身份／协议2／代次0／版本与只读保持，暂停instance3／位置／帧数及投影不因并发、俯视或音乐页切换改变。
+- 工作照明关后的蓝／暖灯光、俯视和音乐页实际截图保存。跨页同一公共视窗、同一Game／Node；三维独立停止后3端口拒绝，原后台／run／instance3继续消费PCM，重开新的Game／Node／bridge成功只读连接。明确停止音乐归零并Applied，关闭后台后正常退出应用0；6个所属PID／7端口全部退出／ECONNREFUSED。
+- 汇总首轮将3份“无变化”AX差分误当完整树失败，日志与原差分／截图保留。实际截图经独立视读和哈希记录`visual-review.json`，原生启动／重开完整AX及实际HTTP响应均另核对；不伪造完整树、不改变产品断言。初次菜单选择尚未确认的截图亦保留，以后继实际静音确认截图／manifest为准。
+
+`data/PREVIS-009/verification.json`保存最终有限修复通过，旧`verification-pending.json`不回写；`combination-reverification.json`单列008原通过用例和修复版本组合结论，原008`verification.json`仍fullNativeAcceptance=false。首轮未保存正文的409根因仍未知；VT警告、系统加载等待及旧工作器缺陷未修复。听音／声卡／物理时延、厂家／完整光学、客户可移动签名Shipping／许可／外部代表任务、最坏组合与8小时均未通过，完整H1–H5 goal保持。下一步客户目录／权限组装的有限决定，不把当前绝对路径ad-hoc副本称客户发行。

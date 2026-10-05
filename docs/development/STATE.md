@@ -2,14 +2,16 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)实现／验证中，工单未结项**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa0`。桌面内部类型化Busy／拒绝已实现，2项实际红灯（409及上游未分类）后3项绿灯，当前全量内桌面145项、严格Clippy／fmt通过；完整工作区与正式构建仍执行，不能记为全量／原生通过。只将局部锁争用及准确上游读取503归为繁忙，近似文本、身份／鉴权／失效／故障和2秒期限保持；不改公开Reader／协议／时钟或UE。
+**[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)有限修复完成，自审通过**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa0`，实现结果 `03dec8a`。只将局部锁争用及准确上游读取503归为繁忙，近似文本、身份／鉴权／失效／故障和2秒期限保持；不改公开Reader／协议／时钟或UE，不新增播放器／观测队列／控制重试。
 
-- 同一原全量工具会话 `83024`／Cargo PID `21826`，日志 `logs/previs-009-workspace.log`，不得重复启动；正式项目脚本构建会话 `34649`，日志 `logs/previs-009-desktop-final.log`。首条误用未安装的cargo-tauri命令失败保留 `logs/previs-009-desktop.log`，没有安装新工具，改用既有`desktop:build`。源码五文件，分类／测试独立20／45行，既有server340行经评估保留HTTP职责，不堆入播放器／入口。
-- 基线／红灯证据 `data/PREVIS-009/baseline.json`，绿灯／严格日志 `logs/previs-009-*`；原008包、工程和失败记录保持，009尚未启动原生。正式包完成后按既有工具新建唯一内部副本，现行工具仍在`data/PREVIS-007/<新实例>`／`logs/PREVIS-007/<新实例>`输出历史标签，由009单独引用，不回写旧实例或冒记旧工单验收。接续当前完整汇总／构建，再实际200／503争用、音乐／只读GPU／回收，之后才收敛008／009；完整goal active。
+- 最终实际 **1303 Rust＋2文档**、严格全目标Clippy／fmt及正式`.app`构建通过；桌面145包含在全量，3个既有子进程入口由父测试调用。分类先1通过／2断言失败，再原3项全部通过。同一原全量会话83024退出0，计数／完成凭据 `data/PREVIS-009/workspace-result.json`；正式项目脚本构建34649退出0，没有重启全量或放宽检查。五源码文件，分类／测试20／45行，server340行经评估保留HTTP职责。
+- 新独立内部包 `previs-desktop-Q7O6hY` 两轮实际Game／Node／GPU、并发只读**200／503**及明确繁忙正文通过。正式界面静音音乐播放／暂停／十秒精确定位／继续／停止均Applied；80灯RGB／亮度逐项等于软件量化槽，10台非零；暂停音源／位置／帧数不变。俯视、工作照明关及音乐页复用同一公共视窗；三维单独关闭／重开不停止同一后台／音乐instance3，真实PCM继续，最后所属6个PID／7端口全关、应用正常退出0。
+- 证据 `data/PREVIS-009/verification.json`、`combination-reverification.json`、`visual-review.json`与实际state／frame／截图／关闭记录；日志 `logs/previs-009-*`／`logs/PREVIS-009/`。共用组装工具原样在`data/PREVIS-007/<全新实例>`生成历史标签，由009独立`assembly-ref.json`引用；旧007／008资格包／工程／证据、原Game／Node和本轮来源清单／受保护文件保持。首条未安装cargo-tauri命令失败、首份未确认选择截图和AX差分误作完整树的汇总失败均保留；最终用独立确认截图、真实响应及完整启动／重开AX核对，不放宽产品期限／保护。
+- **下一步客户可移动目录／权限／签名组装的限定决定与验收**，再正式Shipping／最低系统／许可／外部代表任务；现行本机绝对路径ad-hoc副本仅内部资格，不是客户发行。Xcode系统临时例外仍待答复，不执行新Xcode／UAT。H1听音／声卡、H3厂家／完整光学、H4差分／完整最坏组合／8小时、H5未参与开发者任务保持；历史首轮409未知根因、OS加载等待和VT警告未修复，完整goal active，不扩H6。
 
-**[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)验证中，实际检查点已保存，完整出口未通过**，基线 main `cfda937`，计划先提交 `1a16ba1`，本轮源码不变。独立80灯／20场景／4正式循环及30秒MP3副本，正式界面静音载入、真实PCM、固定第1／2／3遍、持续跨遍、暂停圈末退出／取消request4／5、运行圈末退出request8／9、自然结束与明确停止request10均有真实Applied；十秒暂停点80台RGB／亮度与软件量化槽逐项一致，10台非零。唯一实际Game／Node、关闭工作照明后的GPU、音乐页／相机保持及运行中三维重开不停止同一后台／音源通过；没有系统音乐／实灯／编辑器。
+**[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)有限联动验收完成，按009修复版本复验收敛**，原基线 main `cfda937`，计划先提交 `1a16ba1`，008检查点源码不变。独立80灯／20场景／4正式循环及30秒MP3副本，正式界面静音载入、真实PCM、固定第1／2／3遍、持续跨遍、暂停圈末退出／取消request4／5、运行圈末退出request8／9、自然结束与明确停止request10均有真实Applied；十秒暂停点80台RGB／亮度与软件量化槽逐项一致，10台非零。独立Game／Node／GPU、跨页／相机与运行中三维重开保持原后台／音源；009在`03dec8a`新包补实际两组200／503和相同跨边界复验，没有系统音乐／实灯／编辑器。
 
-- 额外帧观察首轮409失败保留，原检查器未保存其正文，根因不能追认；后继明确并发只读200／409复现了Reader争用分类问题，接009修复，不把部分检查写成完整通过。大运行记录误用项目JSON预算的检查脚本已按运行记录读取修正，产品预算未改；最近重开初次截到加载中、后继实际载入另存，不用中间态冒充成功。VT警告与性能／历史缺陷保持。
+- 原检查点额外帧观察首轮409失败保留，未保存其正文，根因不能追认；后继并发200／409的明确Reader争用由009修复并实际200／503复验，不追认首轮原因。旧`verification.json`仍原样fullNativeAcceptance=false，新版本有限联动结论单列`data/PREVIS-009/combination-reverification.json`，不回写历史失败。大记录误用项目JSON预算、最近重开首截加载中及后继实际核对保持记录；VT警告与性能／历史缺陷保持。
 - 证据 `data/PREVIS-008/verification.json`、`paused-projection-checks.json`、`parallel-frame-probe.json`、实际state／frame／AX／JPEG与关闭记录；日志 `logs/previs-008-*`／`logs/PREVIS-008/`。原Game／Node／桌面来源及复制包清单、三份严格签名、受保护工程／MP3／默认最近目录／历史证据保持；最近工程实际重开字节一致。音乐、所属后台／两轮Game／Node／端口与两次应用已明确关闭，用户output/未动。PREVIS-007原全量独立完成，不用本项替代；客户发行、听音／厂家／物理／长期门槛保持，完整goal active。
 
 **[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)有限增量完成，自审通过**，基线 main `20d2476`，限定计划／[ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)先提交 `0fc97db`，实现结果 `cfda937`。复用原 Game／Node／正式桌面的唯一内部副本，Rust 明确设置 Game 子进程平台用户目录、清理加载覆盖；原四项沙盒资格＋准确五目录、内部身份／macOS 14.0，原包不改、不重建 UE，官方信令无薄层。
