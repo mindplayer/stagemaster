@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-005 自包含 Node／信令组件](tasks/PREVIS-005-signalling-component.md) ready**，基线 main `bc97055`，计划先纳入版本。只组装锁定依赖／现有 Node，实际用包内 Node 验证原信令与移位；不新建协议／播放器，不改 Rust／UI／UE或签名，不把部分组件装入正式应用。与 PREVIS-004 的原生报告暂停部分解耦，最终整包仍须等其实际通过；系统临时例外未获答复，不执行 Xcode。许可文本缺项、组合系统版本、客户环境／GPU／硬件门槛保持，完整 goal active。
+
 **[PREVIS-004 静态链接依赖资格](tasks/PREVIS-004-packaged-renderer.md)有限软件增量完成，自审通过**，基线 main `0cf4668`，计划先提交 `e0ffd9a`；结果为本次 `feat(previs): verify standalone binary dependencies` 提交。官方 `lipo`／`otool` 只读核对原包和中文空格移位副本：**6 镜像／66 依赖（6 包内、60 系统）**全部有 ARM64，整体最低系统要求 14.0；移走副本 TBB 明确拒绝、归回恢复，原包签名／产物及受保护工程哈希保持，用户 output/ 未动。
 
 - 最终实际 **62 Node（28 新依赖＋34 原打包／信令）**、11 文件语法／格式、相关引用／严格 JSON／差异通过；自引用去重缺口先红后绿，失败证据保留。入口在 UAT 后、Game 启动前做静态资格并清理 DYLD 覆盖，不修改 UE／Rust／UI／协议／沙盒／签名；本次无新的 Xcode、UAT、Game、编辑器或 GPU 执行，不重复／冒记原 12 编辑器用例。证据 `data/PREVIS-004/dependency-verification.json`，日志 `logs/previs-004-dependencies-*`；所属进程退出，原四份 failed 构建记录保持。
