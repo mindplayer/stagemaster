@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)已限定计划，待实施**，基线 main `428da81`，关联[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)，先提交再实现。原组装器只接受原桌面，优化来源编译身份不能只改Plist；显式资格记录／完整来源校验后保留原唯一内部实例，runtime已有即拒绝。复用原组装、Game／完整告知信令与原播放器，实际验收优化静音音乐／只读GPU组合；不重建UE、不操作正式证书／客户权限／设备。完整goal active，听音／厂家／物理长期／客户Shipping与外部任务保持。
+
 **[DESKTOP-005 优化桌面的隔离验收](tasks/DESKTOP-005-isolated-release-validation.md)有限增量完成，自审通过**，基线 main `7e7f31b`，计划／[ADR-171](decisions/PRODUCT-ADR-171-isolated-release-validation.md)先提交 `d66e751`，真实排错范围补充先提交 `6e8a2ba`，实现结果 `647e1f6`。默认关闭能力＋准确内部身份／实例绑定，桌面与原audio后台实际release；复用原构建、播放器／后台，客户默认目录和debug路径不变，没有新工程格式／时钟／控制权语义。
 
 - 最终原命令实际 **1310 Rust＋2文档、222 Node（27新保护／无跳过）**，默认全工作区、release内部桌面及release音频后台三组全目标严格Clippy、fmt／相关Prettier／8份JS语法／UI类型通过；桌面150包含在全量，3个旧ignored子进程入口由父测试实际调用。目录／身份、父环境继承、release条件编译、原控制后观察503及共用入口mkdir前链接保护均留红灯后修复，原音频／帧断言不变、不重发控制／放宽期限；首次503正文未知，不追认所有历史原因。17个源码文件最大215行，无UI源码／UE／固件变更。
