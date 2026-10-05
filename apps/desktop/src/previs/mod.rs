@@ -2,7 +2,9 @@
 mod background;
 pub(crate) mod protocol;
 mod renderer;
+mod renderer_component;
 mod renderer_local;
+mod renderer_paths;
 mod selection;
 mod server;
 mod session_access;

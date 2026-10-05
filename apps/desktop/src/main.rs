@@ -20,6 +20,7 @@ mod rigging_preview;
 mod sequence_report;
 mod session;
 mod startup;
+mod storage_paths;
 use serde::Deserialize;
 use session::{Session, Snapshot};
 use stagemaster_project::{EditCommand, FixturePlacement, SpatialVector3};

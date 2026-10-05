@@ -41,14 +41,16 @@ impl Renderer {
         server: &super::server::Server,
     ) -> Result<Self, String> {
         let paths = launch_paths(app)?;
-        let logs = paths.root.join("logs");
-        std::fs::create_dir_all(&logs).map_err(|_| "无法创建预演日志目录")?;
+        paths.runtime.prepare()?;
+        let logs = &paths.runtime.logs;
         let renderer_token = token();
         let viewer_token = token();
         let signal_errors =
             File::create(logs.join("previs-signalling.log")).map_err(|_| "无法写入预演连接日志")?;
+        let mut signal_command = Command::new(&paths.node);
+        super::renderer_local::configure_signalling(&mut signal_command, &paths.runtime);
         let mut signalling = OwnedChild(
-            Command::new(&paths.node)
+            signal_command
                 .arg(&paths.signalling)
                 .env("STAGEMASTER_STREAM_RENDERER_TOKEN", &renderer_token)
                 .env("STAGEMASTER_STREAM_VIEWER_TOKEN", &viewer_token)
@@ -89,7 +91,7 @@ impl Renderer {
             command.arg(project).arg("-game");
             super::renderer_local::configure_editor_runtime(&mut command);
         }
-        super::renderer_local::configure(&mut command, &paths.root)?;
+        super::renderer_local::configure_runtime(&mut command, &paths.runtime)?;
         command
             .args([
                 "-unattended",
@@ -142,41 +144,26 @@ fn token() -> String {
 struct LaunchPaths {
     program: PathBuf,
     project: Option<PathBuf>,
-    root: PathBuf,
+    runtime: super::renderer_paths::RuntimePaths,
     node: PathBuf,
     signalling: PathBuf,
 }
-fn executable(base: &Path) -> PathBuf {
-    if cfg!(target_os = "macos") {
-        base.join("StageMasterPreview.app/Contents/MacOS/StageMasterPreview")
-    } else if cfg!(target_os = "windows") {
-        base.join("StageMasterPreview.exe")
-    } else {
-        base.join("StageMasterPreview")
-    }
-}
 fn launch_paths(app: &tauri::AppHandle) -> Result<LaunchPaths, String> {
-    if let Ok(resources) = app.path().resource_dir() {
-        let base = resources.join("previs");
-        let program = executable(&base);
-        let node = base.join(if cfg!(target_os = "windows") {
-            "node.exe"
-        } else {
-            "node"
+    let resources = app
+        .path()
+        .resource_dir()
+        .map_err(|_| "无法定位三维预演组件目录")?;
+    let base = resources.join("previs");
+    if let Some(component) = super::renderer_component::installed(&base)? {
+        return Ok(LaunchPaths {
+            program: component.program,
+            project: None,
+            node: component.node,
+            signalling: component.signalling,
+            runtime: super::renderer_paths::RuntimePaths::component(
+                &crate::storage_paths::directories(app).map_err(|_| "无法定位预演数据目录")?,
+            ),
         });
-        let signalling = base.join("signalling.mjs");
-        if program.is_file() && node.is_file() && signalling.is_file() {
-            return Ok(LaunchPaths {
-                program,
-                project: None,
-                node,
-                signalling,
-                root: app
-                    .path()
-                    .app_local_data_dir()
-                    .map_err(|_| "无法定位预演数据目录")?,
-            });
-        }
     }
     #[cfg(all(debug_assertions, target_os = "macos"))]
     {
@@ -206,7 +193,7 @@ fn launch_paths(app: &tauri::AppHandle) -> Result<LaunchPaths, String> {
             return Ok(LaunchPaths {
                 program,
                 project: Some(project),
-                root,
+                runtime: super::renderer_paths::RuntimePaths::editor(root),
                 node,
                 signalling,
             });

@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-006 组件启动完整性与实例隔离](tasks/PREVIS-006-component-launch-isolation.md) ready，本轮接续**，基线 main `842e697`。实际发现 debug 正式桌面可将部分安装悄悄回退到编辑器，完整组件又绕过项目内验收目录。[ADR-166](decisions/PRODUCT-ADR-166-component-launch-isolation.md)与限定工单先纳入版本，再修正选择／目录归属并做当前 Rust／正式桌面拒绝验证；不重建 UE、不启用旧绝对路径资格、不触碰 output/。客户整包／签名／GPU及既有物理／长期门槛仍未通过，完整 goal active。
+**[PREVIS-006 组件启动完整性与实例隔离](tasks/PREVIS-006-component-launch-isolation.md)有限宿主增量完成，自审通过**，基线 main `842e697`，计划／[ADR-166](decisions/PRODUCT-ADR-166-component-launch-isolation.md)先提交 `e62a2a0`；结果为本次 `fix(previs): isolate installed component launches` 提交。已安装但缺件／路径无效明确拒绝，不偷偷使用编辑器或系统 Node；组件运行目录复用宿主开发／验收所有者，恢复／执行／音频／导航路径不迁移。
+
+- 四项旧选择保护先红后绿，新增13项；最终实际 **1298 Rust＋2文档、119 Node**、全目标严格 Clippy／fmt、正式 `.app` 构建、引用／JSON／差异通过。旧只读 refresh 503首轮失败保留，具体根因仍未证实，未改断言或记作修复；名称／扩展静态检查失败已改正无豁免。无 UI／UE／固件源码变更，不累加旧 UI／UE结果。
+- 正式最终副本两个独立新建空工程实际验证：缺依赖前拒绝且不建预演目录／不启动子进程；原官方信令经包内 Node真实 ready后，受控副本 Game所有者执行拒绝，Node PID退出、两端口 ECONNREFUSED。真实 Node cwd／临时目录／缓存归属正确，实际恢复点失败前后字节一致；Game／编辑器未初始化，不是 GPU／客户启动通过。早期一灯工程拒绝、链接复制拒绝、样例 entryPoints拒绝及最终文件选择自动化取消均单列保留；不宣称本轮保存重开／既有运行节目原生验收。
+- 证据 `data/PREVIS-006/verification.json`、`native-*-checks.json`、AX／截图／实际 ready／恢复点，日志 `logs/previs-006-*`；原 Game32文件、Node2273文件及既有证据／受保护工程／默认最近目录保持，output/未动，所属进程退出。仅 Tauri测试副本封套与复制 Game执行位故障探针，无原组件重签／沙盒变化，无新 Xcode／UAT、音乐、设备或输出。**下一步受限 Development桌面副本的包内 Game／Node真正连接及 GPU，之后客户目录／签名／最低系统／许可**；完整 goal active，系统临时例外仍待答复，H3资料／听音、H4物理／长期不关闭，不扩 H6。
+- 最后交付检查如实发现默认 Tauri debug原包只有链接器签名、无资源封套，**原包严格整包签名失败**；原包四文件与本轮构建快照保持，未重签它来改写结果。独立 Game／验收副本严格验证通过；客户签名门槛不能用 debug构建或副本通过代替，接续组装单列处理。
 
 **[PREVIS-004 Development 副本限定文件资格](tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格)有限增量完成，自审通过**，基线 main `47e24da`，计划／ADR-165 补充先提交 `946d70c`；结果为本次 `fix(previs): qualify sandboxed development reports` 提交。复用原 Game 的新实例副本，保留 App Sandbox／原四项资格，仅添加五个实例运行目录的官方 read-write 资格和原样官方报告模板；**开发副本 JSON／HTML写入门槛已实际通过，客户权限／整包未通过**。
 

@@ -2,10 +2,7 @@ use crate::{audio, execution, recent, recovery};
 use tauri::Manager;
 
 pub(crate) fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let data = recovery::directory(app)?
-        .parent()
-        .ok_or("缺少数据目录")?
-        .to_path_buf();
+    let data = crate::storage_paths::directories(app)?.data;
     std::fs::create_dir_all(&data)?;
     app.state::<crate::previs::SharedSession>()
         .lock()

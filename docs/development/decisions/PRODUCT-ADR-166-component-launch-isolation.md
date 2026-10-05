@@ -1,6 +1,6 @@
 # PRODUCT-ADR-166：预演组件选择与运行目录归属
 
-状态：2026-10-05 **决定，限定实施／验收中**。关联 [PREVIS-006](../tasks/PREVIS-006-component-launch-isolation.md)、[ADR-165](PRODUCT-ADR-165-packaged-renderer-file-access.md)。不改变公共工程、渲染协议、节目时钟、输出权威或模块依赖。
+状态：2026-10-05 **限定宿主实施／正式桌面拒绝验收通过，客户整包未通过**。关联 [PREVIS-006](../tasks/PREVIS-006-component-launch-isolation.md)、[ADR-165](PRODUCT-ADR-165-packaged-renderer-file-access.md)。不改变公共工程、渲染协议、节目时钟、输出权威或模块依赖。
 
 ## 证据
 
@@ -14,3 +14,11 @@ renderer.rs 当前仅在 Game／node／signalling.mjs 全部存在时选独立�
 4. 部分安装或目录失败在组件进程启动前拒绝；错误不改变编辑文档或播放器。原桥服务、Rust时间／执行／控制租约、所属子进程回收与开发编辑器参数保持。若未通过当前正式桌面拒绝验证，本增量不得记完成。
 
 这解决实际宿主启动边界，不提前建立组件商店、自动下载更新或新代理平台。来源核对使用本机实际 Tauri PathResolver、PREVIS-005发布内容及已有恢复入口；完整签名、客户目录可移动性、组合最低系统、发行许可和实际 GPU仍为后继门槛。
+
+信令子进程也显式使用所属工作／临时目录，清理继承的 NODE_／DYLD_加载覆盖，禁止全局 NODE_PATH／NODE_OPTIONS及编译缓存回填。复用 [Node 官方编译缓存关闭机制](https://nodejs.org/download/release/v22.14.0/docs/api/module.html)，本机实际 24.17.0 的 enableCompileCache 探针返回 DISABLED，未创建默认缓存。它是所选组件的目录／依赖隔离，不改官方信令／认证／EOF生命周期。原开发编辑器的 UserDir／DDC／日志布局保持。
+
+## 实际结论
+
+计划 `e62a2a0`先于实现；当前全量 1298 Rust＋2文档、119脚本及正式桌面构建／拒绝通过。最终两个独立原生实例分别证明缺件不回退／不建运行目录，和真实官方信令 ready后 Game执行拒绝回收 Node、释放两端口；实际工程恢复点失败前后字节保持。基础组件检查不等于OS有效执行权限，后者在真实spawn中明确失败，并被原所有者安全回收。原 Game／Pak／Node与签名资格保持，不关闭沙盒或安装本机绝对路径资格到正式应用。
+
+当前证据仅证明宿主选择／隔离／失败行为，未初始化 Game／GPU，不是可移动客户包或签名团队决定。测试观测薄层、受控执行位拒绝、文件选择自动化缺口及早期链接／样例／503失败均在工单／证据中明确；503具体根因仍未知。接续实际受限 Development整包连接，再收敛客户目录与发行要求，不能将本决定写成 H5出口完成。

@@ -1,14 +1,51 @@
 //! Process-local UE runtime paths; never change the user's global engine preferences.
 use std::{path::Path, process::Command};
 
-pub(super) fn configure(command: &mut Command, root: &Path) -> Result<(), String> {
-    let temporary = root.join("tmp");
-    let user = root.join("data/previs-user");
-    let cache = root.join("data/previs-derived-cache");
-    for directory in [&temporary, &user, &cache] {
-        std::fs::create_dir_all(directory).map_err(|_| "无法创建本地预演数据目录")?;
+pub(super) fn configure_signalling(
+    command: &mut Command,
+    paths: &super::renderer_paths::RuntimePaths,
+) {
+    for (key, _) in std::env::vars_os() {
+        if key
+            .to_str()
+            .is_some_and(|key| key.starts_with("NODE_") || key.starts_with("DYLD_"))
+        {
+            command.env_remove(key);
+        }
     }
-    configure_paths(command, root, &temporary, &user, &cache);
+    configure_signalling_paths(command, paths);
+}
+
+fn configure_signalling_paths(command: &mut Command, paths: &super::renderer_paths::RuntimePaths) {
+    command
+        .current_dir(&paths.root)
+        .env_remove("NODE_OPTIONS")
+        .env_remove("NODE_PATH")
+        .env_remove("NODE_COMPILE_CACHE")
+        .env("NODE_DISABLE_COMPILE_CACHE", "1")
+        .env("TMPDIR", &paths.temporary);
+}
+
+#[cfg(test)]
+fn configure(command: &mut Command, root: &Path) -> Result<(), String> {
+    configure_runtime(
+        command,
+        &super::renderer_paths::RuntimePaths::editor(root.to_owned()),
+    )
+}
+
+pub(super) fn configure_runtime(
+    command: &mut Command,
+    paths: &super::renderer_paths::RuntimePaths,
+) -> Result<(), String> {
+    paths.prepare()?;
+    configure_paths(
+        command,
+        &paths.root,
+        &paths.temporary,
+        &paths.user,
+        &paths.cache,
+    );
     Ok(())
 }
 
@@ -40,6 +77,30 @@ pub(super) fn configure_editor_runtime(command: &mut Command) {
 mod tests {
     use super::*;
     use std::ffi::OsStr;
+
+    #[test]
+    fn signalling_cannot_use_a_global_loader_or_compile_cache_directory() {
+        let paths = super::super::renderer_paths::RuntimePaths::editor(
+            Path::new(env!("CARGO_MANIFEST_DIR")).to_owned(),
+        );
+        let mut command = Command::new("node");
+        command
+            .env("NODE_OPTIONS", "--require=outside.cjs")
+            .env("NODE_PATH", "outside")
+            .env("NODE_COMPILE_CACHE", "outside");
+        configure_signalling_paths(&mut command, &paths);
+        assert_eq!(command.get_current_dir(), Some(paths.root.as_path()));
+        let env: std::collections::BTreeMap<_, _> = command.get_envs().collect();
+        assert_eq!(env[OsStr::new("NODE_OPTIONS")], None);
+        assert_eq!(env[OsStr::new("NODE_PATH")], None);
+        assert_eq!(env[OsStr::new("NODE_COMPILE_CACHE")], None);
+        assert_eq!(
+            env[OsStr::new("NODE_DISABLE_COMPILE_CACHE")],
+            Some(OsStr::new("1"))
+        );
+        assert_eq!(env[OsStr::new("TMPDIR")], Some(paths.temporary.as_os_str()));
+        assert_eq!(command.get_args().count(), 0);
+    }
 
     #[test]
     fn runtime_paths_and_cache_graph_are_process_local() {
@@ -85,7 +146,7 @@ mod tests {
         let file = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
         assert_eq!(
             configure(&mut command, &file).unwrap_err(),
-            "无法创建本地预演数据目录"
+            "本地预演数据目录无效或包含链接"
         );
         assert_eq!(command.get_envs().count(), 0);
         assert_eq!(command.get_args().count(), 0);

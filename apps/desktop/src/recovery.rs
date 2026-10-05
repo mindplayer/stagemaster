@@ -166,25 +166,9 @@ fn now_ms() -> u64 {
     .unwrap_or(9_007_199_254_740_991)
 }
 pub(crate) fn directory(app: &tauri::App) -> Result<PathBuf, tauri::Error> {
-    if cfg!(debug_assertions) {
-        if let Some(name) = std::env::var_os("STAGEMASTER_ACCEPTANCE_INSTANCE") {
-            let name = name
-                .to_str()
-                .filter(|s| {
-                    !s.is_empty()
-                        && s.len() <= 64
-                        && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
-                })
-                .ok_or_else(|| std::io::Error::other("验收实例名称无效"))?;
-            return Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../tmp")
-                .join(format!("desktop-{name}"))
-                .join("recovery"));
-        }
-        Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data/recovery"))
-    } else {
-        Ok(app.path().app_local_data_dir()?.join("recovery"))
-    }
+    Ok(crate::storage_paths::directories(app)?
+        .data
+        .join("recovery"))
 }
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
