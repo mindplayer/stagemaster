@@ -13,6 +13,8 @@ pub use output::{OutputAction, OutputCatalog, OutputState};
 mod media;
 pub use manual::*;
 mod media_control;
+mod media_evidence;
+pub use media_evidence::*;
 mod progress;
 mod validation;
 pub use media::*;
@@ -34,6 +36,7 @@ pub struct Client {
     next: u64,
     record: Option<Record>,
     operation_record: Option<Record>,
+    media_operation: Option<MediaOperationEvidence>,
     pending: bool,
 }
 impl Client {
@@ -50,6 +53,7 @@ impl Client {
             next: 1,
             record: None,
             operation_record: None,
+            media_operation: None,
             pending: false,
         };
         client.validate(&client.observation)?;
@@ -120,6 +124,7 @@ impl Client {
             controlling: self.controlling(),
             pending: self.pending,
             record: self.operation_record.clone(),
+            media_operation: self.media_operation.clone(),
         }
     }
     fn controlling(&self) -> bool {

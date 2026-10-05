@@ -171,3 +171,25 @@ test("readonly and non-media completed operations retain the actual historical m
   };
   assert.equal(mediaControlNotice(current, "music"), "applied");
 });
+
+test("a locally unsubmitted music attempt cannot display the previous Applied as its completion", () => {
+  const current = view();
+  current.observation.snapshot!.state.media = [media("7", "applied")];
+  Object.assign(current, {
+    mediaOperation: {
+      target: null,
+      serial: null,
+      attempted: false,
+      submission: {
+        status: null,
+        bodyComplete: false,
+        code: null,
+        problem: null,
+      },
+      receiptRead: null,
+      receipt: null,
+      notSubmittedReason: "invalidTarget",
+    },
+  });
+  assert.equal(mediaControlNotice(current, "music"), "notSubmitted");
+});

@@ -12,7 +12,8 @@ export type MediaControlNotice =
   | "rejected"
   | "unknown"
   | "unconfirmed"
-  | "superseded";
+  | "superseded"
+  | "notSubmitted";
 
 /** Project existing receipts without sending or retargeting any command. */
 export function mediaControlNotice(
@@ -20,6 +21,17 @@ export function mediaControlNotice(
   group: string,
 ): MediaControlNotice | null {
   if (view.pending) return null;
+  if (view.mediaOperation?.notSubmittedReason) return "notSubmitted";
+  const evidence = view.mediaOperation;
+  const mediaReceipt = evidence?.receipt;
+  if (
+    evidence?.target?.hostId === view.hostId &&
+    evidence.target.group === group &&
+    mediaReceipt?.complete &&
+    mediaReceipt.serial === evidence.serial &&
+    (mediaReceipt.outcome === "rejected" || mediaReceipt.outcome === "unknown")
+  )
+    return mediaReceipt.outcome;
   const current = view.observation.snapshot?.state.media?.find(
     (m) => m.id === group,
   )?.control;

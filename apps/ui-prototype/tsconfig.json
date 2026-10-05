@@ -24,6 +24,8 @@
     "tests/device-runtime.test.ts",
     "tests/background-execution-harness.tsx",
     "tests/media-receipt-harness.tsx",
+    "tests/media-evidence-harness.tsx",
+    "tests/media-operation-evidence.test.ts",
     "tests/clip-fade.test.ts",
     "tests/audio-clip-split-harness.tsx",
     "tests/world-line.test.ts",

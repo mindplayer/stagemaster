@@ -1,4 +1,5 @@
 use super::discovery::Discovery;
+use crate::{MediaHttpEvidence, ResponseProblem, media_evidence::known_code};
 use reqwest::{Client, Method};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -34,6 +35,31 @@ impl Transport {
         suffix: &str,
         body: Option<Value>,
     ) -> Result<Vec<u8>, String> {
+        self.bytes_traced(method, suffix, body, &mut MediaHttpEvidence::default())
+            .await
+    }
+
+    pub async fn request_traced<T: DeserializeOwned>(
+        &self,
+        method: Method,
+        suffix: &str,
+        body: Option<Value>,
+        trace: &mut MediaHttpEvidence,
+    ) -> Result<T, String> {
+        let bytes = self.bytes_traced(method, suffix, body, trace).await?;
+        serde_json::from_slice(&bytes).map_err(|_| {
+            trace.problem = Some(ResponseProblem::InvalidJson);
+            "后台响应格式无效".into()
+        })
+    }
+
+    async fn bytes_traced(
+        &self,
+        method: Method,
+        suffix: &str,
+        body: Option<Value>,
+        trace: &mut MediaHttpEvidence,
+    ) -> Result<Vec<u8>, String> {
         let control = method != Method::GET;
         let mut request = self
             .client
@@ -44,31 +70,43 @@ impl Transport {
                 &self.discovery.read_token
             });
         if let Some(body) = body {
-            let data = serde_json::to_vec(&body).map_err(|_| "后台请求编码失败")?;
+            let data = serde_json::to_vec(&body).map_err(|_| {
+                trace.problem = Some(ResponseProblem::Encoding);
+                "后台请求编码失败"
+            })?;
             if data.len() > 8192 {
+                trace.problem = Some(ResponseProblem::Encoding);
                 return Err("后台请求超过 8 KiB".into());
             }
             request = request
                 .header("content-type", "application/json")
                 .body(data);
         }
-        let mut response = request
-            .send()
-            .await
-            .map_err(|_| "后台连接未响应；已发送操作须核对原回执")?;
+        let mut response = request.send().await.map_err(|_| {
+            trace.problem = Some(ResponseProblem::Connection);
+            "后台连接未响应；已发送操作须核对原回执"
+        })?;
         let status = response.status();
+        trace.status = Some(status.as_u16());
         let mut bytes = Vec::new();
-        while let Some(chunk) = response
-            .chunk()
-            .await
-            .map_err(|_| "后台响应不完整，请核对原回执")?
-        {
+        while let Some(chunk) = response.chunk().await.map_err(|_| {
+            trace.problem = Some(ResponseProblem::Incomplete);
+            "后台响应不完整，请核对原回执"
+        })? {
             if bytes.len().saturating_add(chunk.len()) > 8 * 1024 * 1024 {
+                trace.problem = Some(ResponseProblem::BodyLimit);
                 return Err("后台响应超过容量限制".into());
             }
             bytes.extend_from_slice(&chunk);
         }
+        trace.body_complete = true;
         if !status.is_success() {
+            trace.problem = Some(ResponseProblem::HttpRefused);
+            if bytes.len() <= 4096 {
+                trace.code = serde_json::from_slice::<Value>(&bytes)
+                    .ok()
+                    .and_then(|v| v.get("code").and_then(Value::as_str).and_then(known_code));
+            }
             return Err(format!(
                 "后台请求未成功（{}），请核对连接与原回执",
                 status.as_u16()

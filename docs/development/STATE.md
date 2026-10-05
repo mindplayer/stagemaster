@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-05
 
-**[AUDIO-023 原生媒体请求证据](tasks/AUDIO-023-native-media-command-evidence.md)实施中**，现场main基线`1cba5fb`，主工作区单写者，旧7所属PID已结束、47保护哈希已记录。按先记录的[ADR-174](decisions/PRODUCT-ADR-174-media-request-evidence.md)增加最后显式媒体请求的有界脱敏应用投影；原宿主历史窗口／序号／播放器／期限保持，发送尝试不冒作服务接纳，维护不覆盖，不重发。下一步先红灯再实现及当前验证，旧原生未知／012 false和用户output/保持，完整goal active。
+**[AUDIO-023 原生媒体请求证据](tasks/AUDIO-023-native-media-command-evidence.md)源码验证检查点，仍实施中**，main基线`1cba5fb`，先记录范围／[ADR-174](decisions/PRODUCT-ADR-174-media-request-evidence.md) `f040819`，主工作区单写者。原Client有界脱敏留存最后显式媒体目标／原serial／POST和原GET／已校验回执；发送尝试不冒作接纳，维护／非媒体不覆盖，未发送不借旧成功、待核对不换证据，不重发。只读中文收起详情复用原界面，原宿主窗口／序号／播放器／期限不变。
+
+- 实际6项诊断单元（Client总14）、6项真实宿主、UI全453、工程格式232、工具254通过；三组全目标严格Clippy、fmt／相关Prettier及UI／夹具类型通过。最终真实React10项，维护／拒绝所附旧State不能借Applied，4.125草稿保持／取消，观察及展开零控制、明确两指令各一次。原红灯及自审失败保持，原误显示冲突截图单列，不回写。
+- 原全量35264与客户端宿主60501同句柄退出0，均早于最后自审；最终源码原全量45947实际退出0，**1324测试＋2文档通过**，原3个ignored子进程入口由父测试调用。`data/AUDIO-023/source-checkpoint.json`保留当时进行中状态，后继`source-verification.json`及`component-integrated-*`／`logs/audio-023-*`单列最终结果；47保护文件及原wire保持，用户output/未读未动未暂存，临时组件页／5187服务收尾，不动已占用5173。
+- **下一步提交来源绑定新优化包，再正式原生短／长循环与维护后准确留证、唯一三维／保存重开／收尾。** 本工单及旧PREVIS-012完整原生尚未完成，历史原write未知／旧false不回写；H1听音、H3厂家光学、H4差分长期及H5客户资格仍开放，完整goal active，不扩H6、不新UE／证书／设备／代理。
 
 **[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)分类修复及本轮原生有限增量完成，自审通过；原始问题仍未完全收敛。** 基线main `a7012a0`，先提交计划／[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md) `88c56ba`，源码结果 `ec5a825`，主工作区单写者。旧遍次／实例／区段／代次与真正格式错已分开；拒绝／未知／缺回执不借旧音乐Applied，严格目标、控制权、序号、期限及播放器保持，不重发。PREVIS-012原拒绝根因未知、旧`fullNativeAcceptance=false`不回写，完整goal active。
 

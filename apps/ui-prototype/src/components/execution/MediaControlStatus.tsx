@@ -13,6 +13,8 @@ const messages: Record<MediaControlNotice, string> = {
   unknown: "本次控制结果无法确认，请核对原回执和当前状态。",
   unconfirmed: "尚未确认本次音乐操作完成，请核对原回执和当前状态。",
   superseded: "本次音乐操作已被后续操作替代，请核对当前状态。",
+  notSubmitted:
+    "本次音乐请求未进入发送尝试；上次音乐完成不代表本次成功，请核对原错误说明。",
 };
 
 export function MediaControlStatus({

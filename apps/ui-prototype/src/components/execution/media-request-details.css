@@ -1,0 +1,24 @@
+.media-request-details {
+  margin-top: 10px;
+}
+.media-request-details summary {
+  cursor: pointer;
+}
+.media-request-details p {
+  color: var(--wb-muted);
+}
+.media-request-details dl {
+  margin: 8px 0;
+}
+.media-request-details dl > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr);
+  gap: 8px;
+}
+.media-request-details dt {
+  color: var(--wb-muted);
+}
+.media-request-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

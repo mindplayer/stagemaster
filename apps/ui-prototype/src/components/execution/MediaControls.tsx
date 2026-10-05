@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { audioTime } from "../../audio-tools";
 import { MediaLoopControls } from "./MediaLoopControls";
 import { MediaControlStatus } from "./MediaControlStatus";
+import { MediaRequestDetails } from "./MediaRequestDetails";
 import type { ExecutionView } from "../../execution-types";
 import type { ExecutionMediaAction } from "../../execution-media-types";
 import {
@@ -233,6 +234,7 @@ export function MediaControls({
       {error && <p role="alert">{error}</p>}
       {audio.problem && <p role="alert">{audio.problem}</p>}
       <MediaControlStatus runtime={runtime} group={config.group} />
+      <MediaRequestDetails runtime={runtime} group={config.group} />
     </article>
   );
 }

@@ -89,24 +89,42 @@ impl Client {
         if explicit {
             self.operation_record.clone_from(&self.record);
         }
-        let record = self
-            .transport
-            .request(Method::POST, &suffix, Some(body))
-            .await?;
+        let evidence = self
+            .media_operation
+            .as_mut()
+            .filter(|_| explicit && body["command"]["action"]["kind"] == "media");
+        let record = if let Some(evidence) = evidence {
+            evidence.serial = Some(serial);
+            evidence.attempted = true;
+            self.transport
+                .request_traced(Method::POST, &suffix, Some(body), &mut evidence.submission)
+                .await?
+        } else {
+            self.transport
+                .request(Method::POST, &suffix, Some(body))
+                .await?
+        };
         self.accept(record)?;
         self.refresh().await
     }
     pub(super) async fn resolve(&mut self) -> Result<(), String> {
         let id = self.session.as_ref().ok_or("缺少控制会话")?;
         let serial = &self.record.as_ref().ok_or("缺少操作回执")?.serial;
-        let record = self
-            .transport
-            .request(
-                Method::GET,
-                &format!("/sessions/{id}/receipts/{serial}"),
-                None,
-            )
-            .await?;
+        let suffix = format!("/sessions/{id}/receipts/{serial}");
+        let evidence = self
+            .media_operation
+            .as_mut()
+            .filter(|e| e.serial.as_ref() == Some(serial));
+        let record = if let Some(evidence) = evidence {
+            let trace = evidence
+                .receipt_read
+                .insert(crate::MediaHttpEvidence::default());
+            self.transport
+                .request_traced(Method::GET, &suffix, None, trace)
+                .await?
+        } else {
+            self.transport.request(Method::GET, &suffix, None).await?
+        };
         self.accept(record)
     }
     fn accept(&mut self, record: Record) -> Result<(), String> {
@@ -117,7 +135,19 @@ impl Client {
             || !matches!(record.status.as_str(), "pending" | "complete")
             || (record.status == "complete" && record.outcome.is_none())
         {
+            if let Some(evidence) = &mut self.media_operation
+                && evidence.serial.as_ref() == self.record.as_ref().map(|r| &r.serial)
+            {
+                evidence
+                    .receipt_read
+                    .as_mut()
+                    .unwrap_or(&mut evidence.submission)
+                    .problem = Some(crate::ResponseProblem::ReceiptMismatch);
+            }
             return Err("后台操作回执不匹配，请重新连接核对".into());
+        }
+        if let Some(evidence) = &mut self.media_operation {
+            evidence.receive(&record);
         }
         if record.status == "complete" {
             // Unknown is a completed observation, but still blocks further action in this session.

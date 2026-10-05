@@ -13,7 +13,7 @@ AUDIO-022真实优化原生短循环提示目标变化且原音乐保持，但�
 - Client拥有最多一个`MediaOperationEvidence`，由`View.mediaOperation`可选输出；打开／重新连接初始化为空，不持久进工程。合法目标只复制经过原检查的host、revision、group、generation、类型化动作及循环instance／region／pass；无效输入不复制原字符串，目标为空、仅固定本地拒绝分类。旧View消费者可忽略新字段，不增加依赖。
 - 发送预检仍按原顺序、原错误结束。合法请求进入原POST尝试前绑定原serial；`attempted=true`仅证明发送函数已开始，**不证明字节已发出、服务收到或接纳**。缺控制／容量拒绝等`attempted=false`；已有未确认请求时不替换正被核对的证据。更早的UI保护／宿主入口拒绝仅保留原错误，不虚构客户端记录。
 - 原HTTP入口保持1秒连接／4秒请求、8MiB响应、8KiB请求、不代理不重定向。提交响应与同serial回执GET分别保存HTTP状态、正文是否完整及固定传输错误分类；只对至多4KiB的错误正文提取已知code白名单，不保留原正文／自由message、密钥、Authorization、环境、发现信息或工程。收到头但正文不完整不等于完整回执，解析失败不伪造outcome。
-- 只有原`accept`完成serial／status／outcome检查后，提取本请求的pending／complete、accepted／rejected／unknown和已知code，以及该准确group的合法媒体request／generation。不复制整State／完整帧／任意错误字符串。诊断序号上限为原u64十进制20字符，身份36字符；动作原检查有界，固定code／错误枚举。序列化单项不超过4KiB，以保护测试实际验证。
+- 只有原`accept`完成serial／status／outcome检查后，提取本请求的pending／complete、accepted／rejected／unknown和已知code；仅完整且accepted的原回执可以关联该准确group的合法媒体request／generation，拒绝、未知或未完整回执所附旧State不能提供本次媒体确认。不复制整State／完整帧／任意错误字符串。诊断序号上限为原u64十进制20字符，身份36字符；动作原检查有界，固定code／错误枚举。序列化单项不超过4KiB，以保护测试实际验证。
 - 原GET仍只核对已有serial，不提交／取消／恢复或自动切换目标。维护／后继非媒体命令不覆盖最后音乐诊断，下一明确媒体操作替换；未确认旧请求不得被新尝试擦除。POST状态与原GET状态不互相冒充，旧成功不填补新缺失，accepted与媒体Applied沿原关联规则分开。
 - 音乐控制增加默认收起的“最近音乐请求详情”，只读显示中文动作、准确目标、网络序号、发送尝试、原HTTP／回执与媒体关联；没有证据不造占位记录。客户端本地未提交时不能借旧Applied显示本次完成。展开／刷新／跨页不产生控制指令；本项不新增复制／导出历史、计时器或隐式重试。
 
