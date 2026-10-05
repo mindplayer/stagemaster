@@ -73,6 +73,29 @@ pub(super) fn configure_editor_runtime(command: &mut Command) {
     command.env("UE_SKIP_UBT_SDK_SETUP", "1");
 }
 
+pub(super) fn configure_component_runtime(
+    command: &mut Command,
+    paths: &super::renderer_paths::RuntimePaths,
+) -> Result<(), String> {
+    paths.prepare()?;
+    for (key, _) in std::env::vars_os() {
+        if key.to_str().is_some_and(|key| key.starts_with("DYLD_")) {
+            command.env_remove(key);
+        }
+    }
+    configure_component_user(command, &paths.user);
+    Ok(())
+}
+
+fn configure_component_user(command: &mut Command, user: &Path) {
+    // Foundation paths are separate from UE's -UserDir. Keep both process-local.
+    command
+        .env("CFFIXED_USER_HOME", user.join("platform-user"))
+        .env_remove("DYLD_LIBRARY_PATH")
+        .env_remove("DYLD_INSERT_LIBRARIES")
+        .env_remove("UE_SKIP_UBT_SDK_SETUP");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,6 +184,32 @@ mod tests {
             command.get_envs().collect::<Vec<_>>(),
             [(OsStr::new("UE_SKIP_UBT_SDK_SETUP"), Some(OsStr::new("1")))]
         );
+        assert_eq!(command.get_args().count(), 0);
+    }
+
+    #[test]
+    fn packaged_platform_user_does_not_inherit_a_foreign_home_or_editor_shortcut() {
+        let user = Path::new("/project/tmp/desktop-a/previs/user");
+        let mut command = Command::new("game");
+        command
+            .env("CFFIXED_USER_HOME", "/outside")
+            .env("DYLD_LIBRARY_PATH", "/outside")
+            .env("DYLD_INSERT_LIBRARIES", "/outside/lib.dylib")
+            .env("UE_SKIP_UBT_SDK_SETUP", "1");
+        configure_component_user(&mut command, user);
+        let env: std::collections::BTreeMap<_, _> = command.get_envs().collect();
+        assert_eq!(
+            env[OsStr::new("CFFIXED_USER_HOME")],
+            Some(user.join("platform-user").as_os_str())
+        );
+        for key in [
+            "DYLD_LIBRARY_PATH",
+            "DYLD_INSERT_LIBRARIES",
+            "UE_SKIP_UBT_SDK_SETUP",
+        ] {
+            assert_eq!(env[OsStr::new(key)], None);
+        }
+        assert!(!env.contains_key(OsStr::new("HOME")));
         assert_eq!(command.get_args().count(), 0);
     }
 }

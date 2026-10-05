@@ -35,12 +35,14 @@ impl RuntimePaths {
     }
 
     pub(super) fn prepare(&self) -> Result<(), String> {
+        let platform_user = self.user.join("platform-user");
         let paths = [
             &self.root,
             &self.logs,
             &self.temporary,
             &self.user,
             &self.cache,
+            &platform_user,
         ];
         // Inspect *all* existing ancestors before any mkdir, so a late symlink does
         // not redirect an earlier directory creation into a different owner.

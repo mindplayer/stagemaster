@@ -90,6 +90,8 @@ impl Renderer {
         if let Some(project) = paths.project {
             command.arg(project).arg("-game");
             super::renderer_local::configure_editor_runtime(&mut command);
+        } else {
+            super::renderer_local::configure_component_runtime(&mut command, &paths.runtime)?;
         }
         super::renderer_local::configure_runtime(&mut command, &paths.runtime)?;
         command

@@ -1,6 +1,6 @@
 # PREVIS-007：受限 Development 桌面组装与真实连接
 
-状态：实施中。基线 main `20d2476c4318527fe1e532961f221ee9f30019e7`，主工作区单写者；用户 output/ 保持。属于 H5 的独立预演准备，不是客户发行或 H5 完整出口。
+状态：验证中，内部组装与两轮原生 GPU／保存重开通过，当前完整工作区测试仍在执行，工单未结项。基线 main `20d2476c4318527fe1e532961f221ee9f30019e7`，限定计划／ADR 先提交 `0fc97db779b0564e1de9f7f35ab59415d4a82bce`，实现结果为本次 `feat(previs): assemble scoped development desktop` 提交；主工作区单写者，用户 output/ 保持。属于 H5 的独立预演准备，不是客户发行或 H5 完整出口。
 
 ## 一个可用增量
 
@@ -17,3 +17,40 @@
 若 GPU 或动态加载未通过，保留失败并定位，仅暂停需要 UE 重编译／新权限／真实设备的部分；不虚报客户可用。客户通用目录、签名团队／公证、许可、性能／专业光学、听音、厂家资料、物理差分／长期及第三方代表任务仍未完成。
 
 成熟机制沿用本机 codesign／PlistBuddy、现有严格 Mach-O 检查、原官方信令与 PREVIS-004 已实际验证的限定目录资格。新增工具按路径规划、文件验证与组装分文件；入口不承载第二播放器或 UI。
+
+## 实际实现与证据
+
+2026-10-05：限定实施四个 Rust 文件及五个工具文件，未改 UI／UE／核心／执行宿主／锁文件、时钟或协议。入口只组装，规划／来源验证／测试分别组织，最长新增文件 244 行。
+
+- 子进程环境由正式 Rust 启动器明确设置 `CFFIXED_USER_HOME`，不继承编辑器 SDK 快捷变量或动态加载覆盖；`platform-user` 链接与其余目录一起在任何 mkdir 前检查。编辑器环境与 UE UserDir／DDC 机制保持，不修改父进程 HOME。
+- 组装工具显式检查 ARM64／系统依赖／最低系统、原上下文／锁／许可、路径、复制等价及签名；只生成新实例，不构建／打开／安装。Game 保留原四项与准确五目录，原官方信令无观测薄层。原桌面 debug 的封套失败原样保存，不重签它来隐藏事实。
+- 最终实例 `previs-desktop-ggmASF`，包为 `data/PREVIS-007/previs-desktop-ggmASF/舞台大师 内部验收.app`。组装记录与原生后复核分别为 `assembly-record.json`、`data/PREVIS-007/artifact-checks.json`；原 Game 32 文件、Node 2,273 文件、桌面来源四文件不变。原／复制 Game／完整内部桌面三份严格签名通过，副本 Game 只变主程序签名、封套和官方模板，嵌套库／Pak／sidecar／图标保持。
+
+实际组装命令（来源显式，不自动启动，生成新的唯一实例）：
+
+~~~sh
+TMPDIR="$PWD/tmp" NODE_DISABLE_COMPILE_CACHE=1 node tools/previs/assemble-development-desktop.mjs \
+  'tmp/framework-001-light-target/debug/bundle/macos/舞台大师.app' \
+  'data/PREVIS-004/previs-package-dGdEOa/Mac/StageMasterPreview.app/Contents/MacOS/StageMasterPreview' \
+  'data/PREVIS-005/previs-signalling-sR8DnA/previs'
+~~~
+
+正式桌面两轮实际验收，仅操作本轮独立工程：
+
+1. 真实 Node／Game 位于组装包，NoSound／离屏 GPU，无 .uproject／编辑器／NullRHI；实际平台用户／缓存／临时／日志、Node cwd 属于实例。UE 初始化后自行切到复制的 cooked 资源 cwd，不能误报为运行目录失效或扩大权限。原生父应用未预设 Game 的 CFFIXED_USER_HOME 来掩盖启动器责任。
+2. 未摆放未知灯具的初始工程没有几何，黑画面不是灯光／渲染缺陷证明。通过正式界面创建并保存 8×6×5 米空间和一项墙体／地板，实际 GPU 画面、透视／俯视、场景／空间页同一公共视窗与连接保持。没有模型／真实灯效／运行共享时钟或性能通过声明。
+3. 明确停止预演后 Game／Node 退出，两实际端口拒绝连接；正常退出，再从同实例最近工程重开，保存字节一致，真实 GPU 再次显示空间。第二轮运行中退出桌面，同样自动回收进程和两端口。受保护工程／默认最近目录／历史 PREVIS-004～006 证据哈希保持，用户 output/ 未操作；没有音乐、执行后台、设备或 DMX 输出。
+
+AX／JPEG 与进程／目录／关闭记录为 `data/PREVIS-007/native-{first,reopen}-*.json`、`native-{perspective,top,cross-page,reopen}.ax.txt/.jpg`，运行日志在 `logs/PREVIS-007/previs-desktop-ggmASF/`。没有公开记录信令角色凭据。
+
+## 当前检查与失败记录
+
+- 最终工具 **135 Node（119 原保护＋16 新组装）** 通过；原工具首轮两项 ENOTDIR 错误提示失败已修正，旧断言不改，`logs/previs-007-tools-first.log` 保留。五个工具的语法／Prettier 通过。
+- 最终相关 Rust **36 项**包含在桌面 **142 通过、2 个既有子进程入口由父测试实际调用**中；全目标工作区严格 Clippy、fmt 与正式 `.app` 构建通过。日志 `logs/previs-007-desktop-tests-final.log`、`previs-007-clippy-cached.log`、`previs-007-fmt-final.log`、`previs-007-desktop-final.log`。没有 UI／UE 源码修改，不累加历史 UI／编辑器测试作本次通过。
+- 完整工作区原命令正在执行，工具会话 `29845`／Cargo PID `18610`，记录 `logs/previs-007-workspace-delivery.log`、`data/PREVIS-007/workspace-progress.json`；继续同一会话核实退出，不重复启动或将局部条数汇总成完整通过。前两轮在测试入口前等待，采样 `_dyld_start` 和同 PID 的系统加载记录只作诊断，根因未证实。不同路径的字节／签名等价副本能启动；同路径缓存字节等价更新仍未解决。原测试、签名与断言未改，没有系统保护关闭或越权修复。
+- 全新项目内目标的原命令曾继续编译并跑到桌面用例，但汇总前取消，不能计作全量通过；取消后发现的本轮孤立测试宿主按确切路径／PID 回收，非用户后台。实际记录在 `data/PREVIS-007/{interrupted-workspace,startup-diagnostic,raw-startup-diagnostic,test-cache-refresh,cache-refresh-not-resolved,clean-build-interrupted,orphan-test-host-cleanup}.json`，原失败／取消日志保持。
+- 原生核对首次误把 UE 的实际 cooked 资源 cwd 当成启动 cwd；最终脚本按官方实际行为核对，未拓宽写入目录。交付检查脚本误读工程的构件字段已按现行 `stage.constructions`／`lighting.fixtures` 改正并加零摆放断言，首轮日志保持。格式工具错误路径已改用原项目内 npm 缓存的已安装工具，无版本／依赖升级；引用／严格 JSON／差异通过。以上不是产品缺陷修复。原日志仍有 `MaxKeyFrameInterval=-1`／VT -12900 警告，画面通过不等于该警告根因已解决。
+
+## 自审范围与下一入口
+
+已完成限定组装／权限与原生连接审查，实现检查点保存 `data/PREVIS-007/verification.json`；明确当前完整软件出口未通过、工单验证中。**首先接续正在运行的原全量**，核对完整汇总与实际退出，再更新结项；已完成的局部与原生不重复。之后接 H5 客户可移动运行目录、签名／Shipping／最低系统与许可，先限定方案再实施，不能拿本机绝对路径 ad-hoc 副本当客户发行。新的 Xcode／UAT 仍等系统临时例外答复；厂家参数、听音、专业光学、物理差分／完整最坏组合／8 小时及未参与开发者三任务保持未完成。完整 goal active，不扩 H6、不恢复旧工作器。

@@ -99,3 +99,17 @@ fn linked_parent_or_final_directory_is_refused_before_any_new_writes() {
         assert!(!paths.logs.exists() && !paths.temporary.exists() && !paths.user.exists());
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn a_linked_foundation_user_refuses_before_other_instance_directories_are_created() {
+    let temp = temporary();
+    let paths = RuntimePaths::component(&owner(temp.path()));
+    fs::create_dir_all(&paths.user).unwrap();
+    let outside = temp.path().join("other-owner");
+    fs::create_dir(&outside).unwrap();
+    std::os::unix::fs::symlink(&outside, paths.user.join("platform-user")).unwrap();
+    assert!(paths.prepare().is_err());
+    assert!(!paths.logs.exists() && !paths.temporary.exists() && !paths.cache.exists());
+    assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
+}

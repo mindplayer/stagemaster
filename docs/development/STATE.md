@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)实施中**，基线 main `20d2476`，依据 [ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)。复用原 Game／Node／正式桌面，先提交限定计划，再组装新内部副本并验证实际 GPU／连接；不重建 UE、不改原包或用户 output/。客户签名／通用目录、许可、听音／厂家资料、物理／长期保持开放，完整 goal active。
+**[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)实现／原生已交付，完整软件出口验证中，工单未结项**，基线 main `20d2476`，限定计划／[ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)先提交 `0fc97db`，实现结果为本次 `feat(previs): assemble scoped development desktop` 提交。复用原 Game／Node／正式桌面的唯一内部副本，Rust 明确设置 Game 子进程平台用户目录、清理加载覆盖；原四项沙盒资格＋准确五目录、内部身份／macOS 14.0，原包不改、不重建 UE，官方信令无薄层。
+
+- 最终 **135 Node（16 新保护）、桌面142 Rust（含36相关）**、全目标严格 Clippy／fmt、五工具语法／格式及正式 `.app` 构建通过；当前全工作区仍执行，不记为通过。两轮正式桌面真实包内 Game／Node／GPU，8×6×5米空间／墙体地板、透视／俯视、跨页唯一公共视窗、保存退出／最近重开及明确停止／运行中退出后的进程／端口回收通过。未知灯具未摆放，无音乐／后台／设备／输出，不称灯效／权威时间／性能通过。
+- 原 Game32文件、Node2273文件、桌面来源4文件与历史证据／受保护工程／默认最近目录哈希保持；原／复制 Game／内部桌面严格签名通过。原 debug桌面的链接器签名／无封套拒绝仍保留，未改签原包。证据 `data/PREVIS-007/verification.json`（明确全量未完成）、`artifact-checks.json`、`previs-desktop-ggmASF/assembly-record.json`、原生AX／JPEG／进程记录；日志 `logs/previs-007-*`／`logs/PREVIS-007/`，用户 output/ 未动，所属原生验收进程已退出。
+- **先接续当前全量，不重复启动**：工具会话 `29845`、Cargo PID `18610`，日志 `logs/previs-007-workspace-delivery.log`，进度／退出状态以 `data/PREVIS-007/workspace-progress.json` 与实际会话为准；原命令等待不等于测试通过。历史加载等待／取消保持，异路径等价副本能启动，同路径缓存更新仍未解决；新目标后来跑到桌面但汇总前取消，本轮孤立测试宿主按确切路径／PID回收。系统根因未证实，不改断言／原签名／保护，检查脚本错误已纠正并留首轮日志。全量完成后才收敛工单，之后接客户可移动权限／签名／Shipping／最低系统与许可。本机绝对路径 ad-hoc副本不是客户发行；Xcode临时例外未答复，H3听音／厂家、H4物理／完整最坏组合／8小时及H5未参与开发者任务仍开放，完整 goal active，不扩 H6。
 
 **[PREVIS-006 组件启动完整性与实例隔离](tasks/PREVIS-006-component-launch-isolation.md)有限宿主增量完成，自审通过**，基线 main `842e697`，计划／[ADR-166](decisions/PRODUCT-ADR-166-component-launch-isolation.md)先提交 `e62a2a0`；结果为本次 `fix(previs): isolate installed component launches` 提交。已安装但缺件／路径无效明确拒绝，不偷偷使用编辑器或系统 Node；组件运行目录复用宿主开发／验收所有者，恢复／执行／音频／导航路径不迁移。
 

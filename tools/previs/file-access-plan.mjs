@@ -64,16 +64,29 @@ export function fileAccessPlan(
 }
 
 export function scopedFileEntitlements(plan, base) {
+  const expected = fileAccessPlan(plan.root, plan.source, plan.id);
+  const keys = ["user", "cache", "runtimeTemporary", "logs", "report"];
+  if (keys.some((key) => plan[key] !== expected[key]))
+    throw new Error("文件资格目录不属于本实例专用布局");
+  return developmentFileEntitlements(
+    base,
+    keys.map((key) => plan[key]),
+  );
+}
+
+// Callers must first establish their exact instance layout; never grant a parent root.
+export function developmentFileEntitlements(base, folders) {
   if (
     !isDeepStrictEqual(Object.keys(base).sort(), [...baseKeys].sort()) ||
     baseKeys.some((key) => base[key] !== true)
   )
     throw new Error("来源不是现行四项受限 Development 沙盒资格");
-  const expected = fileAccessPlan(plan.root, plan.source, plan.id);
-  const keys = ["user", "cache", "runtimeTemporary", "logs", "report"];
-  if (keys.some((key) => plan[key] !== expected[key]))
-    throw new Error("文件资格目录不属于本实例专用布局");
-  return { ...base, [fileAccessKey]: keys.map((key) => `${plan[key]}/`) };
+  if (
+    folders.length !== 5 ||
+    folders.some((dir) => !isAbsolute(dir) || resolve(dir) !== dir)
+  )
+    throw new Error("文件资格需五个规范的绝对专用目录");
+  return { ...base, [fileAccessKey]: folders.map((dir) => `${dir}/`) };
 }
 
 export function fileAccessRun(plan, program, name, report) {
