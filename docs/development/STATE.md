@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[MEMORY-004 最大畸形包与旧版本保护](tasks/MEMORY-004-maximal-malformed-package.md) ready**，接续 H4／MEMORY-003 未完成的最大整包软件出口，基线 main `655b8d2`，单写者、用户 output/ 保持。先提交限定计划，复用原 Archive／Installer／NorStore，补完整 2 MiB、末项拒绝与旧版本恢复证据；不降容量、放宽保护或把主机模型写成实板通过。未打开串口／蓝牙或写设备。完整 goal active；下方 FIXTURE-013 为上一交付。
+
 **[FIXTURE-013 根级功能安全](tasks/FIXTURE-013-root-function-safety.md)有限软件增量完成，自审通过**，基线 main `fc5d4a6`，计划／[ADR-164](decisions/PRODUCT-ADR-164-root-function-safety.md) `242c55e`／旧百分比拒绝决定 `d18f96a` 先提交；结果为本次 `fix(fixtures): block autonomous root function choices` 提交。主工作区单写者，用户 output/ 保持。默认／场景／整批／预设／读入／编译／手动和录入统一拒绝声控、自走、自动轮盘、复位及未知宏；无功能语义的旧百分比映射拒绝。禁用资料保留，受控频闪／固定轮盘／单图案抖动保持，未添加字段、能力、播放器、时钟或固件。
 
 - 本次实际 **1279 Rust＋2 文档、437 UI、232 格式**、UI／契约类型、严格 Clippy／fmt／相关 Prettier、文档引用／严格 JSON／差异及正式 `.app` 构建通过。3 项既有子进程入口仍由父测试实际调用。旧自动选择／默认和普通百分比先红后绿；原 14 固定档／粗细／非代表值断言保持。早期失败与大 chunk 构建警告保留，证据 `data/FIXTURE-013/verification.json`、日志 `logs/fixture-013-*`。
