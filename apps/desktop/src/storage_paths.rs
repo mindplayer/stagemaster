@@ -12,12 +12,15 @@ pub(crate) struct Directories {
 }
 
 pub(crate) fn directories(app: &impl Manager<tauri::Wry>) -> Result<Directories, tauri::Error> {
-    if cfg!(debug_assertions) {
-        let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        Ok(development(
-            &project,
-            std::env::var_os("STAGEMASTER_ACCEPTANCE_INSTANCE").as_deref(),
-        )?)
+    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    if let Some(selected) = isolated(
+        &project,
+        std::env::var_os("STAGEMASTER_ACCEPTANCE_INSTANCE").as_deref(),
+        &app.app_handle().config().identifier,
+        cfg!(debug_assertions),
+        cfg!(feature = "internal-acceptance"),
+    )? {
+        Ok(selected)
     } else {
         let data = app.path().app_local_data_dir()?;
         Ok(Directories {
@@ -52,6 +55,36 @@ fn development(project: &Path, instance: Option<&OsStr>) -> Result<Directories, 
         })
     }
 }
+
+fn isolated(
+    project: &Path,
+    instance: Option<&OsStr>,
+    identifier: &str,
+    debug: bool,
+    internal_acceptance: bool,
+) -> Result<Option<Directories>, std::io::Error> {
+    if debug {
+        return development(project, instance).map(Some);
+    }
+    if !internal_acceptance {
+        return Ok(None);
+    }
+    if instance.is_none() && !identifier.starts_with("cn.stagemaster.acceptance.") {
+        return Ok(None);
+    }
+    let name = instance
+        .and_then(OsStr::to_str)
+        .ok_or_else(|| std::io::Error::other("内部发布验收必须指定有效实例"))?;
+    let selected = development(project, instance)?;
+    if identifier != format!("cn.stagemaster.acceptance.{}", name.to_ascii_lowercase()) {
+        return Err(std::io::Error::other("内部发布验收身份与实例不匹配"));
+    }
+    Ok(Some(selected))
+}
+
+#[cfg(test)]
+#[path = "storage_paths_release_tests.rs"]
+mod release_tests;
 
 #[cfg(test)]
 mod tests {

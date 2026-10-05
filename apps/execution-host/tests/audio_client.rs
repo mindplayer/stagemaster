@@ -6,6 +6,7 @@ use stagemaster_execution_client::{
 use support::*;
 
 use support::client_audio::*;
+use support::client_observation::confirmed_control;
 #[test]
 fn shared_client_and_readonly_reader_use_the_real_background_audio_group() {
     runtime().block_on(run());
@@ -29,7 +30,12 @@ async fn run() {
     let idle = reader.sample().await.unwrap().slots;
     assert!(h.state().await["owner"].is_null());
     assert!(!client.view().controlling);
-    client.acquire(false).await.unwrap();
+    let submitted = client.acquire(false).await;
+    assert!(
+        confirmed_control(&mut client, submitted, "acquired")
+            .await
+            .controlling
+    );
     let ready = settled(&mut client).await;
     let old_generation = ready.observation.snapshot.unwrap().state.media[0]
         .generation
@@ -46,7 +52,12 @@ async fn run() {
         .unwrap()
         .instance
         .clone();
-    client.release().await.unwrap();
+    let submitted = client.release().await;
+    assert!(
+        !confirmed_control(&mut client, submitted, "released")
+            .await
+            .controlling
+    );
     settled(&mut client).await;
     drop(client);
     let mut other = Client::open(&path).await.unwrap();
@@ -62,7 +73,12 @@ async fn run() {
     assert_eq!(state.audio.as_ref().unwrap().instance, instance);
     assert!(state.owner.is_none());
     assert_eq!(state.media[0].status, MediaStatus::Following);
-    other.acquire(false).await.unwrap();
+    let submitted = other.acquire(false).await;
+    assert!(
+        confirmed_control(&mut other, submitted, "acquired")
+            .await
+            .controlling
+    );
     let stopped = verify_operations(&mut other, &mut reader, &old_generation, &idle).await;
     assert_eq!(
         h.state().await["owner"]["sessionId"].as_str(),

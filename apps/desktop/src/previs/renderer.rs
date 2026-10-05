@@ -1,9 +1,11 @@
 //! Own the renderer and the upstream signalling service. Neither controls the show clock.
 use serde::Deserialize;
+#[cfg(all(debug_assertions, target_os = "macos"))]
+use std::path::Path;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Read},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::{Child, Command, Stdio},
     sync::mpsc,
     time::Duration,

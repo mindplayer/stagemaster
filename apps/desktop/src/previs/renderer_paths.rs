@@ -13,6 +13,7 @@ pub(super) struct RuntimePaths {
 }
 
 impl RuntimePaths {
+    #[cfg(any(test, all(debug_assertions, target_os = "macos")))]
     pub(super) fn editor(project: PathBuf) -> Self {
         Self {
             logs: project.join("logs"),

@@ -29,7 +29,10 @@ export async function runCommand(command, plan) {
   console.log(`执行：${command.program}\n日志：${command.log}`);
   const descriptor = openSync(command.log, "wx", 0o600);
   return new Promise((resolve, reject) => {
-    const env = withoutLoaderOverrides({ ...process.env, ...plan.env });
+    const env = withoutLoaderOverrides({
+      ...(plan.inheritEnvironment === false ? {} : process.env),
+      ...plan.env,
+    });
     // Build-time toolchain verification must not inherit the editor runtime shortcut.
     delete env.UE_SKIP_UBT_SDK_SETUP;
     const child = spawn(command.program, command.args, {
