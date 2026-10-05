@@ -4826,6 +4826,7 @@ name = "stagemaster-nor-store"
 version = "0.1.0"
 dependencies = [
  "embedded-storage",
+ "minicbor",
  "serde_json",
  "sha2",
  "stagemaster-install",

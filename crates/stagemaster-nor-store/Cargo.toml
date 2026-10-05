@@ -12,6 +12,7 @@ stagemaster-package = { path = "../stagemaster-package" }
 sha2 = { version = "=0.10.9", default-features = false }
 
 [dev-dependencies]
+minicbor = { version = "=2.3.0", default-features = false, features = ["alloc"] }
 stagemaster-playback = { path = "../stagemaster-playback" }
 stagemaster-project = { path = "../stagemaster-project" }
 stagemaster-transfer = { path = "../stagemaster-transfer" }

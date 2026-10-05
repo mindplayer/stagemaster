@@ -91,3 +91,9 @@ CARGO_HOME="$PWD/tmp/cargo-home" TMPDIR="$PWD/tmp" cargo run --locked --offline 
 ```
 
 示例使用文件随机读取，无工程编译依赖；逐个装载节目，以合成单调时钟重放 10 秒／400 帧并打印输出摘要。它不会连接设备或发送 DMX，也不能替代现场时序／长稳测试。
+
+## 最大畸形输入的软件证据
+
+[MEMORY-004](../development/tasks/MEMORY-004-maximal-malformed-package.md)的 `malformed_capacity` 示例生成四份恰好 2 MiB 的坏包与满 64 项的合法／末项错误大包；使用正式 Archive 校验并保存实际错误／读请求报告。独立原始容器生成器和跟踪仅属于[验收工具](../../tools/package-acceptance/README.md)，不扩展公开解码、安装或运行 API，不放宽任何资源／格式限制。
+
+完整载荷散列、最大读取请求、后续语义拒绝与旧版本的软件 NOR 恢复分别验证。读请求界限不是分配器峰值，主机微秒不是板卡 2 秒工作／10 秒启动期限，软件 NOR 不是真实掉电；不据此宣布全部合法最坏组合、完整栈、物理输出或 8 小时通过。
