@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-06
 
-**[DESKTOP-008](tasks/DESKTOP-008-script-recovery-acceptance.md) 实施中，持续 goal active**：main 基线 `1cd87f1`，主工作区单写者，用户 output/ 不读不动。接续首版无音乐剧本代表流程，复用原候选与列表／后台／恢复契约，软件 DMX、无音频／UE／硬件；源工程及旧证据保持。限定一次已确认检查点、已关闭后台后的本项独立桌面异常退出／副本恢复，先提交范围再实施，不宣称客户／实物出口已通过。
+**[DESKTOP-008](tasks/DESKTOP-008-script-recovery-acceptance.md) 有限原生增量完成、自审通过，持续 goal active**：main 基线 `1cd87f1`、范围先提交 `5eea63b`，结果为本次 `docs(release): verify native script execution and copy recovery` 提交；主工作区单写者，用户 output/ 未读未动。复用产品 `b0f3a7b`／`desktop-release-qooqnJ`，软件 DMX、无声音／UE／硬件，不重建包或改接口。
+
+- 无音乐 80 灯／20 场景、24 灯组／144 值预设、三步人工／定时剧本，非法拒绝／取消／撤销重做／搜索上下文／保存最近重开通过。85 条原只读状态均 200，延时／渐变／等待 6／12／5 条，后继确认末步；同实例暂停继续，第九槽 33%→84，零值仍持有、明确释放。另一个场景的 24 项编辑不改变运行工程／暂停时间／512 槽，撤销后回已保存。
+- 明确停止并关闭宿主后，唯一受控 SIGKILL（PID 75589／监督 23297，原结果保留）验证已应用检查点、不含草稿、无保存目标副本、首次路径选择／另存且来源不覆盖，不自动运行。主／恢复监督 37609／42122 均退出 0；四准确 PID 与宿主实际端口 55624 关闭、current／discovery 撤下，不称自然崩溃或运行容灾资格。
+- data/DESKTOP-008/native-verification.json、AX／PNG／原状态及 logs/desktop-008-*；64 保护、006的13／007的58产物、1995来源及 Game32／信令2275／组装2313 与缓存保持。准备／监督 ENOENT（子退出未知）、证据预算误用和原回执待核对等首失败保留，不回写历史或冒作产品修复。新增试用步骤／副本恢复说明；实际 6 辅助语法、479 本地引用／7 锚点、最终 32 严格 JSON／配置和 diff 通过，1 合法／9 拒绝证据解析检查通过。无产品源码变化，不冒计 Rust／UI／GPU全量，最终核验单列 document-verification-final.json。
+- **下一步继续依赖满足的 H1–H5剩余软件出口，不重做上述流程或扩 H6–H8。** 恢复／自然结束听感、历史偶发根因、实际灯型／差分／实灯／完整最坏组合／8小时、客户 Shipping／权限签名／最低系统／全产品许可及外部灯光师三任务仍开放，完整第一版未达标。
 
 **持续 goal active；[DESKTOP-007](tasks/DESKTOP-007-native-resource-recovery.md) 有限原生／说明增量完成**：main 基线 `a7b73ce`，范围先提交 `b469b3b`，主工作区单写者，用户 output/ 未读未动。复用源码 `b0f3a7b`／`desktop-release-qooqnJ`，未播放声音、未启动执行后台／三维或真实 DMX，不动旧资料。
 
