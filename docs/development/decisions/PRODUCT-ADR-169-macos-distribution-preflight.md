@@ -1,6 +1,6 @@
 # PRODUCT-ADR-169：内部包与客户发行前检查分开
 
-状态：2026-10-05有限决定待实施。关联[PREVIS-010](../tasks/PREVIS-010-macos-distribution-preflight.md)、[ADR-167](PRODUCT-ADR-167-development-desktop-assembly.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)。不改变运行时公开API、工程或控制语义，不选定最终发行渠道／权限方案。
+状态：2026-10-05有限只读决定已实施并验证，结果 `64e2a6a`。关联[PREVIS-010](../tasks/PREVIS-010-macos-distribution-preflight.md)、[ADR-167](PRODUCT-ADR-167-development-desktop-assembly.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)。不改变运行时公开API、工程或控制语义，不选定最终发行渠道／权限方案。
 
 ## 事实与成熟机制
 
@@ -17,3 +17,11 @@
 5. 不扩大签名资格、改沙盒、操作私钥／证书、重签原包或提交公证，不新建Xcode／UAT构建。后继真实可移动权限方案另记证据／决定，不在此诊断中偷偷实施。
 
 本轮不是“已做客户打包”，也不把旧未解决事实转成通过。用户output/及原产物／失败证据保持；相关测试／实际只读报告保存后自审集成，完整goal active。
+
+## 实际验证与决定边界
+
+167 Node（32新增）、六文件语法／格式及原始采集严格JSON通过；只读原资格包四入口严格签名均通过，但CLI实际退出1、定位20项候选阻止。Node的独立Developer ID校验／runtime／安全时间戳有效，**实际调试资格get-task-allow=true也存在**；证书有效不等于符合公证先决条件，不凭外层ad-hoc误报Node无签名。桌面／宿主／Game仍为ad-hoc，Game五个固定目录及内部身份保持；原包／受保护记录前后清单不变，无新原生启动或签名操作。
+
+全部绝对路径临时资格被此候选规则保守阻止，目的是阻止本机固定目录冒充可移动客户包；Apple本身提供这种临时资格机制，**不把项目规则写成Apple普遍禁令**。候选最低系统14.0只是四入口／静态闭包一致，不证明客户旧系统、动态加载或GPU运行。
+
+证据 `data/PREVIS-010/verification.json`／`native-preflight-complete.json`及工单交付记录；初始红灯、自审失败、路径与证据记录错误均保留并解释，没有调整产品验收。最终权限／团队／Shipping／Node调试资格处置仍需下一项明确决定，不能因此自动重签第三方、移除沙盒、操作证书／私钥或提交公证。这个ADR只关闭诊断实现，不关闭客户发行与H1–H5。

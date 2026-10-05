@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-010 Mac发行前只读静态检查](tasks/PREVIS-010-macos-distribution-preflight.md)已限定计划，待实施**，基线main `cb224a8`，关联[ADR-169](decisions/PRODUCT-ADR-169-macos-distribution-preflight.md)，先提交再实现。独立采集四入口签名／Developer ID证书要求／权限／最低系统，输出可定位阻止报告；不把严格ad-hoc封套或内机GPU叫客户发行。Node实际官方Developer ID／runtime／时间戳保持，不重签或要求所有第三方Team相同。只变previs工具／测试，不重建UE、不扩权限、不操作私钥、公证、系统声音或设备；原包／证据和用户output/保持，完整goal active。
+**[PREVIS-010 Mac发行前只读静态检查](tasks/PREVIS-010-macos-distribution-preflight.md)有限增量完成，自审通过**，基线 main `cb224a8`，计划／[ADR-169](decisions/PRODUCT-ADR-169-macos-distribution-preflight.md)先提交 `bdcfd4a`，实现结果 `64e2a6a`。四入口严格封套、独立 Developer ID 证书要求、资格和最低系统分别采集；只读诊断不授予客户发行资格，不改变运行时、既有组装、签名或权限。
+
+- 最终实际 **167 Node（32 新保护）**、六文件语法／Prettier、25 份原始采集单记录严格 JSON 和差异检查通过。初始22项为7通过／15失败，再原22项全部通过；自审补出入口无执行位及重复畸形签名头两项真实失败，修复后全量167项通过。路径尾分隔符导致的5项失败、错误格式工具路径退出127和证据计数／命名错误均保留并单列纠正，未弱化断言。六个工具／测试文件最大254行，无 Rust／UI／UE变更，不重复或冒记其编译、GPU或音频验证。
+- 对009资格包实际 CLI **退出1／20项阻止**，四入口严格签名均退出0，但桌面／宿主／Game仍为 ad-hoc；Node 的官方 Developer ID／runtime／安全时间戳确实有效，**实际 get-task-allow=true 仍阻止候选预检**。不重签官方Node或要求第三方Team相同。Game保留原调试权、内部身份和五个本机绝对目录；禁止绝对临时资格是本项目客户候选的保守规则，不宣称 Apple 一概禁止此类资格。组合静态最低系统14.0与6镜像／66边一致，不替代最低系统实际运行／动态加载验收。原正式debug包缺包内Node，中文缺件拒绝退出1，无系统Node／编辑器回退。
+- 证据 `data/PREVIS-010/verification.json`、`native-preflight-complete.json`、`baseline-correction.json`，日志 `logs/previs-010-*`。基线记录的 redSourceHashes 实为绿灯补丁后采集哈希，不作为红灯源码快照；原记录不回写，真实红灯日志和更正并存。旧资格包／原Game／Node／受保护工程与009修复源码清单保持，用户output/未动；未启动原生进程、重签、扩权、重建或提交公证。
+- **下一步客户可移动目录／最终权限与签名／Shipping的限定决定和实际资格**，保留Node调试权这一新阻止事实；静态工具正向用例不是实际客户包通过。客户无编辑器GPU／许可／公证与Gatekeeper／未参与开发者任务，以及H1听音／声卡、H3厂家／完整光学、H4差分／完整最坏组合／8小时仍开放。Xcode系统临时例外仍待答复，只暂停受影响构建；完整goal active，不扩H6。
 
 **[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)有限修复完成，自审通过**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa0`，实现结果 `03dec8a`。只将局部锁争用及准确上游读取503归为繁忙，近似文本、身份／鉴权／失效／故障和2秒期限保持；不改公开Reader／协议／时钟或UE，不新增播放器／观测队列／控制重试。
 
