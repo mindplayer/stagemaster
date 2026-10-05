@@ -1,6 +1,6 @@
 # PREVIS-007：受限 Development 桌面组装与真实连接
 
-状态：验证中，内部组装与两轮原生 GPU／保存重开通过，当前完整工作区测试仍在执行，工单未结项。基线 main `20d2476c4318527fe1e532961f221ee9f30019e7`，限定计划／ADR 先提交 `0fc97db779b0564e1de9f7f35ab59415d4a82bce`，实现结果为本次 `feat(previs): assemble scoped development desktop` 提交；主工作区单写者，用户 output/ 保持。属于 H5 的独立预演准备，不是客户发行或 H5 完整出口。
+状态：done，2026-10-05，有限内部组装与两轮原生 GPU／保存重开及完整软件出口通过，自审通过。基线 main `20d2476c4318527fe1e532961f221ee9f30019e7`，限定计划／ADR 先提交 `0fc97db779b0564e1de9f7f35ab59415d4a82bce`，实现结果 `cfda9371fde8556ea6e8aa9bbc8145442051a756`；主工作区单写者，用户 output/ 保持。属于 H5 的独立预演准备，不是客户发行或 H5 完整出口。
 
 ## 一个可用增量
 
@@ -47,10 +47,10 @@ AX／JPEG 与进程／目录／关闭记录为 `data/PREVIS-007/native-{first,re
 
 - 最终工具 **135 Node（119 原保护＋16 新组装）** 通过；原工具首轮两项 ENOTDIR 错误提示失败已修正，旧断言不改，`logs/previs-007-tools-first.log` 保留。五个工具的语法／Prettier 通过。
 - 最终相关 Rust **36 项**包含在桌面 **142 通过、2 个既有子进程入口由父测试实际调用**中；全目标工作区严格 Clippy、fmt 与正式 `.app` 构建通过。日志 `logs/previs-007-desktop-tests-final.log`、`previs-007-clippy-cached.log`、`previs-007-fmt-final.log`、`previs-007-desktop-final.log`。没有 UI／UE 源码修改，不累加历史 UI／编辑器测试作本次通过。
-- 完整工作区原命令正在执行，工具会话 `29845`／Cargo PID `18610`，记录 `logs/previs-007-workspace-delivery.log`、`data/PREVIS-007/workspace-progress.json`；继续同一会话核实退出，不重复启动或将局部条数汇总成完整通过。前两轮在测试入口前等待，采样 `_dyld_start` 和同 PID 的系统加载记录只作诊断，根因未证实。不同路径的字节／签名等价副本能启动；同路径缓存字节等价更新仍未解决。原测试、签名与断言未改，没有系统保护关闭或越权修复。
+- 完整工作区同一原命令 `cargo test --workspace --locked --offline`已完成，工具会话 `29845`实际返回退出 0，Cargo PID `18610`退出；完整汇总 **1300 Rust＋2文档，3个既有子进程入口由父测试调用**。记录 `logs/previs-007-workspace-delivery.log`、`data/PREVIS-007/workspace-result.json`与最终 `verification.json`；旧 pending检查点保留，不用局部计数冒充全量。前两轮在测试入口前等待，采样 `_dyld_start` 和同 PID 的系统加载记录只作诊断，根因未证实。不同路径的字节／签名等价副本能启动；同路径缓存字节等价更新仍未解决。最终成功不等于历史等待根因修复，原测试、签名与断言未改，没有系统保护关闭或越权修复。
 - 全新项目内目标的原命令曾继续编译并跑到桌面用例，但汇总前取消，不能计作全量通过；取消后发现的本轮孤立测试宿主按确切路径／PID 回收，非用户后台。实际记录在 `data/PREVIS-007/{interrupted-workspace,startup-diagnostic,raw-startup-diagnostic,test-cache-refresh,cache-refresh-not-resolved,clean-build-interrupted,orphan-test-host-cleanup}.json`，原失败／取消日志保持。
 - 原生核对首次误把 UE 的实际 cooked 资源 cwd 当成启动 cwd；最终脚本按官方实际行为核对，未拓宽写入目录。交付检查脚本误读工程的构件字段已按现行 `stage.constructions`／`lighting.fixtures` 改正并加零摆放断言，首轮日志保持。格式工具错误路径已改用原项目内 npm 缓存的已安装工具，无版本／依赖升级；引用／严格 JSON／差异通过。以上不是产品缺陷修复。原日志仍有 `MaxKeyFrameInterval=-1`／VT -12900 警告，画面通过不等于该警告根因已解决。
 
 ## 自审范围与下一入口
 
-已完成限定组装／权限与原生连接审查，实现检查点保存 `data/PREVIS-007/verification.json`；明确当前完整软件出口未通过、工单验证中。**首先接续正在运行的原全量**，核对完整汇总与实际退出，再更新结项；已完成的局部与原生不重复。之后接 H5 客户可移动运行目录、签名／Shipping／最低系统与许可，先限定方案再实施，不能拿本机绝对路径 ad-hoc 副本当客户发行。新的 Xcode／UAT 仍等系统临时例外答复；厂家参数、听音、专业光学、物理差分／完整最坏组合／8 小时及未参与开发者三任务保持未完成。完整 goal active，不扩 H6、不恢复旧工作器。
+已完成限定组装／权限、原生连接与完整软件出口自审，最终记录 `data/PREVIS-007/verification.json`固定实现版本 `cfda937`，计划后继不影响来源归属。此有限增量结项；原生静音音乐循环／后台只读GPU组合接 [PREVIS-008](PREVIS-008-native-audio-loop-observation.md)，已完成的局部与原生不重复。之后接 H5 客户可移动运行目录、签名／Shipping／最低系统与许可，先限定方案再实施，不能拿本机绝对路径 ad-hoc 副本当客户发行。新的 Xcode／UAT 仍等系统临时例外答复；厂家参数、听音、专业光学、物理差分／完整最坏组合／8 小时及未参与开发者三任务保持未完成。完整 goal active，不扩 H6、不恢复旧工作器。
