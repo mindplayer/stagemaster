@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**持续 goal 已启用；[DESKTOP-007](tasks/DESKTOP-007-native-resource-recovery.md) 实施中**：基线 main `a7b73ce`，主工作区单写者，用户 output/ 未跟踪且不读取。按第一版标准收敛音乐资料丢失／错误替代拒绝／原文件恢复／补齐伴随资源／重开的原生路径与中文说明。复用源码 `b0f3a7b`／既有内部候选，不播放、不启动执行后台／三维、不动旧缓存或恢复记录。先提交范围再实施；现场与客户门槛只暂停受影响出口，完整第一版尚未达标。
+
 **用户调整本批为[第一版可交付标准](first-release.md)，[DESKTOP-006](tasks/DESKTOP-006-dependency-notice-materials.md)有限材料工具增量完成、自审通过**：沿用H1–H5，优先稳定性、数据保护、完整主流程与安装／恢复资料，不扩高级能力、不降低实物或客户门槛。main现场基线`214c12b`、范围先提交`cf605c4`、主工作区单写者、只有用户output/未跟踪；复用现有文件保护与标准库离线收集，原产品源码／包不变，不冒称发行批准。
 
 - 实际269 Node全通过（15新增／无跳过）、4新JS＋1核验语法、Python AST／相关Prettier、文档链接／严格JSON／diff通过。391 Rust锁定原包与缓存清单／原文逐字节核对，125 npm声明依赖；两次最终离线产物完全相同，原文3,330,242字节。45项原文缺项（Rust41／npm4），49个其他平台可选未安装单列；保守源码集包含构建工具，不等于最终二进制材料／商业许可。npm归档完整性未重验，不生成假的原文。证据data/DESKTOP-006/verification-review-final.json与materials-final-a/、日志logs/desktop-006-*；自审前verification.json保持。
