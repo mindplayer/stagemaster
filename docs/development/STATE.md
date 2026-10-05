@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-010 Mac发行前只读静态检查](tasks/PREVIS-010-macos-distribution-preflight.md)已限定计划，待实施**，基线main `cb224a8`，关联[ADR-169](decisions/PRODUCT-ADR-169-macos-distribution-preflight.md)，先提交再实现。独立采集四入口签名／Developer ID证书要求／权限／最低系统，输出可定位阻止报告；不把严格ad-hoc封套或内机GPU叫客户发行。Node实际官方Developer ID／runtime／时间戳保持，不重签或要求所有第三方Team相同。只变previs工具／测试，不重建UE、不扩权限、不操作私钥、公证、系统声音或设备；原包／证据和用户output/保持，完整goal active。
+
 **[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)有限修复完成，自审通过**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa0`，实现结果 `03dec8a`。只将局部锁争用及准确上游读取503归为繁忙，近似文本、身份／鉴权／失效／故障和2秒期限保持；不改公开Reader／协议／时钟或UE，不新增播放器／观测队列／控制重试。
 
 - 最终实际 **1303 Rust＋2文档**、严格全目标Clippy／fmt及正式`.app`构建通过；桌面145包含在全量，3个既有子进程入口由父测试调用。分类先1通过／2断言失败，再原3项全部通过。同一原全量会话83024退出0，计数／完成凭据 `data/PREVIS-009/workspace-result.json`；正式项目脚本构建34649退出0，没有重启全量或放宽检查。五源码文件，分类／测试20／45行，server340行经评估保留HTTP职责。
