@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-004 Development 副本限定文件资格](tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格) ready**，基线 main `47e24da`，计划／ADR-165 补充先纳入版本。复用现有 Game，在新实例副本保留沙盒并只添加五个专用运行目录的官方文件资格，补官方报告模板，实际验证 JSON／HTML、范围外拒绝与恢复；不新建 Xcode／UAT、不修改原包／引擎／桌面，不把本机绝对路径资格当客户方案。OS 临时例外仍未获答复，只暂停新构建；完整 goal active。
+
 **[PREVIS-005 自包含 Node／信令组件](tasks/PREVIS-005-signalling-component.md)有限软件增量完成，自审通过**，基线 main `bc97055`，计划先提交 `9d97a7d`；结果为本次 `feat(previs): package self-contained signalling runtime` 提交。复用现有 Node 24.17.0／官方信令和原锁，在全新项目内目录实际离线安装 124 包；不是 Tauri／UE／客户整包交付，不装入或修改现有正式应用。
 
 - 最终实际 **87 Node（62 原保护＋25 组装／生命周期）**、包内 Node 原目录／中文空格移位各 **7 项真实回环**、7 文件语法／Prettier、相关引用／严格 JSON／差异检查通过。父进程 EOF 后所属服务退出、两个实际端口拒绝连接；2,273 文件移位字节等价。Node ARM64／4 系统库、最低 macOS 13.5，运行时哈希与完整 LICENSE 保持。保留三个失败实例：npm 配置重复、离线缺缓存、测试文件 URL 的百分号路径错误；缓存单独按原锁联网补齐，最终组装仍 offline，原六项断言／期限不变。

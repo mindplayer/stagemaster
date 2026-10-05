@@ -58,6 +58,18 @@
 
 证据 `data/PREVIS-004/dependency-verification.json`，日志 `logs/previs-004-dependencies-*`，移位副本留项目 tmp 下并忽略。自包含图只是忽略开发机 fallback 的包内静态候选解析，不宣称完整 dyld 运行、运行期 `dlopen`、旧系统兼容、GPU、沙盒或客户整包通过。本次没有新的 Xcode／UAT／Game／编辑器运行；OS 临时例外尚未答复，只暂停相关构建。下一步仍按 ADR-165 处理最小文件资格和独立报告，不为当前绿灯关闭 H5 或完整 goal。
 
+## 接续：Development 副本的限定文件资格
+
+状态：**ready，计划先纳入版本后实施**。基线 main `47e24daa35a70bab0df3b19278fc87768d4dd84f`；主工作区单写者，用户 output/ 保持。上一轮 PREVIS-005 已交付信令组件，仍不能替代原生报告。按 ADR-165 先验证不依赖新 Xcode 的现有 Development Game 副本路径；本工单不选定客户权限／签名团队，不更改引擎、桌面、UE 源码、播放器或桥协议。
+
+- 新工具仅接受项目内已生成的唯一 `StageMasterPreview.app` 主程序；先校验原签名、ARM64 包内闭包和来源。新建 `data/PREVIS-004/previs-file-access-*/` 副本，只对副本组装签名，不覆盖或修改原包／Pak／历史失败记录。
+- 使用原 Apple App Sandbox／网络／Development 调试资格，增加**本次实例**的 runtime-user、runtime-cache、runtime-temp、logs 和 runtime-report 五个目录的官方绝对路径 read-write 资格（目录尾 `/`）。禁止项目根、整个 tmp／data／logs、源码／工程／导航／密钥／设备资格和越界链接。签名为本地 ad-hoc／无时间戳，保持沙盒，不使用 noEntitlements、inherit 或关闭保护；范围具体化先记录在 ADR。
+- 把本机引擎官方 `Report-Template.html` 原样放到副本 `Contents/UE/Engine/Content/Automation/`，记录来源和哈希，保留官方资源许可边界，不加入 Git 或改引擎。模板只为自动化导出，不打开 HTML 或新建外部依赖。
+- 实际用副本 Game 而非编辑器执行原必需资源／H264 用例（NullRHI／NoSound），要求新的非空 JSON 和 HTML，原 successfulReport 门槛保持；独立实例缓存／UserDir／TMPDIR／日志，无新 Xcode／UAT／编译／烘焙。实测外部 sibling 报告目录拒绝写入并保持哨兵，再回到允许目录确认恢复，不拿退出 0 或 Success 文本当验收。
+- 签名前后核对资格、签名和非修改内容；坏输入、缺模板／来源、异常签名／权限、范围扩大、报告缺／空／失败均拒绝且记录 failed。完整原生报告未通过前不接 Tauri。开发绝对路径资格不是客户可移位权限，仍开放客户签名／目录／最低系统／实际 GPU／H3／H4 门槛。
+
+验收：实际脚本测试与原 87 项保护；实际源包签名／哈希不变、副本限定签名、真实 Game 正／负／恢复报告和所属进程退出；相关语法／格式、引用、严格 JSON、差异检查；证据和失败都留项目内，更新 STATE 后提交。若不能取得真实 JSON或发现受控产物写入项目外，停止受影响运行，不能以关闭沙盒或放宽文件范围迁就。
+
 ### 实施中实际发现
 
 - 首轮 ZenStore 隐式启用，断开所属构建进程并保留失败记录；项目明确文件 Pak／非 Zen 烘焙，构建禁用 UBA 网络执行，按实际所属进程组取消。原 RunUAT 的 `ps --ppid` 取消逻辑在 macOS 无效，实际子孙终止测试保护本工具，不改用户全局脚本。
