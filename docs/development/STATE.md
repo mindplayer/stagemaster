@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)验证中**，基线 main `cfda937`，限定原生验收计划先提交 `1a16ba1`。复用已有严格签名内部包及固定权限实例，对独立的 AUDIO-021 工程／MP3副本做 software静音真实PCM／正式循环／后台只读灯值与实际 GPU组合验证；不重做已交付的循环编排，不启用系统音乐播放、实灯或编辑器，不改当前 Rust产物。正式界面已按静音选择载入音乐，来源清单实际为 software，控制权已生效，公共三维绑定后台只读；循环／GPU完整验收尚未完成。PREVIS-007 原全量已独立核实退出 0，不用本项替代；客户发行改造暂不展开，完整 goal active。
+**[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)ready**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先纳入版本，再实施桌面内部Busy／拒绝分类。008一组实际并发只读返回200／409，原因“后台观察正在读取”；不是新的播放器／时间问题，也不证明首轮缺正文409的确切原因。只将局部锁争用及准确上游读取503归为原繁忙语义，身份／鉴权／失效／故障和2秒期限保持；原包与008失败证据不改，真实修复后复验。
+
+**[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)验证中，实际检查点已保存，完整出口未通过**，基线 main `cfda937`，计划先提交 `1a16ba1`，本轮源码不变。独立80灯／20场景／4正式循环及30秒MP3副本，正式界面静音载入、真实PCM、固定第1／2／3遍、持续跨遍、暂停圈末退出／取消request4／5、运行圈末退出request8／9、自然结束与明确停止request10均有真实Applied；十秒暂停点80台RGB／亮度与软件量化槽逐项一致，10台非零。唯一实际Game／Node、关闭工作照明后的GPU、音乐页／相机保持及运行中三维重开不停止同一后台／音源通过；没有系统音乐／实灯／编辑器。
+
+- 额外帧观察首轮409失败保留，原检查器未保存其正文，根因不能追认；后继明确并发只读200／409复现了Reader争用分类问题，接009修复，不把部分检查写成完整通过。大运行记录误用项目JSON预算的检查脚本已按运行记录读取修正，产品预算未改；最近重开初次截到加载中、后继实际载入另存，不用中间态冒充成功。VT警告与性能／历史缺陷保持。
+- 证据 `data/PREVIS-008/verification.json`、`paused-projection-checks.json`、`parallel-frame-probe.json`、实际state／frame／AX／JPEG与关闭记录；日志 `logs/previs-008-*`／`logs/PREVIS-008/`。原Game／Node／桌面来源及复制包清单、三份严格签名、受保护工程／MP3／默认最近目录／历史证据保持；最近工程实际重开字节一致。音乐、所属后台／两轮Game／Node／端口与两次应用已明确关闭，用户output/未动。PREVIS-007原全量独立完成，不用本项替代；客户发行、听音／厂家／物理／长期门槛保持，完整goal active。
 
 **[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)有限增量完成，自审通过**，基线 main `20d2476`，限定计划／[ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)先提交 `0fc97db`，实现结果 `cfda937`。复用原 Game／Node／正式桌面的唯一内部副本，Rust 明确设置 Game 子进程平台用户目录、清理加载覆盖；原四项沙盒资格＋准确五目录、内部身份／macOS 14.0，原包不改、不重建 UE，官方信令无薄层。
 

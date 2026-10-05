@@ -23,3 +23,15 @@ H1 已完成循环目录／精确编辑、时间线／成组及旧编辑器渲�
 ## 不关闭的门槛
 
 本项是最新内部独立组件的静音真实 PCM／灯光投影／GPU 联动验收，不代替旧编辑器正式音乐或现场听音、声卡／物理声光时延、完整光学、厂家参数、客户无 UE 编辑器环境、许可／签名、真实差分输出／8 小时与未参与开发者三任务。AUDIO-020 和完整 H1–H5 goal 保持原范围，不能因本用例通过写成商业产品完成。
+
+## 2026-10-05实际原生检查点
+
+本轮没有源码／构建／重新组装或签名变更，复用唯一 `previs-desktop-ggmASF`内部包。按正式界面静音准备80灯／20场景／4循环工程，后台音频manifest实际software，设备未连接。基线副本与MP3原样；原文件、默认最近目录和历史007／AUDIO-021／FIXTURE证据保持。
+
+- 固定区段第1／2／3遍、持续区段多遍、暂停位置保持、精确定位十秒、暂停退出／取消request4／5均Applied；运行圈末退出request8后第二固定区段三遍，最后持续段退出request9后自然Ended至30秒，明确停止request10归零。观察读取不提交控制；控制均走正式界面及原Client，同一失败不重发。
+- 十秒暂停点80台灯的RGB／亮度与完整512槽的实际u8量化逐项相同，10台非零；来源为同一hostId的background、协议2、generation0、canEdit=false，暂停音源instance／帧数／位置稳定。真实独立Game离屏GPU、工作照明关后的蓝／暖光、俯视与跨音乐页同一公共视窗有AX／JPEG和实际frame，不宣称物理光学／时延。
+- Game／Node单独停止后PID与三端口退出，原后台同一host／run／音源instance4继续真实消费；重开新Game／Node／bridge，不重新载入音乐。自然结束后明确停止与关闭后台，退出应用后所属Game／Node／host／四端口全部关闭。另一次同实例最近重开实际载入原工程，字节一致并正常退出；007最近条目未清空。
+- **完整出口未通过，继续验证中**：首轮额外帧观察遇到409，原检查器断言前未保存该正文，保留原失败，不能宣称确切根因已证明。后继一组并发只读帧确实返回200／409，“后台观察正在读取”被归为冲突；[PREVIS-009](PREVIS-009-background-frame-busy.md)按[ADR-168](../decisions/PRODUCT-ADR-168-background-frame-busy.md)补繁忙分类后复验。不通过串行观察、放宽2秒期限或假装全量测试解决它。
+- 第一暂停核对脚本把多样本运行证据送入项目JSON预算，明确超限；改按运行记录读取和逐项结构核对，产品格式预算／断言不改，首轮日志保留。最近工程首截是“加载中”，实际载入另存；不以首截图记成功。VT MaxKeyFrameInterval=-1／-12900仍保留，不说已修复或性能通过。
+
+实际核对 `data/PREVIS-008/verification.json`明确fullNativeAcceptance=false；暂停逐项核对 `paused-projection-checks.json`，并发拒绝 `parallel-frame-probe.json`，原生state／frame／AX／JPEG／进程及关闭记录同目录；日志 `logs/previs-008-*`／`logs/PREVIS-008/`。原Game／Node／桌面与复制包清单、三份严格签名、所有受保护工程／素材与默认最近目录保持；无公开凭据、所属进程已退出。PREVIS-007完整1300 Rust＋2文档的原全量独立完成；本轮无代码，只做相关文档／JSON／差异及包完整性核对，不重复计旧UI／UE测试。
