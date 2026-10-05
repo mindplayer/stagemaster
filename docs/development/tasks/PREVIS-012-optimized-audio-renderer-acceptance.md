@@ -44,3 +44,9 @@ DESKTOP-005优化桌面／后台只完成无三维、无音乐的正式编排。
 ## 后继AUDIO-022有限复验
 
 源码ec5a825的新优化候选`desktop-release-d2XZQI`已实际完成分类显示、长短循环暂停退出／取消、无GPU短循环运行退出及自然结束、三维关闭重开保持音源、量化灯值和保存重开／收尾；准确证据在`data/AUDIO-022/verification.json`，不是沿用本项旧来源资格。GPU联动的短循环退出本次明确拒绝“循环播放目标已变化”，原音乐保持且UI不借旧Applied；新稳定目标退出／继续／自然结束成功不覆盖拒绝。写入载荷／原HTTP回执缺口及先前一次长循环继续未确认仍保留，接续[AUDIO-023](AUDIO-023-native-media-command-evidence.md)有限留证。旧`data/PREVIS-012/verification.json`的fullNativeAcceptance=false与原始根因未知不改写，本工单完整出口未关闭。
+
+## 后继AUDIO-023原请求留证与有限复验
+
+2026-10-06，源码`b0f3a7b`、新优化实例`desktop-release-qooqnJ`实际原生证据在`data/AUDIO-023/verification.json`，不移用旧候选资格。一秒持续循环运行退出单次原serial56／generation2／instance3／region3／pass25已接纳且音乐request9 Applied，随后自然结束30秒；实际维护后原API已notRetained，桌面仍保留该原目标、POST200、同serial原GET200／完成及同音乐确认。本轮未复现拒绝，不能恢复或解释本工单／022旧write。
+
+长持续运行退出、暂停退出／取消、继续的短暂pending后同原serial确认、唯一公共三维关闭重开保持音源与PCM、三组240量化灯值样本、保存重开及有限所属进程收尾均实际通过；详见AUDIO-023工单。本项旧false／未知原因不回写，也不把留证增量当作听音、完整原工单或客户资格全部完成。后续只执行依赖满足的剩余验收，不重做已通过循环编辑或添加第二播放器。

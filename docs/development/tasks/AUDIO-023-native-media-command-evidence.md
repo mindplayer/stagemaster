@@ -1,6 +1,6 @@
 # AUDIO-023：原生媒体显式请求与原回执的有限留证
 
-状态：实施中，2026-10-05。由当前实施会话按已有H1／H5拆分，接续[AUDIO-022](AUDIO-022-short-loop-exit-refusal.md)已交付的分类显示，产品基线main `ec5a825`；现场基线`1cba5fb464cd59b00ada8cbf8cc98a38dbf56270`、主工作区单写者。上一轮有真实提交／原生验证，属于progress；现场旧7PID已不存在、仅用户output/未跟踪。先记录[ADR-174](../decisions/PRODUCT-ADR-174-media-request-evidence.md)／媒体契约，基线和47保护哈希在`data/AUDIO-023/baseline.json`；后继文档提交不回退。
+状态：有限增量完成，自审通过，2026-10-06。由当前实施会话按已有H1／H5拆分，接续[AUDIO-022](AUDIO-022-short-loop-exit-refusal.md)已交付的分类显示，产品基线main `ec5a825`；现场基线`1cba5fb464cd59b00ada8cbf8cc98a38dbf56270`、范围／ADR先提交`f040819`，源码结果`b0f3a7bdebbc9b64674b0c1d84d6d041358a9021`，主工作区单写者。上一轮有真实提交／原生验证，属于progress；现场旧7PID已不存在、仅用户output/未跟踪。先记录[ADR-174](../decisions/PRODUCT-ADR-174-media-request-evidence.md)／媒体契约，基线和47保护哈希在`data/AUDIO-023/baseline.json`；后继文档提交不回退。
 
 ## 一个问题
 
@@ -29,3 +29,14 @@ AUDIO-022新优化桌面的一秒循环退出已实际显示目标变化拒绝�
 一个有限留证增量交付，记录基线／源码／构建版本、红灯、实际测试和正式桌面结果，更新STATE及本工单。原生POST是否发出、接纳、播放完成分别表达；无法知道仍写未知，不把消息或下一次成功当原失败根因。再回PREVIS-012限定复验，不重做已完成循环编辑、拆播放器或无限完善页面。
 
 不启用听音、硬件、实灯、刷机、部署、新UE／Xcode、正式证书／客户Shipping，不创建会话或代理。声控／自走／危险宏保持屏蔽，H1听音／H3厂家光学／H4差分长期／H5客户及外部任务仍开放，完整goal active，不扩H6。
+
+## 2026-10-06 实际原生交付
+
+- 原优化构建同句柄5014退出0，原组装85238退出0；新实例`desktop-release-qooqnJ`准确绑定源码`b0f3a7b`，20原构建来源及1995产品文件哈希、2313组装清单通过。原构建／组装继续使用DESKTOP-005／PREVIS-007命名空间，本项独立引用，不改旧记录的gpuVerified=false。仅沿用复制Game已有四项资格／五目录；原Game32、信令2275及47保护文件保持，没有新UE／权限／证书操作。
+- 从AUDIO-021已验证工程复制独立副本，80测试灯／20场景／四循环／30秒MP3。正式桌面明确静音软件音乐及软件灯光输出；固定区段暂停退出request2、取消3，长持续暂停退出5、取消6，继续7、运行退出8，一秒持续区段运行退出9均Applied，自然结束30000ms／termination ended、停止归零10通过。每个明确动作单次点击，继续／长退出初次pending后同一原网络serial确认，没有重发。本轮原生未复现拒绝；确定性拒绝仍由真实宿主测试覆盖，不把本次成功扩大成所有历史偶发已修复。
+- 三组真实自动维护后原回执查询已409 notRetained，租约实际推进：固定暂停退出serial9、长暂停退出41、一秒运行退出56；界面保留原实例／区段／遍次、generation、预期revision、原POST200／原GET200、完成回执与同一音乐request。结束后音乐代次正常推进，但原目标generation2／instance3／region3／pass25和request9未被维护覆盖。只读审计零控制，不扩宿主历史窗口。
+- 原独立Game／完整告知Node和真实GPU接入唯一公共只读视窗；无编辑器、NullRHI或系统声音。三组十秒暂停点各80灯RGB／亮度逐项等于软件量化槽，共240灯样本、10台非零，并发原200／503繁忙正文符合契约。三维单独关闭／重开新Game及Node，保持同后台、音源instance3／generation2／request7，真实PCM持续递增；不是听音或物理灯具同步资格。
+- 独立副本循环3名称精确设置、应用、撤销、重做、保存及最近重开通过；唯一业务改动为“现场等待·请求留证验收”，正常revision／parent链接原版本，其余工程逐项相同，资产哈希、80灯／20场景／四区段保持。重开无自动音乐、后台、三维或抢权，也没有旧请求详情占位。两次桌面原监督句柄58929／74904退出0；6个已记录桌面／Game／Node PID和5个直接观察端口关闭，准确所属宿主程序不存在、原current／discovery已撤下。宿主PID／端口未单独采集，未记录端口不声称逐项资格。
+- 新实际汇总`data/AUDIO-023/verification.json`／`native-checks.json`／`native-paused-checks.json`／`owned-closed.json`及state／AX／PNG，最终核对日志`logs/audio-023-final-verification.log`退出0。原首次监督日志EEXIST发生在启动前，纠正后新日志单列；过早维护采样的租约未推进失败保留在native-long-exit-maintained-audit.json，后继later审计实际通过；汇总误读snapshot.state.frame修正为原snapshot.frame，未削弱RGB断言。中文键入受输入法截断，先核对实际草稿，再用原AX精确setValue确认后只应用一次；旧失败不回写。
+
+有限留证增量已完成。接续PREVIS-012当前来源的限定复验／剩余门槛，不重复已交付编辑能力；原012 write缺失及原fullNativeAcceptance=false、022旧拒绝／长继续未知保持。本轮成功不是恢复旧POST证据，完整H1–H5 goal继续active。
