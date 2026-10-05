@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)实施中**，现场基线main `a7012a0`，主工作区单写者。原真实宿主一秒循环、七探针诊断1项通过：旧遍次／实例／区段／代次与格式错被合并invalid；前者HTTP200已接纳后的complete／rejected，前导零整数HTTP422，音乐／PCM／组保持且每个拒绝只POST一次。已证明分类不足，不证明PREVIS-012或历史rejected原生根因。[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md)先记录再实施，细化诊断／显示，严格目标与原回执不变、不重发。证据`data/AUDIO-022/original-probes.json`、日志`logs/audio-022-*`；同一测试句柄跨OS加载等待后退出0，不改变产品期限。原失败、用户output/与38受保护文件保持；产品修复／全量／新优化原生尚未完成，完整goal active。
+
 **[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)工具实施通过，原生验收为未收敛检查点**，基线 main `428da81`，计划／[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)先提交 `ccf71d0`，实现 `76a605d`。显式构建来源、20源码／配置／锁哈希和完整原包清单通过才保留已编译内部身份，已有runtime拒绝；原debug路径不变。复用原组装、Game、完整告知信令、原后台／播放器和唯一公共视窗，不重建UE、不操作正式证书／客户权限／设备。
 
 - 实际 **254 Node（32新／无跳过）**、六文件语法／相关Prettier通过；旧优化来源与错误新实例先拒绝，原保护保持。新组装`desktop-release-E0F5rq`2313文件，保留原编译身份，严格签名／20来源哈希通过；只有复制Game沿用原四项资格与五目录，原Game／Node／桌面来源不改。Rust／UI／UE产品源码未变，未重复或冒计其编译测试；DESKTOP-005原构建记录仍原样标明未做原生代表验收，本项新实际证据单列。
