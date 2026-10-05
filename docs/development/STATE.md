@@ -2,6 +2,12 @@
 
 ## 当前实施入口 2026-10-06
 
+**[PREVIS-012 当前候选限定复验](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md#2026-10-06-当前候选剩余原生验收)实施中**，现场基线main `637b422`、主工作区单写者。复用AUDIO-023已绑定源码`b0f3a7b`的`desktop-release-qooqnJ`，先提交本轮范围；不覆盖旧记录、不重建包／UE或重做已通过编辑、退出和保存重开。
+
+- 只补当前候选两段固定三遍的完整实际消费证据、暂停点相机／工作照明后的只读灯值保持，以及准确所属宿主PID／端口和结束清单。采样只GET，以真实playing／指定区段触发，不用准备态或一次观察替代完整遍次；正常软件输出期限／时钟不变。
+- 复用当前来源绑定的退出／维护／保存重开证据，独立新验收工程／记录在`data/PREVIS-012/revalidation-637b422/`，日志在`logs/previs-012-revalidation-*`，原AUDIO-023文件和默认目录保持。无系统声音／物理输出、刷机、部署、签名／权限扩张；用户output/未读未动。
+- 这不是解释旧拒绝：历史原write未知／旧false保持。H1听音、H3厂家光学、H4差分长期及H5客户资格仍开放，完整goal active。
+
 **[AUDIO-023 原生媒体请求证据](tasks/AUDIO-023-native-media-command-evidence.md)有限增量完成，自审通过**，main基线`1cba5fb`，先记录范围／[ADR-174](decisions/PRODUCT-ADR-174-media-request-evidence.md) `f040819`，源码结果`b0f3a7b`，主工作区单写者。原Client有界脱敏留存最后显式媒体目标／原serial／POST和原GET／已校验回执；发送尝试不冒作接纳，维护／非媒体不覆盖，未发送不借旧成功、待核对不换证据，不重发。只读中文收起详情复用原界面，原宿主窗口／序号／播放器／期限不变。
 
 - 实际6项诊断单元（Client总14）、6项真实宿主、UI全453、工程格式232、工具254通过；三组全目标严格Clippy、fmt／相关Prettier及UI／夹具类型通过。最终真实React10项，维护／拒绝所附旧State不能借Applied，4.125草稿保持／取消，观察及展开零控制、明确两指令各一次。原红灯及自审失败保持，原误显示冲突截图单列，不回写。
