@@ -1,4 +1,5 @@
 //! Frozen scene and read-only output adapter. No controller or editor clock is retained.
+use super::background_read_failure::ReadFailure;
 use super::protocol::Revision;
 use stagemaster_execution_client::{Reader, Selection};
 use stagemaster_previs::{Light, LightRig, Scene};
@@ -90,19 +91,23 @@ impl Background {
             reader: tokio::sync::Mutex::new(reader),
         })
     }
-    pub async fn lights(&self) -> Result<Vec<Light>, String> {
+    pub async fn lights(&self) -> Result<Vec<Light>, ReadFailure> {
         let frame = self
             .reader
             .try_lock()
-            .map_err(|_| "后台观察正在读取")?
+            .map_err(|_| ReadFailure::Busy("后台观察正在读取".into()))?
             .sample()
-            .await?;
+            .await
+            .map_err(ReadFailure::from_reader)?;
         let slots: &[u8; 512] = frame
             .slots
             .as_slice()
             .try_into()
-            .map_err(|_| "后台采样不完整")?;
-        let output = self.output.observe(frame.universe, slots)?;
+            .map_err(|_| ReadFailure::Refused("后台采样不完整".into()))?;
+        let output = self
+            .output
+            .observe(frame.universe, slots)
+            .map_err(ReadFailure::Refused)?;
         Ok(self.rig.playback(&output))
     }
 }

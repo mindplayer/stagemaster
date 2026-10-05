@@ -2,7 +2,10 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)ready**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先纳入版本，再实施桌面内部Busy／拒绝分类。008一组实际并发只读返回200／409，原因“后台观察正在读取”；不是新的播放器／时间问题，也不证明首轮缺正文409的确切原因。只将局部锁争用及准确上游读取503归为原繁忙语义，身份／鉴权／失效／故障和2秒期限保持；原包与008失败证据不改，真实修复后复验。
+**[PREVIS-009 后台三维读取繁忙分类](tasks/PREVIS-009-background-frame-busy.md)实现／验证中，工单未结项**，基线 main `b661690`，限定计划／[ADR-168](decisions/PRODUCT-ADR-168-background-frame-busy.md)先提交 `dafbaa0`。桌面内部类型化Busy／拒绝已实现，2项实际红灯（409及上游未分类）后3项绿灯，当前全量内桌面145项、严格Clippy／fmt通过；完整工作区与正式构建仍执行，不能记为全量／原生通过。只将局部锁争用及准确上游读取503归为繁忙，近似文本、身份／鉴权／失效／故障和2秒期限保持；不改公开Reader／协议／时钟或UE。
+
+- 同一原全量工具会话 `83024`／Cargo PID `21826`，日志 `logs/previs-009-workspace.log`，不得重复启动；正式项目脚本构建会话 `34649`，日志 `logs/previs-009-desktop-final.log`。首条误用未安装的cargo-tauri命令失败保留 `logs/previs-009-desktop.log`，没有安装新工具，改用既有`desktop:build`。源码五文件，分类／测试独立20／45行，既有server340行经评估保留HTTP职责，不堆入播放器／入口。
+- 基线／红灯证据 `data/PREVIS-009/baseline.json`，绿灯／严格日志 `logs/previs-009-*`；原008包、工程和失败记录保持，009尚未启动原生。正式包完成后按既有工具新建唯一内部副本，现行工具仍在`data/PREVIS-007/<新实例>`／`logs/PREVIS-007/<新实例>`输出历史标签，由009单独引用，不回写旧实例或冒记旧工单验收。接续当前完整汇总／构建，再实际200／503争用、音乐／只读GPU／回收，之后才收敛008／009；完整goal active。
 
 **[PREVIS-008 音乐循环与独立三维联动验收](tasks/PREVIS-008-native-audio-loop-observation.md)验证中，实际检查点已保存，完整出口未通过**，基线 main `cfda937`，计划先提交 `1a16ba1`，本轮源码不变。独立80灯／20场景／4正式循环及30秒MP3副本，正式界面静音载入、真实PCM、固定第1／2／3遍、持续跨遍、暂停圈末退出／取消request4／5、运行圈末退出request8／9、自然结束与明确停止request10均有真实Applied；十秒暂停点80台RGB／亮度与软件量化槽逐项一致，10台非零。唯一实际Game／Node、关闭工作照明后的GPU、音乐页／相机保持及运行中三维重开不停止同一后台／音源通过；没有系统音乐／实灯／编辑器。
 

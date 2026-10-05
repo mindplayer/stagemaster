@@ -1,6 +1,6 @@
 # PRODUCT-ADR-168：后台三维读取的繁忙分类
 
-状态：2026-10-05 已决定，待实施。关联 [PREVIS-008](../tasks/PREVIS-008-native-audio-loop-observation.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)、[后台只读三维](../../module-api/background-previsualization.md)。
+状态：2026-10-05 已有限实施，红绿／桌面／严格检查通过，完整软件及原生复验中。关联 [PREVIS-008](../tasks/PREVIS-008-native-audio-loop-observation.md)、[PREVIS-009](../tasks/PREVIS-009-background-frame-busy.md)、[后台只读三维](../../module-api/background-previsualization.md)。
 
 ## 实际证据
 

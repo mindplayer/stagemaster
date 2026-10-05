@@ -1,5 +1,6 @@
 //! Desktop transport boundary. The renderer never owns a document, show clock or output lease.
 mod background;
+mod background_read_failure;
 pub(crate) mod protocol;
 mod renderer;
 mod renderer_component;

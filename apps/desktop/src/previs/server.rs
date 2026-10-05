@@ -1,6 +1,7 @@
 #[path = "editing.rs"]
 mod editing;
 use super::background::{Background, SharedBackground};
+use super::background_read_failure::ReadFailure;
 use super::protocol::{Frame, PlacementRequest, Source, Stamp};
 use super::{SharedSession, Status};
 use axum::{
@@ -20,6 +21,9 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::{Semaphore, oneshot};
+#[cfg(test)]
+#[path = "background_read_failure_tests.rs"]
+mod background_read_failure_tests;
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
@@ -163,6 +167,12 @@ impl Drop for Server {
 #[derive(Debug)]
 struct Failure(StatusCode, String);
 impl Failure {
+    fn background(failure: ReadFailure) -> Self {
+        match failure {
+            ReadFailure::Busy(message) => Self(StatusCode::SERVICE_UNAVAILABLE, message),
+            ReadFailure::Refused(message) => Self::conflict(message),
+        }
+    }
     fn busy() -> Self {
         Self(
             StatusCode::SERVICE_UNAVAILABLE,
@@ -239,11 +249,11 @@ async fn frame(State(context): State<Arc<Context>>) -> Result<Json<Frame>, Failu
     if let Some(binding) = background(&context)? {
         let lights = match binding.lights().await {
             Ok(lights) => lights,
-            Err(message) => {
+            Err(failure) => {
                 if let Ok(mut activity) = context.activity.lock() {
-                    activity.problem = Some(message.clone());
+                    activity.problem = Some(failure.message().into());
                 }
-                return Err(Failure::conflict(message));
+                return Err(Failure::background(failure));
             }
         };
         let current = background(&context)?.ok_or_else(|| Failure::conflict("预演来源已变化"))?;
