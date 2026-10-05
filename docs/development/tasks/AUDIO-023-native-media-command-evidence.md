@@ -1,6 +1,6 @@
 # AUDIO-023：原生媒体显式请求与原回执的有限留证
 
-状态：ready，2026-10-05。由当前实施会话按已有H1／H5拆分，接续[AUDIO-022](AUDIO-022-short-loop-exit-refusal.md)已交付的分类显示，产品基线main `ec5a825`；后继文档提交不回退。执行前核对实际HEAD、工作区及所属进程，保护用户output/和原始失败。
+状态：实施中，2026-10-05。由当前实施会话按已有H1／H5拆分，接续[AUDIO-022](AUDIO-022-short-loop-exit-refusal.md)已交付的分类显示，产品基线main `ec5a825`；现场基线`1cba5fb464cd59b00ada8cbf8cc98a38dbf56270`、主工作区单写者。上一轮有真实提交／原生验证，属于progress；现场旧7PID已不存在、仅用户output/未跟踪。先记录[ADR-174](../decisions/PRODUCT-ADR-174-media-request-evidence.md)／媒体契约，基线和47保护哈希在`data/AUDIO-023/baseline.json`；后继文档提交不回退。
 
 ## 一个问题
 

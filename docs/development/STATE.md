@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[AUDIO-023 原生媒体请求证据](tasks/AUDIO-023-native-media-command-evidence.md)实施中**，现场main基线`1cba5fb`，主工作区单写者，旧7所属PID已结束、47保护哈希已记录。按先记录的[ADR-174](decisions/PRODUCT-ADR-174-media-request-evidence.md)增加最后显式媒体请求的有界脱敏应用投影；原宿主历史窗口／序号／播放器／期限保持，发送尝试不冒作服务接纳，维护不覆盖，不重发。下一步先红灯再实现及当前验证，旧原生未知／012 false和用户output/保持，完整goal active。
+
 **[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)分类修复及本轮原生有限增量完成，自审通过；原始问题仍未完全收敛。** 基线main `a7012a0`，先提交计划／[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md) `88c56ba`，源码结果 `ec5a825`，主工作区单写者。旧遍次／实例／区段／代次与真正格式错已分开；拒绝／未知／缺回执不借旧音乐Applied，严格目标、控制权、序号、期限及播放器保持，不重发。PREVIS-012原拒绝根因未知、旧`fullNativeAcceptance=false`不回写，完整goal active。
 
 - **当前全量实际1312 Rust＋2文档、442 UI、232工程格式、254工具**，默认全工作区／内部release桌面／release音频后台三组全目标严格Clippy、fmt／相关Prettier、UI及真实组件夹具类型通过。原9013与最终专项20225同一测试句柄均退出0；3个旧ignored子进程入口由父测试调用。原分类及UI红灯、Clippy／工具失败与OS加载采样保持，加载原因未证实，不重启或削弱产品期限。最终11探针与共享客户端专项2项通过；真实React组件9项，4.125秒草稿保持／明确取消，总2次指令无自动重发，源码最大269行。
