@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-004 Development 副本限定文件资格](tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格) ready**，基线 main `47e24da`，计划／ADR-165 补充先纳入版本。复用现有 Game，在新实例副本保留沙盒并只添加五个专用运行目录的官方文件资格，补官方报告模板，实际验证 JSON／HTML、范围外拒绝与恢复；不新建 Xcode／UAT、不修改原包／引擎／桌面，不把本机绝对路径资格当客户方案。OS 临时例外仍未获答复，只暂停新构建；完整 goal active。
+**[PREVIS-004 Development 副本限定文件资格](tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格)有限增量完成，自审通过**，基线 main `47e24da`，计划／ADR-165 补充先提交 `946d70c`；结果为本次 `fix(previs): qualify sandboxed development reports` 提交。复用原 Game 的新实例副本，保留 App Sandbox／原四项资格，仅添加五个实例运行目录的官方 read-write 资格和原样官方报告模板；**开发副本 JSON／HTML写入门槛已实际通过，客户权限／整包未通过**。
+
+- 最终 **119 Node（87 原保护＋32 文件资格／所属 PID）**、7 文件语法／Prettier、相关引用／严格 JSON／差异检查通过。新副本实际 Game（非编辑器，NullRHI／NoSound）正向及恢复各输出原 RuntimeAssets 用例的 Success JSON和非空 HTML；负探针仍退出 0／文字 Success，但实际拒绝 JSON／HTML写入，哨兵保持，系统拒绝明确关联该 Game PID。自审日志关联保护先 6 项红灯后通过；父目录链接在任何新写入前拒绝。
+- 证据 `data/PREVIS-004/file-access-verification.json`／`previs-file-access-N1THSh/build-record.json`，日志 `logs/previs-004-file-access-*`／`logs/PREVIS-004/`。原包 32 文件保持；副本 33 文件只变化主程序签名、资源封套及新增模板，嵌套库和 Pak 未动；6 镜像／66 依赖仍通过，原／副本严格签名验证通过。原 Game／Pak／历史证据、三份受保护工程／最近目录与用户 output/ 保持，所属进程退出；原四份 failed 构建记录不回写。诊断文件数预期错误单列保留，未削弱产品保护。
+- 无新 Xcode／UAT／编译／烘焙／编辑器、Rust／UI／UE／固件改动，无音乐／GPU／设备或 DMX 操作。**下一步把此真实证据用于客户可移动目录与签名组装决定，再做 Tauri／实际 GPU验收**；本机绝对路径资格副本不装进正式桌面包。系统临时例外仍未获答复，新的 Xcode 构建仍拒绝。组合最低系统、许可、H3 厂家资料／听音和 H4 物理／长期门槛保持，完整 goal active，不扩 H6。
 
 **[PREVIS-005 自包含 Node／信令组件](tasks/PREVIS-005-signalling-component.md)有限软件增量完成，自审通过**，基线 main `bc97055`，计划先提交 `9d97a7d`；结果为本次 `feat(previs): package self-contained signalling runtime` 提交。复用现有 Node 24.17.0／官方信令和原锁，在全新项目内目录实际离线安装 124 包；不是 Tauri／UE／客户整包交付，不装入或修改现有正式应用。
 

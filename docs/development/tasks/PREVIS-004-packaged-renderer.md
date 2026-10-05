@@ -1,6 +1,6 @@
 # PREVIS-004：独立预演组件的可复现打包
 
-状态：**进行中，基础工具／启动修正与静态依赖资格已提交，完整独立验收未通过**。首轮基线 main `0885847e3de629ac0ead1eb498b4e84cc30082b7`，计划先提交 `b937b1a`，基础工具结果 `0cf4668`；静态依赖接续见下方。主工作区单写者；用户未跟踪 `output/` 不触碰。属于 H5 客户无 UE 编辑器路径的准备，不关闭 H5 或整个持续 goal。
+状态：**进行中，Development 副本的限定目录 JSON／HTML验收通过，客户权限／可复现完整发行仍未通过**。首轮基线 main `0885847e3de629ac0ead1eb498b4e84cc30082b7`，计划先提交 `b937b1a`，基础工具结果 `0cf4668`；静态依赖及最新文件资格接续见下方。主工作区单写者；用户未跟踪 `output/` 不触碰。属于 H5 客户无 UE 编辑器路径的准备，不关闭 H5 或整个持续 goal。原四份默认 pipeline 失败记录保持，不把最新副本结果回写为原包当时已通过。
 
 ## 本增量范围
 
@@ -60,7 +60,7 @@
 
 ## 接续：Development 副本的限定文件资格
 
-状态：**ready，计划先纳入版本后实施**。基线 main `47e24daa35a70bab0df3b19278fc87768d4dd84f`；主工作区单写者，用户 output/ 保持。上一轮 PREVIS-005 已交付信令组件，仍不能替代原生报告。按 ADR-165 先验证不依赖新 Xcode 的现有 Development Game 副本路径；本工单不选定客户权限／签名团队，不更改引擎、桌面、UE 源码、播放器或桥协议。
+状态：**Development 限定文件资格增量完成，自审通过**。基线 main `47e24daa35a70bab0df3b19278fc87768d4dd84f`，计划／ADR 先提交 `946d70c`；结果为本次 `fix(previs): qualify sandboxed development reports` 提交。主工作区单写者，用户 output/ 保持。上一轮 PREVIS-005 已交付信令组件，本轮另取真实原生报告。按 ADR-165 验证不依赖新 Xcode 的现有 Development Game 副本路径；本工单不选定客户权限／签名团队，不更改引擎、桌面、UE 源码、播放器或桥协议。
 
 - 新工具仅接受项目内已生成的唯一 `StageMasterPreview.app` 主程序；先校验原签名、ARM64 包内闭包和来源。新建 `data/PREVIS-004/previs-file-access-*/` 副本，只对副本组装签名，不覆盖或修改原包／Pak／历史失败记录。
 - 使用原 Apple App Sandbox／网络／Development 调试资格，增加**本次实例**的 runtime-user、runtime-cache、runtime-temp、logs 和 runtime-report 五个目录的官方绝对路径 read-write 资格（目录尾 `/`）。禁止项目根、整个 tmp／data／logs、源码／工程／导航／密钥／设备资格和越界链接。签名为本地 ad-hoc／无时间戳，保持沙盒，不使用 noEntitlements、inherit 或关闭保护；范围具体化先记录在 ADR。
@@ -69,6 +69,26 @@
 - 签名前后核对资格、签名和非修改内容；坏输入、缺模板／来源、异常签名／权限、范围扩大、报告缺／空／失败均拒绝且记录 failed。完整原生报告未通过前不接 Tauri。开发绝对路径资格不是客户可移位权限，仍开放客户签名／目录／最低系统／实际 GPU／H3／H4 门槛。
 
 验收：实际脚本测试与原 87 项保护；实际源包签名／哈希不变、副本限定签名、真实 Game 正／负／恢复报告和所属进程退出；相关语法／格式、引用、严格 JSON、差异检查；证据和失败都留项目内，更新 STATE 后提交。若不能取得真实 JSON或发现受控产物写入项目外，停止受影响运行，不能以关闭沙盒或放宽文件范围迁就。
+
+### 限定文件资格交付
+
+新增 5 个小文件，计划／报告、系统资格／目录、脚本实施及两份测试分职责，均不超过 242 行；原所属进程执行器仅返回实际 PID／退出码／信号终态，原取消／失败／环境保护不变，不新增进程管理平台或正式播放器。入口 `tools/previs/qualify-renderer-files.mjs` 只接受一个项目内 Game 主程序，先校验原包／架构／模板来源（已验证 UE 5.8），写入前核对父目录真实路径；只签新副本，未改原包、嵌套库、引擎或全局配置。
+
+最终 **119 Node（87 原保护＋32 文件范围／所属 PID）**、7 文件语法／Prettier、相关文档引用／4 配置与证据严格 JSON／差异检查通过。系统日志的松散匹配可能误收其他 PID／程序／目录／单文件或命令回显，自审新增 6 个拒绝用例先失败，补关联实际完成的 Game PID、JSON与 HTML两项拒绝后通过；红／绿原始日志保留。额外目录保护验证首次创建，以及链接父目录在任何新文件写入之前拒绝，不等写出后才发现越界。
+
+最终实例 `previs-file-access-N1THSh`，实际独立 Game 顺序运行三次：
+
+1. `runtime-report/allowed`：原 `StageMaster.Previs.RuntimeAssets` 的资源／H264 用例，真实 JSON **1 Success／0 failed／0 notRun／0 inProcess**，非空 HTML和实际成功导出日志，退出 0。
+2. `denied-report`：同一用例仍文字 Success／退出 0，但非授权 sibling 目录的 JSON 哨兵哈希保持、HTML未创建；系统实际 `deny(1) file-write-data`／`file-write-create` 与此次 Game PID一致。该运行**不是报告通过**，明确证明不能只接收退出码或 Success 字样。
+3. `runtime-report/restored`：回到既定资格内目录，重新取得同一用例的 Success JSON／非空 HTML，退出 0，无扩大资格或重试写操作。
+
+两份成功报告是同一用例的不同运行，不计为两个独立功能。前两轮实例 `TKtyHP`、`85swsG` 也取得正／负／恢复结果；最终源码增加 PID和目录保护后用新实例实际复核，不拿早期运行代替。日志保留既有 VolumetricFog 配置优先级警告，不关闭保护以消除警告；无 GPU画面或声音验收。
+
+原来源 **32 文件**逐项哈希保持；副本 **33 文件**只增加原样 `Report-Template.html` 并变化主程序签名／CodeResources，未改变 Pak或嵌套库。原／副本 codesign --verify --deep --strict 实际退出 0；实际资格保持原 Sandbox／network client／server／Development get-task-allow，加五个带尾 `/` 的实例目录，无 inherit、项目根／工程／设备资格。源码与签名副本的 6 镜像／66 依赖及 macOS 14.0 要求保持。本地 ad-hoc 签名无时间戳，**不是客户开发者身份、公证或可移位发行权限证明**。
+
+证据 `data/PREVIS-004/file-access-verification.json`、各 `previs-file-access-*/build-record.json`；日志 `logs/previs-004-file-access-*`／`logs/PREVIS-004/`。原 Game／Pak、原两个 PREVIS-004 证据、PREVIS-005 证据和三份受保护工程／默认最近目录保持，用户 output/ 未动，所属进程退出。诊断 verifier 首次未经实测假定 45 文件，实际清单为 32，依据原记录／当前逐项清单更正诊断预期，错误日志保留，不是产品验收保护放宽。没有新 Xcode／UAT／编译／烘焙／编辑器、Rust／UI／UE／固件源文件变化、设备或输出操作。
+
+接续客户可移动目录／签名与宿主组装：新的开发报告证据解除了“所有已有 Game都无法验收”的假设，但不把本机绝对路径副本放进 Tauri，也不自动把四份历史默认 pipeline 改为 component-verified。新的 Xcode 构建仍待 OS 临时例外；组合最低系统、许可、客户无编辑器／实际 GPU、H3 资料／听音、H4 差分／实灯／长期仍开放。完整 goal active。
 
 ### 实施中实际发现
 

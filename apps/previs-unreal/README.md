@@ -23,6 +23,19 @@ Tauri 整包、子进程目录权限、实际 GPU／内嵌画面与无编辑器�
 
 `tools/previs/inspect-renderer.mjs` 是不需要 Xcode 构建的只读检查入口，唯一参数为项目内 `StageMasterPreview.app/Contents/MacOS/StageMasterPreview` 文件路径；标准输出是实际 `lipo`／`otool` 原文、ARM64 静态链接闭包与最高最低系统要求的 JSON，错误时非零退出。正式打包工具在 UAT 后、Game 启动前执行同一资格；包外 UE 库不得补齐缺项，动态加载环境覆盖不继承。当前原包 6 镜像／66 依赖的包内解析、中文空格移位副本与故意缺库拒绝已实际核对；仍不是运行期 `dlopen`、GPU、沙盒报告或完整客户安装验收。实际最低 macOS 为 14.0，桌面配置 12.0 的整包兼容性差异尚未决定，不在此私改最低版本。
 
+### Development 限定目录报告
+
+`tools/previs/qualify-renderer-files.mjs` 接受一个项目内已生成 Game 主程序路径，例如：
+
+~~~sh
+TMPDIR="$PWD/tmp" node tools/previs/qualify-renderer-files.mjs \
+  "$PWD/data/PREVIS-004/previs-package-dGdEOa/Mac/StageMasterPreview.app/Contents/MacOS/StageMasterPreview"
+~~~
+
+该工具不调用 Xcode／UAT。它保留原包，只在新 `data/PREVIS-004/previs-file-access-*/` 副本增加官方报告模板及五个实例目录的受限文件资格，App Sandbox保持启用；本地 ad-hoc 签名后校验，原嵌套库和 Pak不改。真实 Game的 NullRHI／NoSound检查要求 JSON／HTML，另测范围外拒绝与恢复。日志／暂存在项目 logs／tmp，资格不是整个项目根，链接父目录在写入前拒绝。
+
+开发副本正向／恢复 JSON和非空 HTML已实际通过，负向哨兵保持且系统拒绝与所属 Game PID关联；原四份默认打包失败仍保留。工具仅登记 `development-file-verified`、`customerPackageVerified:false`，不把本机绝对路径资格副本装入正式 Tauri，不代表客户签名／公证、可移动目录、实际 GPU或正式整包通过。证据／范围见 [PREVIS-004](../../docs/development/tasks/PREVIS-004-packaged-renderer.md#限定文件资格交付)和 [ADR-165](../../docs/development/decisions/PRODUCT-ADR-165-packaged-renderer-file-access.md)。
+
 ### 自包含信令组件（PREVIS-005）
 
 从仓库根运行以下独立软件工具，不需要 Xcode，也不启动 UE 或修改正式桌面包：

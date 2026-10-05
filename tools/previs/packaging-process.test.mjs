@@ -100,6 +100,15 @@ test("子进程非零退出保留输出并明确失败", async (t) => {
   assert.match(readFileSync(command.log, "utf8"), /actual failure/);
 });
 
+test("成功回执给出真正所属进程 PID 与终态，不能拿其他 PID 证据替代", async (t) => {
+  const { plan, command } = setup(t);
+  command.args = ["-e", "console.log(process.pid)"];
+  const result = await runCommand(command, plan);
+  assert.equal(result.pid, Number(readFileSync(command.log, "utf8").trim()));
+  assert.equal(result.code, 0);
+  assert.equal(result.signal, null);
+});
+
 test("缺失可执行程序不挂起，不泄漏取消处理器", async (t) => {
   const { plan, command } = setup(t);
   command.program = join(root, "tmp/not-installed-previs-test");

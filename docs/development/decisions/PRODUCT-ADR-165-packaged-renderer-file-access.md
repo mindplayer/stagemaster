@@ -1,6 +1,6 @@
 # PRODUCT-ADR-165：独立预演组件的文件权限边界
 
-状态：2026-10-05 **边界决定已记录，具体发行权限组装尚未实施／验收**。关联 [PREVIS-004](../tasks/PREVIS-004-packaged-renderer.md)／[预演契约](../../module-api/previsualization.md)。本会话依据实际运行证据维护方案，不等待普通审批、不向其他会话自动发送消息；用户需要时可交 Astra 复审。
+状态：2026-10-05 **Development 限定目录副本已实际验证，具体客户发行权限组装尚未实施／验收**。关联 [PREVIS-004](../tasks/PREVIS-004-packaged-renderer.md)／[预演契约](../../module-api/previsualization.md)。本会话依据实际运行证据维护方案，不等待普通审批、不向其他会话自动发送消息；用户需要时可交 Astra 复审。
 
 ## 实际问题
 
@@ -37,3 +37,9 @@ UE 5.8 UAT 默认生成的 Mac Game 签名带 `com.apple.security.app-sandbox=tr
 4. **这是 Development 自动化文件资格，不是客户发行决定**。App Group／父子继承／签名团队与宿主目录、临时文件例外、最低系统和 GPU 仍单列；先拿真实证据，再选择后续组装。现阶段不增加 inherit，因为当前父进程与具体条件未满足，也不做 App Store 声明。
 
 Apple 官方目录资格说明规定绝对路径及目录尾斜线；本地 codesign 工具可对已生成副本组装相应资格，无需再次调用 Xcode。是否真正有效由实际签名／读写结果验证；即便开发探针通过，也不能把本机绝对路径发给客户或解除其他门槛。关联范围和验收见 [PREVIS-004 接续](../tasks/PREVIS-004-packaged-renderer.md#接续development-副本的限定文件资格)。
+
+### Development 实际结论
+
+计划先提交 `946d70c`；新实例副本实测通过同一原资源／H264 用例的正向及恢复 JSON／HTML。中间非授权 sibling 目录的哨兵不变、HTML无法创建，系统拒绝同时关联本次 Game 的实际 PID和两个文件；原包 32 文件保持，副本只修改签名／资源封套并添加原样官方模板。Sandbox、网络及 Development 调试资格均保持，唯一新增五个实例目录。没有 Xcode／UAT／重新编译，没有使用 noEntitlements、inherit、关沙盒或原包重签。
+
+这证明**已有 Development Game在准确组装的受限目录下可导出原生报告**，并改变下一步证据：不再以报告无法写为理由否认所有已生成组件；仍不能把客户任意安装目录或完整工程目录开放。开发绝对路径、get-task-allow 和 ad-hoc 身份不能原样成为客户发行组装。来源／范围／系统拒绝、119 项脚本保护和其他门槛见 `data/PREVIS-004/file-access-verification.json`／工单最新交付；原四份默认 pipeline failed仍保留为历史事实。

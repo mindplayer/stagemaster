@@ -66,7 +66,7 @@ export async function runCommand(command, plan) {
               `子进程${interrupted ? "已取消" : "失败"}：${code ?? signal}，见 ${command.log}`,
             ),
         );
-      else resolve();
+      else resolve({ pid: child.pid, code, signal });
     });
   });
 }
