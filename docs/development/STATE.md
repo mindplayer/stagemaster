@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[DESKTOP-005 优化桌面的隔离验收](tasks/DESKTOP-005-isolated-release-validation.md)已限定计划，待实施**，基线 main `7e7f31b`，关联[ADR-171](decisions/PRODUCT-ADR-171-isolated-release-validation.md)，先提交再实现。现行脚本桌面／后台均debug，普通release忽略验收实例并使用正式用户目录；先增加默认关闭、内部身份／实例绑定的隔离release构建与真实编排验证。复用原构建、播放器／后台，不改客户默认路径或Game／Node权限，不操作证书／公证／UE／设备；原debug包与用户数据保持。客户权限／签名／Shipping等受影响部分仍开放，完整goal active。
+
 **[PREVIS-011 信令组件第三方告知](tasks/PREVIS-011-signalling-notices.md)有限增量完成，自审通过**，基线 main `c8ea5eb`，计划／[ADR-170](decisions/PRODUCT-ADR-170-signalling-notices.md)先提交 `d6401d4`，实现结果 `e48d8c0`。复用原组装／锁和文件工具，124依赖原独立许可／cookie准确版本原README嵌入文本／两项Epic固定发布提交许可分别定位，Node完整告知保持；材料准备与法律／商业发行批准分开。
 
 - 最终实际 **195 Node（28新保护）**、六JS语法／相关Prettier与差异通过。26项旧行为接缝先2通过／24断言失败，再原26项通过；自审同名嵌套不同版本借告知、纯空白文本两项实际失败后修复，最终全195无跳过。文本固定512KiB／合并8MiB／单包16份／256锁包，读取不因文件增长无限分配；入口仅两行接线，文件最大178行。第一次npm探索URL编码错误405及汇总脚本错导出名退出1保留，后继准确来源／实际汇总完成，不改保护或回写旧记录。
