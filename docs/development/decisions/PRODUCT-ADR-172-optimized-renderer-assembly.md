@@ -1,6 +1,6 @@
 # PRODUCT-ADR-172：优化内部来源保留已编译验收身份
 
-状态：2026-10-05有限决定待实施，关联[PREVIS-012](../tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)、[ADR-171](PRODUCT-ADR-171-isolated-release-validation.md)、[ADR-167](PRODUCT-ADR-167-development-desktop-assembly.md)。仅内部来源／组装工具，不变更公共工程格式、应用API、时间、控制权或客户运行目录。
+状态：2026-10-05有限工具决定已实施／原生验收检查点未收敛，计划`ccf71d0`，实现`76a605d`；关联[PREVIS-012](../tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)、[ADR-171](PRODUCT-ADR-171-isolated-release-validation.md)、[ADR-167](PRODUCT-ADR-167-development-desktop-assembly.md)。仅内部来源／组装工具，不变更公共工程格式、应用API、时间、控制权或客户运行目录。
 
 ## 事实与决定
 
@@ -12,3 +12,9 @@ DESKTOP-005原生代表包只有优化基础编排；提交后E0F5rq优化来源
 4. 真实优化音乐／GPU联动以原后台、音源、唯一公共视窗和既有只读桥验收；控制接纳／实际Applied、软件PCM／声卡、静态签名／实际画面分别报告，2秒失效不变。来源／保存／失败证据保持，结束明确关闭所属进程。
 
 成熟机制沿用已经实际验证的Cargo显式能力、Tauri编译配置、原Mach-O／codesign／Plist只读检查及PREVIS-007组装；不是新代理／签名／渲染平台。工具领域之外客户沙盒与签名方法仍需具体条件和独立决定，现场听音、厂家、物理／长期和外部任务不因此关闭。
+
+## 实际边界核对
+
+254 Node／六语法／相关格式通过，准确来源20哈希及2313文件内部组装实际完成；原Game／Node／优化来源／旧包／默认目录保持。优化桌面＋release音频后台与独立Development Game已实际静音PCM／只读GPU联动，两轮原生三维关闭重开不换音源／后台，保存最近重开与所属进程退出通过。本机有限内部资格不是客户发行，原构建／组装记录的当时未原生验证字段不回写。
+
+末尾一秒持续区段运行中退出仍真实拒绝，原载荷／HTTP正文缺失、根因未证实；后继暂停下新请求成功不能覆盖。`data/PREVIS-012/verification.json`保持`fullNativeAcceptance=false`，由[AUDIO-022](../tasks/AUDIO-022-short-loop-exit-refusal.md)先诊断；本ADR不放宽音源／区段／准确遍次或自动重发，不以组装工具决定处理运行语义。任何必要公开分类／契约变化须另行记录。

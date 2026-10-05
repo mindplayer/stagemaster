@@ -2,7 +2,13 @@
 
 ## 当前实施入口 2026-10-05
 
-**[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)已限定计划，待实施**，基线 main `428da81`，关联[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)，先提交再实现。原组装器只接受原桌面，优化来源编译身份不能只改Plist；显式资格记录／完整来源校验后保留原唯一内部实例，runtime已有即拒绝。复用原组装、Game／完整告知信令与原播放器，实际验收优化静音音乐／只读GPU组合；不重建UE、不操作正式证书／客户权限／设备。完整goal active，听音／厂家／物理长期／客户Shipping与外部任务保持。
+**[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)工具实施通过，原生验收为未收敛检查点**，基线 main `428da81`，计划／[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)先提交 `ccf71d0`，实现 `76a605d`。显式构建来源、20源码／配置／锁哈希和完整原包清单通过才保留已编译内部身份，已有runtime拒绝；原debug路径不变。复用原组装、Game、完整告知信令、原后台／播放器和唯一公共视窗，不重建UE、不操作正式证书／客户权限／设备。
+
+- 实际 **254 Node（32新／无跳过）**、六文件语法／相关Prettier通过；旧优化来源与错误新实例先拒绝，原保护保持。新组装`desktop-release-E0F5rq`2313文件，保留原编译身份，严格签名／20来源哈希通过；只有复制Game沿用原四项资格与五目录，原Game／Node／桌面来源不改。Rust／UI／UE产品源码未变，未重复或冒计其编译测试；DESKTOP-005原构建记录仍原样标明未做原生代表验收，本项新实际证据单列。
+- 正式优化桌面与release音频后台，80测试灯／20场景／四循环／30秒MP3，静音真实PCM、两组固定1／2／3遍、持续跨遍、暂停／十秒定位、暂停圈末退出／取消、运行中第一持续区段退出request10均Applied。十秒暂停点80灯RGB／亮度逐项等于软件量化槽，10台非零；两轮独立Game／Node／真实GPU、并发只读200／503、俯视／工作照明关、跨页／三维单独关闭重开保持同后台及音源instance5。循环名称取消／撤销重做／保存，最近重开四区段及字段、工程其余业务内容保持；两次应用退出0，所属7PID／7端口已关闭，无自动播放或抢权。
+- **最后一秒持续区段运行中退出真实拒绝**：“请求格式、参数或长度不正确”，没有新的音乐Applied，后台仍request10且原循环继续。原写入载荷／HTTP正文未保存，现行服务严格核对音源／区段／遍次只是排查线索，根因未证实；不重发原请求。随后明确暂停request11、新稳定目标退出12、继续13和自然结束30秒、停止归零14均Applied，**不能覆盖该失败**。`data/PREVIS-012/verification.json`仍`fullNativeAcceptance=false`，不称整项或AUDIO-020／客户资格完全通过。
+- 证据`data/PREVIS-012/`实际state／frame／采样／AX／JPEG／组装／进程与检查点，日志`logs/previs-012-*`及`logs/PREVIS-012/`。30受保护文件、原Game32／信令2275／优化来源4／旧资格包2311清单与debug sidecar保持，用户output/未读、未改、未暂存。初次准备态采样、第二次只捕获前两遍、工具夹具别名与汇总路径／回执结构误认等原失败保留，最终各自纠正；VT警告未修复。
+- **优先接续[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md) ready**：确定性复现并区分陈旧目标／合法提交／真正格式错误，不放宽准确遍次、控制权、回执或原期限，不自动重发或新增时钟。收敛后回本项原优化原生用例；仅普通技术细节自主处理，公共边界需先ADR。听音／厂家／差分／完整最坏组合／8小时、客户Shipping／正式签名／最低系统／全产品许可与外部任务仍开放；Xcode系统临时例外未答复，完整goal active，不扩H6。
 
 **[DESKTOP-005 优化桌面的隔离验收](tasks/DESKTOP-005-isolated-release-validation.md)有限增量完成，自审通过**，基线 main `7e7f31b`，计划／[ADR-171](decisions/PRODUCT-ADR-171-isolated-release-validation.md)先提交 `d66e751`，真实排错范围补充先提交 `6e8a2ba`，实现结果 `647e1f6`。默认关闭能力＋准确内部身份／实例绑定，桌面与原audio后台实际release；复用原构建、播放器／后台，客户默认目录和debug路径不变，没有新工程格式／时钟／控制权语义。
 
