@@ -123,4 +123,4 @@ Rust Player 的 `Plan::with_entry_fade_offset` 仅接受无延时单步骤保持
 
 AUDIO-019 动态交叉的模式、保留来源、剪辑规则与宿主复合采样见[双动态场景交叉](scene-crossfade.md)。默认进入渐变与旧文件语义不变；新增能力要求 `media.audio-clip-crossfade@1`，不能作为单 Plan 设备节目导出。
 
-AUDIO-020 的正式演出循环区段见[独立契约](performance-loops.md)。已增加工程字段／编辑与整数调度核心，原生音频和界面仍在接入；不等同于现有临时局部试听，也未完成正式演出循环交付。
+AUDIO-020 的正式演出循环区段见[独立契约](performance-loops.md)。工程编辑、整数调度、原生音频、可视操作与运行控制已接入；当前候选静音原生验收通过，听感和现场完整出口尚未关闭，证据以[工单最新记录](../development/tasks/AUDIO-020-performance-loop-sections.md)为准。不等同临时局部试听，不据软件结果声称完整软硬件交付。
