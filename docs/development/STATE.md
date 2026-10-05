@@ -2,7 +2,12 @@
 
 ## 当前实施入口 2026-10-05
 
-**[DESKTOP-005 优化桌面的隔离验收](tasks/DESKTOP-005-isolated-release-validation.md)已限定计划，待实施**，基线 main `7e7f31b`，关联[ADR-171](decisions/PRODUCT-ADR-171-isolated-release-validation.md)，先提交再实现。现行脚本桌面／后台均debug，普通release忽略验收实例并使用正式用户目录；先增加默认关闭、内部身份／实例绑定的隔离release构建与真实编排验证。复用原构建、播放器／后台，不改客户默认路径或Game／Node权限，不操作证书／公证／UE／设备；原debug包与用户数据保持。客户权限／签名／Shipping等受影响部分仍开放，完整goal active。
+**[DESKTOP-005 优化桌面的隔离验收](tasks/DESKTOP-005-isolated-release-validation.md)有限增量完成，自审通过**，基线 main `7e7f31b`，计划／[ADR-171](decisions/PRODUCT-ADR-171-isolated-release-validation.md)先提交 `d66e751`，真实排错范围补充先提交 `6e8a2ba`，实现结果 `647e1f6`。默认关闭能力＋准确内部身份／实例绑定，桌面与原audio后台实际release；复用原构建、播放器／后台，客户默认目录和debug路径不变，没有新工程格式／时钟／控制权语义。
+
+- 最终原命令实际 **1310 Rust＋2文档、222 Node（27新保护／无跳过）**，默认全工作区、release内部桌面及release音频后台三组全目标严格Clippy、fmt／相关Prettier／8份JS语法／UI类型通过；桌面150包含在全量，3个旧ignored子进程入口由父测试实际调用。目录／身份、父环境继承、release条件编译、原控制后观察503及共用入口mkdir前链接保护均留红灯后修复，原音频／帧断言不变、不重发控制／放宽期限；首次503正文未知，不追认所有历史原因。17个源码文件最大215行，无UI源码／UE／固件变更。
+- 原生代表包`desktop-release-Li10AI`真实80测试灯／21场景、1／2／1秒精确步骤→人工等待、暂停保持全帧、两灯80%手动、零值草稿取消、另一场景37%编辑／撤销重做与保存、明确归还／继续通过。缺三维中文拒绝且不启动所属编辑器／Node／Game；退出窗口原后台同boot继续，最近重开只读不抢权，额外重开确认保存字段／哈希，明确停止及关闭后台。四次窗口退出0、所属进程／发现均结束；没有音乐／GPU／设备。提交后不同身份`desktop-release-E0F5rq`实际构建0、20源码／配置／锁哈希绑定647e1f6，**仅构建通过，不转移原生资格**；代表包早于最后JS目录保护抽取，Rust／UI产品源码相同。
+- 证据`data/DESKTOP-005/verification.json`／`committed-build.json`／原生state／AX／JPEG／进程／红灯快照，日志`logs/desktop-005-*`及`logs/DESKTOP-005/`。原工程／默认目录16文件、旧debug sidecar、旧资格包2311／信令2275／源依赖2267清单保持，用户output/未读取、修改或暂存。旧样例noMusic标签不准确／缺媒体拒绝、初次OS窗口恢复警告、保存汇总脚本格式误认均保留；只以最终无media副本和后继真实核验收敛，不把历史失败回写为成功。
+- **下一步回H1–H5依赖满足的独立工作，客户目录／最终权限签名／Shipping仍未通过。** 不操作证书／公证／UE／设备，Xcode系统临时例外仍未获答复，仅暂停受影响部分。H1听音／声卡、H3厂家／完整光学、H4差分／完整最坏组合／8小时、H5客户GPU／最低系统／全产品许可／未参与开发者任务保持。声控／自走／未知危险宏继续屏蔽；完整goal active，不扩H6、不自动召回Astra。
 
 **[PREVIS-011 信令组件第三方告知](tasks/PREVIS-011-signalling-notices.md)有限增量完成，自审通过**，基线 main `c8ea5eb`，计划／[ADR-170](decisions/PRODUCT-ADR-170-signalling-notices.md)先提交 `d6401d4`，实现结果 `e48d8c0`。复用原组装／锁和文件工具，124依赖原独立许可／cookie准确版本原README嵌入文本／两项Epic固定发布提交许可分别定位，Node完整告知保持；材料准备与法律／商业发行批准分开。
 

@@ -1,10 +1,10 @@
 # DESKTOP-005：正式优化桌面的隔离验收
 
-状态：ready，2026-10-05。基线 main `7e7f31b3e2e266d51b133c9ba5c40d64ca6e5e33`，主工作区单写者；计划／[ADR-171](../decisions/PRODUCT-ADR-171-isolated-release-validation.md)先纳入版本再实现。H5独立增量，保护用户output/、原包／工程／默认最近目录和其他会话改动。
+状态：有限优化原生验收完成，自审通过，2026-10-05。基线 main `7e7f31b3e2e266d51b133c9ba5c40d64ca6e5e33`，主工作区单写者；计划／[ADR-171](../decisions/PRODUCT-ADR-171-isolated-release-validation.md)先提交 `d66e751`，排错范围补充先提交 `6e8a2ba`，实现结果 `647e1f6`。H5独立增量，保护用户output/、原包／工程／默认最近目录和其他会话改动。不是客户发行或完整goal结项。
 
 ## 一个问题与可用增量
 
-已有桌面构建脚本强制--debug，后台也是debug；storage_paths仅debug支持STAGEMASTER_ACCEPTANCE_INSTANCE。普通release使用正式用户数据目录，不符合开发验收文件归属。已验证的Development／内部GPU包不证明优化桌面的功能、非debug编辑器回退禁用或隔离行为。先让真实release代码能安全验收，不能以模仿release或修改客户默认目录代替。
+基线桌面构建脚本强制--debug，后台也是debug；storage_paths仅debug支持STAGEMASTER_ACCEPTANCE_INSTANCE。普通release使用正式用户数据目录，不符合开发验收文件归属。已验证的Development／内部GPU包不证明优化桌面的功能、非debug编辑器回退禁用或隔离行为。先让真实release代码能安全验收，不能以模仿release或修改客户默认目录代替。
 
 - Rust仅增加默认关闭的internal-acceptance能力及私有隔离选择／测试，客户普通release仍使用原Tauri数据目录，debug原行为不变。隔离release必须同时满足编译能力、准确内部应用身份和有效实例名称；内部包遗漏实例或身份不符拒绝，不能静默写正式数据。环境变量本身不授予客户版此能力，不增加可执行原始灯值／新控制权入口。
 - 复用现有tools/desktop/run.mjs与prepareHost，不另建组装平台。新增明确build-internal-release模式／小型纯构建计划和保护测试：桌面与带audio的原后台都用release，目标缓存／sidecar／配置／证据全在项目内且不覆盖原debug包与tmp/desktop-bin。生成唯一内部身份／中文内部标题，锁定离线，无新增依赖或锁升级。
@@ -23,4 +23,22 @@
 
 优化版严格Clippy实际拒绝renderer.rs的仅debug Path导入与renderer_paths.rs的仅debug／测试editor构造。只按原条件编译，不禁用告警、不恢复release编辑器回退。工具自审实际发现共用runCommand再次合并父环境：补默认保持的显式不继承选项，真实子进程红灯与失败记录保护；旧UE执行默认不变。
 
-本轮原全量退出101，audio_client.rs:65在重新取得控制权后收到503；单独诊断通过不作已修复证据。现有Client先保存并发送原序号、随后refresh，观察繁忙可能发生在已发送之后；client_observation已有六秒只读wait，client_audio.apply已遵守同一规则，取得／释放测试仍直接unwrap。限定追加真实后台＋既有回环故障代理，确定性复现“原控制已送、随后观察503”；测试辅助仅查询原回执、严格同序号／acquired或released结果，不重发控制、不扩大期限、不忽略拒绝／错误、不削弱音频／帧断言。运行时、公开Client、HTTP／503／控制权和时钟语义不改。首次503未保存具体HTTP正文，不追认所有历史偶发根因；全量需修复后原命令实际重新执行。
+本轮原全量退出101，audio_client.rs:65在重新取得控制权后收到503；单独诊断通过不作已修复证据。现有Client先保存并发送原序号、随后refresh，观察繁忙可能发生在已发送之后；client_observation已有六秒只读wait，client_audio.apply已遵守同一规则，取得／释放测试原先仍直接unwrap。追加真实后台＋既有回环故障代理，确定性复现“原控制已送、随后观察503”；测试辅助仅查询原回执、严格同序号／acquired或released结果，不重发控制、不扩大期限、不忽略拒绝／错误、不削弱音频／帧断言。提交前503仍不能冒认控制已接纳。运行时、公开Client、HTTP／503／控制权和时钟语义不改。首次503未保存具体HTTP正文，不追认所有历史偶发根因；最终原全量命令重新执行并退出0。
+
+## 实际交付与验证
+
+- `647e1f6`共17个源码／配置／测试文件，最大手写文件215行。目录选择、纯计划、构建、共用目录保护和测试分别组织。默认关闭能力／内部身份绑定落实；普通客户release和原debug行为保持。共用入口在任何mkdir前检查全部项目目录与目标；实际子进程不再重新继承已过滤环境，旧UE调用默认行为不变。没有新增依赖、工程字段、播放器、计时器或生产控制语义。
+- 最终原命令 `cargo test --workspace --locked --offline`实际 **1310 Rust＋2文档通过**；桌面150包含在全量，3个既有ignored是父测试实际调用的子进程入口。严格Clippy实际覆盖默认全工作区／所有目标、release桌面internal-acceptance／所有目标及release音频后台／所有目标，均退出0。Rust格式、UI类型、相关Prettier及8份JS语法通过。工具最终 **222 Node（27新保护），无跳过**。没有UI源码变更，不把旧UI测试数冒充本次执行。
+- 原存储／构建计划、父环境继承、release条件编译、控制后观察503及共用入口链接保护均保留先红后绿证据。共用目录自审原17项为13通过／4失败，修复后通过。后台故障代理最初因发现文件／父目录权限不合法而失败，按原600／700保护修正后才作有效复现；未放宽生产权限。首次全量失败、诊断通过与确定性复现分别保留。
+- 原生代表包 **`desktop-release-Li10AI`**实际optimized桌面＋原audio后台，源码／副本清单4文件一致且后台不是旧debug sidecar。提交后用最终共用入口又实际构建 **`desktop-release-E0F5rq`**，退出0、20份源码／配置／锁哈希绑定`647e1f6`。前者完成以下真实界面任务；后者是不同唯一身份，**仅确认提交后的构建，不转移原生验收资格**。前者早于最后JS目录保护抽取，但Rust／UI产品源码未变；两份记录明确分开。
+- 有效原生副本`native-lighting.project.json`为80台测试灯／21场景／两步循环列表，不含媒体或媒体能力要求。正式窗口实际搜索／选择、第一步延时1秒／渐变2秒／后等待1秒精确编辑／取消／撤销重做／保存；定时步进入第二步人工等待，暂停两次进度与全部512槽相同。两灯手动80%得到52428／DMX槽204，零值草稿取消不是释放；修改另一场景至37%并保存、三维缺件拒绝均不改变已冻结运行源／帧。明确归还手动后恢复暂停基帧，继续仍是原人工等待步。
+- 归还控制权后退出窗口，原后台同一boot／版本继续；同实例最近重开只读连接，不抢权、重载或自动播放。再次实际重开核对保存的37%及1／2／1秒字段，前后副本哈希相同。明确取得控制权后停止，空手动与Idle默认帧等于准备态；正式界面确认关闭后台。缺三维组件明确中文拒绝，没有所属编辑器／Node／Game启动或debug回退。四次窗口实际退出0，所属后台／current／discovery均已结束；未操作原有非所属UE进程。
+- 原工程／默认目录16份保护文件、原debug sidecar、旧资格包2311文件、新信令2275文件及源依赖2267文件清单保持；用户output/未读取、修改或暂存。所有记录、包、缓存与临时文件均在项目内。
+
+证据：`data/DESKTOP-005/verification.json`、`committed-build.json`、`delivery-checks.json`、两独立实例`build-record.json`、`native-saved.json`、真实state／AX／JPEG／进程记录及各红灯快照；日志`logs/desktop-005-*`、`logs/DESKTOP-005/<instance>/`。最终原全量日志`logs/desktop-005-workspace-final.log`，工具日志`logs/desktop-005-reviewed-node.log`，提交后构建日志`logs/desktop-005-committed-release-build.log`。交付检查先误将空目录当未跟踪文件、再漏算生成配置保留的原窗口而失败，两份日志保留；按真实git status及原窗口仅标题标注规则纠正，没有改源码、删除目录、改忽略或覆盖其他改动来制造通过。
+
+## 失败保留、结论与接续
+
+首次样例的noMusic标签不准确，仍含旧音频编辑引用，实际保存拒绝缺素材；第二副本残留空media也被原产品规则拒绝。旧记录不回写，只有最终无media／无媒体要求副本获无音乐资格。最初系统窗口恢复警告保留，后续正常重开未出现不等于已定位／修复OS原因。保存证据脚本误认assignments为setpoints、第一份汇总缺少保存哈希均实际失败并留原日志；后继按真实格式纠正并追加实际重开核验，保存哈希采集在第一次重开之后、额外保存核验重开之前，不能追认原失败步骤已成功。
+
+结论仅为优化内部桌面的隔离、基础编排和缺组件失败边界通过；未听音、未连接设备、未启动GPU、未重建UE、未选择证书或公证。原Game客户目录／权限、Node调试资格、Shipping／Developer ID／最低系统实测／全产品许可／未参与开发者任务仍开放，系统临时例外仍未获答复。回到H1–H5依赖满足的独立任务；H1听音／声卡、H3厂家与完整光学、H4物理差分／完整最坏组合／8小时不得由本项替代。声控／自走／未知危险宏仍屏蔽，不扩H6、不自动召回Astra，完整goal active。
