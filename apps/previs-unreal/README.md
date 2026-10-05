@@ -19,9 +19,22 @@ TMPDIR="$PWD/tmp" node --test tools/previs/packaging-plan.test.mjs \
 
 **此入口尚未达到完整出口**：实际独立 Game 已烘焙并正常启动，必需资源／H264 检查运行成功，但包的 App Sandbox 拒绝指定项目报告路径写入，且缺编辑器 HTML 报告模板，不能登记自动化报告通过。工具会拒绝空／缺／失败报告。缺省拒绝新的 Xcode 构建，因为已观察到其系统临时脚本不服从 TMPDIR；只有用户允许这一 OS 临时例外后，调用方才能显式传 `STAGEMASTER_ALLOW_PLATFORM_TEMP=1` 执行该工具。该变量不是自动授权。
 
-Node／信令运行依赖、Tauri 整包、子进程目录权限、实际 GPU／内嵌画面与无编辑器客户环境还未验收；不关闭 Sandbox 迁就测试，不把内部 Development 包当作 Shipping／签名公证完成。当前进度及失败日志见 [PREVIS-004](../../docs/development/tasks/PREVIS-004-packaged-renderer.md)。
+Tauri 整包、子进程目录权限、实际 GPU／内嵌画面与无编辑器客户环境还未验收；不关闭 Sandbox 迁就测试，不把内部 Development 包当作 Shipping／签名公证完成。当前进度及失败日志见 [PREVIS-004](../../docs/development/tasks/PREVIS-004-packaged-renderer.md)。Node／信令组件的有限独立资格见下节，不能代替完整预演包通过。
 
 `tools/previs/inspect-renderer.mjs` 是不需要 Xcode 构建的只读检查入口，唯一参数为项目内 `StageMasterPreview.app/Contents/MacOS/StageMasterPreview` 文件路径；标准输出是实际 `lipo`／`otool` 原文、ARM64 静态链接闭包与最高最低系统要求的 JSON，错误时非零退出。正式打包工具在 UAT 后、Game 启动前执行同一资格；包外 UE 库不得补齐缺项，动态加载环境覆盖不继承。当前原包 6 镜像／66 依赖的包内解析、中文空格移位副本与故意缺库拒绝已实际核对；仍不是运行期 `dlopen`、GPU、沙盒报告或完整客户安装验收。实际最低 macOS 为 14.0，桌面配置 12.0 的整包兼容性差异尚未决定，不在此私改最低版本。
+
+### 自包含信令组件（PREVIS-005）
+
+从仓库根运行以下独立软件工具，不需要 Xcode，也不启动 UE 或修改正式桌面包：
+
+~~~sh
+TMPDIR="$PWD/tmp" node --test tools/previs/*.test.mjs
+TMPDIR="$PWD/tmp" node tools/previs/package-signalling.mjs
+~~~
+
+工具仅支持本机已验证的 Node 24.17.0／Mac ARM64；按现行锁在全新 `data/PREVIS-005/previs-signalling-*/previs/` 目录做 offline、无安装脚本的 npm ci，不依赖客户 Node，不覆盖源 node_modules。依赖缓存缺失时明确失败，单独处理缓存后再使用原离线入口。日志／暂存在项目 logs／tmp，最终组件含 Node、现行信令、锁定依赖、Node 完整 LICENSE 和 npm 许可清单。所属测试结束移入 tmp，不把测试文件留在最终组件。
+
+实际原目录／中文空格移位各用自己的 Node 通过 7 项认证／发现／EOF 和真实端口测试，2,273 文件字节等价；Node ARM64、4 系统库及最低 macOS 13.5 已只读确认。两份 Epic npm 包和 cookie-signature 缺独立许可文本，清单标待发行审查。此处只登记 `signalling-component-verified`，不接入 Tauri 资源、不修改沙盒或签名；仍需独立 Game JSON通过、组合系统要求、许可、客户整包和实际 GPU 验收。详情与失败证据见 [PREVIS-005](../../docs/development/tasks/PREVIS-005-signalling-component.md)。
 
 从仓库根目录安装锁定的信令依赖、构建开发适配器：
 
