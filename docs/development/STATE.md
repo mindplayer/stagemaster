@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-011 信令组件第三方告知](tasks/PREVIS-011-signalling-notices.md)已限定计划，待实施**，基线 main `c8ea5eb`，关联[ADR-170](decisions/PRODUCT-ADR-170-signalling-notices.md)，先提交再实现。H5独立补可追溯的许可交付：原独立许可、cookie准确版本原README嵌入文本、两项Epic固定发布提交许可分别记录；原124包／锁／Node签名／旧needsLicenseReview和历史证据保持。只补材料与真实离线组装／移位验收，不授予法律／商业发行批准，不重签、扩权或启动UE；客户权限／Shipping等受影响部分仍开放，完整goal active。
+
 **[PREVIS-010 Mac发行前只读静态检查](tasks/PREVIS-010-macos-distribution-preflight.md)有限增量完成，自审通过**，基线 main `cb224a8`，计划／[ADR-169](decisions/PRODUCT-ADR-169-macos-distribution-preflight.md)先提交 `bdcfd4a`，实现结果 `64e2a6a`。四入口严格封套、独立 Developer ID 证书要求、资格和最低系统分别采集；只读诊断不授予客户发行资格，不改变运行时、既有组装、签名或权限。
 
 - 最终实际 **167 Node（32 新保护）**、六文件语法／Prettier、25 份原始采集单记录严格 JSON 和差异检查通过。初始22项为7通过／15失败，再原22项全部通过；自审补出入口无执行位及重复畸形签名头两项真实失败，修复后全量167项通过。路径尾分隔符导致的5项失败、错误格式工具路径退出127和证据计数／命名错误均保留并单列纠正，未弱化断言。六个工具／测试文件最大254行，无 Rust／UI／UE变更，不重复或冒记其编译、GPU或音频验证。
