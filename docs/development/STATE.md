@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)首个有限增量 ready**，基线 main `0885847`，计划先纳入版本。复用已有 Game Target 与官方 UAT，先做 Mac ARM64 Development 组件及非编辑器必需资源验收；无 Rust／UI／协议／格式变化，不碰用户 output/。Node／信令／Tauri 整包、GPU／内嵌画面与客户无编辑器环境验收仍待后续，不提前关闭 H5。完整 goal active，硬件测量条件待用户答复，独立软件工作继续。
+
 **[MEMORY-004 最大畸形包与旧版本保护](tasks/MEMORY-004-maximal-malformed-package.md)有限软件验收增量完成，自审通过**，基线 main `655b8d2`，计划先提交 `c8366f9`；结果为本次 `test(memory): verify maximum malformed packages and cold recovery` 提交。主工作区单写者、用户 output/ 保持；原 Archive／Installer／NorStore 正式保护通过新回归，本轮不是生产缺陷修复，不降容量或放宽期限。
 
 - 四份恰好 **2 MiB** 文件经全载荷散列后分别按单块超限／极大目录计数／目录不全／坏尾拒绝，超一字节在 I/O 前拒绝，散列中段／最后读失败不接纳。**320 属性／17 步、64 项、1,239,978 字节**合法大包逐项加载等价；两份末项坏包前 63 项完整扫描、第 64 项拒绝。1024／997 字节接收的 **12 条 NOR 模型链路**失败不可提交，旧 A 槽和固定快照保持；重建全部适配后恢复原包、下一合法安装及只读恢复通过。不是堆／栈／实物证明。
