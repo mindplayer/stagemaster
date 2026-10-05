@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**[DESKTOP-011](tasks/DESKTOP-011-candidate-notice-handoff.md) 实施中，持续 goal active**：main基线`2cbcb74`，主工作区单写者、output/未读未动；先提交有限范围与[ADR-175](decisions/PRODUCT-ADR-175-candidate-notice-handoff.md)。补准确内部候选副本与固定告知材料的离线交接／来源核验，原包字节／签名权限不变，不启动副本、不冒称最终附包／客户发行／完整许可。历史音频管理锁已有修复和测试，不重做或追认所有旧失败；H1–H5实物／客户门槛保持。
+
 **[DESKTOP-010](tasks/DESKTOP-010-native-handoff-exports.md) 有限原生交接增量完成、自审通过，持续 goal active**：main基线`ac08041`、范围先提交`9d22e46`，结果为本次`docs(release): verify native handoff exports and software package replay`提交；主工作区单写者、output/未读未动。复用产品`b0f3a7b`／准确内部候选`desktop-release-qooqnJ`，不改产品源码／原格式／包／签名权限，不开启声音／三维／后台／设备，不重做已交付主功能。
 
 - 80灯／20场景／三步新副本，配灯表／节目单／包取消、两新无效目标拒绝与原字节保护、跨页两节目／搜索保留、跨工作区上下文、草稿应用后未保存导出、过期禁用／重生成通过。两快照4,612字段／CSV全字节和重复一致，中文多行／引号／公式前缀及人工／定时参数准确；报表保存编码摘要与包紧凑摘要分别核验，不误要求相等，不改契约。
