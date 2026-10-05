@@ -2,9 +2,13 @@
 
 ## 当前实施入口 2026-10-05
 
-**[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)实施中**，现场基线main `a7012a0`，主工作区单写者。原真实宿主一秒循环、七探针诊断1项通过：旧遍次／实例／区段／代次与格式错被合并invalid；前者HTTP200已接纳后的complete／rejected，前导零整数HTTP422，音乐／PCM／组保持且每个拒绝只POST一次。已证明分类不足，不证明PREVIS-012或历史rejected原生根因。[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md)先记录再实施，细化诊断／显示，严格目标与原回执不变、不重发。证据`data/AUDIO-022/original-probes.json`、日志`logs/audio-022-*`；同一测试句柄跨OS加载等待后退出0，不改变产品期限。原失败、用户output/与38受保护文件保持；产品修复／全量／新优化原生尚未完成，完整goal active。
+**[AUDIO-022 短循环退出拒绝诊断](tasks/AUDIO-022-short-loop-exit-refusal.md)分类修复及本轮原生有限增量完成，自审通过；原始问题仍未完全收敛。** 基线main `a7012a0`，先提交计划／[ADR-173](decisions/PRODUCT-ADR-173-media-target-refusals.md) `88c56ba`，源码结果 `ec5a825`，主工作区单写者。旧遍次／实例／区段／代次与真正格式错已分开；拒绝／未知／缺回执不借旧音乐Applied，严格目标、控制权、序号、期限及播放器保持，不重发。PREVIS-012原拒绝根因未知、旧`fullNativeAcceptance=false`不回写，完整goal active。
 
-**本轮分类修复源码检查点**：按先提交`88c56ba`实现`mediaTargetChanged / loopTargetChanged`中文定位，非法数字／未知组仍invalid；新请求拒绝／未知／缺回执不借旧音乐Applied显示完成。原11探针＋旧两循环用例3通过、共享客户端分类及明确合法退出／取消通过；UI先3红后全442通过，工程格式232／工具254、UI与夹具类型、fmt／Prettier、默认全工作区及两release全目标严格Clippy通过。真实React组件9项、4.125秒草稿保留／取消、总2指令不自动重发，证据`data/AUDIO-022/component-verification.json`／拒绝PNG。测试职责已拆分，最大269行；原严格检查／导入／工具路径失败保留。**全Rust原句柄9013与最终专项20225仍运行，完整原生未通过**；加载采样`_dyld_start / 112KiB`，原因未证实，不缩放期限或重启。先提交源码检查点，接续原测试与新源码绑定的优化桌面／独立三维；旧012 false不回写，听音／物理／客户门槛保持，完整goal active。
+- **当前全量实际1312 Rust＋2文档、442 UI、232工程格式、254工具**，默认全工作区／内部release桌面／release音频后台三组全目标严格Clippy、fmt／相关Prettier、UI及真实组件夹具类型通过。原9013与最终专项20225同一测试句柄均退出0；3个旧ignored子进程入口由父测试调用。原分类及UI红灯、Clippy／工具失败与OS加载采样保持，加载原因未证实，不重启或削弱产品期限。最终11探针与共享客户端专项2项通过；真实React组件9项，4.125秒草稿保持／明确取消，总2次指令无自动重发，源码最大269行。
+- **新来源绑定的优化包`desktop-release-d2XZQI`实际构建／组装／原生有限用例通过**：20原来源哈希及1984产品文件绑定ec5a825，2313组装文件，复用原独立Game／完整告知Node、唯一公共三维。80灯／20场景／四循环／30秒MP3，静音真实PCM；短循环暂停退出2／取消3、无GPU运行退出5及自然结束，长循环暂停退出7／取消8、继续9／运行退出10均Applied。十秒四组80灯RGB／亮度逐项等于软件量化槽，共320灯样本、10台非零；三维独立关闭／重开保持同后台、音源instance3／generation3／request9，PCM继续，新Game／Node无编辑器或NullRHI。
+- **三维联动的短循环运行退出真实拒绝**：“循环播放目标已变化，请确认当前区段和遍次后重新操作”。原音乐request10保持、exitRequested=false、PCM继续；界面正确明确本次拒绝，不显示旧完成。只提交一次；随后明确暂停11、新稳定目标退出12、继续13、自然结束30000ms及停止归零14均Applied，不是重发原指令。本次原写入载荷未捕获，只读审计时最新保留回执已为renewed；不能以中文提示追认PREVIS-012历史根因。先前一次长循环继续交互亦未确认，未创建新音乐请求、原写入未知；保存证据，不冒称已解释或产品修复。
+- 保存／最近重开四循环等业务逐项保持，仅正常推进revision／parent；无自动播放、后台或抢权。两次应用退出0、所属7PID／7端口全部关闭。证据`data/AUDIO-022/verification.json`／`native-checks.json`／原生state、AX、PNG及`logs/audio-022-*`；38保护文件、原Game32／信令2275及原包清单保持，output/未读未改未暂存。汇总误把正常保存当作字节不变的失败单列纠正，历史失败不覆盖。
+- **下一项[AUDIO-023 原生媒体请求证据](tasks/AUDIO-023-native-media-command-evidence.md) ready**：只保留最后一条显式媒体操作的非敏感目标与原回执关联，先定有限诊断边界再实现，复用原客户端／UI，不扩大历史窗口、另写时钟或重发。之后回PREVIS-012限定复验；H1听音／声卡、H3厂家／光学、H4差分／完整最坏组合／8小时、H5客户Shipping／签名／最低系统／全产品许可／外部任务仍开放。Xcode系统临时例外未答复，不执行新UE构建，声控／自走／未知危险宏继续屏蔽，不扩H6。
 
 **[PREVIS-012 优化音乐与独立三维联动](tasks/PREVIS-012-optimized-audio-renderer-acceptance.md)工具实施通过，原生验收为未收敛检查点**，基线 main `428da81`，计划／[ADR-172](decisions/PRODUCT-ADR-172-optimized-renderer-assembly.md)先提交 `ccf71d0`，实现 `76a605d`。显式构建来源、20源码／配置／锁哈希和完整原包清单通过才保留已编译内部身份，已有runtime拒绝；原debug路径不变。复用原组装、Game、完整告知信令、原后台／播放器和唯一公共视窗，不重建UE、不操作正式证书／客户权限／设备。
 

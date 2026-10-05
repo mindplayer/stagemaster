@@ -40,3 +40,7 @@ DESKTOP-005优化桌面／后台只完成无三维、无音乐的正式编排。
 明确暂停后request11 Applied，新稳定目标退出12 Applied、继续13 Applied、自然结束30000ms／termination ended、明确停止14 Applied均记录；这是后继不同目标下的操作，不重发原请求，不能证明原拒绝已修复。优先[AUDIO-022](AUDIO-022-short-loop-exit-refusal.md)确定性排查／有限修复后回此用例，不为结项删掉失败验收。
 
 初次固定采样93项全为准备态、第二次32秒采样只捕获前两遍，不算三遍证据；后继采样由实际playing／region2触发，只读查询不改变产品期限或时钟。原失败日志保留：来源记录字段误认、测试夹具别名、暂停汇总误猜英文正文、保存汇总遗漏正常版本推进、末次汇总误用不存在sidecar路径；准确原路径／结构修正后相关核对通过。首次按bundleID定位应用存在三个副本歧义，实际按唯一组装路径绑定；原生打开对话框先选assets目录，明确文件后才算成功；中文键入被输入法截断后改准确粘贴并取消验证。VT旧警告仍在，没有修复或性能资格。
+
+## 后继AUDIO-022有限复验
+
+源码ec5a825的新优化候选`desktop-release-d2XZQI`已实际完成分类显示、长短循环暂停退出／取消、无GPU短循环运行退出及自然结束、三维关闭重开保持音源、量化灯值和保存重开／收尾；准确证据在`data/AUDIO-022/verification.json`，不是沿用本项旧来源资格。GPU联动的短循环退出本次明确拒绝“循环播放目标已变化”，原音乐保持且UI不借旧Applied；新稳定目标退出／继续／自然结束成功不覆盖拒绝。写入载荷／原HTTP回执缺口及先前一次长循环继续未确认仍保留，接续[AUDIO-023](AUDIO-023-native-media-command-evidence.md)有限留证。旧`data/PREVIS-012/verification.json`的fullNativeAcceptance=false与原始根因未知不改写，本工单完整出口未关闭。
