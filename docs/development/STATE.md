@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**[PREVIS-007 受限 Development 桌面组装](tasks/PREVIS-007-development-desktop-assembly.md)实施中**，基线 main `20d2476`，依据 [ADR-167](decisions/PRODUCT-ADR-167-development-desktop-assembly.md)。复用原 Game／Node／正式桌面，先提交限定计划，再组装新内部副本并验证实际 GPU／连接；不重建 UE、不改原包或用户 output/。客户签名／通用目录、许可、听音／厂家资料、物理／长期保持开放，完整 goal active。
+
 **[PREVIS-006 组件启动完整性与实例隔离](tasks/PREVIS-006-component-launch-isolation.md)有限宿主增量完成，自审通过**，基线 main `842e697`，计划／[ADR-166](decisions/PRODUCT-ADR-166-component-launch-isolation.md)先提交 `e62a2a0`；结果为本次 `fix(previs): isolate installed component launches` 提交。已安装但缺件／路径无效明确拒绝，不偷偷使用编辑器或系统 Node；组件运行目录复用宿主开发／验收所有者，恢复／执行／音频／导航路径不迁移。
 
 - 四项旧选择保护先红后绿，新增13项；最终实际 **1298 Rust＋2文档、119 Node**、全目标严格 Clippy／fmt、正式 `.app` 构建、引用／JSON／差异通过。旧只读 refresh 503首轮失败保留，具体根因仍未证实，未改断言或记作修复；名称／扩展静态检查失败已改正无豁免。无 UI／UE／固件源码变更，不累加旧 UI／UE结果。
