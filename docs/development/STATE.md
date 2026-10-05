@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-05
 
+**PREVIS-004 静态链接依赖资格接续 ready**，基线 main `0cf4668`，计划先纳入版本。新的 Xcode 构建仍待 OS 临时例外答复；本次只读检查既有 Game 的 ARM64 静态动态库闭包、包内解析及最低系统版本，并加入启动前检查。限定 `tools/previs/` 与相关文档，不改变沙盒／签名／Rust／UI／工程。它不替代独立 JSON／客户环境／GPU验收，完整 goal active；上一轮为真实进展，不是无进展或仍运行的等待任务。
+
 **[PREVIS-004 独立预演组件打包](tasks/PREVIS-004-packaged-renderer.md)进行中，基础工具／启动修正交付，完整独立验收未通过**，基线 main `0885847`、计划先提交 `b937b1a`；结果为本次 `fix(previs): prepare standalone renderer packaging and safe codec startup` 提交。官方 UAT 两轮实际生成约 598 MiB Mac ARM64 Development Game，修复冗余 H264 CVar 在 UObject 初始化前引发的启动断言，未改引擎、插件／核心依赖、Rust／UI／协议／格式，不碰用户 output/。
 
 - 最终实际 **34 Node＋12 UE 编辑器**、相关格式／语法、文档引用／严格 JSON／差异检查通过；独立 Game 正常初始化并运行资源／H264 用例，但 App Sandbox 明确拒绝指定日志／JSON 写入且缺报告模板，**不能登记独立自动化通过或客户可用**。[ADR-165](decisions/PRODUCT-ADR-165-packaged-renderer-file-access.md)记录最小文件权限边界，未关闭／重签／绕过沙盒。前期 Zen／Metal／启动／报告失败保留，证据 `data/PREVIS-004/verification.json`、日志 `logs/previs-004-*`／`logs/PREVIS-004/`。受保护工程／默认最近目录哈希、用户 output/ 保持，所属进程退出；无正式桌面／GPU／设备验收。
