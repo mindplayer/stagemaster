@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**[DESKTOP-009](tasks/DESKTOP-009-pinned-notice-supplements.md) 实施中，持续 goal active**：main 基线 `99c1983`，主工作区单写者、output/未读未动。针对006材料的45个已安装原文缺项，核对锁定原包和精确上游提交／发布关系，复用有界离线收集与固定来源机制；先提交范围再取得／实现。49个未安装可选包另列，不伪造原文、不自行选择许可或提升商业批准，不改原包／安装缓存或重做已通过原生流程。
+
 **[DESKTOP-008](tasks/DESKTOP-008-script-recovery-acceptance.md) 有限原生增量完成、自审通过，持续 goal active**：main 基线 `1cd87f1`、范围先提交 `5eea63b`，结果为本次 `docs(release): verify native script execution and copy recovery` 提交；主工作区单写者，用户 output/ 未读未动。复用产品 `b0f3a7b`／`desktop-release-qooqnJ`，软件 DMX、无声音／UE／硬件，不重建包或改接口。
 
 - 无音乐 80 灯／20 场景、24 灯组／144 值预设、三步人工／定时剧本，非法拒绝／取消／撤销重做／搜索上下文／保存最近重开通过。85 条原只读状态均 200，延时／渐变／等待 6／12／5 条，后继确认末步；同实例暂停继续，第九槽 33%→84，零值仍持有、明确释放。另一个场景的 24 项编辑不改变运行工程／暂停时间／512 槽，撤销后回已保存。
