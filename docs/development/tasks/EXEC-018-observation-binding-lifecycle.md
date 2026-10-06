@@ -1,6 +1,6 @@
 # EXEC-018：执行观察的连接与显示生命周期
 
-状态：本增量完成、自审通过，2026-10-06。main 基线 `32696b7af7b124a5e68ef43e04a4a59fbea2de49`，范围先提交 `aea3413`，结果为本次 `fix(execution): bind observation replies to connection lifetime` 提交。主工作区单写者，用户 output/ 未读未动；完整可交付 Goal 保持 active，不重复听音或已完成 EXEC-017。
+状态：本增量完成、自审通过，2026-10-06。main 基线 `32696b7af7b124a5e68ef43e04a4a59fbea2de49`，范围先提交 `aea3413`，产品修复结果 `c4b6748`。主工作区单写者，用户 output/ 未读未动；完整可交付 Goal 保持 active，不重复听音或已完成 EXEC-017。
 
 ## 问题与范围
 
