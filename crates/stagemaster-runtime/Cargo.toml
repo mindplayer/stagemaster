@@ -15,6 +15,7 @@ stagemaster-project = { path = "../stagemaster-project" }
 stagemaster-install-store = { path = "../stagemaster-install-store" }
 serde_json = "=1.0.151"
 tempfile = "=3.27.0"
+uuid = "=1.26.1"
 
 [lints]
 workspace = true
