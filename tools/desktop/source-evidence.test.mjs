@@ -6,7 +6,7 @@ import {
   captureSourceEvidence,
   sameSourceEvidence,
 } from "./source-evidence.mjs";
-import { sourceLimits } from "./source-scope.mjs";
+import { sourceLimits, sourceRoots, sourceExtras } from "./source-scope.mjs";
 import { sourceFixture } from "./source-evidence-fixture.mjs";
 import { buildInternalRelease } from "./release-build.mjs";
 import { desktopBuildPlan } from "./build-plan.mjs";
@@ -124,5 +124,49 @@ test("实际内部入口的来源失败保留 failed 记录，不调用编译或
     assert.equal("host" in record, false);
     assert.equal("bundle" in record, false);
     assert.match(record.error, /必要输入/);
+  }
+});
+
+test("修改已捕获的范围元数据不能改变后继生产扫描或漏掉新工具源码", async (t) => {
+  const f = sourceFixture(t),
+    first = await captureSourceEvidence(f.root);
+  const roots = [...sourceRoots],
+    extras = [...sourceExtras];
+  try {
+    first.scope.roots.pop();
+    const added = "tools/previs/source-after-metadata-edit.mjs";
+    f.write(added, "export const value = 3;\n");
+    const next = await captureSourceEvidence(f.root);
+    assert.ok(
+      next.inputs.some((row) => row.path === added),
+      "新生产工具不能被先前范围元数据的修改漏掉",
+    );
+    assert.deepEqual(next.scope.roots, roots);
+    assert.deepEqual(next.scope.extras, extras);
+    assert.equal(next.git.dirty, true);
+  } finally {
+    if (!Object.isFrozen(sourceRoots))
+      sourceRoots.splice(0, sourceRoots.length, ...roots);
+    if (!Object.isFrozen(sourceExtras))
+      sourceExtras.splice(0, sourceExtras.length, ...extras);
+  }
+});
+
+test("本次快照的额外输入数组可编辑但不会删除后继必要Schema", async (t) => {
+  const f = sourceFixture(t),
+    first = await captureSourceEvidence(f.root);
+  const extras = [...sourceExtras];
+  try {
+    first.scope.extras.pop();
+    const next = await captureSourceEvidence(f.root);
+    assert.deepEqual(next.scope.extras, extras);
+    assert.ok(
+      next.inputs.some(
+        (row) => row.path === "docs/project-format/schemas/common.schema.json",
+      ),
+    );
+  } finally {
+    if (!Object.isFrozen(sourceExtras))
+      sourceExtras.splice(0, sourceExtras.length, ...extras);
   }
 });

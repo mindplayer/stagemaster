@@ -35,8 +35,8 @@ export async function captureSourceEvidence(root, limits = sourceLimits) {
   return {
     version: 1,
     scope: {
-      roots: sourceRoots,
-      extras: sourceExtras,
+      roots: [...sourceRoots],
+      extras: [...sourceExtras],
       excluded:
         "tests/examples/generated/cache/dependency trees, unrelated docs, runtime/data/output; not whole supply chain or immutable checkout",
     },

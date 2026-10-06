@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, realpathSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { signallingEnvironment } from "./signalling-package-plan.mjs";
 import {
   fileInventory,
@@ -12,20 +12,8 @@ import {
 } from "./signalling-package-files.mjs";
 import { desktopAssemblyPlan } from "./desktop-assembly-plan.mjs";
 import { internalReleaseSource } from "./desktop-internal-release.mjs";
-
-export function plainAncestors(file) {
-  for (let path = resolve(file); ; path = dirname(path)) {
-    let stat;
-    try {
-      stat = lstatSync(path, { throwIfNoEntry: false });
-    } catch (cause) {
-      throw new Error(`目录无效，无法检查：${path}`, { cause });
-    }
-    if (stat && (!stat.isDirectory() || realpathSync(path) !== path))
-      throw new Error(`目录无效或经过链接，写入前拒绝：${path}`);
-    if (path === dirname(path)) break;
-  }
-}
+import { plainAncestors } from "./plain-ancestors.mjs";
+export { plainAncestors } from "./plain-ancestors.mjs";
 
 export function prepareDesktopFolders(plan) {
   const expected = desktopAssemblyPlan(

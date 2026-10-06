@@ -8,7 +8,7 @@ import {
   sourcePath,
   sourceLimits,
 } from "./source-scope.mjs";
-import { plainAncestors } from "../previs/desktop-assembly-files.mjs";
+import { plainAncestors } from "../previs/plain-ancestors.mjs";
 
 export async function sourceFiles(root, objectFormat, limits = sourceLimits) {
   let entries = 0,

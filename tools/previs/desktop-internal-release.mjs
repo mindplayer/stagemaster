@@ -4,6 +4,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { readJson } from "../project-format/check.mjs";
 import { desktopBuildPlan } from "../desktop/build-plan.mjs";
 import { fileHash } from "./signalling-package-files.mjs";
+import { internalSourceSnapshot } from "./internal-source-snapshot.mjs";
 
 export function desktopAssemblyInputs(args) {
   if (
@@ -50,31 +51,46 @@ export async function internalReleaseSource(
 ) {
   const file = ownedFile(plan.root, recordPath),
     committed = readJson(file);
+  const direct = Object.hasOwn(committed, "sourceEvidence");
+  assert.ok(
+    !direct || !Object.hasOwn(committed, "rawRecord"),
+    "优化来源不能混用原记录与旧封套",
+  );
   assert.equal(committed.task, "DESKTOP-005", "优化来源不是既定构建记录");
-  assert.equal(committed.buildExit, 0, "优化来源构建未成功");
-  assert.equal(committed.hostProfile, "release", "优化来源后台不是release");
-  assert.match(
-    committed.sourceCommit,
-    /^[a-f0-9]{40}$/,
-    "优化来源源码版本无效",
-  );
-  assert.equal(
-    committed.customerReleaseQualified,
-    false,
-    "优化来源不得冒称客户资格",
-  );
-  assert.equal(
-    committed.nativeRepresentativeVerified,
-    false,
-    "优化来源实例必须尚未原生验收",
-  );
-  const rawFile = ownedFile(plan.root, committed.rawRecord);
-  assert.equal(
-    await fileHash(rawFile),
-    committed.recordSha256,
-    "优化来源原构建记录改变",
-  );
-  const raw = readJson(rawFile);
+  if (direct && Object.hasOwn(committed, "nativeRepresentativeVerified"))
+    assert.equal(
+      committed.nativeRepresentativeVerified,
+      false,
+      "优化来源实例不能复用已有原生资格",
+    );
+  if (!direct) {
+    assert.equal(committed.buildExit, 0, "优化来源构建未成功");
+    assert.equal(committed.hostProfile, "release", "优化来源后台不是release");
+    assert.match(
+      committed.sourceCommit,
+      /^[a-f0-9]{40}$/,
+      "优化来源源码版本无效",
+    );
+    assert.equal(
+      committed.customerReleaseQualified,
+      false,
+      "优化来源不得冒称客户资格",
+    );
+    assert.equal(
+      committed.nativeRepresentativeVerified,
+      false,
+      "优化来源实例必须尚未原生验收",
+    );
+  }
+  const rawFile = direct ? file : ownedFile(plan.root, committed.rawRecord);
+  if (!direct) {
+    assert.equal(
+      await fileHash(rawFile),
+      committed.recordSha256,
+      "优化来源原构建记录改变",
+    );
+  }
+  const raw = direct ? committed : readJson(rawFile);
   assert.equal(raw.task, "DESKTOP-005", "优化来源原记录任务错误");
   assert.equal(raw.status, "isolated-release-built", "优化来源原构建未完成");
   assert.equal(raw.commandResult?.code, 0, "优化来源原构建退出失败");
@@ -92,13 +108,15 @@ export async function internalReleaseSource(
   );
   const bundle = join(expected.archive, `${expected.config.productName}.app`);
   assert.equal(plan.desktop, bundle, "优化来源不是准确归档包");
-  assert.equal(committed.bundle, bundle, "优化来源提交记录包不一致");
+  if (!direct) {
+    assert.equal(committed.bundle, bundle, "优化来源提交记录包不一致");
+    assert.equal(
+      committed.identifier,
+      expected.identifier,
+      "优化来源提交身份错误",
+    );
+  }
   assert.equal(raw.bundle, bundle, "优化来源原记录包不一致");
-  assert.equal(
-    committed.identifier,
-    expected.identifier,
-    "优化来源提交身份错误",
-  );
   assert.equal(identifier, expected.identifier, "优化来源实际Plist身份错误");
   assert.equal(raw.host?.profile, "release", "优化来源原后台不是release");
   assert.equal(raw.host?.status, 0, "优化来源原后台构建失败");
@@ -119,47 +137,69 @@ export async function internalReleaseSource(
   );
   assert.deepEqual(actualFiles, raw.files, "优化来源包文件改变");
   assert.deepEqual(raw.originalFiles, raw.files, "优化来源复制不等价");
-  assert.equal(
-    committed.archiveFileCount,
-    actualFiles.length,
-    "优化来源文件数不一致",
-  );
+  if (!direct)
+    assert.equal(
+      committed.archiveFileCount,
+      actualFiles.length,
+      "优化来源文件数不一致",
+    );
   const host = actualFiles.find(
     (entry) => entry.path === "Contents/MacOS/stagemaster-execution-host",
   );
   assert.ok(host && host.sha256 === raw.host.sha256, "优化来源包内后台不一致");
-  const hashes = committed.sourceHashes;
-  assert.ok(
-    hashes && Object.keys(hashes).length === 20,
-    "优化来源缺完整源码／配置／锁记录",
-  );
-  for (const required of [
-    "apps/desktop/Cargo.toml",
-    "apps/desktop/src/storage_paths.rs",
-    "tools/desktop/build-plan.mjs",
-    "tools/desktop/release-build.mjs",
-    "apps/desktop/tauri.conf.json",
-    "apps/ui-prototype/package.json",
-    "apps/ui-prototype/package-lock.json",
-    "Cargo.lock",
-  ])
-    assert.ok(Object.hasOwn(hashes, required), `优化来源缺少记录：${required}`);
-  for (const [source, hash] of Object.entries(hashes)) {
-    assert.match(hash, /^[a-f0-9]{64}$/, "优化来源文件摘要无效");
-    assert.equal(
-      await fileHash(ownedFile(plan.root, source)),
-      hash,
-      `优化来源源码／配置／锁改变：${source}`,
+  let sourceBinding;
+  if (Object.hasOwn(raw, "sourceEvidence")) {
+    sourceBinding = await internalSourceSnapshot(
+      plan,
+      raw,
+      actualFiles,
+      ownedFile,
     );
+    if (!direct)
+      assert.equal(
+        committed.sourceCommit,
+        sourceBinding.git.head,
+        "优化来源封套Git基线不一致",
+      );
+  }
+  if (!direct) {
+    const hashes = committed.sourceHashes;
+    assert.ok(
+      hashes && Object.keys(hashes).length === 20,
+      "优化来源缺完整源码／配置／锁记录",
+    );
+    for (const required of [
+      "apps/desktop/Cargo.toml",
+      "apps/desktop/src/storage_paths.rs",
+      "tools/desktop/build-plan.mjs",
+      "tools/desktop/release-build.mjs",
+      "apps/desktop/tauri.conf.json",
+      "apps/ui-prototype/package.json",
+      "apps/ui-prototype/package-lock.json",
+      "Cargo.lock",
+    ])
+      assert.ok(
+        Object.hasOwn(hashes, required),
+        `优化来源缺少记录：${required}`,
+      );
+    for (const [source, hash] of Object.entries(hashes)) {
+      assert.match(hash, /^[a-f0-9]{64}$/, "优化来源文件摘要无效");
+      assert.equal(
+        await fileHash(ownedFile(plan.root, source)),
+        hash,
+        `优化来源源码／配置／锁改变：${source}`,
+      );
+    }
   }
   return {
     record: file,
     recordSha256: await fileHash(file),
     rawRecord: rawFile,
-    sourceCommit: committed.sourceCommit,
+    sourceCommit: direct ? sourceBinding.git.head : committed.sourceCommit,
     instance: expected.instance,
     identifier: expected.identifier,
     profile: "release",
     customerReleaseQualified: false,
+    ...(sourceBinding ? { sourceBinding } : {}),
   };
 }

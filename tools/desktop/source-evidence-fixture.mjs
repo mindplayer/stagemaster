@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sourceRoots, requiredInputs } from "./source-scope.mjs";
 const project = fileURLToPath(new URL("../../", import.meta.url));
-export function sourceFixture(t) {
+export function sourceFixture(t, objectFormat = undefined) {
   const root = mkdtempSync(join(project, "tmp/desktop-013-source-test-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const write = (path, text) => {
@@ -18,7 +18,11 @@ export function sourceFixture(t) {
   for (const file of requiredInputs) write(file, "fixture input\n");
   write("crates/sample/src/lib.rs", "pub const VALUE: u8 = 1;\n");
   write("apps/ui-prototype/src/界面.ts", "export const value = 1;\n");
-  git(["init", "-q"]);
+  git([
+    "init",
+    "-q",
+    ...(objectFormat ? ["--object-format=" + objectFormat] : []),
+  ]);
   git(["config", "user.name", "Source fixture"]);
   git(["config", "user.email", "fixture@invalid.example"]);
   const commit = () => {

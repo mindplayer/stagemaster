@@ -1,19 +1,19 @@
-export const sourceRoots = [
+export const sourceRoots = Object.freeze([
   "crates",
   "apps/desktop",
   "apps/execution-host",
   "apps/ui-prototype",
   "tools/desktop",
   "tools/previs",
-];
-export const sourceExtras = [
+]);
+export const sourceExtras = Object.freeze([
   "Cargo.toml",
   "Cargo.lock",
   "rust-toolchain.toml",
   ".cargo/config.toml",
   "docs/project-format/schemas/project.schema.json",
   "docs/project-format/schemas/common.schema.json",
-];
+]);
 export const requiredInputs = [
   "Cargo.toml",
   "Cargo.lock",
