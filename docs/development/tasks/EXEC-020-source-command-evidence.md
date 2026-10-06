@@ -8,6 +8,8 @@
 
 限定`crates/stagemaster-execution-client/`、`apps/ui-prototype/`对应类型／小组件／测试和`apps/execution-host/tests/`真实宿主接缝。改已有control职责时抽取source_control模块；入口仅组装。新增文件300–400行评估，超过500须拆分或说明。HTTP v2、工程格式、租约、请求序号、截止期、运行时、音乐／手动层／总控规则和保护不改，不增加重发、历史窗口、后台服务或新播放器。
 
+最终检查发现新增视图诊断使既有`audio_client.rs`的`verify_operations`异步对象达到17,864字节，严格Clippy拒绝；限定补充该测试调用的`Box::pin`堆分配，业务步骤、断言、期限及生产逻辑保持。保留两次严格失败，新冻结版本重新全量及严格检查，来源指纹纳入该既有测试文件。
+
 ## 验收
 
 先补真实宿主保护测试，原实现缺少sourceOperation应红；随后验证暂停／继续原目标与回执、陈旧revision拒绝、未取得控制／无效目标不借旧成功、已接纳但响应损坏只查原serial、HTTP未接纳、维护及非节目操作不覆盖、pending不换诊断、敏感文本／容量上限与重连清空。回执serial不匹配不得关联；仅原完整applied回执可给出对应来源状态，诊断不作为运行权威。
