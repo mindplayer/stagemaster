@@ -1,4 +1,5 @@
 import { manualRecordingActions } from "./manual-recording-actions";
+import { libraryEditActions } from "./library-edit-actions";
 import { viewportTargets } from "./previs-objects";
 import type { StageSelection } from "./stage-types";
 import { previsInteractions } from "./components/workbench/previs-interactions";
@@ -1247,13 +1248,12 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                             );
                           })
                         }
-                        onLibraryEdit={async (command) => {
-                          const ok = await run(async () => {
-                            await edit({ op: "library", command });
-                            setNotice("资源已更新，可撤销恢复");
-                          });
-                          return ok ? current.current.project : null;
-                        }}
+                        onLibraryEdit={libraryEditActions(
+                          run,
+                          () => current.current,
+                          edit,
+                          setNotice,
+                        )}
                         onView3d={() => sharedPrevis.current?.openPlayback()}
                         captureTemplate={captureCheck}
                         onApplyTemplate={(generation, token) =>

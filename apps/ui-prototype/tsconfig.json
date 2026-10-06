@@ -13,6 +13,7 @@
   },
   "include": [
     "src",
+    "tests/library-edit-actions.test.ts",
     "tests/execution-request-scope.test.ts",
     "tests/execution-binding-harness.tsx",
     "tests/preview-intent.test.ts",

@@ -2,7 +2,7 @@
 
 ## 当前实施入口 2026-10-06
 
-**[UX-051](tasks/UX-051-resource-edit-feedback.md)接续中，基线main `7a8d1e2`，范围先提交。** 只修已留证的重复预设无变更却称可撤销反馈，复用同工程宿主generation，不靠dirty／canUndo猜历史。抽出资源编辑小职责、实际红绿／UI／类型／格式及新正式桌面验证，保护output/，不改核心格式／时钟／控制权、不围绕音量。EXEC-020已交付，不重复其全量和三步流程；完整Goal active。
+**[UX-051](tasks/UX-051-resource-edit-feedback.md)已实施，原生／真实组件待验，基线main `7a8d1e2`、范围`9641b87`。** 源码结果为本次`fix(editor): report unchanged resource edits truthfully`提交。重复预设无变更不再无条件称可撤销；复用同工程宿主generation、在原队列前置提交后比较，不靠dirty／canUndo猜历史。小型资源职责／入口组装，实际红灯2通过4失败→最终6通过；默认UI486（含既有4源请求与6新反馈）／类型／相关格式／diff通过，依赖锁与Rust不改。`data/UX-051/`与`logs/ux-051-*`留证，保护output/。下一步新干净内部包真实重复引用、真实变更撤销重做、保存最近重开及收尾；未完成前不关闭工单。EXEC-020已交付，不重复其全量或三步，不围绕音量；完整Goal active。
 
 **[EXEC-020](tasks/EXEC-020-source-command-evidence.md)已完成、自审通过；完整首版Goal保持active。** 基线`41206f9`，范围`341368b`／`1d38241`，实现`1c02e13`；结果为本次`docs(execution): verify original control native workflow`提交。原普通节目控制的有界目标／POST／同序号回执和只读详情已交付，不改变正式播放器、序号、期限、租约或控制权。最终1,355 Rust＋2文档、UI476＋独立4、两套严格Clippy／类型／fmt／相关格式、真实React八分支和正式桌面全部实际执行；完整源码检查与前后冻结指纹保持，锁不变，output/未读未动。
 
