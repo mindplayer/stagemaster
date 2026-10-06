@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ApplicationHost, SceneView } from "../../application-host";
 import type {
   PreviewCommand,
   PreviewSnapshot,
   SequenceView,
 } from "../../sequence-types";
-import { startScenePreview } from "./scene-preview-action";
+import { performPreviewIntent } from "./preview-intent";
 
 export interface PreviewControllerOptions {
   host: ApplicationHost;
@@ -32,15 +32,22 @@ export function usePreviewController({
   });
   const [error, setError] = useState("");
   const errorSource = useRef<"poll" | "command" | null>(null);
+  const context = useMemo(
+    () => ({ host, sceneId: scene?.id, sequenceId: sequence?.id, visible }),
+    [host, scene?.id, sequence?.id, visible],
+  );
+  const selected = useRef(context);
+  selected.current = context;
+  const errorContext = useRef(context);
+  const errorHost = useRef(host);
   const [working, setWorking] = useState(false);
   const current = useRef(snapshot);
+  const snapshotHost = useRef(host);
   const controlBusy = useRef(false);
   const epochRequest = useRef(0);
   const alive = useRef(true);
-  const target = useRef(scene?.id);
-  target.current = visible ? scene?.id : undefined;
   const publish = (value: PreviewSnapshot) => {
-    if (alive.current) {
+    if (alive.current && selected.current.host === host) {
       // Another workspace may successfully replace a failed preview. Keep command
       // errors during ordinary polls, but never attach them to a new player epoch.
       if (
@@ -50,6 +57,7 @@ export function usePreviewController({
         errorSource.current = null;
         setError("");
       }
+      snapshotHost.current = host;
       current.current = value;
       setSnapshot(value);
     }
@@ -72,6 +80,7 @@ export function usePreviewController({
         } catch (reason) {
           if (!disposed && version === epochRequest.current) {
             errorSource.current = "poll";
+            errorHost.current = host;
             setError(String(reason));
           }
         }
@@ -85,69 +94,36 @@ export function usePreviewController({
     };
   }, [host, visible]);
   async function act(command: PreviewCommand | "load" | "startScene") {
-    if (controlBusy.current) return;
+    const valid = () =>
+      alive.current && selected.current === context && context.visible;
+    if (controlBusy.current || !valid()) return;
     controlBusy.current = true;
     epochRequest.current++;
     setWorking(true);
     errorSource.current = null;
     setError("");
     try {
-      // Transport-only actions must not apply an unrelated or temporary editor draft.
-      if (
-        (typeof command === "string" ||
-          (!["stop", "pause", "setRate"].includes(command.kind) &&
-            !(
-              command.kind === "resume" && current.current.loaded?.draftEffectId
-            ))) &&
-        !(await beforeAction())
-      )
-        return;
-      // Flush can change the project generation, so obtain the host's authoritative snapshot.
-      if (command === "startScene" && scene) {
-        const result = await startScenePreview(
-          host,
-          scene.id,
-          () => alive.current && target.current === scene.id,
-        );
+      const result = await performPreviewIntent({
+        host,
+        sceneId: context.sceneId,
+        sequenceId: context.sequenceId,
+        command,
+        expectedEpoch:
+          snapshotHost.current === host ? current.current.epoch : 0,
+        draftEffect: !!current.current.loaded?.draftEffectId,
+        beforeAction,
+        current: valid,
+        replaced: publish,
+      });
+      if (result && valid()) {
         publish(result);
-        if (alive.current && target.current === scene.id) onView3d?.();
-      } else if (command === "load") {
-        if (!sequence && !scene) return;
-        const project = await host.request({ kind: "snapshot" });
-        publish(
-          await host.preview(
-            scene
-              ? {
-                  kind: "loadScene",
-                  generation: project.generation,
-                  sceneId: scene.id,
-                }
-              : {
-                  kind: "load",
-                  generation: project.generation,
-                  sequenceId: sequence!.id,
-                },
-          ),
-        );
-      } else if (typeof command !== "string") {
-        // Several views share one player. Read the current serial, never restart a local counter.
-        const latest = await host.preview({ kind: "snapshot" });
-        if (latest.epoch !== current.current.epoch) {
-          publish(latest);
-          throw new Error("预览内容已更换，请确认后重试");
-        }
-        publish(
-          await host.preview({
-            kind: "control",
-            epoch: current.current.epoch,
-            serial: latest.controlSerial + 1,
-            command,
-          }),
-        );
+        if (command === "startScene") onView3d?.();
       }
     } catch (reason) {
-      if (alive.current) {
+      if (valid()) {
         errorSource.current = "command";
+        errorContext.current = context;
+        errorHost.current = host;
         setError(reason instanceof Error ? reason.message : String(reason));
       }
     } finally {
@@ -155,6 +131,18 @@ export function usePreviewController({
       if (alive.current) setWorking(false);
     }
   }
-  return { snapshot, error, working, act };
+  return {
+    snapshot:
+      snapshotHost.current === host
+        ? snapshot
+        : { epoch: 0, controlSerial: 0, loaded: null },
+    error:
+      errorHost.current === host &&
+      (errorSource.current !== "command" || errorContext.current === context)
+        ? error
+        : "",
+    working,
+    act,
+  };
 }
 export type PreviewController = ReturnType<typeof usePreviewController>;

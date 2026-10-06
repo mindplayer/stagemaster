@@ -15,6 +15,8 @@
     "src",
     "tests/execution-request-scope.test.ts",
     "tests/execution-binding-harness.tsx",
+    "tests/preview-intent.test.ts",
+    "tests/preview-intent-harness.tsx",
     "tests/performance-loop-motion.test.ts",
     "tests/performance-loop-draft.test.ts",
     "tests/audio-panel-harness.tsx",
