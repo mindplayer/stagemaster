@@ -47,6 +47,7 @@ export function packagingPlan(
     "-NoTraceServer",
   ].join(" ");
   const uat = {
+    crashReporters: "editor",
     program: join(engine, "Engine/Build/BatchFiles/RunUAT.sh"),
     args: [
       "BuildCookRun",
@@ -99,6 +100,7 @@ export function runtimeCheck(
   return {
     program,
     report,
+    crashReporters: "game",
     args: [
       "-unattended",
       "-NullRHI",

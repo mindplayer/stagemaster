@@ -1,7 +1,4 @@
-import { spawn } from "node:child_process";
 import {
-  openSync,
-  closeSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -21,58 +18,10 @@ import {
 import {
   metalToolchain,
   requirePlatformTempPermission,
-  withoutLoaderOverrides,
 } from "./packaging-tools.mjs";
 import { inspectMacBundle } from "./mac-bundle-inspection.mjs";
-
-export async function runCommand(command, plan) {
-  console.log(`执行：${command.program}\n日志：${command.log}`);
-  const descriptor = openSync(command.log, "wx", 0o600);
-  return new Promise((resolve, reject) => {
-    const env = withoutLoaderOverrides({
-      ...(plan.inheritEnvironment === false ? {} : process.env),
-      ...plan.env,
-    });
-    // Build-time toolchain verification must not inherit the editor runtime shortcut.
-    delete env.UE_SKIP_UBT_SDK_SETUP;
-    const child = spawn(command.program, command.args, {
-      cwd: plan.root,
-      env,
-      detached: true,
-      stdio: ["ignore", descriptor, descriptor],
-    });
-    closeSync(descriptor);
-    // Own the entire group. RunUAT.sh's ps --ppid cancellation is not portable to macOS.
-    let interrupted = false;
-    const interrupt = () => {
-      interrupted = true;
-      if (child.pid)
-        try {
-          process.kill(-child.pid, "SIGTERM");
-        } catch (error) {
-          if (error.code !== "ESRCH") throw error;
-        }
-    };
-    process.once("SIGINT", interrupt);
-    process.once("SIGTERM", interrupt);
-    let failure;
-    child.on("error", (error) => {
-      failure = error;
-    });
-    child.on("close", (code, signal) => {
-      process.removeListener("SIGINT", interrupt);
-      process.removeListener("SIGTERM", interrupt);
-      if (failure || interrupted || code !== 0)
-        reject(
-          failure ??
-            new Error(
-              `子进程${interrupted ? "已取消" : "失败"}：${code ?? signal}，见 ${command.log}`,
-            ),
-        );
-      else resolve({ pid: child.pid, code, signal });
-    });
-  });
-}
+import { runCommand } from "./packaging-process.mjs";
+export { runCommand } from "./packaging-process.mjs";
 
 export function packagedProgram(archive) {
   const candidates = [];

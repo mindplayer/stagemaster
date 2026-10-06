@@ -1,5 +1,7 @@
 # PREVIS-004：独立预演组件的可复现打包
 
+2026-10-06后继事实：[PREVIS-013](PREVIS-013-owned-crash-reporter-cleanup.md)发现第三轮失败烘焙 `previs-package-Kd2QO0` 的独立 CrashReportClientEditor PID90300仍持续占约100% CPU；原UAT／编辑器退出不证明报告助手退出。本次核对实际命令、加载文件、原烘焙日志与准确报告目录后已SIGTERM收尾，报告和原日志保留；不会将原failed改成通过。下文的原进程退出记录应按当时捕获对象阅读，不能扩大成所有派生报告助手已结束。
+
 状态：**进行中，Development 副本的限定目录 JSON／HTML验收通过，客户权限／可复现完整发行仍未通过**。首轮基线 main `0885847e3de629ac0ead1eb498b4e84cc30082b7`，计划先提交 `b937b1a`，基础工具结果 `0cf4668`；静态依赖及最新文件资格接续见下方。主工作区单写者；用户未跟踪 `output/` 不触碰。属于 H5 客户无 UE 编辑器路径的准备，不关闭 H5 或整个持续 goal。原四份默认 pipeline 失败记录保持，不把最新副本结果回写为原包当时已通过。
 
 ## 本增量范围

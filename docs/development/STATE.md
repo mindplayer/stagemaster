@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**[PREVIS-013](tasks/PREVIS-013-owned-crash-reporter-cleanup.md)实施中，先提交范围／[ADR-180](decisions/PRODUCT-ADR-180-owned-crash-reporter-cleanup.md)。** 基线main `2b5f10b`、主工作区单写者，tracked干净，output/未读未动。现场三个已确认旧StageMasterPreview崩溃报告助手各约100% CPU；UE源码显示另建进程组，原组收尾未覆盖。先有限核实并停止这三个所属对象、保留报告，再补独立验证工具的实例级助手收尾／失败留证，不扩大为全局清理、不关闭诊断或改SDK／签名，不追认媒体或GATT历史原因。只修改相关工具及测试，当前音乐／三维重签授权及H1–H5物理／客户出口仍开放，完整Goal active。
+**[PREVIS-013](tasks/PREVIS-013-owned-crash-reporter-cleanup.md)已完成、自审通过，完整Goal active。** 基线main `2b5f10b`、范围`9288165`，结果为本次`fix(previs): close scoped crash reporters after validation`提交；主工作区单写者，output/未读未动。三个旧StageMasterPreview报告助手各约100% CPU，实际核对准确启动／UID／命令／映像及项目日志后SIGTERM终止，报告目录和原日志保持。独立UE验证工具仅对唯一项目实例新助手有限收尾，其他实例／身份不明拒绝，原失败／取消与证据保持；不按名字广杀、不关闭诊断或改SDK／签名。
+
+最终394工具测试、9JS语法、格式／相关引用JSON／diff通过；四类真实受控独立进程覆盖失败、成功、运行中取消及收尾中取消，报告哨兵保持，1,914源码／锁／旧日志和失败构建记录哈希保持。初验393中1失败，确认ps／lsof间真正消失竞态并先红后绿修正，只接受新系统查询证实不存在；原日志／夹具就绪与辅助格式错误均保留。不启动新UE、声音、桌面或设备，不将Node生命周期夹具当GPU资格。`data/PREVIS-013/verification.json`保存真实证据及边界；PREVIS-004补后继事实，不回写旧failed。
+
+**下一步仍按完整H1–H5核心交付接续。** 本项没有修复UE助手内部忙循环、普通桌面Renderer所有助手生命周期或历史媒体／GATT原因；当前音乐／唯一三维组合重签／目录映射授权、真实灯型／差分／完整资源与8小时、客户发行和独立操作者门槛继续开放，不围绕音量、不称首版完成。
 
 **[UX-051](tasks/UX-051-resource-edit-feedback.md)已完成、自审通过，完整首版Goal active。** 基线main `7a8d1e2`、范围`9641b87`、实现`ce49137`，结果为本次`test(editor): verify resource feedback native history`提交。资源无变更不再借既有撤销或前置草稿虚报成功，复用原同工程宿主generation／队列，模块30行、入口只组装。实际红灯2通过4失败→6通过，默认UI486／应用与夹具严格类型／相关格式／diff通过，依赖锁及Rust不改，output/未读未动。
 
