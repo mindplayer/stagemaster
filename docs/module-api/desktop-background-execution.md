@@ -33,6 +33,8 @@ client.shutdown()                             // 明确结束整个后台
 
 常用偏好为本机 `stagemaster.executionPins.v1`，最多 20 工程、各 16 个语义来源键；按后台 projectId 与原场景／列表身份保存，不按随机 sourceId。尚未载入的固定项保留并可显式清理；写入失败仅影响本机持久化，不影响节目运行。状态错误显示最后已知概览，不伪造全部已停止。
 
+[EXEC-018](../development/tasks/EXEC-018-observation-binding-lifecycle.md)：窗口内观察冻结适配连接与显示代次，切换连接、隐藏重显或卸载后的旧成功／错误不能更新新绑定。每次绑定独立观察，同一端口仍共享单在途串行入口，A→B→A 不复活第一次 A。显式动作等待原读取后再次检查绑定才发送；已发到后台的动作不因此取消、回滚或重发。重新显示只有取得新观察才启用执行／输入权按钮；刷新、重连与明确关闭保留原故障恢复语义。Rust 控制权和时钟不变，此协调不是新的宿主接口。
+
 ## 手动编程与实际持有
 
 [EXEC-007](../development/tasks/EXEC-007-live-manual-programmer.md)／[ADR-151](../development/decisions/PRODUCT-ADR-151-live-manual-programmer.md)：后台固定目录提供灯具、属性与功能定义，客户端验证能力、唯一身份、定义区间与容量。`Action::Patch { changes: Vec<ManualEdit> }` 使用 `Normalized`／`Function`／`Release` 三种明确值；发送前校验目标与完整请求体，超限不接纳序号，也不自动分批。

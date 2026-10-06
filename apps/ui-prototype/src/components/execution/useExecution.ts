@@ -1,74 +1,96 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ExecutionPort,
   ExecutionRequest,
   ExecutionStatus,
 } from "../../execution-types";
+import {
+  ExecutionRequestScope,
+  requestExecution,
+  executionRequestLane,
+  type ExecutionRequestLane,
+} from "../../execution-request-scope";
+
+interface Observation {
+  scope: ExecutionRequestScope;
+  epoch: number;
+  status: ExecutionStatus | null;
+  actionError: string;
+  observationError: string;
+  fresh: boolean;
+  working: boolean;
+}
+const empty = (scope: ExecutionRequestScope): Observation => ({
+  scope,
+  epoch: scope.epoch,
+  status: null,
+  actionError: "",
+  observationError: "",
+  fresh: false,
+  working: false,
+});
+function currentView(
+  value: Observation,
+  scope: ExecutionRequestScope,
+): Observation {
+  if (value.scope !== scope) return empty(scope);
+  if (value.epoch !== scope.epoch)
+    return { ...empty(scope), status: value.status };
+  return value;
+}
 
 export function useExecution(port: ExecutionPort, visible: boolean) {
-  const [status, setStatus] = useState<ExecutionStatus | null>(null);
-  const [actionError, setActionError] = useState("");
-  const [observationError, setObservationError] = useState("");
-  const [working, setWorking] = useState(false);
-  const [fresh, setFresh] = useState(false);
-  const visibleNow = useRef(visible);
-  visibleNow.current = visible;
-  const inflight = useRef<Promise<void> | null>(null);
-  const changing = useRef(false);
+  const lanes = useRef(new WeakMap<ExecutionPort, ExecutionRequestLane>());
+  const scope = useMemo(() => {
+    let lane = lanes.current.get(port);
+    if (!lane) {
+      lane = executionRequestLane();
+      lanes.current.set(port, lane);
+    }
+    return new ExecutionRequestScope(port, lane);
+  }, [port]);
+  scope.display(visible);
+  const selected = useRef(scope);
+  selected.current = scope;
+  const [observation, setObservation] = useState(() => empty(scope));
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      scope.invalidate();
     };
-  }, []);
+  }, [scope]);
   const request = useCallback(
     async (command: ExecutionRequest, background = false) => {
-      const polling = background && command.kind === "snapshot";
-      if (changing.current || (polling && inflight.current)) return;
-      if (!polling) {
-        changing.current = true;
-        setWorking(true);
-        // One explicit action waits for the read already in flight; polling cannot swallow clicks.
-        await inflight.current;
-      }
-      let result: ExecutionStatus | undefined;
-      const operation = (async () => {
-        try {
-          const value = await port(command);
-          result = value;
-          if (mounted.current) {
-            setStatus(value);
-            setFresh(visibleNow.current);
-            setObservationError("");
-            if (!polling) setActionError("");
-          }
-        } catch (e) {
-          if (mounted.current) {
-            const message = e instanceof Error ? e.message : String(e);
-            setFresh(false);
-            if (polling) setObservationError(message);
-            else setActionError(message);
-          }
-        }
-      })();
-      inflight.current = operation;
-      try {
-        await operation;
-      } finally {
-        inflight.current = null;
-        if (!polling) {
-          changing.current = false;
-          if (mounted.current) setWorking(false);
-        }
-      }
-      return result;
+      const update = (change: Partial<Observation>) =>
+        setObservation((value) => ({
+          ...currentView(value, scope),
+          ...change,
+        }));
+      return requestExecution(scope, command, background, {
+        current: () => mounted.current && selected.current === scope,
+        received: (status, polling) =>
+          update({
+            status,
+            fresh: true,
+            observationError: "",
+            ...(!polling ? { actionError: "" } : {}),
+          }),
+        failed: (message, polling) =>
+          update({
+            fresh: false,
+            ...(polling
+              ? { observationError: message }
+              : { actionError: message }),
+          }),
+        working: (value) => update({ working: value }),
+      });
     },
-    [port],
+    [scope],
   );
   useEffect(() => {
     if (!visible) {
-      setFresh(false);
       return;
     }
     void request({ kind: "snapshot" }, true);
@@ -78,11 +100,12 @@ export function useExecution(port: ExecutionPort, visible: boolean) {
     );
     return () => window.clearInterval(timer);
   }, [visible, request]);
+  const view = currentView(observation, scope);
   return {
-    status,
-    error: actionError || observationError,
-    working,
-    fresh: fresh && visible,
+    status: view.status,
+    error: view.actionError || view.observationError,
+    working: view.working || scope.changing,
+    fresh: view.fresh && visible,
     request,
   };
 }

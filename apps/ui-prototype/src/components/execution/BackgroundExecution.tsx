@@ -71,13 +71,15 @@ export function BackgroundExecution({
         <span>
           {status?.phase === "closing"
             ? "正在关闭"
-            : runtime?.controlling
-              ? "当前拥有控制权"
-              : runtime
-                ? "只读观察"
-                : status?.phase === "empty"
-                  ? "尚未载入"
-                  : "等待连接"}
+            : runtime && !fresh
+              ? "等待刷新状态"
+              : runtime?.controlling
+                ? "当前拥有控制权"
+                : runtime
+                  ? "只读观察"
+                  : status?.phase === "empty"
+                    ? "尚未载入"
+                    : "等待连接"}
         </span>
       </header>
       <p className="wb-dim">
@@ -104,6 +106,8 @@ export function BackgroundExecution({
           <button
             className="wb-primary"
             disabled={
+              !visible ||
+              !fresh ||
               working ||
               interacting ||
               runtime.pending ||
@@ -117,7 +121,9 @@ export function BackgroundExecution({
         )}
         {runtime && !runtime.controlling && state?.owner && (
           <button
-            disabled={working || interacting || runtime.pending}
+            disabled={
+              !visible || !fresh || working || interacting || runtime.pending
+            }
             onClick={() =>
               setConfirm({ kind: "takeover", hostId: runtime?.hostId ?? null })
             }
@@ -127,7 +133,9 @@ export function BackgroundExecution({
         )}
         {runtime?.controlling && (
           <button
-            disabled={working || interacting || runtime.pending}
+            disabled={
+              !visible || !fresh || working || interacting || runtime.pending
+            }
             onClick={() => void request({ kind: "release" })}
           >
             归还控制权
