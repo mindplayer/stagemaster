@@ -4,6 +4,8 @@
 
 **当前接续 [RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md)，首版 Goal active。** 基线 main `c62fafd`，干净主工作区单写者、output/ 不读不改；只补恢复目录候选集合随超量路径增长的问题。先真实目录红灯，再有界 Top-K，64 份预算、准确遗漏计数、旧记录／租约／格式不变；不重做打包来源或听音，不宣称已出现 OOM 或完整首版通过。
 
+- 范围先提交 `ec05e65`；实际 512 路径／512 候选，3 通过／1 失败后，同目录64候选、相关8（7新）通过。流式堆／测试分文件，原447→437；全量仍在原监督，正式原生尚未执行，不把检查点当完成。
+
 **[DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `a99150c`、范围／[ADR-177](decisions/PRODUCT-ADR-177-internal-build-source-binding.md) `1a288d7`、实现 `ee203c4`，资格结果为本次 `docs(release): verify source-bound internal candidate` 提交。主工作区单写者、output/ 未读未动；正式内部构建自动绑定来源并随包封存，修复复制后身份未核对和显式后台计划误用主工作区，不改变运行核心。
 
 - 实际两接缝先红后绿：原 A 身份检查后归档实际 B 仍通过；显式计划编译 cwd 实为主目录。新独立归档身份／后台／来源核对和 selected.root 正确；模拟接缝不冒称真实编译。最终工具全套 332（20 新）、13 JS语法／相关格式通过；最大155行，入口151→136，不改Rust／UI／依赖或锁、不冒计全量。

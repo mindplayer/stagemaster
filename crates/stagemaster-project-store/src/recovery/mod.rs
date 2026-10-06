@@ -1,5 +1,8 @@
 //! Leased, atomic recovery snapshots. Source paths are labels, never save destinations.
+mod discovery;
 mod record;
+#[cfg(test)]
+mod scan_tests;
 use record::{Record, digest};
 use serde::Serialize;
 use stagemaster_project::{Document, MAX_BYTES};
@@ -99,11 +102,10 @@ impl RecoveryStore {
     pub fn list(&self, now_ms: u64) -> Result<RecoveryCatalog, String> {
         let _index = self.index()?;
         self.clean_orphans()?;
-        let mut ids = self.ids()?;
-        ids.sort();
-        let omitted = ids.len().saturating_sub(MAX_RECOVERY_RECORDS);
+        let discovered = discovery::scan(&self.root)?;
+        let omitted = discovered.omitted;
         let mut entries = Vec::new();
-        for id in ids.into_iter().take(MAX_RECOVERY_RECORDS) {
+        for id in discovered.ids {
             entries.push(self.entry(&id, now_ms));
         }
         entries.sort_by(|a, b| {
@@ -160,19 +162,7 @@ impl RecoveryStore {
         self.root.join(format!("{id}.lease"))
     }
     fn ids(&self) -> Result<Vec<String>, String> {
-        let mut ids = Vec::new();
-        for entry in fs::read_dir(&self.root).map_err(|_| "无法读取恢复目录")? {
-            let entry = entry.map_err(|_| "无法读取恢复目录项目")?;
-            if let Some(id) = entry
-                .file_name()
-                .to_str()
-                .and_then(|n| n.strip_suffix(".recovery.json"))
-                && valid_id(id).is_ok()
-            {
-                ids.push(id.to_owned());
-            }
-        }
-        Ok(ids)
+        Ok(discovery::scan(&self.root)?.ids)
     }
     fn acquire(&self, id: &str) -> Result<File, String> {
         let lease = open_regular_lock(&self.lease_path(id))?;
