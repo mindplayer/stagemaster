@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**当前接续 [DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md)，首版 Goal active。** 基线 main `a99150c`，主工作区单写者、output/ 不读取；按 [ADR-177](decisions/PRODUCT-ADR-177-internal-build-source-binding.md) 自动绑定内部构建源码快照／Git差异，并独立核对最终归档身份。属于 H5 版本与交付保护，不改变运行核心、不操作旧包或声音／三维／后台／设备。
+
 **[AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `fdb7546`、范围／[ADR-176](decisions/PRODUCT-ADR-176-managed-media-paths.md) 先提交 `141c3c2`、原生发现文案问题补范围 `6c17e55`，结果为本次 `fix(resources): reject unsafe managed media paths` 提交。主工作区单写者、output/ 未读未动；真实修复受管理缓存／随附链接的误接纳、误报完整与意外归档，属于资料安全，不是音量或播放器扩展。
 
 - 实际红灯 2／5→拆祖先留写入计数后 2／6，链接目录均真实写入 1 项，正确链接被误报 valid、悬空 missing；原日志保持。小型 Rust 共用普通路径核对，保留明确选择源链接读取、普通损坏修复；最终 10 新用例／音频全目标 62、UI 476、两套类型／格式通过，最大 229 行，无依赖／锁／时钟／控制权或接口变化。
