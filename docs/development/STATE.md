@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**当前接续 [DESKTOP-014](tasks/DESKTOP-014-current-source-renderer-integration.md)，首版 Goal active。** 基线 main `a60bf83`，主工作区单写者、output/ 不读不改；按 [ADR-178](decisions/PRODUCT-ADR-178-renderer-source-snapshots.md) 将三维组装来源接入新版自动完整快照，旧20摘要保护兼容，不假造封套。实际组合会重签新副本／映射目录，用户明确授权待回复，不自动执行；可独立来源修复／真实构建与只读预资格继续，旧资格不转移。
+
 **[RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `c62fafd`，范围先提交 `ec05e65`，实现 `025b62f`／缓冲修订 `add709f`，资格结果为本次 `docs(recovery): verify bounded directory desktop flow` 提交。主工作区单写者、output/ 未读未动；流式恢复目录只保留64候选，准确遗漏／旧副本／64预算／租约／格式保持，不是音量或新播放器。
 
 - 真实512路径得到512候选，3通过／1失败后，同目录64候选；最终7新／相关40、全工作区1346 Rust＋2文档、3既有ignored，全目标严格Clippy／fmt真实0。首严格101 assigning_clones按原规则复用String后重验，日志不覆盖；模块／测试59／57／147，原447→437，接口与依赖／锁／UI不变。
