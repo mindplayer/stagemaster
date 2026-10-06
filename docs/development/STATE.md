@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**当前接续 [DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md)，首版 Goal active。** 基线 main `a99150c`，主工作区单写者、output/ 不读取；按 [ADR-177](decisions/PRODUCT-ADR-177-internal-build-source-binding.md) 自动绑定内部构建源码快照／Git差异，并独立核对最终归档身份。属于 H5 版本与交付保护，不改变运行核心、不操作旧包或声音／三维／后台／设备。
+**[DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `a99150c`、范围／[ADR-177](decisions/PRODUCT-ADR-177-internal-build-source-binding.md) `1a288d7`、实现 `ee203c4`，资格结果为本次 `docs(release): verify source-bound internal candidate` 提交。主工作区单写者、output/ 未读未动；正式内部构建自动绑定来源并随包封存，修复复制后身份未核对和显式后台计划误用主工作区，不改变运行核心。
+
+- 实际两接缝先红后绿：原 A 身份检查后归档实际 B 仍通过；显式计划编译 cwd 实为主目录。新独立归档身份／后台／来源核对和 selected.root 正确；模拟接缝不冒称真实编译。最终工具全套 332（20 新）、13 JS语法／相关格式通过；最大155行，入口151→136，不改Rust／UI／依赖或锁、不冒计全量。
+- 干净实现提交 `ee203c4` 实际构建／封存 `desktop-release-BDyXQ7` 0：1,138输入、6,041,950字节、dirty=false、指纹 `68a4cc1c…8e970eed`，包内来源原字节、5归档文件／本轮后台／身份一致。正式桌面基础打开无音乐80灯20场景副本、已保存／设备未连接／原文件不变，退出0、所属进程结束；没有预演／音乐／GPU／后台／设备，资格不转移。
+- `data/DESKTOP-013/verification.json` 与sourceEvidence／AX／PNG、`logs/desktop-013-*`。基线一个工具哈希误在抽取后采集，原baseline保持、Git基线补正单列；首次目录校验误传文件导致拒绝也保持。旧包／证据不回填；来源指纹不是完整供应链、不可变构建或客户发行证明，历史未知故障与实物／长期／客户完整出口仍开放，继续主链路。
 
 **[AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `fdb7546`、范围／[ADR-176](decisions/PRODUCT-ADR-176-managed-media-paths.md) 先提交 `141c3c2`、原生发现文案问题补范围 `6c17e55`，结果为本次 `fix(resources): reject unsafe managed media paths` 提交。主工作区单写者、output/ 未读未动；真实修复受管理缓存／随附链接的误接纳、误报完整与意外归档，属于资料安全，不是音量或播放器扩展。
 

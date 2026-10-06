@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { chmodSync, rmSync, symlinkSync } from "node:fs";
+import { chmodSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import {
   captureSourceEvidence,
@@ -8,6 +8,8 @@ import {
 } from "./source-evidence.mjs";
 import { sourceLimits } from "./source-scope.mjs";
 import { sourceFixture } from "./source-evidence-fixture.mjs";
+import { buildInternalRelease } from "./release-build.mjs";
+import { desktopBuildPlan } from "./build-plan.mjs";
 
 test("真实 Git 干净输入有稳定内容指纹，时间不伪装源码版本", async (t) => {
   const f = sourceFixture(t),
@@ -99,4 +101,28 @@ test("只有文档的 Git 基线变化也必须显式重新确认构建", async 
   const next = await captureSourceEvidence(f.root);
   assert.equal(next.fingerprint, before.fingerprint);
   assert.throws(() => sameSourceEvidence(before, next), /Git 基线/);
+});
+test("实际内部入口的来源失败保留 failed 记录，不调用编译或登记成功", async (t) => {
+  const f = sourceFixture(t),
+    instance = "desktop-release-InputFail";
+  f.write(
+    "apps/desktop/tauri.conf.json",
+    JSON.stringify({ app: { windows: [{ title: "fixture" }] }, bundle: {} }),
+  );
+  rmSync(join(f.root, "Cargo.lock"));
+  await assert.rejects(
+    buildInternalRelease(f.root, instance),
+    /必要输入|仅内部Mac/,
+  );
+  if (process.platform === "darwin" && process.arch === "arm64") {
+    const plan = desktopBuildPlan(f.root, "build-internal-release", instance),
+      record = JSON.parse(
+        readFileSync(join(plan.archive, "build-record.json"), "utf8"),
+      );
+    assert.equal(record.status, "failed");
+    assert.equal(record.customerReleaseQualified, false);
+    assert.equal("host" in record, false);
+    assert.equal("bundle" in record, false);
+    assert.match(record.error, /必要输入/);
+  }
 });
