@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**[PREVIS-013](tasks/PREVIS-013-owned-crash-reporter-cleanup.md)实施中，先提交范围／[ADR-180](decisions/PRODUCT-ADR-180-owned-crash-reporter-cleanup.md)。** 基线main `2b5f10b`、主工作区单写者，tracked干净，output/未读未动。现场三个已确认旧StageMasterPreview崩溃报告助手各约100% CPU；UE源码显示另建进程组，原组收尾未覆盖。先有限核实并停止这三个所属对象、保留报告，再补独立验证工具的实例级助手收尾／失败留证，不扩大为全局清理、不关闭诊断或改SDK／签名，不追认媒体或GATT历史原因。只修改相关工具及测试，当前音乐／三维重签授权及H1–H5物理／客户出口仍开放，完整Goal active。
+
 **[UX-051](tasks/UX-051-resource-edit-feedback.md)已完成、自审通过，完整首版Goal active。** 基线main `7a8d1e2`、范围`9641b87`、实现`ce49137`，结果为本次`test(editor): verify resource feedback native history`提交。资源无变更不再借既有撤销或前置草稿虚报成功，复用原同工程宿主generation／队列，模块30行、入口只组装。实际红灯2通过4失败→6通过，默认UI486／应用与夹具严格类型／相关格式／diff通过，依赖锁及Rust不改，output/未读未动。
 
 新内部`desktop-release-0yVoVN`绑定干净`ce49137`／1,146输入／指纹`02b74516…9668b94`，构建0、五归档前后保持。正式80灯20场景验证无变更不加历史／不清重做、实际修改撤销重做、前置草稿不借作资源成功、保存最近重开；最终仅第三场景144项绑定及修订关联改变，其他业务数据保持，退出0、80279结束。真实QuickPresets夹具3分支／3明确请求2成功反馈，拒绝不假成功或重发；5193与标签页已关闭，不操作声音／UE／演出后台／设备。`data/UX-051/verification.json`保存30证据摘要及准确源码／工程比较；历史故障不借后继绿色追认。
