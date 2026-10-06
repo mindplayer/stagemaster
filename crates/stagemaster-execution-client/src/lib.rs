@@ -2,7 +2,10 @@
 #![allow(clippy::missing_errors_doc)]
 mod batch;
 mod control;
+mod source_control;
+mod source_evidence;
 pub use batch::BatchAction;
+pub use source_evidence::*;
 mod discovery;
 mod freshness;
 mod http;
@@ -37,6 +40,7 @@ pub struct Client {
     record: Option<Record>,
     operation_record: Option<Record>,
     media_operation: Option<MediaOperationEvidence>,
+    source_operation: Option<SourceOperationEvidence>,
     pending: bool,
 }
 impl Client {
@@ -54,6 +58,7 @@ impl Client {
             record: None,
             operation_record: None,
             media_operation: None,
+            source_operation: None,
             pending: false,
         };
         client.validate(&client.observation)?;
@@ -125,6 +130,7 @@ impl Client {
             pending: self.pending,
             record: self.operation_record.clone(),
             media_operation: self.media_operation.clone(),
+            source_operation: self.source_operation.clone(),
         }
     }
     fn controlling(&self) -> bool {

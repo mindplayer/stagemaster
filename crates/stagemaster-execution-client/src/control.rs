@@ -1,4 +1,4 @@
-use super::{Action, Client, Record, View};
+use super::{Client, Record, View};
 use reqwest::Method;
 use serde_json::{Value, json};
 
@@ -30,32 +30,6 @@ impl Client {
     pub async fn release(&mut self) -> Result<View, String> {
         self.send(json!({"kind":"release"})).await
     }
-    pub async fn apply(
-        &mut self,
-        host: &str,
-        revision: &str,
-        source: &str,
-        action: Action,
-    ) -> Result<View, String> {
-        if host != self.transport.discovery.host_id
-            || !self.catalog.sources.iter().any(|s| s.id == source)
-        {
-            return Err("操作对应的后台或节目已更换，请重新选择".into());
-        }
-        if self
-            .catalog
-            .sources
-            .iter()
-            .any(|s| s.id == source && matches!(s.selection, crate::Selection::AudioTimeline {}))
-            && !matches!(action, Action::Level { .. })
-        {
-            return Err("音乐请使用播放、暂停、停止或定位操作".into());
-        }
-        if let Action::Patch { changes } = &action {
-            crate::manual_validation::edits(&self.catalog, source, changes)?;
-        }
-        self.send(json!({"kind":"submit","expectedRevision":revision,"action":{"kind":"source","source":source,"action":action}})).await
-    }
     pub(super) async fn send(&mut self, command: Value) -> Result<View, String> {
         self.send_internal(command, true).await
     }
@@ -63,6 +37,14 @@ impl Client {
         &mut self,
         command: Value,
         explicit: bool,
+    ) -> Result<View, String> {
+        self.send_original(command, explicit, false).await
+    }
+    pub(super) async fn send_original(
+        &mut self,
+        command: Value,
+        explicit: bool,
+        source: bool,
     ) -> Result<View, String> {
         if self.pending {
             return Err("上一操作尚未确认，请先查询回执或明确重新连接".into());
@@ -93,7 +75,13 @@ impl Client {
             .media_operation
             .as_mut()
             .filter(|_| explicit && body["command"]["action"]["kind"] == "media");
-        let record = if let Some(evidence) = evidence {
+        let record = if let Some(evidence) = self.source_operation.as_mut().filter(|_| source) {
+            evidence.serial = Some(serial);
+            evidence.attempted = true;
+            self.transport
+                .request_traced(Method::POST, &suffix, Some(body), &mut evidence.submission)
+                .await?
+        } else if let Some(evidence) = evidence {
             evidence.serial = Some(serial);
             evidence.attempted = true;
             self.transport
@@ -115,7 +103,18 @@ impl Client {
             .media_operation
             .as_mut()
             .filter(|e| e.serial.as_ref() == Some(serial));
-        let record = if let Some(evidence) = evidence {
+        let record = if let Some(evidence) = self
+            .source_operation
+            .as_mut()
+            .filter(|e| e.serial.as_ref() == Some(serial))
+        {
+            let trace = evidence
+                .receipt_read
+                .insert(crate::MediaHttpEvidence::default());
+            self.transport
+                .request_traced(Method::GET, &suffix, None, trace)
+                .await?
+        } else if let Some(evidence) = evidence {
             let trace = evidence
                 .receipt_read
                 .insert(crate::MediaHttpEvidence::default());
@@ -144,10 +143,22 @@ impl Client {
                     .unwrap_or(&mut evidence.submission)
                     .problem = Some(crate::ResponseProblem::ReceiptMismatch);
             }
+            if let Some(evidence) = &mut self.source_operation
+                && evidence.serial.as_ref() == self.record.as_ref().map(|r| &r.serial)
+            {
+                evidence
+                    .receipt_read
+                    .as_mut()
+                    .unwrap_or(&mut evidence.submission)
+                    .problem = Some(crate::ResponseProblem::ReceiptMismatch);
+            }
             return Err("后台操作回执不匹配，请重新连接核对".into());
         }
         if let Some(evidence) = &mut self.media_operation {
             evidence.receive(&record);
+        }
+        if let Some(evidence) = &mut self.source_operation {
+            evidence.receive(&record, &self.catalog);
         }
         if record.status == "complete" {
             // Unknown is a completed observation, but still blocks further action in this session.

@@ -129,4 +129,6 @@ pub struct View {
     pub record: Option<Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub media_operation: Option<crate::MediaOperationEvidence>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_operation: Option<crate::SourceOperationEvidence>,
 }

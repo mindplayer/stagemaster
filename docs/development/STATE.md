@@ -2,9 +2,9 @@
 
 ## 当前实施入口 2026-10-06
 
-**EXEC-020当前进行中检查点：范围`341368b`，源码已实现但尚未提交／未完成最终资格。** 原宿主0／3红、首实现1／2暴露普通applied与音乐accepted区别，纠正后专项初绿5；后续布局／pending保护及第三传输用例不能借该5项计为最终通过。UI476＋4、类型／相关格式及真实React八分支零指令、一次明确操作一项已通过；新文件最大207行，6旧来源改／590保持、锁不变。证据`data/EXEC-020/`与`logs/exec-020-*`，临时组件页／5192已收尾，32fMDY后台／桌面仍关闭，output/未读未动。
+**EXEC-020源码阶段已验证、自审通过，正式桌面待验，完整Goal active。** 基线`41206f9`、范围`341368b`，严格异步对象分配补充范围`1d38241`；实现结果为本次`feat(execution): retain bounded original source command evidence`提交。原Client普通节目最后目标／原POST与同serial回执、默认收起只读中文详情；不自动重发、不改格式／租约／时钟／控制权。冻结版全工作区1,355 Rust＋2文档、3既有ignored，两套全目标严格Clippy／fmt通过；UI476＋新增4、类型／格式与真实React八分支零控制、一次明确操作一项通过。`source-verification.json`核对前后指纹`dfde90fe…1eb982b`一致，新文件最大207行，原596输入6改／590保持，另一个既有测试仅Box::pin分配；依赖锁保持，output/未读未动。
 
-首全量101在既有GATT队列Permission(Secure(Expired))，隔离两项通过但原因仍未知，未改安全期限或断言。中间全量监督22263早于最后布局补强，不当当前最终资格；最新冻结版原监督27463正在全量／workspace及internal-acceptance严格Clippy／fmt，`rust-checks-reviewed.json`前后指纹必须保持。先等待实际结果并保留所有失败，再提交限定源码及新来源正式桌面无音乐闭环，不盲目重跑／弱化保护。`source-review-checkpoint.json`不是完成证明；本项／DESKTOP-014组合及完整Goal均未完成，外部门槛不变。
+原宿主0／3红、首实现1／2、首全量GATT Permission(Secure(Expired))及中间／复核严格Clippy large_futures失败均保留；普通applied投影与测试堆分配已修正，GATT隔离通过不证明历史原因。监督22263／27463／80918均已结束，只有最终qualified记录作为当前全量／严格资格。下一步从干净提交构建新来源独立内部桌面，真实无音乐三步、原控制证据跨维护／暂停编辑／零值释放／定时推进／保存最近重开及收尾。旧32fMDY已关闭，未组装／重签、未运行UE／声音／真实设备；旧暂停原因和外部门槛仍开放，本项原生、DESKTOP-014组合及完整Goal均未完成。
 
 **[EXEC-020](tasks/EXEC-020-source-command-evidence.md) 实施中，先提交范围／[ADR-179](decisions/PRODUCT-ADR-179-source-command-evidence.md)。** 基线main `41206f9`、主工作区单写者、tracked干净，output/未读未动。DESKTOP-014独立无音乐新包32fMDY的分组／预设撤销重做／精确0.375秒／保存、准备不自播及第一步人工执行通过，但**一次暂停原回执待确认后仍Running、计时增长，原提交未捕获、根因未知**；不重发、不称整流程通过。补最后明确普通节目控制的有界脱敏目标／原POST与同serial回执详情，复用原Client／传输，不改序号、期限、租约或自动重试。完整Goal active。
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { SourceLevelControls } from "./SourceLevelControls";
 import type { LiveLevels } from "../../execution-level-gesture";
 import { SourceProgress } from "./SourceProgress";
+import { SourceRequestDetails } from "./SourceRequestDetails";
 import { sourceProgress } from "../../execution-source-progress";
 import type {
   ExecutionAction,
@@ -143,6 +144,7 @@ export function SourceControls({
               <button onClick={() => setConfirm(false)}>取消</button>
             </div>
           )}
+          <SourceRequestDetails runtime={runtime} source={source.id} />
         </>
       )}
       <SourceLevelControls

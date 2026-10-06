@@ -12,6 +12,7 @@ import type {
 } from "./execution-media-types";
 import type { ExecutionSourceState } from "./execution-source-progress";
 import type { MediaOperationEvidence } from "./media-operation-evidence";
+import type { SourceOperationEvidence } from "./source-operation-evidence";
 export type ExecutionSelection =
   { kind: "scene" | "sequence"; id: string } | { kind: "audioTimeline" };
 export interface ExecutionSource {
@@ -70,6 +71,7 @@ export interface ExecutionView {
   controlling: boolean;
   pending: boolean;
   mediaOperation?: MediaOperationEvidence;
+  sourceOperation?: SourceOperationEvidence;
   record: null | {
     serial: string;
     status: string;

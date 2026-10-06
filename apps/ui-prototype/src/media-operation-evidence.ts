@@ -57,7 +57,7 @@ const problems = {
 };
 type Row = readonly [string, string];
 
-function httpRows(label: string, value: MediaHttpEvidence): Row[] {
+export function httpRows(label: string, value: MediaHttpEvidence): Row[] {
   const rows: Row[] = [
     [
       `${label}HTTP`,

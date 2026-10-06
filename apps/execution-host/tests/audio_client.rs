@@ -79,7 +79,13 @@ async fn run() {
             .await
             .controlling
     );
-    let stopped = verify_operations(&mut other, &mut reader, &old_generation, &idle).await;
+    let stopped = Box::pin(verify_operations(
+        &mut other,
+        &mut reader,
+        &old_generation,
+        &idle,
+    ))
+    .await;
     assert_eq!(
         h.state().await["owner"]["sessionId"].as_str(),
         stopped.session_id.as_deref()
