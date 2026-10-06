@@ -2,6 +2,10 @@
 
 ## 当前实施入口 2026-10-06
 
+**EXEC-020当前进行中检查点：范围`341368b`，源码已实现但尚未提交／未完成最终资格。** 原宿主0／3红、首实现1／2暴露普通applied与音乐accepted区别，纠正后专项初绿5；后续布局／pending保护及第三传输用例不能借该5项计为最终通过。UI476＋4、类型／相关格式及真实React八分支零指令、一次明确操作一项已通过；新文件最大207行，6旧来源改／590保持、锁不变。证据`data/EXEC-020/`与`logs/exec-020-*`，临时组件页／5192已收尾，32fMDY后台／桌面仍关闭，output/未读未动。
+
+首全量101在既有GATT队列Permission(Secure(Expired))，隔离两项通过但原因仍未知，未改安全期限或断言。中间全量监督22263早于最后布局补强，不当当前最终资格；最新冻结版原监督27463正在全量／workspace及internal-acceptance严格Clippy／fmt，`rust-checks-reviewed.json`前后指纹必须保持。先等待实际结果并保留所有失败，再提交限定源码及新来源正式桌面无音乐闭环，不盲目重跑／弱化保护。`source-review-checkpoint.json`不是完成证明；本项／DESKTOP-014组合及完整Goal均未完成，外部门槛不变。
+
 **[EXEC-020](tasks/EXEC-020-source-command-evidence.md) 实施中，先提交范围／[ADR-179](decisions/PRODUCT-ADR-179-source-command-evidence.md)。** 基线main `41206f9`、主工作区单写者、tracked干净，output/未读未动。DESKTOP-014独立无音乐新包32fMDY的分组／预设撤销重做／精确0.375秒／保存、准备不自播及第一步人工执行通过，但**一次暂停原回执待确认后仍Running、计时增长，原提交未捕获、根因未知**；不重发、不称整流程通过。补最后明确普通节目控制的有界脱敏目标／原POST与同serial回执详情，复用原Client／传输，不改序号、期限、租约或自动重试。完整Goal active。
 
 `data/DESKTOP-014/script-native/phase-audit.json`保留32份证据及辅助错误修正，真实关闭后台／退出0、所属62870／62935和57840端口结束，current／discovery撤下。已有预设重复应用无变更却错误提示可撤销另记录未修复；暂停编辑／零值释放／定时推进／最近重开未验。组合重签授权仍未获得，SkHv4e runtime未建，旧音乐／GPU资格不转移；真实厂家／差分／完整资源／8小时、客户发行／许可及独立三任务继续开放。
