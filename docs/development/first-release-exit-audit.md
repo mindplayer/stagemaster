@@ -6,7 +6,7 @@
 
 再后继 [EXEC-019](tasks/EXEC-019-preview-intent-lifecycle.md) 改离线预演操作的 UI 提交保护；`desktop-release-MF5QLK` 绑定实际输入，另有无音乐人工／定时三步原生证据，同样不转移旧音乐／GPU 或客户资格。
 
-当前main已接续AUDIO-024、RECOVERY-002、DESKTOP-013／014；`desktop-release-32fMDY`无音乐原生只完成分组／预设撤销保存／精确延时与第一步执行，暂停未确认，已明确关闭，不能标为完整剧本通过。[EXEC-020](tasks/EXEC-020-source-command-evidence.md)源码已实施但最终资格及新原生仍进行中。旧音乐／GPU资格只绑定qooqnJ，完整H1–H5与所有未知失败保持开放；上段和表中各次数量必须按对应版本阅读，不代表当前main全部通过。
+当前main已接续AUDIO-024、RECOVERY-002、DESKTOP-013／014；`desktop-release-32fMDY`无音乐原生暂停未确认，不能追认完整剧本通过。后继[EXEC-020](tasks/EXEC-020-source-command-evidence.md)实现`1c02e13`／新内部`desktop-release-FJwnGy`已完成当前限定源码与无音乐三步原生：1,355 Rust＋2文档、UI476＋独立4、两套严格检查／格式／类型；一次准确暂停回执、固定版本编辑隔离、零值持有与明确释放、定时推进、停止／保存最近重开及退出，179只读512槽帧另列。首次未确认意图和历史原因不被后继绿色覆盖。旧音乐／GPU资格只绑定qooqnJ，当前音乐／三维组合及完整H1–H5外部门槛仍开放；表中各次数量按对应版本阅读，不能拼接为完整当前main资格。
 
 本表是逐项出口审计，不是宣布完成或按测试／提交数量换算成熟度。标为“部分”或“未完成”的项目均不能由其软件子集代替。
 
