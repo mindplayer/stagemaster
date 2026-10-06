@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**[UX-051](tasks/UX-051-resource-edit-feedback.md)接续中，基线main `7a8d1e2`，范围先提交。** 只修已留证的重复预设无变更却称可撤销反馈，复用同工程宿主generation，不靠dirty／canUndo猜历史。抽出资源编辑小职责、实际红绿／UI／类型／格式及新正式桌面验证，保护output/，不改核心格式／时钟／控制权、不围绕音量。EXEC-020已交付，不重复其全量和三步流程；完整Goal active。
+
 **[EXEC-020](tasks/EXEC-020-source-command-evidence.md)已完成、自审通过；完整首版Goal保持active。** 基线`41206f9`，范围`341368b`／`1d38241`，实现`1c02e13`；结果为本次`docs(execution): verify original control native workflow`提交。原普通节目控制的有界目标／POST／同序号回执和只读详情已交付，不改变正式播放器、序号、期限、租约或控制权。最终1,355 Rust＋2文档、UI476＋独立4、两套严格Clippy／类型／fmt／相关格式、真实React八分支和正式桌面全部实际执行；完整源码检查与前后冻结指纹保持，锁不变，output/未读未动。
 
 新内部`desktop-release-FJwnGy`绑定干净`1c02e13`／1,145输入／指纹`95dac8b6…56323bec`，构建0、五归档保持。最终无音乐80灯20场景三步：一次暂停原serial4确认applied／Paused、16,450ms冻结；取消／撤销重做／保存另场景不改固定512槽、跨维护原目标保持；33%→零仍持有→明确释放、继续／人工到定时自动末步／停止默认值、关闭／最近重开与收尾通过。`data/EXEC-020/verification.json`核对179只读帧／50证据摘要，两次正式退出0，最终76686／56152监听及发现结束，工程只改第九场景名称和修订关联。
