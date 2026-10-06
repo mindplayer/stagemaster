@@ -11,6 +11,7 @@ async fn refusal(
     code: &str,
     message: &str,
 ) {
+    let action_label = format!("{action:?}");
     let before = settled(client).await;
     let state = &before.observation.snapshot.as_ref().unwrap().state;
     let original = json!({"audio":state.audio,"media":state.media});
@@ -36,7 +37,12 @@ async fn refusal(
     let record = completed.record.as_ref().unwrap();
     assert_eq!(record.serial.parse::<u64>().unwrap(), previous_serial + 1);
     let outcome = record.outcome.as_ref().unwrap();
-    assert_eq!(outcome.code.as_deref(), Some(code));
+    assert_eq!(
+        outcome.code.as_deref(),
+        Some(code),
+        "action={action_label}, generation={generation}, original={original}, evidence={:?}",
+        completed.media_operation
+    );
     assert_eq!(outcome.message.as_deref(), Some(message));
     assert!(outcome.state.is_none());
     let current = &completed.observation.snapshot.as_ref().unwrap().state;

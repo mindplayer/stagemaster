@@ -2,10 +2,12 @@
 
 ## 当前实施入口 2026-10-06
 
-**[DESKTOP-012](tasks/DESKTOP-012-first-release-software-exit.md) 实施中，持续 goal active**：main基线`e366fd7`，主工作区单写者、output/未读未动；先提交当前软件全量与出口审计范围。独立项目内Cargo目标、锁定离线原命令、隔离Node24.21，保持原测试／并发／期限；现有来源一致原生证据不重做，不开启声音／GPU／串口／实灯、不改签名权限。听感余段、具体硬件／测量及Xcode系统临时区条件已询问；仅受影响部分等待，不以软件通过替代完整H1–H5。
+**[DESKTOP-012](tasks/DESKTOP-012-first-release-software-exit.md) 当前软件全量检查点／有限留证完成、自审通过，原失败原因未收敛，持续 goal active**：main基线`e366fd7`、范围先提交`423d018`／诊断先提交`2b85883`，结果为本次`test(release): retain loop refusal evidence and audit software exit`提交；主工作区单写者、output/未读未动。只改一个测试的失败留证，不改生产逻辑／原断言／期限／并发或原包；来源一致已过原生流程不重复。
 
-- 当前UI453／格式232／工具312、UI／契约TS类型真实通过；host构建0。**原Rust全量87093／监督34494已退出101**，audio_loop_target_client期望loopTargetChanged、实为invalid，logs/desktop-012-workspace.log保持，fmt／Clippy尚未运行，不登记全量通过。先追加有限测试留证再定位，不重发／放宽／盲重试；1995原来源仅该测试获准诊断变更，其余1994／原包及旧证据保持。
-- 只读可用签名身份0，USB串口名和Espressif JTAG/serial描述存在但板卡／接线未确认；不开串口／刷机／输出。原系统描述未检出与补充IOKit并存，原plist私有，分享过滤描述不含序列ID。现场听感／硬件条件／Xcode例外仍未获答复，受影响出口保持未完成。
+- 原全量87093／监督34494实际101（循环目标期望loopTargetChanged、实为invalid）保持；加留证后两特性选择专项各1通过，但payload缺失、原因未证实，不能称修复。后继相同工作区命令同新监督28091／PID1302实际0，1324 Rust＋2文档、三既有ignored由父实际调用；fmt、默认与两个release全目标严格Clippy、UI453／格式232／工具312、UI／契约TS类型都真正通过。检查全部完成、无所属本目标二进制，不借后继覆盖原101。
+- data/DESKTOP-012/verification.json与logs/desktop-012-*；64保护、1994不变来源（仅允许测试留证变化）、006的13／007的58／008的105／009的240／010的104／011的9283证据、Game32／信令2275／组装2313和音频缓存保持。相关辅助／严格JSON／文档／diff实际核对，路径猜测／补丁调用语法失败不当产品修复；原App／GPU／系统音频／设备／签名权限不操作。
+- 只读codesigning身份0，Espressif USB JTAG/serial与/dev/cu.usbmodem2101存在，但不确认板卡／接线、不是输出许可；描述可为同一设备多个节点。原系统描述空与IOKit补充并存，USB日志私有、过滤无序列ID，不开串口／读私钥／签名／刷机／输出。听感／硬件测量／Xcode例外仍待用户答复。
+- 下一步按[首版逐项出口审计](first-release-exit-audit.md)继续。软件当前通过不等于H1–H5完成；原拒绝／预留与此次失败原因仍未知，听感余段、完整厂家／光学、差分／实灯／最坏组合／完整栈／8小时、客户Shipping／签名权限／最低系统／安装回退／完整许可及外部三任务仍开放。不扩H6–H8、不重跑相同成功代替实物／客户出口，完整首版未达标。
 
 **[DESKTOP-011](tasks/DESKTOP-011-candidate-notice-handoff.md) 有限材料交接增量完成、自审通过，持续 goal active**：main基线`2cbcb74`、范围／[ADR-175](decisions/PRODUCT-ADR-175-candidate-notice-handoff.md)先提交`d49b782`，结果为本次`feat(release): bind internal candidate and notice handoff materials`提交；主工作区单写者、output/未读未动。复用产品`b0f3a7b`／内部候选`desktop-release-qooqnJ`，不改原包／权限签名，不启动副本，不冒称客户发行／最终附包／完整许可。
 
