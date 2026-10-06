@@ -2,6 +2,8 @@
 
 ## 当前实施入口 2026-10-06
 
+**当前接续 [AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md)，首版 Goal active。** 基线 main `fdb7546`，主工作区单写者、output/ 不读取；先实际复现受管理缓存／随附链接路径的错误接纳，再按 [ADR-176](decisions/PRODUCT-ADR-176-managed-media-paths.md) 加普通路径保护。这是工程与素材数据安全，不是音量或播放器扩展；不操作既有缓存、声音／三维／后台／真实设备。
+
 **[EXEC-019](tasks/EXEC-019-preview-intent-lifecycle.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `7866520`、范围先提交 `df7400f`，结果为本次 `fix(preview): cancel stale unsent workspace intents` 提交。主工作区单写者、output/ 未读未动；实际修复离线预演等待期间切目标／隐藏后仍发送旧载入／开始的错误，不重做 EXEC-018，不等待音量答复。
 
 - 真实预演组件先红后绿：旧载入／隐藏开始、列表与场景甲乙甲、旧读取错误保护，合法当前载入／场景执行／停止继续可用。13 新操作／最终 UI 全套 476 无跳过、两套类型与相关格式真正通过；独立协调＋hook／测试／夹具最大 244 行，Rust 权威／格式／时钟／控制权、依赖和锁保持，已发动作不假称取消、不自动重发。
