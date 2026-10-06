@@ -5,7 +5,11 @@ import { fileURLToPath } from "node:url";
 import { desktopBuildPlan, hostEnvironment } from "./build-plan.mjs";
 import { prepareWorkspaceFolders } from "./workspace-folders.mjs";
 
-export function prepareHost(plan = undefined, environment = process.env) {
+export function prepareHost(
+  plan = undefined,
+  environment = process.env,
+  run = spawnSync,
+) {
   const root = fileURLToPath(new URL("../../", import.meta.url));
   const selected = plan ?? desktopBuildPlan(root, "build");
   const env = hostEnvironment(selected, environment);
@@ -14,12 +18,12 @@ export function prepareHost(plan = undefined, environment = process.env) {
     env.TMPDIR,
     selected.sidecarDirectory,
   ]);
-  const info = spawnSync("rustc", ["-vV"], { encoding: "utf8", env });
+  const info = run("rustc", ["-vV"], { encoding: "utf8", env });
   if (info.status !== 0) throw new Error("无法确定 Rust 目标平台");
   const triple = info.stdout.match(/^host: (\S+)$/m)?.[1];
   if (!triple) throw new Error("缺少 Rust 目标平台");
-  const build = spawnSync("cargo", selected.hostArgs, {
-    cwd: root,
+  const build = run("cargo", selected.hostArgs, {
+    cwd: selected.root,
     env,
     stdio: "inherit",
   });
@@ -46,6 +50,7 @@ export function prepareHost(plan = undefined, environment = process.env) {
     args: selected.hostArgs,
     status: build.status,
     triple,
+    rustc: info.stdout.trim(),
   };
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) prepareHost();

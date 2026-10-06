@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import {
-  cpSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -10,14 +9,17 @@ import {
 import { join } from "node:path";
 import { desktopBuildPlan, internalEnvironment } from "./build-plan.mjs";
 import { prepareHost } from "./prepare-host.mjs";
+import { archiveInternalBundle } from "./release-archive.mjs";
 import {
-  plainAncestors,
-  plistValue,
-} from "../previs/desktop-assembly-files.mjs";
+  captureSourceEvidence,
+  sameSourceEvidence,
+} from "./source-evidence.mjs";
 import {
-  fileHash,
-  fileInventory,
-} from "../previs/signalling-package-files.mjs";
+  internalSourceConfig,
+  writeSourceResource,
+} from "./source-resource.mjs";
+import { plainAncestors } from "../previs/desktop-assembly-files.mjs";
+import { fileHash } from "../previs/signalling-package-files.mjs";
 import { runCommand } from "../previs/package-renderer.mjs";
 
 export function prepareInternalFolders(plan) {
@@ -77,15 +79,10 @@ export async function buildInternalRelease(root, instance) {
     const base = JSON.parse(
       readFileSync(join(root, "apps/desktop/tauri.conf.json"), "utf8"),
     );
-    const config = {
-      ...plan.config,
-      app: {
-        windows: base.app.windows.map((window) => ({
-          ...window,
-          title: `${window.title} · 内部发布验收`,
-        })),
-      },
-    };
+    record.sourceEvidence = await captureSourceEvidence(plan.root);
+    const source = writeSourceResource(plan, record.sourceEvidence);
+    const config = internalSourceConfig(plan, base, source);
+    save();
     writeFileSync(plan.configFile, JSON.stringify(config, null, 2) + "\n", {
       flag: "wx",
     });
@@ -111,33 +108,21 @@ export async function buildInternalRelease(root, instance) {
       "release/bundle/macos",
       `${config.productName}.app`,
     );
-    const info = join(original, "Contents/Info.plist");
-    if (plistValue(root, info, "CFBundleIdentifier") !== plan.identifier)
-      throw new Error("内部发布身份与实例不匹配");
-    const bundle = join(plan.archive, `${config.productName}.app`);
-    cpSync(original, bundle, {
-      recursive: true,
-      verbatimSymlinks: true,
-      errorOnExist: true,
-      force: false,
-    });
-    record.bundle = bundle;
-    record.originalFiles = await fileInventory(original);
-    record.files = await fileInventory(bundle);
-    assert.deepEqual(
-      record.files,
-      record.originalFiles,
-      "内部优化包复制不等价",
+    sameSourceEvidence(
+      record.sourceEvidence,
+      await captureSourceEvidence(plan.root),
     );
-    if (
-      (await fileHash(
-        join(bundle, "Contents/MacOS/stagemaster-execution-host"),
-      )) !== record.host.sha256
-    )
-      throw new Error("内部优化包未使用本轮release后台");
+    await archiveInternalBundle(record, original, undefined, source.bytes);
+    sameSourceEvidence(
+      record.sourceEvidence,
+      await captureSourceEvidence(plan.root),
+    );
     record.status = "isolated-release-built";
     console.log(
-      `内部优化桌面已构建：${bundle}（尚未原生验收，非客户签名／Shipping资格）`,
+      `来源指纹：${record.sourceEvidence.fingerprint}；Git基线：${record.sourceEvidence.git.head}；${record.sourceEvidence.git.dirty ? "含未提交源码，不是纯提交版本" : "输入与该提交一致"}`,
+    );
+    console.log(
+      `内部优化桌面已构建：${record.bundle}（尚未原生验收，非客户签名／Shipping资格）`,
     );
   } catch (error) {
     record.status = "failed";
