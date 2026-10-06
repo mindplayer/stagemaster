@@ -4,6 +4,9 @@
 
 **[DESKTOP-012](tasks/DESKTOP-012-first-release-software-exit.md) 实施中，持续 goal active**：main基线`e366fd7`，主工作区单写者、output/未读未动；先提交当前软件全量与出口审计范围。独立项目内Cargo目标、锁定离线原命令、隔离Node24.21，保持原测试／并发／期限；现有来源一致原生证据不重做，不开启声音／GPU／串口／实灯、不改签名权限。听感余段、具体硬件／测量及Xcode系统临时区条件已询问；仅受影响部分等待，不以软件通过替代完整H1–H5。
 
+- 当前UI453／格式232／工具312、UI／契约TS类型真实通过；host构建0。**原Rust全量87093／监督34494已退出101**，audio_loop_target_client期望loopTargetChanged、实为invalid，logs/desktop-012-workspace.log保持，fmt／Clippy尚未运行，不登记全量通过。先追加有限测试留证再定位，不重发／放宽／盲重试；1995原来源仅该测试获准诊断变更，其余1994／原包及旧证据保持。
+- 只读可用签名身份0，USB串口名和Espressif JTAG/serial描述存在但板卡／接线未确认；不开串口／刷机／输出。原系统描述未检出与补充IOKit并存，原plist私有，分享过滤描述不含序列ID。现场听感／硬件条件／Xcode例外仍未获答复，受影响出口保持未完成。
+
 **[DESKTOP-011](tasks/DESKTOP-011-candidate-notice-handoff.md) 有限材料交接增量完成、自审通过，持续 goal active**：main基线`2cbcb74`、范围／[ADR-175](decisions/PRODUCT-ADR-175-candidate-notice-handoff.md)先提交`d49b782`，结果为本次`feat(release): bind internal candidate and notice handoff materials`提交；主工作区单写者、output/未读未动。复用产品`b0f3a7b`／内部候选`desktop-release-qooqnJ`，不改原包／权限签名，不启动副本，不冒称客户发行／最终附包／完整许可。
 
 - 7新工具／夹具／测试文件最大274行；原来源／组装与六依赖身份、有界读写／目录／链接、独占回执与失败保护。最终312工具全通过（25新增／无跳过）、隔离官方Node24.21，原全局／产品24.17保持；初输入3通过／9失败→12通过、回执导入缺失14／8及真实缺项name/path拒绝／21／2红灯保留，按原schema修正后通过；元数据相似文字11／1红灯后仅排除Executable路径、不隐藏签名字段，不削弱断言。
