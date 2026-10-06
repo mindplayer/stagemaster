@@ -6,6 +6,8 @@
 
 2026-10-04 接续：框架审查已按原范围完成，现按[开发交接路线](docs/development/sol-handoff/roadmap.md)完善单机编排和一路 DMX 交付闭环，再扩展专业能力、云端及其他终端；不重复技术选型或已完成的框架评估。
 
+2026-10-07：[商业进度评估](docs/development/commercial-readiness-2026-10-07.md)与[首发完善计划](docs/development/first-commercial-release-plan.md)更新当前排序。推荐先完成小型固定场地的 Mac 编排＋一路 ESP32 自主灯光套装，优先真实输出、本地操作、稳定性和客户发行；音乐／专业 UE 等原目标保留独立出口，尚不能称整个声光电平台已可商用。
+
 本大轮按软件开发的基本方法小步推进：限定问题、最小实现、相关验证、集成与记录；保持现有能力可用，优先修复明显缺陷，具体细节以后迭代，不一次铺开全部产品能力。
 
 设备按同一产品家族管理、按能力组合：ESP32／ARM 播放盒、纯输出节点、推子扩展面和一体化控台共享适用模块与契约。当前桌面版是长期软件基座的一种产品组装；主机实时计算与设备自主播放分别建模，不因同属设备而要求安装完整桌面系统。见 [ADR-100](docs/development/decisions/PRODUCT-ADR-100-composable-device-family.md)。
@@ -36,7 +38,7 @@
 - [架构审查](docs/architecture-evolution-review.md)、[风险审查](docs/architecture-change-risk-review.md)、[模块伪 API](docs/module-api/README.md)：长期边界与尚待实现的调用方案；具体已实现能力以各模块契约为准。
 - [灯具定义设计](docs/ui-design/fixture-definition-design.md)、[控台研究资料库](docs/console-research/README.md)、[专业预演规划](docs/ue5-professional-previsualization.md)：保留成熟机制和适用边界，不重复技术选型。
 
-开发前先读 [AGENTS.md](AGENTS.md)、[STATE](docs/development/STATE.md)和当前工单。当前会话直接规划、实现、验证、集成，不委派 Qwen／Sol；源码、文档、产物与日志全部放在本项目目录。开发方法和验证入口见 [开发说明](docs/development/README.md)。
+开发前先读 [AGENTS.md](AGENTS.md)、[STATE](docs/development/STATE.md)和当前工单。用户指定的 6.1 Sol 会话负责日常实现、验证、集成及状态维护，Astra 按需复审；不恢复 Qwen 或自动创建代理会话。源码、文档、产物与日志全部放在本项目目录。开发方法和验证入口见 [开发说明](docs/development/README.md)。
 
 ## 用户已经明确的方向
 
