@@ -2,6 +2,10 @@
 
 ## 当前实施入口 2026-10-06
 
+**[EXEC-020](tasks/EXEC-020-source-command-evidence.md) 实施中，先提交范围／[ADR-179](decisions/PRODUCT-ADR-179-source-command-evidence.md)。** 基线main `41206f9`、主工作区单写者、tracked干净，output/未读未动。DESKTOP-014独立无音乐新包32fMDY的分组／预设撤销重做／精确0.375秒／保存、准备不自播及第一步人工执行通过，但**一次暂停原回执待确认后仍Running、计时增长，原提交未捕获、根因未知**；不重发、不称整流程通过。补最后明确普通节目控制的有界脱敏目标／原POST与同serial回执详情，复用原Client／传输，不改序号、期限、租约或自动重试。完整Goal active。
+
+`data/DESKTOP-014/script-native/phase-audit.json`保留32份证据及辅助错误修正，真实关闭后台／退出0、所属62870／62935和57840端口结束，current／discovery撤下。已有预设重复应用无变更却错误提示可撤销另记录未修复；暂停编辑／零值释放／定时推进／最近重开未验。组合重签授权仍未获得，SkHv4e runtime未建，旧音乐／GPU资格不转移；真实厂家／差分／完整资源／8小时、客户发行／许可及独立三任务继续开放。
+
 **[DESKTOP-014](tasks/DESKTOP-014-current-source-renderer-integration.md) 来源接线阶段完成、自审通过，组合原生出口未完成；首版 Goal active。** 基线 main `a60bf83`，范围／[ADR-178](decisions/PRODUCT-ADR-178-renderer-source-snapshots.md) `de678b5`、实现`3eaa2fa`，阶段结果为本次`docs(release): verify current snapshot assembly readiness`提交。主工作区单写者、output/未读未动；新版原build-record可直接验证完整快照，旧20封套兼容，快照存在不得降级子集，不关闭全工单。
 
 当前从 `673d421` 接续独立无音乐主流程：另一全新内部实例，待组装 `SkHv4e` 不运行／不建runtime，重签授权仍未获得。按当前工单阶段范围做真实配适／分组／预设／场景、保存重开与人工／定时／暂停编辑／接管归还软件闭环；不操作UE、声音或真实设备，不重复旧资格作为当前通过。
