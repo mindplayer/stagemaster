@@ -2,6 +2,10 @@
 
 ## 当前实施入口 2026-10-06
 
+**e00c6f1交付后首轮出口条件复核：Goal仍active，尚未完成，不是进程等待。** 现场main `e00c6f1`、仅一个主工作区，tracked干净、用户output/未读未动。已发布未结项入口为AUDIO-020、DESKTOP-014、FIXTURE-006、PREVIS-004／012，当前剩余条件分别为听感／当前组合、具体灯型与实物／客户资格；未发现依赖满足的ready产品工单。原验证监督和所属cargo均实际结束，当前有效客户签名身份0；这不代表ad-hoc技术不可用，只是新副本重签／实例目录映射仍缺人类明确授权，不自行选择证书或改权限。
+
+下一实际出口优先DESKTOP-014当前来源音乐＋唯一三维：需要允许仅一份全新内部桌面／Game副本ad-hoc重签，目录只限该项目tmp实例的用户、缓存、临时、日志、报告五处；不改原包、Node、证书或系统权限，不构建新UE、不部署／刷机／输出实灯。真实11／18CH未知厂家范围、确切板卡接线／测量工具与完整资源／8小时、客户Shipping系统临时例外／安装许可及独立操作者仍欠条件。桌面完整报告助手生命周期也仍开放，不能用已通过工具与目录测试宣称完成。本轮仅核对条件、无新产品实施；`data/first-release/e00c6f1-external-condition-audit-01.json`保留首次no-progress审计，未达到三轮blocked阈值。获明确条件后直接接续相应出口，不重复绿灯或扩H6–H8。
+
 **[PREVIS-014](tasks/PREVIS-014-renderer-runtime-environment.md)完成、自审通过，完整Goal active。** 基线main `0eb833e`、范围／[ADR-181](decisions/PRODUCT-ADR-181-renderer-runtime-environment.md)`8d4bd1a`，结果为本次`fix(previs): isolate renderer runtime foundation and loader paths`提交。共同运行配置覆盖owner的Foundation用户目录，清继承与显式全部DYLD字节前缀；HOME／PATH／业务环境、SDK角色、原DDC／UE参数和执行权威不变。两个源码文件237／224行，2,091受保护源码／工具／锁保持，output/未读未动，无UI／UE／依赖变更。
 
 **最终冻结版1,362 Rust＋2文档、专项12、两套全目标严格Clippy（默认工作区／内部release桌面）及fmt全部实际通过。** 真实系统Foundation分别使用editor与component实际目录工厂：home／ApplicationSupport／Caches及原三UE参数逐项核对，旧资料哨兵保持，无全局偏好修改。原1通过／4红、首集成11／1、初全量0但Clippy两处测试风格101均保留，修正未关闭规则；原监督38152终止1，最终43707终止0，不误认旧进程仍活跃。macOS加载等待的`_dyld_start`采样和辅助失败保持，原等待进程自行结束、原因未证实，不改权限／超时或追认历史媒体／GATT根因。
