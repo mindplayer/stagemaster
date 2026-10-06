@@ -27,7 +27,7 @@ impl Candidates {
         } else if let Some(mut largest) = self.largest.peek_mut()
             && id < largest.as_str()
         {
-            *largest = id.to_owned();
+            id.clone_into(&mut largest);
         }
         Ok(())
     }
