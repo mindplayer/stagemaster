@@ -9,3 +9,5 @@
 方法复用原component本地Foundation行为和原Loader去污染；以实际Command红绿和既有系统Foundation子进程验证边界，不引入依赖、代理／通用环境平台或全局偏好改写。App Sandbox与签名仍由既有组装方案限定，设置用户目录不代表新增权限；NSTemporaryDirectory等系统管理例外继续单列，不能声称第三方零系统临时写入。
 
 本项只收敛文件环境归属，不自动终止桌面崩溃报告进程、不证明UE内部问题修复、GPU／客户发行／真实输出或当前完整组合通过。实际权限与重签授权尚未获得的出口仍暂停，其他普通软件实施自主继续。
+
+实际验证：首确定性4红后修正，最终两个真实系统Foundation子进程分别沿editor与component实际目录工厂，home／ApplicationSupport／Caches与三UE参数均逐项保持owner归属；1,362 Rust＋2文档、专项12和默认／内部release严格Clippy通过。原环境计数与两处新测试风格失败已保留并修正，未关闭规则或迁就路径保护。OS加载阶段等待自行结束的观测不证明原因，也不扩大为UE／GPU／签名权限或客户发行资格。

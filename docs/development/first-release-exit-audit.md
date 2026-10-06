@@ -14,6 +14,8 @@
 
 再后继[PREVIS-013](tasks/PREVIS-013-owned-crash-reporter-cleanup.md)仅修开发验证的助手收尾：三个已证明所属旧报告助手各约100% CPU已正常终止、报告保留；独立UE验证工具有限实例级收尾，394工具与四类实际受控独立进程通过。ps／lsof间结束竞态原失败保留并修正；Node夹具不是UE／GPU资格，普通桌面所有助手生命周期及客户发行仍未因此通过，不改上表产品／音乐来源归属。
 
+后继[PREVIS-014](tasks/PREVIS-014-renderer-runtime-environment.md)统一Renderer进程本地Foundation用户与继承／显式加载去污染；最终1,362 Rust＋2文档、专项12、默认／内部release严格Clippy与两种实际Foundation目录工厂解析通过。只证明环境归属，未运行新UE／GPU／桌面组合或改签名权限，不转移旧音乐／GPU资格；桌面完整助手生命周期及H1–H5外部门槛仍开放。
+
 | 必过要求 | 可用的实际证据与范围 | 未完成／不允许扩大解释 |
 | --- | --- | --- |
 | 工程安全、打开／撤销／保存重开／恢复 | [DESKTOP-007](tasks/DESKTOP-007-native-resource-recovery.md)音乐缺失定位、错误内容拒绝、补齐与最近重开；[DESKTOP-008](tasks/DESKTOP-008-script-recovery-acceptance.md)无音乐编排、一次受控异常退出后有效副本恢复 | 没有客户干净安装／升级回退、实物运行掉电容灾或所有崩溃类型资格；未应用草稿不在恢复点内 |

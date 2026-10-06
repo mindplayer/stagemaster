@@ -56,9 +56,12 @@ fn configure_paths(
     user: &Path,
     cache: &Path,
 ) {
+    clear_loader_overrides(command);
     command
         .current_dir(root)
         .env("TMPDIR", temporary)
+        // Foundation paths are separate from UE's UserDir in both launch roles.
+        .env("CFFIXED_USER_HOME", user.join("platform-user"))
         // Apple/Unix UE translates '-' to '_' before getenv; the old keys were ignored.
         .env("UE_LocalDataCachePath", cache)
         .arg(format!("-LocalDataCachePath={}", cache.display()))
@@ -78,13 +81,20 @@ pub(super) fn configure_component_runtime(
     paths: &super::renderer_paths::RuntimePaths,
 ) -> Result<(), String> {
     paths.prepare()?;
-    for (key, _) in std::env::vars_os() {
-        if key.to_str().is_some_and(|key| key.starts_with("DYLD_")) {
-            command.env_remove(key);
-        }
-    }
+    clear_loader_overrides(command);
     configure_component_user(command, &paths.user);
     Ok(())
+}
+
+fn clear_loader_overrides(command: &mut Command) {
+    let keys: Vec<_> = std::env::vars_os()
+        .map(|(key, _)| key)
+        .chain(command.get_envs().map(|(key, _)| key.to_owned()))
+        .filter(|key| key.as_encoded_bytes().starts_with(b"DYLD_"))
+        .collect();
+    for key in keys {
+        command.env_remove(key);
+    }
 }
 
 fn configure_component_user(command: &mut Command, user: &Path) {
@@ -95,6 +105,10 @@ fn configure_component_user(command: &mut Command, user: &Path) {
         .env_remove("DYLD_INSERT_LIBRARIES")
         .env_remove("UE_SKIP_UBT_SDK_SETUP");
 }
+
+#[cfg(test)]
+#[path = "renderer_runtime_environment_tests.rs"]
+mod environment_tests;
 
 #[cfg(test)]
 mod tests {
@@ -137,14 +151,22 @@ mod tests {
             &root.join("data/previs-derived-cache"),
         );
         assert_eq!(command.get_current_dir(), Some(root));
-        let environments: Vec<_> = command.get_envs().collect();
-        assert_eq!(environments.len(), 2);
+        let environments: Vec<_> = command
+            .get_envs()
+            .filter(|(_, value)| value.is_some())
+            .collect();
+        assert_eq!(environments.len(), 3);
         for (key, value) in environments {
             assert!(matches!(
                 key.to_str(),
-                Some("TMPDIR" | "UE_LocalDataCachePath")
+                Some("TMPDIR" | "UE_LocalDataCachePath" | "CFFIXED_USER_HOME")
             ));
             assert!(Path::new(value.unwrap()).starts_with(root));
+        }
+        for (key, value) in command.get_envs() {
+            if key.as_encoded_bytes().starts_with(b"DYLD_") {
+                assert!(value.is_none(), "loader overrides must be removed");
+            }
         }
         let arguments: Vec<_> = command.get_args().collect();
         assert_eq!(arguments.len(), 3);

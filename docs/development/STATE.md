@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**[PREVIS-014](tasks/PREVIS-014-renderer-runtime-environment.md)实施中，先提交范围／[ADR-181](decisions/PRODUCT-ADR-181-renderer-runtime-environment.md)。** 基线main `0eb833e`、主工作区单写者、tracked干净，output/未读未动。正式Renderer环境核对发现editor缺共同Foundation用户覆盖、component未清所有显式DYLD项；先统一已验证owner目录／继承与显式加载去污染，保留SDK角色、HOME、沙盒／签名和执行权威。以确定性红绿、实际Foundation子进程及相关Rust检查验证，不启动新UE或借该项关闭桌面所有助手生命周期；组合授权和完整H1–H5外部门槛保持，Goal active。
+**[PREVIS-014](tasks/PREVIS-014-renderer-runtime-environment.md)完成、自审通过，完整Goal active。** 基线main `0eb833e`、范围／[ADR-181](decisions/PRODUCT-ADR-181-renderer-runtime-environment.md)`8d4bd1a`，结果为本次`fix(previs): isolate renderer runtime foundation and loader paths`提交。共同运行配置覆盖owner的Foundation用户目录，清继承与显式全部DYLD字节前缀；HOME／PATH／业务环境、SDK角色、原DDC／UE参数和执行权威不变。两个源码文件237／224行，2,091受保护源码／工具／锁保持，output/未读未动，无UI／UE／依赖变更。
+
+**最终冻结版1,362 Rust＋2文档、专项12、两套全目标严格Clippy（默认工作区／内部release桌面）及fmt全部实际通过。** 真实系统Foundation分别使用editor与component实际目录工厂：home／ApplicationSupport／Caches及原三UE参数逐项核对，旧资料哨兵保持，无全局偏好修改。原1通过／4红、首集成11／1、初全量0但Clippy两处测试风格101均保留，修正未关闭规则；原监督38152终止1，最终43707终止0，不误认旧进程仍活跃。macOS加载等待的`_dyld_start`采样和辅助失败保持，原等待进程自行结束、原因未证实，不改权限／超时或追认历史媒体／GATT根因。
+
+`data/PREVIS-014/verification.json`保存最终源码／资格／两角色原生目录与证据摘要，checks.json／source-checkpoint.json是未改写的历史阶段，最终以checks-qualified.json和交付版本为准。本项不启动新UE／Game／声音／设备，不重签或扩大权限，也不自动杀正式桌面助手。**下一步继续H1–H5主链路：当前音乐／唯一三维组装的重签／目录映射授权、桌面完整崩溃收尾、真实灯型／差分／完整资源与8小时、客户发行及独立操作者出口仍开放；不以本项关闭完整首版或围绕音量。**
 
 **[PREVIS-013](tasks/PREVIS-013-owned-crash-reporter-cleanup.md)已完成、自审通过，完整Goal active。** 基线main `2b5f10b`、范围`9288165`，结果为本次`fix(previs): close scoped crash reporters after validation`提交；主工作区单写者，output/未读未动。三个旧StageMasterPreview报告助手各约100% CPU，实际核对准确启动／UID／命令／映像及项目日志后SIGTERM终止，报告目录和原日志保持。独立UE验证工具仅对唯一项目实例新助手有限收尾，其他实例／身份不明拒绝，原失败／取消与证据保持；不按名字广杀、不关闭诊断或改SDK／签名。
 
