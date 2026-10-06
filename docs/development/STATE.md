@@ -2,9 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**当前接续 [RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md)，首版 Goal active。** 基线 main `c62fafd`，干净主工作区单写者、output/ 不读不改；只补恢复目录候选集合随超量路径增长的问题。先真实目录红灯，再有界 Top-K，64 份预算、准确遗漏计数、旧记录／租约／格式不变；不重做打包来源或听音，不宣称已出现 OOM 或完整首版通过。
+**[RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `c62fafd`，范围先提交 `ec05e65`，实现 `025b62f`／缓冲修订 `add709f`，资格结果为本次 `docs(recovery): verify bounded directory desktop flow` 提交。主工作区单写者、output/ 未读未动；流式恢复目录只保留64候选，准确遗漏／旧副本／64预算／租约／格式保持，不是音量或新播放器。
 
-- 范围先提交 `ec05e65`；实际 512 路径／512 候选，3 通过／1 失败后，同目录64候选、相关8（7新）通过。流式堆／测试分文件，原447→437；全量仍在原监督，正式原生尚未执行，不把检查点当完成。
+- 真实512路径得到512候选，3通过／1失败后，同目录64候选；最终7新／相关40、全工作区1346 Rust＋2文档、3既有ignored，全目标严格Clippy／fmt真实0。首严格101 assigning_clones按原规则复用String后重验，日志不覆盖；模块／测试59／57／147，原447→437，接口与依赖／锁／UI不变。
+- 新内部`desktop-release-6LFFc0`干净源码`add709f`、1139输入／6043228字节／5文件，自动来源封存与身份／后台一致，构建0。正式130份目录显示64／另有66、2可恢复／62损坏拒绝、检索与取消丢弃／清空搜索通过；正常打开无音乐80灯20场景、已保存／设备未连接、退出0，无所属进程，未启用执行／声音／UE三维／设备。
+- `data/RECOVERY-002/verification.json`及AX／PNG／132文件保护，当前与历史工程保持；2128既有来源仅一个限定文件变化，其余2127不变。文字输入／旧文件目录／不可见点击操作失败留原证据并核对后完成，不当产品修复。候选内存有界不等于完整目录期限、整个App内存或实际OOM修复；历史未知故障及实物／长期／客户完整出口仍开放，继续核心主链路。
 
 **[DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `a99150c`、范围／[ADR-177](decisions/PRODUCT-ADR-177-internal-build-source-binding.md) `1a288d7`、实现 `ee203c4`，资格结果为本次 `docs(release): verify source-bound internal candidate` 提交。主工作区单写者、output/ 未读未动；正式内部构建自动绑定来源并随包封存，修复复制后身份未核对和显式后台计划误用主工作区，不改变运行核心。
 

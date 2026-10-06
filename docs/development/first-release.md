@@ -26,6 +26,7 @@
 1. [EXEC-017](tasks/EXEC-017-source-package-script-consistency.md) 完整三步源工程／安装后运行对照、[EXEC-018](tasks/EXEC-018-observation-binding-lifecycle.md) 后台观察归属、[EXEC-019](tasks/EXEC-019-preview-intent-lifecycle.md) 离线预演未发送意图保护已完成；后两项有真实组件红绿与各自独立 release 桌面无音乐流程证据，不转移旧音乐／GPU 资格。继续优先编排数据、执行稳定性与主链路，跳过已交付项。
 2. 核对已完成项后继续依赖满足的 H1–H5 核心软件缺口；每项内聚实现与实际验证，不因既有绿色检查宣称没有可改善的核心路径，也不无限扩展局部 UI。
    [AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md) 已补受管理缓存／随附路径保护、错误指导和真实原生拒绝／安全位置另存；不自动拆链接、不混同资料完整与声音输出，也不转移旧包资格。
+   [RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md) 已补超量恢复目录的64候选有界集合、准确遗漏和原生选择／取消保护；不删旧副本、不改变预算或恢复格式，不把候选上限当作全部内存／崩溃资格。
 3. DESKTOP-006／009／011 材料及 DESKTOP-007／008／010 原生流程已交付的部分沿用；不重复收集或把文档数量当产品进展。保护来源、output/ 和历史失败，不重放已收尾的测试音频。
    [DESKTOP-013](tasks/DESKTOP-013-source-bound-internal-build.md) 已将源码／Git差异／输入指纹自动随新内部包封存，归档后再核对身份／后台／来源；新包仅有限基础打开资格，不移植旧包资格或当作客户发行完成。
 4. 有条件时分别接续听音、H3／H4 实物与 H5 客户环境验收；缺条件只暂停相应出口，全部门槛真实满足后才称完整第一版受控试用可交付。
