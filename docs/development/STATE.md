@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**当前接续 [DESKTOP-014](tasks/DESKTOP-014-current-source-renderer-integration.md)，首版 Goal active。** 基线 main `a60bf83`，主工作区单写者、output/ 不读不改；按 [ADR-178](decisions/PRODUCT-ADR-178-renderer-source-snapshots.md) 将三维组装来源接入新版自动完整快照，旧20摘要保护兼容，不假造封套。实际组合会重签新副本／映射目录，用户明确授权待回复，不自动执行；可独立来源修复／真实构建与只读预资格继续，旧资格不转移。
+**[DESKTOP-014](tasks/DESKTOP-014-current-source-renderer-integration.md) 来源接线阶段完成、自审通过，组合原生出口未完成；首版 Goal active。** 基线 main `a60bf83`，范围／[ADR-178](decisions/PRODUCT-ADR-178-renderer-source-snapshots.md) `de678b5`、实现`3eaa2fa`，阶段结果为本次`docs(release): verify current snapshot assembly readiness`提交。主工作区单写者、output/未读未动；新版原build-record可直接验证完整快照，旧20封套兼容，快照存在不得降级子集，不关闭全工单。
+
+- 旧封套误拒新原记录1红灯；首40／1误套文件数、次40／1上限字段名错误均留证修正。63／2发现scope共享全局数组与链接夹具越界，另两真实红灯证实漏后继工具来源／误拒Schema；数组独立与静态表只读后通过。最终工具362（30新）、11JS语法／格式通过，新增最大227、原入口164→205；目录检查叶模块保留旧导出，无新依赖环，Rust／UI／锁不改。
+- 新`desktop-release-SkHv4e`干净源码`3eaa2fa`、1141输入／指纹`30019bff…d5802086`自动封存，实际构建0。只读预资格核对桌面5／原Game32／信令2275及完整来源、版本／告知，三来源与原记录保持；未创建runtime、未组装、未重签／映射权限、未启动新App／GPU／演出后台，不转移旧资格。
+- `data/DESKTOP-014/verification.json`、source-prequalification及`logs/desktop-014-*`保留实际阶段证据。**组合出口待用户明确允许仅新内部副本ad-hoc重签／项目内目录映射**，已提问未获允许，不自动执行。其他独立软件可继续；历史音频未知失败、真实厂家／差分实灯／完整资源／8小时、客户发行／许可与独立三任务仍开放，完整Goal不结项。
 
 **[RECOVERY-002](tasks/RECOVERY-002-bounded-record-discovery.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `c62fafd`，范围先提交 `ec05e65`，实现 `025b62f`／缓冲修订 `add709f`，资格结果为本次 `docs(recovery): verify bounded directory desktop flow` 提交。主工作区单写者、output/ 未读未动；流式恢复目录只保留64候选，准确遗漏／旧副本／64预算／租约／格式保持，不是音量或新播放器。
 

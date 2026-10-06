@@ -10,4 +10,6 @@
 
 归档后实际再次核对包身份、后台、来源和完整复制清单。旧目标拒绝覆盖，失败归档保留供诊断。旧包／旧记录不回填新字段或晋级；新 `isolated-release-built` 仍只表示构建／封存，原生资格须单列，客户资格始终 false。
 
+三维组装的既有 `--internal-release-record` 现在可直接使用该准确归档目录的原始 build-record；历史20文件封套继续受原保护。原记录含快照时必须核对完整输入与包内来源，不可降级到20文件子集。原Git基线／dirty保留，文档后继不重标原包，已有实例拒绝。来源预资格只读、不建立runtime；实际组装仍会重签新副本与映射文件目录，需要对应明确授权，不能据来源通过宣布组合原生或客户发行通过。依据 [ADR-178](../../docs/development/decisions/PRODUCT-ADR-178-renderer-source-snapshots.md) 与 [DESKTOP-014](../../docs/development/tasks/DESKTOP-014-current-source-renderer-integration.md)。
+
 这不是源码不可变 checkout／完整依赖供应链／二进制可重现保证，不捕获中途改写再恢复，也不增加共享目标事务锁或防止任何并行恶意替换。环境与安装依赖树仍属后续真实发行资格；源码／资源摘要不是授权签名。依据 [ADR-177](../../docs/development/decisions/PRODUCT-ADR-177-internal-build-source-binding.md)，交付 [DESKTOP-013](../../docs/development/tasks/DESKTOP-013-source-bound-internal-build.md)。

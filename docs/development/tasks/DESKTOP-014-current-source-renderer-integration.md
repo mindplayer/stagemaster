@@ -1,6 +1,6 @@
 # DESKTOP-014：当前源码候选与三维组装来源接续
 
-状态：实施中，2026-10-06。基线 main `a60bf8304b1f016cad219e158f2345f1ccb2a9e8`，范围／ADR先提交 `de678b5`，主工作区单写者，output/ 不读不改。依据 [ADR-178](../decisions/PRODUCT-ADR-178-renderer-source-snapshots.md)；H1／H5 当前来源组合出口，首版 Goal active。来源接线已实际验证，真实构建／只读预资格接续；组合重签／目录映射授权尚未获得，不执行。
+状态：来源接线阶段完成、自审通过；组合原生出口未完成，2026-10-06。基线 main `a60bf8304b1f016cad219e158f2345f1ccb2a9e8`，范围／ADR先提交 `de678b5`、实现 `3eaa2fa`，阶段结果为本次 `docs(release): verify current snapshot assembly readiness` 提交。主工作区单写者，output/ 未读未动。依据 [ADR-178](../decisions/PRODUCT-ADR-178-renderer-source-snapshots.md)，首版 Goal active；组合重签／目录映射授权尚未获得，不执行、不关闭全工单或H1／H5。
 
 ## 一个内聚增量
 
@@ -25,3 +25,11 @@
 范围数组问题先一次混合红灯（必要Schema缺失），再分开两项：漏后继新工具来源、误拒正常Schema。独立返回元数据数组／只读静态表后通过；包原字节、全部限定输入、原基线／dirty、文档后继、真实SHA-256仓库与旧20封套均验证。原记录有快照不能降级20子集；原runtime、错身份／路径／版本／能力与重新散列资源拒绝，错误不创建runtime。
 
 最终工具全套362（30新）无跳过通过；叶目录检查保留再导出、来源→捕获→叶检查无新依赖环，最大新增文件227行、原来源入口164→205。当前没有组合原生／GPU或重签资格，后续真实构建与只读组件核对另列，不冒计Rust／UI全量。
+
+## 真实来源预资格阶段结果
+
+干净实现 `3eaa2fa4142981566e8dc5268419964cd8747c47` 实际构建 `desktop-release-SkHv4e`，原locked／offline release后台与Tauri退出0。自动1,141输入、来源指纹 `30019bff…d5802086`、dirty=false与唯一包内原字节；五文件清单／身份／后台保持。只读 desktopSources 使用该原build-record直接核对桌面5／原Game32／原信令2275文件、实际Mach-O／Node版本／许可证及来源，退出0，三份来源前后清单和原记录哈希一致。
+
+`source-prequalification.json` 明确 `runtimeCreated=false / assembled=false / signingPerformed=false / entitlementsChanged=false / nativeVerified=false / gpuVerified=false / customerPackageVerified=false`。没有调用组装器或启动新App／Game／Node服务，runtime未创建；来源核对中原Node仅 `--version` 后退出，不是音频／三维进程。数据 `data/DESKTOP-014/`、日志 `logs/desktop-014-*`；11JS语法／相关格式／严格JSON／引用／差异实际检查，Rust／UI和依赖／锁未改，不重跑或冒计此前全量。
+
+下一步需要用户明确允许仅新内部副本ad-hoc重签及项目内目录映射，才能调用原组装器并做当前音乐／唯一三维组合实际验收。未得到答复不自行签名或解除保护；已有受控软件资格仍各自绑定旧来源，不能借本阶段预资格转移。全工单与完整首版保持未完成，其余独立软件任务可继续。
