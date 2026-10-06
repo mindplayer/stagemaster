@@ -6,6 +6,8 @@
 
 再后继 [EXEC-019](tasks/EXEC-019-preview-intent-lifecycle.md) 改离线预演操作的 UI 提交保护；`desktop-release-MF5QLK` 绑定实际输入，另有无音乐人工／定时三步原生证据，同样不转移旧音乐／GPU 或客户资格。
 
+当前main已接续AUDIO-024、RECOVERY-002、DESKTOP-013／014；`desktop-release-32fMDY`无音乐原生只完成分组／预设撤销保存／精确延时与第一步执行，暂停未确认，已明确关闭，不能标为完整剧本通过。[EXEC-020](tasks/EXEC-020-source-command-evidence.md)源码已实施但最终资格及新原生仍进行中。旧音乐／GPU资格只绑定qooqnJ，完整H1–H5与所有未知失败保持开放；上段和表中各次数量必须按对应版本阅读，不代表当前main全部通过。
+
 本表是逐项出口审计，不是宣布完成或按测试／提交数量换算成熟度。标为“部分”或“未完成”的项目均不能由其软件子集代替。
 
 | 必过要求 | 可用的实际证据与范围 | 未完成／不允许扩大解释 |
