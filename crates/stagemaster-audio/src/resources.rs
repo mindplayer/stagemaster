@@ -29,14 +29,15 @@ impl Resources {
             Some(self.root.join(&key)),
             project.map(|p| adjacent(p).join(&key)),
         ];
-        candidates
-            .into_iter()
-            .flatten()
-            .find(|p| p.is_file())
-            .ok_or_else(|| {
-                "找不到音乐文件，请点“重新定位音乐”选择原文件；移动工程时须带上同名 .assets 文件夹"
-                    .into()
-            })
+        for path in candidates.into_iter().flatten() {
+            if crate::resource_paths::file(&path)?.is_some() {
+                return Ok(path);
+            }
+        }
+        Err(
+            "找不到音乐文件，请点“重新定位音乐”选择原文件；移动工程时须带上同名 .assets 文件夹"
+                .into(),
+        )
     }
     /// Inspect local playback and portable companion copies without changing them.
     /// # Errors
@@ -61,7 +62,9 @@ impl Resources {
         cancelled: &AtomicBool,
     ) -> Result<(String, PathBuf), String> {
         key(&"0".repeat(64), extension)?;
+        crate::resource_paths::directory(&self.root)?;
         fs::create_dir_all(&self.root).map_err(|e| io_error(&e))?;
+        crate::resource_paths::directory(&self.root)?;
         let size = fs::metadata(source).map_err(|e| io_error(&e))?.len();
         if size == 0 || size > MAX_FILE_BYTES {
             return Err("音乐文件需要在 1 字节至 512 MiB 之间".into());
@@ -83,15 +86,17 @@ impl Resources {
         }
         temporary.as_file().sync_all().map_err(|e| io_error(&e))?;
         let target = self.root.join(key(&digest, extension)?);
-        if target.exists() {
+        if crate::resource_paths::file(&target)?.is_some() {
             if verify(&target, &digest, cancelled).is_err() {
                 if cancelled.load(Ordering::Relaxed) {
                     return Err("音乐准备已取消".into());
                 }
                 // Repair only our content-addressed cache from the already verified temporary.
+                crate::resource_paths::file(&target)?;
                 temporary.persist(&target).map_err(|e| io_error(&e.error))?;
             }
         } else {
+            crate::resource_paths::file(&target)?;
             temporary
                 .persist_noclobber(&target)
                 .map_err(|e| io_error(&e.error))?;
@@ -112,7 +117,9 @@ impl Resources {
         let destination = adjacent(target);
         let archived = destination.join(key(digest, extension)?);
         let cancel = AtomicBool::new(false);
-        if archived.exists() && verify(&archived, digest, &cancel).is_ok() {
+        if crate::resource_paths::file(&archived)?.is_some()
+            && verify(&archived, digest, &cancel).is_ok()
+        {
             return Ok(());
         }
         Self::new(destination).import(&source, extension, Some(digest), &cancel)?;

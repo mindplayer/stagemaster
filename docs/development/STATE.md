@@ -2,7 +2,11 @@
 
 ## 当前实施入口 2026-10-06
 
-**当前接续 [AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md)，首版 Goal active。** 基线 main `fdb7546`，主工作区单写者、output/ 不读取；先实际复现受管理缓存／随附链接路径的错误接纳，再按 [ADR-176](decisions/PRODUCT-ADR-176-managed-media-paths.md) 加普通路径保护。这是工程与素材数据安全，不是音量或播放器扩展；不操作既有缓存、声音／三维／后台／真实设备。
+**[AUDIO-024](tasks/AUDIO-024-managed-resource-paths.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `fdb7546`、范围／[ADR-176](decisions/PRODUCT-ADR-176-managed-media-paths.md) 先提交 `141c3c2`、原生发现文案问题补范围 `6c17e55`，结果为本次 `fix(resources): reject unsafe managed media paths` 提交。主工作区单写者、output/ 未读未动；真实修复受管理缓存／随附链接的误接纳、误报完整与意外归档，属于资料安全，不是音量或播放器扩展。
+
+- 实际红灯 2／5→拆祖先留写入计数后 2／6，链接目录均真实写入 1 项，正确链接被误报 valid、悬空 missing；原日志保持。小型 Rust 共用普通路径核对，保留明确选择源链接读取、普通损坏修复；最终 10 新用例／音频全目标 62、UI 476、两套类型／格式通过，最大 229 行，无依赖／锁／时钟／控制权或接口变化。
+- 全工作区检查点 1337 Rust＋2 文档、3 既有 ignored，工作区全目标严格 Clippy／fmt 同监督真实退出 0；后加两测试仅最终相关全目标及严格检查，不冒加前一全量计数。两 release 内部桌面各构建／原生退出 0；最终 `desktop-release-FBhAL7` 八输入／四文件绑定，30 秒 WAV 身份但未播放：链接路径检查／保存拒绝、原 JSON／缓存／链接／目标保持，安全位置另存业务字段保持、普通 480,044 字节随附摘要正确、重查完整。
+- `data/AUDIO-024/verification.json` 与 AX／PNG／保护回执、`logs/audio-024-*`；2,113 既有来源仅四限定文件变化，历史源输入不变。首原生通用文案不准确与文件面板链接目录建议均真实留证后分开处理，不弱化 Rust 拒绝；没操作 UE／后台／真实设备，新包不转音乐／GPU／客户资格。并行恶意路径替换不在本项保证内，历史未知失败及实物／长期／客户出口仍开放，继续核心主链路。
 
 **[EXEC-019](tasks/EXEC-019-preview-intent-lifecycle.md) 本增量完成、自审通过，首版 Goal active。** 基线 main `7866520`、范围先提交 `df7400f`，结果为本次 `fix(preview): cancel stale unsent workspace intents` 提交。主工作区单写者、output/ 未读未动；实际修复离线预演等待期间切目标／隐藏后仍发送旧载入／开始的错误，不重做 EXEC-018，不等待音量答复。
 

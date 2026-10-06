@@ -71,10 +71,11 @@ export function CheckAudioResources({
               "移动工程时一起携带同名 .assets 文件夹。"
             ) : (
               <>
-                {companion.state === "invalid" && `${companion.message}。`}
-                {local.state === "valid"
-                  ? "保存工程可补齐同名 .assets 文件夹内的音乐。"
-                  : "先恢复本机音乐，再保存工程补齐随附文件。"}
+                {companion.state === "invalid"
+                  ? `${companion.message}。请核对随附目录与原文件；普通副本可保存补齐，异常路径请另存到安全位置后重新检查。`
+                  : local.state === "valid"
+                    ? "保存工程可补齐同名 .assets 文件夹内的音乐。"
+                    : "先恢复本机音乐，再保存工程补齐随附文件。"}
               </>
             )}
           </p>

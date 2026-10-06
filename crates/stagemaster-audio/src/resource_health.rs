@@ -38,27 +38,24 @@ pub(crate) fn inspect(
     let key = key(digest, extension)?;
     let cache = root.join(&key);
     let companion_path = project.map(|p| adjacent(p).join(&key));
-    // Match Resources.resolve: an existing cache file is the playback candidate,
-    // even if its digest is wrong. Do not silently choose a different copy here.
-    let (path, local_source) = if cache.is_file() {
-        (Some(cache.as_path()), Some(ResourceSource::Cache))
-    } else if let Some(path) = companion_path.as_ref().filter(|p| p.is_file()) {
-        (Some(path.as_path()), Some(ResourceSource::Companion))
-    } else {
-        (None, None)
-    };
-    let local = path.map_or(ResourceFileHealth::Missing, |p| {
-        inspect_file(p, digest, cancelled)
-    });
+    // Match resolve: an invalid cache must not silently become another playback copy.
+    let cached = inspect_file(&cache, digest, cancelled);
     let companion = companion_path
         .as_ref()
         .map_or(ResourceFileHealth::NotSaved, |p| {
-            if path == Some(p.as_path()) {
-                local.clone()
+            if p == &cache {
+                cached.clone()
             } else {
                 inspect_file(p, digest, cancelled)
             }
         });
+    let (local, local_source) = if cached != ResourceFileHealth::Missing {
+        (cached, Some(ResourceSource::Cache))
+    } else if companion_path.is_some() && companion != ResourceFileHealth::Missing {
+        (companion.clone(), Some(ResourceSource::Companion))
+    } else {
+        (ResourceFileHealth::Missing, None)
+    };
     if cancelled.load(Ordering::Relaxed) {
         return Err("音乐资源检查已取消".into());
     }
@@ -69,15 +66,10 @@ pub(crate) fn inspect(
     })
 }
 fn inspect_file(path: &Path, digest: &str, cancelled: &AtomicBool) -> ResourceFileHealth {
-    match std::fs::metadata(path) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => ResourceFileHealth::Missing,
-        Err(e) => ResourceFileHealth::Invalid {
-            message: format!("无法读取音乐文件：{e}"),
-        },
-        Ok(metadata) if !metadata.is_file() => ResourceFileHealth::Invalid {
-            message: "音乐路径不是普通文件".into(),
-        },
-        Ok(metadata) if metadata.len() > MAX_FILE_BYTES => ResourceFileHealth::Invalid {
+    match crate::resource_paths::file(path) {
+        Ok(None) => ResourceFileHealth::Missing,
+        Err(message) => ResourceFileHealth::Invalid { message },
+        Ok(Some(metadata)) if metadata.len() > MAX_FILE_BYTES => ResourceFileHealth::Invalid {
             message: "音乐文件超过 512 MiB".into(),
         },
         Ok(_) => match verify(path, digest, cancelled) {

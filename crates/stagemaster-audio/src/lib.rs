@@ -6,6 +6,7 @@ pub use output_scope::{OutputLease, OutputScope};
 #[cfg(all(test, unix))]
 mod output_scope_tests;
 mod resource_health;
+mod resource_paths;
 mod resources;
 pub use resource_health::{ResourceFileHealth, ResourceHealth, ResourceSource};
 mod looping;
