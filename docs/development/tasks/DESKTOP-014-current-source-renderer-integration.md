@@ -1,5 +1,21 @@
 # DESKTOP-014：当前源码候选与三维组装来源接续
 
+## 2026-10-07 用户要求整合 UE，接续组装
+
+本次基线 main `0c61dcd`，主工作区单写者；用户明确要求把 UE 整合到当前桌面应用，并再次要求删除上一版。此授权覆盖本次沿用既有组装器对新内部副本作 ad-hoc 签名和准确实例目录配置，历史“等待组装授权”不再是阻塞。沿用现有独立 Game、信令和 Rust 启动器，不改系统权限、不重新构建 UE、不连接真实灯具。
+
+先构建当前来源的新桌面，再组装 UE、包内 Node／信令／资源并完成相关签名／启动检查。新版本可用后删除旧桌面与中间桌面 App，保留工程、用户数据、源组件和构建记录。只做本次集成必要检查，不重新跑全量或依赖用户实灯验收。实际结果在本节补充，后续段落是历史记录。
+
+### 本次实际交付
+
+- 当前来源 `0c61dcd` 的新 release 桌面构建退出 0；实例 `desktop-release-hjQfsO`，继承最新 UX-052 界面和 PREVIS-014 运行目录修正，没有新增产品代码或重跑全量。
+- 复用独立 Game `previs-package-dGdEOa`、信令 `previs-signalling-sVNMaV`，原组装器实际退出 0，约 4 秒；复制并绑定 2,314 个文件。原 Game、新 Game、新桌面严格签名检查通过，副本的准确五目录资格与内嵌依赖核对通过，源组件保持。
+- 交付 `data/PREVIS-007/desktop-release-hjQfsO/舞台大师 内部验收.app`（约 773 MiB）及同目录 `启动舞台大师.command`；内含独立 UE Game／Pak／灯具模型与材质、Node、官方画面信令。运行时走内嵌组件分支，无需 UE 编辑器或系统 Node。
+- 新桌面已通过启动脚本启动，PID 18278、日志无错误。Computer Use 拒绝新应用操作权限，故未自动点击应用内三维入口，未确认内嵌视频画面，也不将历史原生资格转到本包。
+- 对**本包内** Game 做一次必要启动／资源检查：真实 Metal RHI、1280×720 离屏、无声音／无真实灯具；`StageMaster.Previs.RuntimeAssets` 1 项成功、0 失败，约 6 秒正常退出 0，模型／材质／默认 H264 设置通过。没有 `NullRHI`，但此结果不是应用内 WebRTC 画面或音频／三维组合验收。所属测试 Game 已结束，无遗留报告助手。
+- 用户再次要求删除上一版：已删除旧 `w0muDX` App／旧启动脚本以及 `hjQfsO` 的两个未含 UE 中间 App；只保留已组装版本的应用注册，当前应用及其工程／运行数据保持。构建记录保留，原记录列出的中间包今后不存在，不再作为可用入口。
+- 证据：本组装目录的 `assembly-record.json`、`integrated-assets-check.json`、`desktop-replacement.json`；日志 `logs/desktop-014-integrated-{build,assembly,app}.log`、`tmp/desktop-desktop-release-hjQfsO/logs/previs/integrated-assets-*.log`。本次整合交付完成；应用内画面、完整音乐／三维组合和客户发行资格尚未关闭。
+
 状态：来源接线阶段完成、自审通过；组合原生出口未完成，2026-10-06。基线 main `a60bf8304b1f016cad219e158f2345f1ccb2a9e8`，范围／ADR先提交 `de678b5`、实现 `3eaa2fa`，阶段结果为本次 `docs(release): verify current snapshot assembly readiness` 提交。主工作区单写者，output/ 未读未动。依据 [ADR-178](../decisions/PRODUCT-ADR-178-renderer-source-snapshots.md)，首版 Goal active；组合重签／目录映射授权尚未获得，不执行、不关闭全工单或H1／H5。
 
 ## 一个内聚增量
