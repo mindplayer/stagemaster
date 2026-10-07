@@ -2,7 +2,7 @@
 
 ## 当前接续入口 2026-10-07
 
-**[REPO-001](tasks/REPO-001-private-source-handoff.md) 源码交接已准备，私有仓库已创建，待推送核对。** 用户要求上传至个人 `mindplayer/stagemaster`，同事使用 Apple 芯片 Mac，第三方依赖自行下载。新增 [Mac 构建说明](build-macos.md)，覆盖锁定依赖下载、UE／信令组件、桌面整包及实例启动；明确本地内部包与客户发行的边界。UE 构建增加显式 `--build-only`，成功仅记 `component-built`，默认严格资源报告要求不变。相关 26 项工具测试、JS／组装片段语法和文档链接通过，历史扫描未发现真实密钥或依赖二进制；不重新全量编译，不改现有 App，不操作设备，`output/` 仅增加忽略规则且未读未动。GitHub 仓库已核实为 PRIVATE，上传结果随后核对。
+**[REPO-001](tasks/REPO-001-private-source-handoff.md) 已完成源码交接，私有仓库已上传。** 基线 `902d803`，源码／构建交接提交 `0f850e2` 已推送至 [mindplayer/stagemaster](https://github.com/mindplayer/stagemaster)，远端 main 与本地提交逐字核对一致、可见性 PRIVATE；后续本条收尾文档随 main 提交。新增 [Apple 芯片 Mac 构建说明](build-macos.md)，覆盖锁定依赖下载、UE／信令组件、桌面整包及实例启动；同事自行下载第三方依赖，不上传库、引擎、缓存或编译产物。UE 增加显式 `--build-only`，仅记 `component-built`，默认严格资源报告要求不变。相关 26 项工具测试、JS／组装片段语法、文档链接和忽略检查通过，历史扫描未发现真实密钥或依赖二进制；不重新全量编译，不改现有 App，不操作设备，`output/` 仅增加忽略规则且未读未动。当前内部包与跨机器客户发行的区别已写入说明，产品仍按 S1–S3 接续。
 
 **最新唯一桌面版已整合 UE：[DESKTOP-014 本次交付](tasks/DESKTOP-014-current-source-renderer-integration.md)。** 用户明确“整合 UE”并要求删除上一版；以 `0c61dcd` 当前来源生成 `desktop-release-hjQfsO`，沿用原独立 Game／信令组装成功，新旧组件及整包严格签名检查通过。当前 App 为 `data/PREVIS-007/desktop-release-hjQfsO/舞台大师 内部验收.app`（约 773 MiB），使用同目录 `启动舞台大师.command`。内含 UE／运行资源／Node／信令，无需外部 UE 编辑器；新桌面已启动。
 
