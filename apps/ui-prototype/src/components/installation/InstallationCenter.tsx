@@ -5,8 +5,14 @@ import { InstallationTask } from "./InstallationTask";
 import "./installation.css";
 export function InstallationCenter({
   controller,
+  canPrepare = false,
+  onPreparePackage,
+  onManageDevice,
 }: {
   controller: InstallationController;
+  canPrepare?: boolean;
+  onPreparePackage?(): Promise<void>;
+  onManageDevice?(): void;
 }) {
   const {
     view,
@@ -68,6 +74,18 @@ export function InstallationCenter({
             </button>
           </header>
           <div className="wb-install-body">
+            {onPreparePackage && (
+              <section className="wb-install-prepare" aria-label="准备播放包">
+                <button
+                  className="wb-primary"
+                  disabled={!canPrepare}
+                  onClick={() => void onPreparePackage()}
+                >
+                  选择节目并生成播放包
+                </button>
+                {!canPrepare && <p>请先打开工程，完成当前编辑后选择节目。</p>}
+              </section>
+            )}
             <section className="wb-install-target" aria-label="当前连接设备">
               <strong>{view?.destination.name || "尚未连接设备"}</strong>
               <p>
@@ -77,6 +95,11 @@ export function InstallationCenter({
                     view?.destination.reason ||
                     "正在读取设备状态…"}
               </p>
+              {onManageDevice && (
+                <button onClick={onManageDevice}>
+                  {view?.destination.deviceId ? "管理设备连接" : "连接设备"}
+                </button>
+              )}
             </section>
             {(error || communicationError) && (
               <div className="wb-install-error" role="alert">
@@ -92,7 +115,10 @@ export function InstallationCenter({
             {task ? (
               <InstallationTask task={task} controller={controller} />
             ) : (
-              <p>在工程的“播放包”中选择节目，生成后下发到当前连接设备。</p>
+              <p>尚无安装任务。播放包生成后，可另存文件或安装到设备。</p>
+            )}
+            {task?.phase === "installed" && task.receipt && onManageDevice && (
+              <button onClick={onManageDevice}>查看设备节目</button>
             )}
           </div>
           <footer>收起面板后继续处理；安装不会启动灯光输出。</footer>

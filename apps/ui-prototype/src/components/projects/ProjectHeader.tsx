@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import type { ApplicationHost, Snapshot } from "../../application-host";
 import type { InstallationController } from "../installation/useInstallation";
+import type { DeliveryNavigation } from "../installation/useDeliveryNavigation";
 import { DeviceTools } from "../devices/DeviceTools";
 export function ProjectHeader({
   host,
@@ -16,6 +17,7 @@ export function ProjectHeader({
   busy,
   hasDrafts,
   installation,
+  delivery,
   onNew,
   onOpen,
   onRecent,
@@ -29,6 +31,7 @@ export function ProjectHeader({
   busy: boolean;
   hasDrafts: boolean;
   installation: InstallationController;
+  delivery: DeliveryNavigation;
   onNew(): void;
   onOpen(): void;
   onRecent(): void;
@@ -54,7 +57,12 @@ export function ProjectHeader({
         </div>
       )}
       <div className="wb-file-actions">
-        <DeviceTools host={host} installation={installation} />
+        <DeviceTools
+          host={host}
+          installation={installation}
+          delivery={delivery}
+          canPrepare={!!project && !busy}
+        />
         <button
           title="新建工程（⌘N / Ctrl+N）"
           disabled={busy || host.kind !== "desktop"}

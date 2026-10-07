@@ -35,6 +35,7 @@ import { ProjectStart } from "./components/projects/ProjectStart";
 import { RecentProjectsDialog } from "./components/projects/RecentProjectsDialog";
 import { startInstallationReason } from "./installation-tools";
 import { useInstallation } from "./components/installation/useInstallation";
+import { useDeliveryNavigation } from "./components/installation/useDeliveryNavigation";
 import { RecoveryCenter } from "./components/workbench/RecoveryCenter";
 import type { RecoveryEntry } from "./recovery-types";
 import type { CheckLocation } from "./check-types";
@@ -753,6 +754,15 @@ export function Workbench({ host }: { host: ApplicationHost }) {
     return () => window.removeEventListener("keydown", keydown);
   }, [host]);
 
+  const delivery = useDeliveryNavigation(
+    () =>
+      run(async () => {
+        setPage("settings");
+        restoreForm("settings");
+      }),
+    () => installation.setOpen(false),
+  );
+
   return (
     <main className="workbench">
       <ProjectHeader
@@ -762,6 +772,7 @@ export function Workbench({ host }: { host: ApplicationHost }) {
         busy={busy}
         hasDrafts={hasDrafts}
         installation={installation}
+        delivery={delivery}
         onNew={() => void fileAction("new")}
         onOpen={() => void fileAction("open")}
         onRecent={() => {
@@ -1290,6 +1301,9 @@ export function Workbench({ host }: { host: ApplicationHost }) {
                             installation.view,
                             installation.communicationError,
                           ),
+                          focusRequest: delivery.packageFocus,
+                          onManageDevice: delivery.openDevice,
+                          onInstallation: () => installation.setOpen(true),
                         }}
                         onSaveResources={(generation) =>
                           save(false, generation)

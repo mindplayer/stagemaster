@@ -29,6 +29,9 @@ export function PackagePanel({
   onInstall,
   installReason: destinationReason,
   targetExecutionSemantics,
+  focusRequest = 0,
+  onManageDevice,
+  onInstallation,
 }: {
   host: ApplicationHost;
   project: ProjectView;
@@ -41,7 +44,19 @@ export function PackagePanel({
   onInstall(generation: number, token: string): Promise<void>;
   installReason: string | null;
   targetExecutionSemantics?: number;
+  focusRequest?: number;
+  onManageDevice?(): void;
+  onInstallation?(): void;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const focusedRequest = useRef(0);
+  useEffect(() => {
+    if (visible && focusRequest > focusedRequest.current) {
+      focusedRequest.current = focusRequest;
+      heading.current?.focus({ preventScroll: true });
+      heading.current?.scrollIntoView({ block: "start" });
+    }
+  }, [visible, focusRequest]);
   const [selected, setSelected] = useState<PackageSelection[]>([]);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<"all" | PackageSelection["kind"]>("all");
@@ -158,10 +173,24 @@ export function PackagePanel({
     <section className="wb-package" aria-label="播放包">
       <div className="wb-package-heading">
         <div>
-          <h2>播放包</h2>
+          <h2 ref={heading} tabIndex={-1}>
+            播放包
+          </h2>
           <p>选择场景或完整列表，导出独立节目文件</p>
         </div>
         <span className="wb-package-badge">单路输出</span>
+      </div>
+      <div className="wb-package-toolbar">
+        {onManageDevice && (
+          <button disabled={host.kind !== "desktop"} onClick={onManageDevice}>
+            设备连接
+          </button>
+        )}
+        {onInstallation && (
+          <button disabled={host.kind !== "desktop"} onClick={onInstallation}>
+            安装进度与结果
+          </button>
+        )}
       </div>
       <div className="wb-package-toolbar">
         <input

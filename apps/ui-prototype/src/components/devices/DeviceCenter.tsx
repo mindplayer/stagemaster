@@ -21,15 +21,22 @@ export function DeviceCenter({
   host,
   dismiss = false,
   onOpen,
+  revealRequest = 0,
+  onInstallation,
 }: {
   host: ApplicationHost;
   dismiss?: boolean;
   onOpen?(): void;
+  revealRequest?: number;
+  onInstallation?(): void;
 }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (dismiss) setOpen(false);
   }, [dismiss]);
+  useEffect(() => {
+    if (revealRequest > 0) setOpen(true);
+  }, [revealRequest]);
   const [snapshot, setSnapshot] = useState<DeviceSnapshot | null>(null);
   const runtime = useDeviceRuntime(host.deviceRuntime, snapshot);
   const [mode, setMode] = useState<"installation" | "runtime">("installation");
@@ -320,7 +327,12 @@ export function DeviceCenter({
               <p>连接标识随系统和设备启动变化，不作为设备身份认证。</p>
             </details>
           </div>
-          <footer>收起面板后保持连接；退出应用后断开。</footer>
+          <footer>
+            {onInstallation && (
+              <button onClick={onInstallation}>返回节目下发</button>
+            )}
+            <p>收起面板后保持连接；退出应用后断开。</p>
+          </footer>
         </aside>
       }
     </>

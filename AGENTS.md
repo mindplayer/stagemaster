@@ -50,6 +50,8 @@
 
 ## 验证与交付
 
+2026-10-07 用户要求迅速进入实现、编译和打包：每个增量只做变更相关检查，已有通过结论未受影响时不重复全量验证；完整回归集中在候选版收敛时。本轮优先软件闭环，不等待用户协同真实测试。编译、数据／执行边界的必要正确性检查仍保留，不把模拟结果报告为真实输出。
+
 Rust 常用命令：`cargo fmt --all`、`cargo fmt --all -- --check`、`cargo test --workspace --locked --offline`、`cargo clippy --workspace --all-targets --locked --offline -- -D warnings`。
 缺失依赖单独处理并记录，不修改命令来掩盖已有失败。非代码变更只做相关检查；清理构建产物后按需要验证当前源码能重新构建。
 交付包含工单 ID、基线／结果版本、变更摘要、实际验证结果和未解决项。当前会话维护 `docs/development/STATE.md`；重大决定写入独立决策文档。方法详见 `docs/development/README.md`。
