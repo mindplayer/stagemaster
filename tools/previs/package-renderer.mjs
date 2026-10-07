@@ -9,12 +9,11 @@ import {
 } from "node:fs";
 import { basename, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { packagingPlan } from "./packaging-plan.mjs";
 import {
-  packagingPlan,
-  runtimeCheck,
-  runtimeAssetTest,
-  successfulReport,
-} from "./packaging-plan.mjs";
+  rendererPackageOptions,
+  checkRendererPackage,
+} from "./renderer-package-check.mjs";
 import {
   metalToolchain,
   requirePlatformTempPermission,
@@ -43,8 +42,7 @@ export function packagedProgram(archive) {
 }
 
 export async function packageRenderer() {
-  if (process.argv.length > 2)
-    throw new Error("此命令不接受额外参数；引擎路径使用 STAGEMASTER_UE_ROOT");
+  const options = rendererPackageOptions(process.argv.slice(2));
   const root = fileURLToPath(new URL("../../", import.meta.url));
   if (process.platform !== "darwin" || process.arch !== "arm64")
     throw new Error("本打包增量仅支持 Mac ARM64");
@@ -79,6 +77,7 @@ export async function packageRenderer() {
   mkdirSync(plan.archive, { recursive: true });
   const evidence = {
     status: "running",
+    options,
     version,
     metal,
     plan,
@@ -94,24 +93,7 @@ export async function packageRenderer() {
     await runCommand(plan.uat, plan);
     const program = packagedProgram(plan.archive);
     evidence.staticDependencies = inspectMacBundle(root, program);
-    const check = runtimeCheck(plan, program);
-    evidence.runtimeCheck = check;
-    // Packaged Game lacks the editor HTML helper which otherwise creates this directory.
-    // JSON evidence is required independently; never accept only its exit code or text log.
-    mkdirSync(check.report, { recursive: true });
-    await runCommand(check, plan);
-    const report = JSON.parse(
-      readFileSync(join(check.report, "index.json"), "utf8").replace(
-        /^\uFEFF/,
-        "",
-      ),
-    );
-    evidence.tests = successfulReport(report, runtimeAssetTest);
-    evidence.program = program;
-    evidence.status = "component-verified";
-    console.log(
-      `独立组件／必需资源通过：${program}（未代表桌面／GPU／客户安装验收）`,
-    );
+    await checkRendererPackage(evidence, program, options);
   } catch (error) {
     evidence.status = "failed";
     evidence.error = error.message;

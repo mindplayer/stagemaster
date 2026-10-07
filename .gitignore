@@ -6,6 +6,7 @@
 
 # Project-local runtime state and secrets.
 /data/
+/output/
 /logs/
 /tmp/
 /.worktrees/

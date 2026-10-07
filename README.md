@@ -2,11 +2,19 @@
 
 声光电一体化的编排、现场控制与专业预演系统。编排／现场控对标 grandMA3／Avolites Titan，专业展示与仿真对标 Depence，编排界面借鉴剪映式连续工作流。长期覆盖电脑、平板、手机及专业实体控台，并支持云端资源／分发／商业授权与有线／无线解码器。当前在 MacBook 开发，核心为 Rust，桌面为 Tauri 2＋React＋TypeScript；未来云端使用 Fastify＋PostgreSQL＋对象存储。
 
+## 下载源码与打包
+
+私有仓库：`mindplayer/stagemaster`。同事请先阅读 [Apple 芯片 Mac 构建说明](docs/development/build-macos.md)，按步骤下载依赖、构建桌面和 UE，并生成应用内三维的完整内部包。仓库包含源码、测试、依赖清单／锁文件和文档；第三方库、UE 引擎、缓存、用户工程和应用产物均由本机下载或生成，不上传 Git。
+
+当前整包包含 UE 独立渲染组件与 Node／信令，运行时不需要外部编辑器；构建时需要 UE 5.8.3、Xcode 26.1.1、Node 24.17.0 和 Rust 1.97.1。它仍是绑定本机项目目录的内部开发包，尚不是签名／公证完成的客户发行包。业务模块入口见 [代码地图](docs/development/sol-handoff/code-map.md)。
+
+## 当前产品方向
+
 2026-10-02 当前优先级：先扎实共享工程、执行与同步、控制权、渲染、设备适配和云端商业化的框架边界，再按可用增量丰满具体操作。各端共享语义和接口，按设备能力适配交互、宿主及渲染。见 [ADR-097](docs/development/decisions/PRODUCT-ADR-097-integrated-stage-platform.md) 与 [PLAN-003](docs/development/tasks/PLAN-003-platform-framework.md)。
 
 2026-10-04 接续：框架审查已按原范围完成，现按[开发交接路线](docs/development/sol-handoff/roadmap.md)完善单机编排和一路 DMX 交付闭环，再扩展专业能力、云端及其他终端；不重复技术选型或已完成的框架评估。
 
-2026-10-07：[商业进度评估](docs/development/commercial-readiness-2026-10-07.md)与[首发完善计划](docs/development/first-commercial-release-plan.md)更新当前排序。推荐先完成小型固定场地的 Mac 编排＋一路 ESP32 自主灯光套装，优先真实输出、本地操作、稳定性和客户发行；音乐／专业 UE 等原目标保留独立出口，尚不能称整个声光电平台已可商用。
+2026-10-07：当前按[首发完善计划顶部 S1–S3](docs/development/first-commercial-release-plan.md)优先软件归一化、软件全链闭环与编译打包，不等待协同真实测试。[商业进度评估](docs/development/commercial-readiness-2026-10-07.md)中的真实输出、本地操作、稳定性和客户发行保留后续出口；尚不能称整个声光电平台已可商用。
 
 本大轮按软件开发的基本方法小步推进：限定问题、最小实现、相关验证、集成与记录；保持现有能力可用，优先修复明显缺陷，具体细节以后迭代，不一次铺开全部产品能力。
 
@@ -30,7 +38,7 @@
 - [音乐卡点](docs/module-api/audio-editing.md)：真实文件播放、WaveSurfer 波形、手动卡点与场景绑定；[灯光段落编辑](docs/development/tasks/UX-022-audio-lighting-lane.md)和[资源健康检查](docs/development/tasks/UX-028-project-resource-health.md)已接通。
 - [灯具建档与配适](docs/module-api/fixture-authoring.md)、[摇头位置](docs/module-api/positioning.md)：调光／RGB／两轴、8/16 位、默认值／反向／零偏、共同点静态对焦；复杂通道功能待补。
 - [场地与挂灯](docs/development/tasks/STAGE-001-rigging-workflow.md)、[场地目录与显隐](docs/development/tasks/UX-025-stage-organization.md)、[中央选灯](docs/development/tasks/UX-026-scene-plan-selection.md)：真实空间、构件、支撑体、灯位与共享有序选择；[参数座区](docs/development/tasks/STAGE-003-parametric-seating.md) 可整体编排座椅、净通道和朝向并同步 UE。
-- [唯一三维工作区](docs/development/tasks/PREVIS-002-single-workspace.md)：程序内 UE 画面与 Rust 播放联动；当前仍需本机 UE 开发环境，客户独立打包和专业光学未完成。
+- [唯一三维工作区](docs/development/tasks/PREVIS-002-single-workspace.md)：程序内 UE 画面与 Rust 播放联动；[当前内部整包](docs/development/tasks/DESKTOP-014-current-source-renderer-integration.md)已内含渲染组件，构建需本机 UE 开发环境，客户发行与专业光学未完成。
 - [执行工作区](docs/development/tasks/UX-021-execution-view.md)、[灯组预设](docs/module-api/editing-library.md)、[搜索选择](docs/development/tasks/UX-027-searchable-resources.md)：当前／下一／所选、跳转确认、单列表播放和可撤销资源编辑。
 - [设备安装验收](docs/development/tasks/DEVICE-002-direct-installation-acceptance.md)：免系统配对的加密 GATT、保活、真实双槽安装与恢复；[分层内存保护](docs/development/tasks/MEMORY-001-bounded-board-memory.md)已实板验证，安装不等于现场播放。
 - [工程容量与持久化](docs/module-api/project-capacity.md)、[独立播放包](docs/module-api/playback-package.md)、[设备运行边界](docs/module-api/device-runtime.md)：工程编辑与受限端执行解耦，媒体不装入当前 ESP32。

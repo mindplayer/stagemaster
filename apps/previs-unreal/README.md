@@ -1,5 +1,7 @@
 # 舞台大师三维适配器
 
+首次从私有仓库接手请按 [Apple 芯片 Mac 完整构建说明](../../docs/development/build-macos.md) 下载依赖并组装桌面。`package-renderer.mjs --build-only` 是明确的构建入口，只记录 `component-built`；不传参数仍执行并严格检查资源报告。以下工单段落包含历史组件验收边界，不能代替最新整包构建说明。
+
 此模块消费 Rust 生成的空间和灯光状态，在舞台大师“舞台 → 三维预演”或“编排 → 显示三维”内部显示。工程、播放时钟和真实输出均不归 UE 管理。接口见 [预演契约](../../docs/module-api/previsualization.md)，接入决策见 [ADR-019](../../docs/development/decisions/PRODUCT-ADR-019-embedded-previsualization.md)。
 
 协议 2 接入 Rust 量化后的两轴姿态，独立显示底座／水平支架／垂直灯头。支持场景静态指向和列表轴角渐变；通用网格不代表真实灯具尺寸，未实现图案盘、物理光度或自动校准。详见 [POSITION-001](../../docs/development/tasks/POSITION-001-moving-head-workflow.md)。
